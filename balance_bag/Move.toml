@@ -1,0 +1,9 @@
+[package]
+name="BalanceBag"
+version="0.0.1"
+
+[dependencies]
+Sui = { local = "../../sui/crates/sui-framework" }
+
+[addresses]
+balance_bag="0x0"

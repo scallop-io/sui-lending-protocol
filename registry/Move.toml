@@ -1,0 +1,9 @@
+[package]
+name="Registry"
+version="0.0.1"
+
+[dependencies]
+Sui = { local = "../../sui/crates/sui-framework" }
+
+[addresses]
+registry="0x0"

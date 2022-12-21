@@ -1,7 +1,4 @@
-module mobius_admin::exponential {
-  
-  use std::error;
-  
+module math::exponential {
   // e18
   const EXP_SCALE: u128 = 1000000000000000000;
   const DOUBLE_SCALE: u128 = 1000000000000000000000000000000000000u128;
@@ -30,8 +27,8 @@ module mobius_admin::exponential {
   
   public fun exp(num: u128, denom: u128): Exp {
     //        if overflow move will abort
-    let scaledNumerator = mul_u128((num as u128), EXP_SCALE);
-    let rational = div_u128(scaledNumerator, (denom as u128));
+    let scaledNumerator = mul_u128(num, EXP_SCALE);
+    let rational = div_u128(scaledNumerator, denom);
     Exp {
       mantissa: rational
     }
@@ -154,13 +151,6 @@ module mobius_admin::exponential {
   }
   
   
-  fun safe64(v: u128): u64 {
-    if (v <= U64_MAX) {
-      return (v as u64)
-    };
-    abort error::invalid_argument(OVER_FLOW)
-  }
-  
   fun add_u128(a: u128, b: u128): u128 {
     a + b
   }
@@ -178,9 +168,7 @@ module mobius_admin::exponential {
   }
   
   fun div_u128(a: u128, b: u128): u128 {
-    if (b == 0) {
-      abort error::invalid_argument(DIVIDE_BY_ZERO)
-    };
+    assert!(b != 0, DIVIDE_BY_ZERO);
     if (a == 0) {
       return 0
     };

@@ -1,8 +1,9 @@
 module mobius_core::bank {
   use sui::object::{Self, UID};
-  use sui::coin::{Self, TreasuryCap};
   use sui::balance::{Self, Supply, Balance};
   use sui::tx_context::{TxContext};
+  use mobius_core::bank_stats;
+  use mobius_core::bank_stats::BankStats;
   
   friend mobius_core::admin;
   
@@ -10,24 +11,22 @@ module mobius_core::bank {
   
   const INITIAL_EXCHANGE_RATE: u64 = 1;
   
-  struct Bank<phantom UnderlyingCoin, phantom BankCoin> has key, store {
+  struct BankCoin<phantom T> has drop {}
+  
+  struct Bank<phantom T> has key, store {
     id: UID,
-    bankCoinSupply: Supply<BankCoin>,
-    underlyingCashBalance: Balance<UnderlyingCoin>,
+    bankCoinSupply: Supply<BankCoin<T>>,
+    underlyingCashBalance: Balance<T>,
     underlyingLendAmount: u64,
-    underlyingReserveBalance: Balance<UnderlyingCoin>,
+    underlyingReserveBalance: Balance<T>,
+    lastUpdatedTimestamp: u64
   }
   
   // create a bank for underlying coin
-  public(friend) fun new<UnderlyingCoin, BankCoin: drop>(
-    bankCoinTreasuryCap: TreasuryCap<BankCoin>,
+  public(friend) fun new<T>(
     ctx: &mut TxContext
-  ): Bank<UnderlyingCoin, BankCoin> {
-    // We ask for treasuryCap, in order to make sure it's created from create_currency
-    let bankCoinSupply = coin::treasury_into_supply(bankCoinTreasuryCap);
-    
-    // The bank coin must have 0 supply, when creating bank
-    assert!(balance::supply_value(&bankCoinSupply) == 0, EBankCoinInitialSupplyNotZero);
+  ): Bank<T> {
+    let bankCoinSupply = balance::create_supply( BankCoin {} );
     
     Bank {
       id: object::new(ctx),
@@ -35,45 +34,73 @@ module mobius_core::bank {
       underlyingCashBalance: balance::zero(),
       underlyingLendAmount: 0,
       underlyingReserveBalance: balance::zero(),
+      lastUpdatedTimestamp: 0
     }
   }
   
   // deposit coin to get bankCoin
-  public(friend) fun mint<UnderlyingCoin, BankCoin>(
-    coinBank: &mut Bank<UnderlyingCoin, BankCoin>,
-    underlyingBalance: Balance<UnderlyingCoin>,
-  ): Balance<BankCoin> {
-    mint_(coinBank, underlyingBalance)
+  public(friend) fun mint<T>(
+    self: &mut Bank<T>,
+    bankStats: &mut BankStats,
+    underlyingBalance: Balance<T>,
+  ): Balance<BankCoin<T>> {
+    let bankBalance = mint_(self, underlyingBalance);
+    bank_stats::update(bankStats, self);
+    bankBalance
   }
   
   // return bankCoin to get coin
-  public(friend) fun redeem<UnderlyingCoin, BankCoin>(
-    bank: &mut Bank<UnderlyingCoin, BankCoin>,
-    bankCoinBalance: Balance<BankCoin>,
-  ): Balance<UnderlyingCoin> {
-    redeem_(bank, bankCoinBalance)
+  public(friend) fun redeem<T>(
+    self: &mut Bank<T>,
+    bankStats: &mut BankStats,
+    bankCoinBalance: Balance<BankCoin<T>>,
+  ): Balance<T> {
+    let balance = redeem_(self, bankCoinBalance);
+    bank_stats::update(bankStats, self);
+    balance
   }
   
   // borrow underlying coin from bank
-  public(friend) fun borrow<UnderlyingCoin, BankCoin>(
-    bank: &mut Bank<UnderlyingCoin, BankCoin>,
+  public(friend) fun borrow<T>(
+    self: &mut Bank<T>,
+    bankStats: &mut BankStats,
     amount: u64,
-  ): Balance<UnderlyingCoin> {
-    borrow_(bank, amount)
+  ): Balance<T> {
+    let balance = borrow_(self, amount);
+    bank_stats::update(bankStats, self);
+    balance
   }
   
   // borrow underlying coin from bank
-  public(friend) fun repay<UnderlyingCoin, BankCoin>(
-    bank: &mut Bank<UnderlyingCoin, BankCoin>,
-    underlyingBalance: Balance<UnderlyingCoin>,
+  public(friend) fun repay<T>(
+    self: &mut Bank<T>,
+    bankStats: &mut BankStats,
+    underlyingBalance: Balance<T>,
   ) {
-    repay_(bank, underlyingBalance)
+    repay_(self, underlyingBalance);
+    bank_stats::update(bankStats, self);
   }
   
-  fun mint_<UnderlyingCoin, BankCoin>(
-    bank: &mut Bank<UnderlyingCoin, BankCoin>,
-    underlyingBalance: Balance<UnderlyingCoin>,
-  ): Balance<BankCoin> {
+  /// return (totalLending, totalCash, totalReserve)
+  public fun balance_sheet<T>(
+    bank: &Bank<T>
+  ): (u64, u64, u64) {
+    let totalCash = balance::value(&bank.underlyingCashBalance);
+    let totalLending = bank.underlyingLendAmount;
+    let totalReserve = balance::value(&bank.underlyingReserveBalance);
+    (totalLending, totalCash, totalReserve)
+  }
+  
+  public fun last_updated<T>(
+    bank: &Bank<T>
+  ): u64 {
+    bank.lastUpdatedTimestamp
+  }
+  
+  fun mint_<T>(
+    bank: &mut Bank<T>,
+    underlyingBalance: Balance<T>,
+  ): Balance<BankCoin<T>> {
     // mint bank balance according to exchange rate
     let exchangeRate = cal_exchange_rate_(bank);
     /// TODO: the math needs to be adjusted to handle floating numbers
@@ -87,10 +114,10 @@ module mobius_core::bank {
     mintedBankCoinBalance
   }
   
-  fun redeem_<UnderlyingCoin, BankCoin>(
-    bank: &mut Bank<UnderlyingCoin, BankCoin>,
-    bankCoinBalance: Balance<BankCoin>,
-  ): Balance<UnderlyingCoin> {
+  fun redeem_<T>(
+    bank: &mut Bank<T>,
+    bankCoinBalance: Balance<BankCoin<T>>,
+  ): Balance<T> {
     // withdraw balance from cash according to exchange rate
     let exchangeRate = cal_exchange_rate_(bank);
     /// TODO: the math needs to be adjusted to handle floating numbers
@@ -104,19 +131,19 @@ module mobius_core::bank {
     withdrawedUnderlyingBalance
   }
   
-  fun borrow_<UnderlyingCoin, BankCoin>(
-    bank: &mut Bank<UnderlyingCoin, BankCoin>,
+  fun borrow_<T>(
+    bank: &mut Bank<T>,
     borrowAmount: u64,
-  ): Balance<UnderlyingCoin> {
+  ): Balance<T> {
     // increase the lend amount
     bank.underlyingLendAmount = bank.underlyingLendAmount + borrowAmount;
     // take the balance from cash
     balance::split(&mut bank.underlyingCashBalance, borrowAmount)
   }
   
-  fun repay_<UnderlyingCoin, BankCoin>(
-    bank: &mut Bank<UnderlyingCoin, BankCoin>,
-    underlyingBalance: Balance<UnderlyingCoin>,
+  fun repay_<T>(
+    bank: &mut Bank<T>,
+    underlyingBalance: Balance<T>,
   ) {
     // decrease the lend amount
     bank.underlyingLendAmount = bank.underlyingLendAmount - balance::value(&underlyingBalance);
@@ -124,8 +151,8 @@ module mobius_core::bank {
     balance::join(&mut bank.underlyingCashBalance, underlyingBalance);
   }
   
-  fun cal_exchange_rate_<UnderlyingCoin, BankCoin>(
-    bank: &Bank<UnderlyingCoin, BankCoin>
+  fun cal_exchange_rate_<T>(
+    bank: &Bank<T>
   ): u64 {
     let x = balance::value(&bank.underlyingCashBalance) + bank.underlyingLendAmount;
     let y = balance::supply_value(&bank.bankCoinSupply);

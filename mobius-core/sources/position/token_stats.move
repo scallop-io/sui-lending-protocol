@@ -43,4 +43,16 @@ module mobius_core::token_stats {
     };
     assert!(true, 0)
   }
+  
+  public fun stats(stats: &TokenStats): &vector<Stat> {
+    &stats.stats
+  }
+  
+  public fun token_type(stat: &Stat): TypeName {
+    stat.type
+  }
+  
+  public fun token_amount(stat: &Stat): u64 {
+    stat.amount
+  }
 }

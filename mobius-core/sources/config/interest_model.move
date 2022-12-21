@@ -3,32 +3,43 @@
 module mobius_core::interest_model {
   use sui::object::{Self, UID};
   use sui::tx_context::TxContext;
+  use sui::table::{Self, Table};
+  use std::type_name::TypeName;
+  use math::exponential::Exp;
+  use sui::transfer;
+  use math::exponential;
   
-  struct InterestModel<phantom UnderlyingCoin, phantom BankCoin> has key {
+  struct InterestModel has store {
+    baseBorrowRatePersec: Exp,
+    lowSlope: Exp,
+    kink: Exp,
+    highSlope: Exp
+  }
+  
+  struct InterestModelTable has key {
     id: UID,
-    baseBorrowRatePersec: u64,
-    lowSlope: u64,
-    kink: u64,
-    highSlope: u64
+    table: Table<TypeName, InterestModel>
   }
   
-  /// only admin
-  public (friend) fun new<UnderlyingCoin, BankCoin>(
-    ctx: &mut TxContext
-  ): InterestModel<UnderlyingCoin, BankCoin> {
-    InterestModel<UnderlyingCoin, BankCoin> {
-      id: object::new(ctx),
-      baseBorrowRatePersec: 0,
-      lowSlope: 0,
-      kink: 0,
-      highSlope: 0
-    }
+  fun init(ctx: &mut TxContext) {
+    transfer::share_object(
+      InterestModelTable {
+        id: object::new(ctx),
+        table: table::new(ctx)
+      }
+    )
   }
   
-  public fun calc_interest<UnderlyingCoin, BankCoin>(
-    self: &InterestModel<UnderlyingCoin, BankCoin>,
-    ultilizationRate: u64
-  ): u64 {
+  public fun calc_interest_of_type(
+    interestModelTable: &InterestModelTable,
+    typeName: TypeName,
+    ultiRate: Exp
+  ): Exp {
+    let interestModel = table::borrow(&interestModelTable.table, typeName);
+    calc_interest(interestModel, ultiRate)
+  }
   
+  fun calc_interest(interestModel: &InterestModel, ultiRate: Exp): Exp {
+    exponential::exp(0, 1)
   }
 }

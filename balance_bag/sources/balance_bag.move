@@ -34,11 +34,6 @@ module balance_bag::balance_bag {
     balance::split(inBagBalance, amount)
   }
   
-  public fun value<T>(self: &mut BalanceBag) {
-    let inBagBalance = borrow_balance_mut<T>(self);
-    balance::value(inBagBalance);
-  }
-  
   public fun remove<T>(self: &mut BalanceBag): Balance<T> {
     remove_balance<T>(self)
   }

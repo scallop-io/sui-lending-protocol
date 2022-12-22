@@ -24,7 +24,11 @@ module mobius_core::bank_stats {
   }
   
   fun init(ctx: &mut TxContext) {
-    let bankStatsTable = wit_table::new<BankStatsTable, TypeName, Stat>(BankStatsTable{}, ctx);
+    let bankStatsTable = wit_table::new<BankStatsTable, TypeName, Stat>(
+      BankStatsTable{},
+      false,
+      ctx
+    );
     let bankStats = BankStats {
       id: object::new(ctx),
       table: bankStatsTable,

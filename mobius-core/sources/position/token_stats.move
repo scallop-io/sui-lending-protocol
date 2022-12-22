@@ -1,6 +1,6 @@
 module mobius_core::token_stats {
   
-  use std::type_name::{TypeName, get};
+  use std::type_name::TypeName;
   use std::vector;
   
   struct Stat has store, drop {
@@ -18,8 +18,7 @@ module mobius_core::token_stats {
     }
   }
   
-  public fun increase<T>(self: &mut TokenStats, amount: u64) {
-    let typeName = get<T>();
+  public fun increase(self: &mut TokenStats, typeName: TypeName, amount: u64) {
     let(i, len) = (0u64, vector::length(&self.stats));
     while(i < len) {
       let stat = vector::borrow_mut(&mut self.stats, i);
@@ -31,8 +30,7 @@ module mobius_core::token_stats {
     vector::push_back(&mut self.stats, Stat { type: typeName, amount })
   }
   
-  public fun decrease<T>(self: &mut TokenStats, amount: u64) {
-    let typeName = get<T>();
+  public fun decrease(self: &mut TokenStats, typeName: TypeName,  amount: u64) {
     let(i, len) = (0u64, vector::length(&self.stats));
     while(i < len) {
       let stat = vector::borrow_mut(&mut self.stats, i);

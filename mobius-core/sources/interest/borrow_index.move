@@ -3,8 +3,8 @@ module mobius_core::borrow_index {
   
   use sui::object::UID;
   use sui::table::Table;
-  use std::type_name::{TypeName, get};
-  use math::exponential::Exp;
+  use std::type_name::{TypeName};
+  use math::exponential::{Self, Exp};
   use sui::tx_context::TxContext;
   use sui::transfer;
   use sui::object;
@@ -13,20 +13,16 @@ module mobius_core::borrow_index {
   use time::timestamp::TimeStamp;
   use mobius_core::interest_model::InterestModelTable;
   use mobius_core::interest_model;
-  use mobius_core::bank::Bank;
-  use mobius_core::bank;
-  use math::exponential;
-  use mobius_core::bank_stats::BankStats;
-  use mobius_core::bank_stats;
-  
-  struct BorrowIndex has tore {
-    lastUpdated: u64,
-    index: Exp
-  }
+  use mobius_core::bank_stats::{Self, BankStats};
   
   struct BorrowIndexTable has key {
     id: UID,
     table: Table<TypeName, BorrowIndex>,
+  }
+  
+  struct BorrowIndex has store {
+    lastUpdated: u64,
+    index: Exp,
   }
   
   fun init(ctx: &mut TxContext) {
@@ -38,17 +34,23 @@ module mobius_core::borrow_index {
     )
   }
   
-  fun update(
+  public fun get(
     borrowIndexTable: &mut BorrowIndexTable,
     bankStats: &BankStats,
     timeOracle: &TimeStamp,
     interestModelTable: &InterestModelTable,
     typeName: TypeName,
-  ) {
-    // get the borrow index
-    let borrowIndex = table::borrow_mut(&mut borrowIndexTable.table, typeName);
+  ): Exp {
     // get the current timestamp
     let now = timestamp::timestamp(timeOracle);
+    // get the borrow index
+    let borrowIndex = table::borrow_mut(&mut borrowIndexTable.table, typeName);
+    
+    // do not update repeatedly
+    if (borrowIndex.lastUpdated == now) {
+      return borrowIndex.index
+    };
+    
     // get the bank balance sheet
     let ( totalLending,totalCash, _ ) = bank_stats::get(bankStats, typeName);
     
@@ -77,5 +79,7 @@ module mobius_core::borrow_index {
     );
     // update the lastUpdated for borrow index
     borrowIndex.lastUpdated = now;
+    
+    return borrowIndex.index
   }
 }

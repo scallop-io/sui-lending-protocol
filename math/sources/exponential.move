@@ -56,10 +56,8 @@ module math::exponential {
     }
   }
   
-  public fun mul_scalar_exp_truncate(a: Exp, scalar: u128): Exp {
-    Exp {
-      mantissa: truncate(mul_scalar_exp(a, scalar))
-    }
+  public fun mul_scalar_exp_truncate(scalar: u128, a: Exp): u128 {
+    truncate(mul_scalar_exp(a, scalar))
   }
   
   public fun mul_scalar_exp_truncate_add(a: Exp, scalar: u128, addend: u128): u128 {

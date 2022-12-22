@@ -23,7 +23,7 @@ module registry::typed_registry {
     transfer::share_object(registry);
   }
   
-  public fun register<T, ItemType: key>(
+  public fun register<T: drop, ItemType: key>(
     _: T,
     registry: &mut Registry<T, ItemType>,
     typeName: TypeName,
@@ -33,7 +33,7 @@ module registry::typed_registry {
     table::add(&mut registry.registryTable, typeName, typedId)
   }
   
-  public fun verify<T, ItemType: key>(
+  public fun verify<T: drop, ItemType: key>(
     registry: &Registry<T, ItemType>,
     typeName: TypeName,
     item: &ItemType,

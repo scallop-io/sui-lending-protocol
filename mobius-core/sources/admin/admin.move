@@ -40,6 +40,10 @@ module mobius_core::admin {
     collateralFactorEnu: u128,
     collateralFactorDeno: u128,
   ) {
-    collateral_config::register_collateral_type<T>(collateralConfig, collateralFactorEnu, collateralFactorDeno)
+    collateral_config::register_collateral_type<T>(
+      collateralConfig,
+      collateralFactorEnu,
+      collateralFactorDeno
+    )
   }
 }

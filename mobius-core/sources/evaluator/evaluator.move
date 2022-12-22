@@ -5,22 +5,21 @@ Calculate the borrowing power, health factor for position
 module mobius_core::evaluator {
   use std::vector;
   
-  use mobius_core::position::Position;
-  use mobius_core::position;
   use mobius_core::collateral_config::CollateralConfig;
   use mobius_core::token_stats;
   use mobius_core::collateral_config;
   use mobius_core::price;
-  use math::exponential::{Self, Exp, exp};
-  use mobius_core::token_stats::Stat;
+  use math::exponential::{Self, Exp};
+  use mobius_core::token_stats::{Stat, TokenStats};
   use std::type_name::get;
   
   public fun max_borrow_amount<T>(
-    position: &Position,
+    collateralTokenStats: &TokenStats,
+    debtTokenStats: &TokenStats,
     collateralConfig: &CollateralConfig
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, collateralConfig);
-    let debts_value = calc_debts_value(position);
+    let collaterals_value = calc_collaterals_value(collateralTokenStats, collateralConfig);
+    let debts_value = calc_debts_value(debtTokenStats);
     if (exponential::greater_than_exp(collaterals_value, debts_value)) {
       let netValue = exponential::sub_exp(collaterals_value, debts_value);
       let coinType = get<T>();
@@ -35,10 +34,11 @@ module mobius_core::evaluator {
   }
   
   public fun max_withdraw_amount<T>(
-    position: &Position,
+    collateralTokenStats: &TokenStats,
+    debtTokenStats: &TokenStats,
     collateralConfig: &CollateralConfig
   ): u64 {
-    let maxBorrowAmount = max_borrow_amount<T>(position, collateralConfig);
+    let maxBorrowAmount = max_borrow_amount<T>(collateralTokenStats, debtTokenStats, collateralConfig);
     let coinType = get<T>();
     let collateralFactor = collateral_config::collateral_factor(collateralConfig, coinType);
     let maxWithdrawAmount = exponential::truncate(
@@ -48,11 +48,12 @@ module mobius_core::evaluator {
   }
   
   public fun max_liquidate_amount<T>(
-    position: &Position,
+    collateralTokenStats: &TokenStats,
+    debtTokenStats: &TokenStats,
     collateralConfig: &CollateralConfig
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, collateralConfig);
-    let debts_value = calc_debts_value(position);
+    let collaterals_value = calc_collaterals_value(collateralTokenStats, collateralConfig);
+    let debts_value = calc_debts_value(debtTokenStats);
     if (exponential::greater_than_exp(collaterals_value, debts_value)) {
       0
     } else {
@@ -69,11 +70,11 @@ module mobius_core::evaluator {
   // sum of every collateral usd value
   // value = price x amount x collateralFactor
   fun calc_collaterals_value(
-    position: &Position,
+    tokenStats: &TokenStats,
     collateralConfig: &CollateralConfig
   ): Exp {
     let collateralStats = token_stats::stats(
-      position::collaterals(position)
+      tokenStats,
     );
     let (i, n) = (0u64, vector::length(collateralStats));
     let totalValudInUsd = exponential::exp(0, 1);
@@ -92,10 +93,10 @@ module mobius_core::evaluator {
   // sum of every debt usd value
   // value = price x amount
   fun calc_debts_value(
-    position: &Position,
+    tokenStats: &TokenStats,
   ): Exp {
     let debtStats = token_stats::stats(
-      position::debts(position)
+      tokenStats,
     );
     let (i, n) = (0u64, vector::length(debtStats));
     let totalValudInUsd = exponential::exp(0, 1);

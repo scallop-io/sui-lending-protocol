@@ -44,7 +44,8 @@ module test_coin::usdc {
     );
     transfer::share_object(
       Treasury { id: object::new(ctx), cap: treasuryCap }
-    )
+    );
+    transfer::freeze_object(coinMeta)
   }
   
   public entry fun mint(treasury: &mut Treasury, ctx: &mut TxContext) {

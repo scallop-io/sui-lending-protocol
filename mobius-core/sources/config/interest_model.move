@@ -40,6 +40,16 @@ module mobius_core::interest_model {
   }
   
   fun calc_interest(interestModel: &InterestModel, ultiRate: Exp): Exp {
-    exponential::exp(0, 1)
+    let extraRate = if ( exponential::greater_than_exp(ultiRate, interestModel.kink) ) {
+      let lowRate = exponential::mul_exp(interestModel.kink, interestModel.lowSlope);
+      let highRate = exponential::mul_exp(
+        exponential::sub_exp(ultiRate, interestModel.kink),
+        interestModel.highSlope
+      );
+      exponential::add_exp(lowRate, highRate)
+    } else {
+      exponential::mul_exp(ultiRate, interestModel.lowSlope)
+    };
+    exponential::add_exp(interestModel.baseBorrowRatePersec, extraRate)
   }
 }

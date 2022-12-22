@@ -30,7 +30,7 @@ module registry::registry {
     table::add(&mut registry.registryTable, typeName, object::id(item))
   }
   
-  public fun verify<T, ItemType: key>(
+  public fun verify<T: drop, ItemType: key>(
     registry: &Registry<T>,
     typeName: TypeName,
     item: &ItemType,

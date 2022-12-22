@@ -5,10 +5,9 @@ module mobius_core::bank_stats {
   use sui::transfer;
   use sui::object;
   use sui::table::Table;
-  use std::type_name::{TypeName, get};
+  use std::type_name::{TypeName};
   use sui::table;
-  use mobius_core::bank::Bank;
-  use mobius_core::bank;
+  use std::type_name;
   
   friend  mobius_core::bank;
   
@@ -35,10 +34,11 @@ module mobius_core::bank_stats {
   
   public(friend) fun update<T>(
     self: &mut BankStats,
-    bank: &Bank<T>
+    debt: u64,
+    cash: u64,
+    reserve: u64,
   ) {
-    let (debt, cash, reserve) = bank::balance_sheet(bank);
-    let typeName = get<T>();
+    let typeName = type_name::get<T>();
     let stat = table::borrow_mut(&mut self.stats, typeName);
     stat.debt = debt;
     stat.cash = cash;

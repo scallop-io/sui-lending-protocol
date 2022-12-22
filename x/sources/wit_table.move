@@ -1,28 +1,42 @@
+/// Witness controlled table
+/// Witness is required to write or destory
+/// Read is open to anyone
 module x::wit_table {
   use sui::object::{Self, UID};
   use sui::table::{Self, Table};
   use sui::vec_set::{Self, VecSet};
   use sui::tx_context::TxContext;
+  use std::option;
+  use std::vector;
   
   /// A data structure backed by sui::table and sui::vec_set.
-  /// It exposes the keys, with which you can use to loop the table.
-  /// The keys are in insertion order.
   /// All write operations are controlled by witness pattern
+  /// If you set withKeys = true when creating table:
+  /// It will store all the keys in a vector, with which you can use to loop the table.
+  /// The keys are in insertion order.
   struct WitTable<phantom T: drop, K: copy + drop + store, phantom V: store> has key, store {
     id: UID,
     table: Table<K, V>,
-    keys: VecSet<K>,
+    keys: option::Option<VecSet<K>>,
+    withKeys: bool
   }
   
   /// Creates a new, empty table
   public fun new<T: drop, K: copy + drop + store, V: store>(
     _: T,
+    withKeys: bool,
     ctx: &mut TxContext
   ): WitTable<T, K, V> {
+    let keys = if (withKeys) {
+      option::some(vec_set::empty<K>())
+    }  else {
+      option::none()
+    };
     WitTable {
       id: object::new(ctx),
       table: table::new(ctx),
-      keys: vec_set::empty()
+      keys,
+      withKeys
     }
   }
   
@@ -35,14 +49,23 @@ module x::wit_table {
     k: K, v: V
   ) {
     table::add(&mut self.table, k, v);
-    vec_set::insert(&mut self.keys, k);
+    if (self.withKeys) {
+      let keys = option::borrow_mut(&mut self.keys);
+      vec_set::insert(keys, k);
+    }
   }
   
   /// Return: vector of all the keys
+  /// Empty if withKeys = false
   public fun keys<T: drop, K: copy + drop + store, V: store>(
     self: &WitTable<T, K, V>,
   ): vector<K> {
-    vec_set::into_keys(self.keys)
+    if (self.withKeys) {
+      let keys = option::borrow(&self.keys);
+      vec_set::into_keys(*keys)
+    } else {
+      vector::empty()
+    }
   }
   
   /// Immutable borrows the value associated with the key in the table.
@@ -74,7 +97,10 @@ module x::wit_table {
     self: &mut WitTable<T, K, V>,
     k: K
   ): V {
-    vec_set::remove(&mut self.keys, &k);
+    if (self.withKeys) {
+      let keys = option::borrow_mut(&mut self.keys);
+      vec_set::remove(keys, &k);
+    };
     table::remove(&mut self.table, k)
   }
   
@@ -110,9 +136,9 @@ module x::wit_table {
     _: T,
     self: WitTable<T, K, V>
   ) {
-    let WitTable { id, table, keys: _ } = self;
+    let WitTable { id, table, keys: _, withKeys: _ } = self;
     table::destroy_empty(table);
-    object::delete(id)
+    object::delete(id);
   }
   
   /// Drop a possibly non-empty table.
@@ -122,8 +148,8 @@ module x::wit_table {
     _: T,
     self: WitTable<T, K, V>
   ) {
-    let WitTable { id, table, keys: _ } = self;
+    let WitTable { id, table, keys: _, withKeys: _ } = self;
     table::drop(table);
-    object::delete(id)
+    object::delete(id);
   }
 }

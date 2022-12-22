@@ -1,20 +1,23 @@
-/// Access controlled table
-/// Admin cap is needed to write or destory the table
+/// Access controlled singleton table
+/// Ownership is required to write or destory
+/// Read is open to anyone
 module x::ac_table {
   
-  use sui::object::UID;
-  use sui::table::Table;
+  use std::option;
+  use std::vector;
+  use sui::object::{Self, UID};
+  use sui::table::{Self, Table};
   use sui::vec_set::{Self, VecSet};
   use sui::tx_context::TxContext;
-  use sui::object;
-  use sui::table;
   use sui::types::is_one_time_witness;
+  
   use x::ownership::{Self, Ownership};
   
   struct AcTable<phantom T: drop, K: copy + drop + store, phantom V: store> has key {
     id: UID,
     table: Table<K, V>,
-    keys: VecSet<K>,
+    keys: option::Option<VecSet<K>>,
+    withKeys: bool
   }
   
   struct AcTableOwnership has drop {}
@@ -22,14 +25,21 @@ module x::ac_table {
   /// Creates a new, empty table
   public fun new<T: drop, K: copy + drop + store, V: store>(
     witness: T,
+    withKeys: bool,
     ctx: &mut TxContext
   ): (AcTable<T, K, V>, Ownership<AcTableOwnership>) {
     // Singleton
     assert!(is_one_time_witness(&witness), 0);
+    let keys = if (withKeys) {
+      option::some(vec_set::empty<K>())
+    }  else {
+      option::none()
+    };
     let acTable = AcTable<T, K, V> {
       id: object::new(ctx),
       table: table::new(ctx),
-      keys: vec_set::empty()
+      keys,
+      withKeys,
     };
     let acTableOwnership = ownership::create_ownership(
       AcTableOwnership{},
@@ -49,14 +59,22 @@ module x::ac_table {
   ) {
     ownership::assert_owner(ownership, self);
     table::add(&mut self.table, k, v);
-    vec_set::insert(&mut self.keys, k);
+    if (self.withKeys) {
+      let keys = option::borrow_mut(&mut self.keys);
+      vec_set::insert(keys, k);
+    }
   }
   
   /// Return: vector of all the keys
   public fun keys<T: drop, K: copy + drop + store, V: store>(
     self: &AcTable<T, K, V>,
   ): vector<K> {
-    vec_set::into_keys(self.keys)
+    if (self.withKeys) {
+      let keys = option::borrow(&self.keys);
+      vec_set::into_keys(*keys)
+    } else {
+      vector::empty()
+    }
   }
   
   /// Immutable borrows the value associated with the key in the table.
@@ -89,7 +107,10 @@ module x::ac_table {
     k: K
   ): V {
     ownership::assert_owner(ownership, self);
-    vec_set::remove(&mut self.keys, &k);
+    if (self.withKeys) {
+      let keys = option::borrow_mut(&mut self.keys);
+      vec_set::remove(keys, &k);
+    };
     table::remove(&mut self.table, k)
   }
   
@@ -126,7 +147,7 @@ module x::ac_table {
     self: AcTable<T, K, V>
   ) {
     ownership::assert_owner(ownership, &self);
-    let AcTable { id, table, keys: _ } = self;
+    let AcTable { id, table, keys: _, withKeys: _ } = self;
     table::destroy_empty(table);
     object::delete(id)
   }
@@ -139,7 +160,7 @@ module x::ac_table {
     self: AcTable<T, K, V>
   ) {
     ownership::assert_owner(ownership, &self);
-    let AcTable { id, table, keys: _ } = self;
+    let AcTable { id, table, keys: _, withKeys: _ } = self;
     table::drop(table);
     object::delete(id)
   }

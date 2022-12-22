@@ -1,9 +1,9 @@
 [package]
-name="Registry"
+name="X"
 version="0.0.1"
 
 [dependencies]
 Sui = { local = "../../sui/crates/sui-framework" }
 
 [addresses]
-registry="0x2c9048de569e02a8409434bbccf1435eb5200afb"
+x="0x0"

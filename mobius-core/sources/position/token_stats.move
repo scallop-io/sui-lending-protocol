@@ -8,6 +8,8 @@ module mobius_core::token_stats {
     amount: u64,
   }
   
+  struct TokenStatsTable has drop {}
+  
   struct TokenStats has store, drop {
     stats: vector<Stat>
   }

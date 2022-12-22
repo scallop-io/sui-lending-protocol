@@ -5,18 +5,18 @@ module lock::lock {
   
   const EKeyNotMatch: u64 = 0;
   
-  struct Key<phantom KeyType> has key, store {
+  struct Key<phantom KeyType: drop> has key, store {
     id: UID,
     to: ID,
   }
   
-  struct Lock<T> has key {
+  struct Lock<T: store> has key {
     id: UID,
     obj: T
   }
   
   // Lock the object, and return the key, and lock
-  public fun new<KeyType: drop, LockObjectType: key>(
+  public fun new<KeyType: drop, LockObjectType: store>(
     _: KeyType,
     obj: LockObjectType,
     ctx: &mut TxContext,
@@ -32,14 +32,14 @@ module lock::lock {
     (key, lock)
   }
   
-  public fun unlock<KeyType, LockObjectType>(
+  public fun unlock<KeyType: drop, LockObjectType: store>(
     key: Key<KeyType>,
     lock: Lock<LockObjectType>,
   ) : LockObjectType {
     assert!(key.to == object::id(&lock), EKeyNotMatch);
     let Lock { id, obj } = lock;
     object::delete(id);
-    let Key { id, to } = key;
+    let Key { id, to: _ } = key;
     object::delete(id);
     obj
   }

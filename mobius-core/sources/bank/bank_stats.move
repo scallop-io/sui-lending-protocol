@@ -1,16 +1,14 @@
 module mobius_core::bank_stats {
   
-  use sui::object::UID;
+  use std::type_name::{Self, TypeName};
   use sui::tx_context::TxContext;
   use sui::transfer;
+  
+  use x::x_table::{Self, XTable};
+  use sui::object::UID;
   use sui::object;
-  use sui::table::Table;
-  use std::type_name::{TypeName};
-  use sui::table;
-  use std::type_name;
   
   friend  mobius_core::bank;
-  
   
   struct Stat has store {
     cash: u64,
@@ -18,18 +16,20 @@ module mobius_core::bank_stats {
     reserve: u64,
   }
   
+  struct BankStatsTable has drop {}
+  
   struct BankStats has key {
     id: UID,
-    stats: Table<TypeName, Stat>
+    table: XTable<BankStatsTable, TypeName, Stat>
   }
   
   fun init(ctx: &mut TxContext) {
-    transfer::share_object(
-      BankStats {
-        id: object::new(ctx),
-        stats: table::new(ctx)
-      }
-    )
+    let bankStatsTable = x_table::new<BankStatsTable, TypeName, Stat>(BankStatsTable{}, ctx);
+    let bankStats = BankStats {
+      id: object::new(ctx),
+      table: bankStatsTable,
+    };
+    transfer::share_object(bankStats)
   }
   
   public(friend) fun update<T>(
@@ -39,7 +39,7 @@ module mobius_core::bank_stats {
     reserve: u64,
   ) {
     let typeName = type_name::get<T>();
-    let stat = table::borrow_mut(&mut self.stats, typeName);
+    let stat = x_table::borrow_mut(BankStatsTable{}, &mut self.table, typeName);
     stat.debt = debt;
     stat.cash = cash;
     stat.reserve = reserve;
@@ -50,7 +50,7 @@ module mobius_core::bank_stats {
     self: &BankStats,
     typeName: TypeName
   ): (u64, u64, u64) {
-    let stat = table::borrow(&self.stats, typeName);
+    let stat = x_table::borrow(&self.table, typeName);
     (stat.debt, stat.cash, stat.reserve)
   }
 }

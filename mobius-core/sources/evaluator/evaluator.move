@@ -4,14 +4,13 @@ Calculate the borrowing power, health factor for position
 */
 module mobius_core::evaluator {
   use std::vector;
-  
-  use mobius_core::collateral_config::CollateralConfig;
-  use mobius_core::token_stats;
-  use mobius_core::collateral_config;
-  use mobius_core::price;
-  use math::exponential::{Self, Exp};
-  use mobius_core::token_stats::{Stat, TokenStats};
   use std::type_name::get;
+  
+  use math::exponential::{Self, Exp};
+  
+  use mobius_core::collateral_config::{Self, CollateralConfig};
+  use mobius_core::token_stats::{Self, Stat, TokenStats};
+  use mobius_core::price;
   
   public fun max_borrow_amount<T>(
     collateralTokenStats: &TokenStats,

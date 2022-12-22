@@ -1,7 +1,6 @@
 module mobius_core::position {
   
-  use sui::object::{UID, ID};
-  use sui::object;
+  use sui::object::{Self, UID};
   use sui::tx_context;
   use sui::balance::{Self, Balance};
   
@@ -21,12 +20,13 @@ module mobius_core::position {
   use mobius_core::interest_model::InterestModelTable;
   use mobius_core::evaluator;
   use mobius_core::collateral_config::CollateralConfig;
+  use x::ownership;
+  use x::ownership::Ownership;
   
   friend mobius_core::user_operation;
   
-  const EPositionKeyNotMatch: u64 = 0;
-  const EWithdrawTooMuch: u64 = 1;
-  const EBorrowTooMuch: u64 = 2;
+  const EWithdrawTooMuch: u64 = 0;
+  const EBorrowTooMuch: u64 = 1;
   
   struct Position has key, store {
     id: UID,
@@ -36,20 +36,9 @@ module mobius_core::position {
     borrowIndexes: Table<TypeName, Exp>
   }
   
-  struct PositionKey has key, store {
-    id: UID,
-    to: ID,
-  }
+  struct PositionOwnership has drop {}
   
-  public fun key_to(key: &PositionKey): ID {
-    key.to
-  }
-  
-  fun assert_key_match(self: &Position, key: &PositionKey) {
-    assert!(object::id(self) == key.to, EPositionKeyNotMatch)
-  }
-  
-  public (friend) fun new(ctx: &mut tx_context::TxContext): (Position, PositionKey) {
+  public (friend) fun new(ctx: &mut tx_context::TxContext): (Position, Ownership<PositionOwnership>) {
     let position = Position {
       id: object::new(ctx),
       balances: balance_bag::new(ctx),
@@ -57,11 +46,12 @@ module mobius_core::position {
       debts: token_stats::new(),
       borrowIndexes: table::new(ctx),
     };
-    let key = PositionKey {
-      id: object::new(ctx),
-      to: object::id(&position)
-    };
-    (position, key)
+    let positionOwnership = ownership::create_ownership(
+      PositionOwnership{},
+      object::id(&position),
+      ctx
+    );
+    (position, positionOwnership)
   }
   
   public (friend) fun add_collateral<T>(
@@ -75,7 +65,7 @@ module mobius_core::position {
   
   public (friend) fun remove_collateral<T>(
     self: &mut Position,
-    key: &PositionKey,
+    positionOwnership: &Ownership<PositionOwnership>,
     borrowIndexTable: &mut BorrowIndexTable,
     bankStats: &BankStats,
     timeOracle: &TimeStamp,
@@ -83,7 +73,7 @@ module mobius_core::position {
     collateralConfig: &CollateralConfig,
     amount: u64
   ): Balance<T> {
-    assert_key_match(self, key);
+    ownership::assert_owner(positionOwnership, self);
     accue_interest_(
       self,
       borrowIndexTable,
@@ -100,10 +90,9 @@ module mobius_core::position {
     balance_bag::split<T>(&mut self.balances, amount)
   }
   
-  /// TODO: check the health before add debt
   public (friend) fun add_debt<T>(
     self: &mut Position,
-    key: &PositionKey,
+    positionOwnership: &Ownership<PositionOwnership>,
     borrowIndexTable: &mut BorrowIndexTable,
     bankStats: &BankStats,
     timeOracle: &TimeStamp,
@@ -111,7 +100,7 @@ module mobius_core::position {
     collateralConfig: &CollateralConfig,
     amount: u64
   ) {
-    assert_key_match(self, key);
+    ownership::assert_owner(positionOwnership, self);
     accue_interest_(
       self,
       borrowIndexTable,

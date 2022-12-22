@@ -4,7 +4,7 @@ module mobius_core::bank_stats {
   use sui::tx_context::TxContext;
   use sui::transfer;
   
-  use x::x_table::{Self, XTable};
+  use x::wit_table::{Self, WitTable};
   use sui::object::UID;
   use sui::object;
   
@@ -20,11 +20,11 @@ module mobius_core::bank_stats {
   
   struct BankStats has key {
     id: UID,
-    table: XTable<BankStatsTable, TypeName, Stat>
+    table: WitTable<BankStatsTable, TypeName, Stat>
   }
   
   fun init(ctx: &mut TxContext) {
-    let bankStatsTable = x_table::new<BankStatsTable, TypeName, Stat>(BankStatsTable{}, ctx);
+    let bankStatsTable = wit_table::new<BankStatsTable, TypeName, Stat>(BankStatsTable{}, ctx);
     let bankStats = BankStats {
       id: object::new(ctx),
       table: bankStatsTable,
@@ -39,7 +39,7 @@ module mobius_core::bank_stats {
     reserve: u64,
   ) {
     let typeName = type_name::get<T>();
-    let stat = x_table::borrow_mut(BankStatsTable{}, &mut self.table, typeName);
+    let stat = wit_table::borrow_mut(BankStatsTable{}, &mut self.table, typeName);
     stat.debt = debt;
     stat.cash = cash;
     stat.reserve = reserve;
@@ -50,7 +50,7 @@ module mobius_core::bank_stats {
     self: &BankStats,
     typeName: TypeName
   ): (u64, u64, u64) {
-    let stat = x_table::borrow(&self.table, typeName);
+    let stat = wit_table::borrow(&self.table, typeName);
     (stat.debt, stat.cash, stat.reserve)
   }
 }

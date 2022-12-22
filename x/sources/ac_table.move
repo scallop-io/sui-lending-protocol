@@ -13,7 +13,7 @@ module x::ac_table {
   
   use x::ownership::{Self, Ownership};
   
-  struct AcTable<phantom T: drop, K: copy + drop + store, phantom V: store> has key {
+  struct AcTable<phantom T: drop, K: copy + drop + store, phantom V: store> has key, store {
     id: UID,
     table: Table<K, V>,
     keys: option::Option<VecSet<K>>,
@@ -53,8 +53,8 @@ module x::ac_table {
   /// Aborts if the xtable already has an entry with that key `k: K`.
   /// Access controlled
   public fun add<T: drop, K: copy + drop + store, V: store>(
-    ownership: &Ownership<AcTableOwnership>,
     self: &mut AcTable<T, K, V>,
+    ownership: &Ownership<AcTableOwnership>,
     k: K, v: V
   ) {
     ownership::assert_owner(ownership, self);
@@ -90,8 +90,8 @@ module x::ac_table {
   /// Aborts if the table does not have an entry with that key `k: K`.
   /// Access control
   public fun borrow_mut<T: drop, K: copy + drop + store, V: store>(
-    ownership: &Ownership<AcTableOwnership>,
     self: &mut AcTable<T, K, V>,
+    ownership: &Ownership<AcTableOwnership>,
     k: K
   ): &mut V {
     ownership::assert_owner(ownership, self);
@@ -102,8 +102,8 @@ module x::ac_table {
   /// Aborts if the table does not have an entry with that key `k: K`.
   /// Witness control
   public fun remove<T: drop, K: copy + drop + store, V: store>(
-    ownership: &Ownership<AcTableOwnership>,
     self: &mut AcTable<T, K, V>,
+    ownership: &Ownership<AcTableOwnership>,
     k: K
   ): V {
     ownership::assert_owner(ownership, self);
@@ -143,8 +143,8 @@ module x::ac_table {
   /// Aborts if the table still contains values
   /// Witness control
   public fun destroy_empty<T: drop, K: copy + drop + store, V: store>(
+    self: AcTable<T, K, V>,
     ownership: &Ownership<AcTableOwnership>,
-    self: AcTable<T, K, V>
   ) {
     ownership::assert_owner(ownership, &self);
     let AcTable { id, table, keys: _, withKeys: _ } = self;
@@ -156,8 +156,8 @@ module x::ac_table {
   /// Usable only if the value type `V` has the `drop` ability
   /// Witness control
   public fun drop<T: drop, K: copy + drop + store, V: drop + store>(
+    self: AcTable<T, K, V>,
     ownership: &Ownership<AcTableOwnership>,
-    self: AcTable<T, K, V>
   ) {
     ownership::assert_owner(ownership, &self);
     let AcTable { id, table, keys: _, withKeys: _ } = self;

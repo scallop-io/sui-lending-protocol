@@ -1,67 +1,88 @@
 module mobius_core::collateral_config {
   
-  use sui::object::UID;
-  use std::type_name::{TypeName, get};
-  use sui::table::Table;
-  
-  use math::exponential::{Self, Exp};
-  use std::vector;
-  use sui::table;
+  use std::type_name::TypeName;
   use sui::tx_context::TxContext;
-  use sui::object;
   use sui::transfer;
-  
-  friend mobius_core::admin;
+  use sui::tx_context;
+  use math::exponential::Exp;
+  use x::ac_table;
+  use x::ac_table::{AcTable, AcTableOwnership};
+  use x::ownership::Ownership;
+  use sui::object::UID;
+  use sui::object;
+  use std::type_name;
+  use math::exponential;
   
   const ECollateralFactoryTooBig: u64 = 0;
   
+  struct COLLATERAL_CONFIG has drop {}
+  
+  struct ConfigData has store {
+    collateralFactor: Exp,
+  }
+  
   struct CollateralConfig has key {
     id: UID,
-    collateralTypes: vector<TypeName>,
-    collateralFactorTable: Table<TypeName, Exp>,
+    acTable: AcTable<COLLATERAL_CONFIG, TypeName, ConfigData>
   }
   
-  fun init(ctx: &mut TxContext) {
-    let config = CollateralConfig {
-      id: object::new(ctx),
-      collateralTypes: vector::empty(),
-      collateralFactorTable: table::new(ctx),
-    };
-    transfer::share_object(config)
+  struct CollateralConfigOwnership has key, store {
+    id: UID,
+    ownership: Ownership<AcTableOwnership>
   }
   
-  public(friend) fun register_collateral_type<T>(
-    self: &mut CollateralConfig,
-    collateralFactorEnu: u128,
-    collateralFactorDeno: u128,
-  ) {
-    vector::push_back(&mut self.collateralTypes, get<T>());
-    table::add(
-      &mut self.collateralFactorTable,
-      get<T>(),
-      exponential::exp(collateralFactorEnu, collateralFactorDeno)
+  fun init(witness: COLLATERAL_CONFIG, ctx: &mut TxContext) {
+    let (acTable, acTableCap) = ac_table::new<COLLATERAL_CONFIG, TypeName, ConfigData>(
+      witness,
+      true,
+      ctx
+    );
+    transfer::share_object(
+      CollateralConfig {
+        id: object::new(ctx),
+        acTable
+      }
+    );
+    transfer::transfer(
+      CollateralConfigOwnership {
+        id: object::new(ctx),
+        ownership: acTableCap,
+      },
+      tx_context::sender(ctx)
     )
   }
   
+  public entry fun register_collateral_type<T>(
+    self: &mut CollateralConfig,
+    ownership: &CollateralConfigOwnership,
+    collateralFactorEnu: u128,
+    collateralFactorDeno: u128,
+  ) {
+    let config = ConfigData {
+      collateralFactor: exponential::exp(collateralFactorEnu, collateralFactorDeno)
+    };
+    let typeName = type_name::get<T>();
+    ac_table::add(
+      &mut self.acTable,
+      &ownership.ownership,
+      typeName,
+      config
+    );
+  }
+  
+  /// Return the stored collateral factor, or 0 if none
   public fun collateral_factor(
     self: &CollateralConfig,
     typeName: TypeName,
   ): Exp {
-    let hasFactor = table::contains(&self.collateralFactorTable, typeName);
-    if (hasFactor == true) {
-      let factor = table::borrow(&self.collateralFactorTable, typeName);
-      assert!(exponential::truncate(*factor) == 0, ECollateralFactoryTooBig);
-      *factor
+    let hasFactor = ac_table::contains(&self.acTable, typeName);
+    if (hasFactor) {
+      let config = ac_table::borrow(&self.acTable, typeName);
+      let factor = config.collateralFactor;
+      assert!(exponential::truncate(factor) == 0, ECollateralFactoryTooBig);
+      factor
     } else {
       exponential::exp(0u128, 1u128)
     }
-  }
-  
-  public fun collateral_types(self: &CollateralConfig): &vector<TypeName> {
-    &self.collateralTypes
-  }
-  
-  public fun collateral_factor_table(self: &CollateralConfig): &Table<TypeName, Exp> {
-    &self.collateralFactorTable
   }
 }

@@ -1,4 +1,4 @@
-/// Access controlled singleton table
+/// Access controlled table
 /// Ownership is required to write or destory
 /// Read is open to anyone
 module x::ac_table {
@@ -9,7 +9,6 @@ module x::ac_table {
   use sui::table::{Self, Table};
   use sui::vec_set::{Self, VecSet};
   use sui::tx_context::TxContext;
-  use sui::types::is_one_time_witness;
   
   use x::ownership::{Self, Ownership};
   
@@ -24,12 +23,10 @@ module x::ac_table {
   
   /// Creates a new, empty table
   public fun new<T: drop, K: copy + drop + store, V: store>(
-    witness: T,
+    _: T,
     withKeys: bool,
     ctx: &mut TxContext
   ): (AcTable<T, K, V>, Ownership<AcTableOwnership>) {
-    // Singleton
-    assert!(is_one_time_witness(&witness), 0);
     let keys = if (withKeys) {
       option::some(vec_set::empty<K>())
     }  else {

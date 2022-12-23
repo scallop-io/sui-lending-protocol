@@ -1,9 +1,0 @@
-[package]
-name="BalanceBag"
-version="0.0.1"
-
-[dependencies]
-Sui = { local = "../../sui/crates/sui-framework" }
-
-[addresses]
-balance_bag="0xc8d2bd8e257955118ceb36266565baa45204d8be"

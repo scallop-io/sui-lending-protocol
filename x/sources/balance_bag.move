@@ -8,7 +8,7 @@ It supports:
 
 By default, every operation will create a zero balance if not exist.
 */
-module balance_bag::balance_bag {
+module x::balance_bag {
   use sui::bag::{Self, Bag};
   use sui::tx_context;
   use std::type_name::{Self, TypeName};

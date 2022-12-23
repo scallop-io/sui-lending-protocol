@@ -1,10 +1,10 @@
-module mobius_core::admin {
+module mobius_protocol::admin {
   
   use sui::tx_context::{Self, TxContext};
   use sui::object::{Self, UID};
   use sui::transfer;
-  use mobius_core::bank;
-  use mobius_core::bank_registry::{Self, BankRegistry};
+  use mobius_protocol::bank;
+  use mobius_protocol::bank_registry::{Self, BankRegistry};
   use registry::registry::Registry;
   
   struct AdminCap has key, store {

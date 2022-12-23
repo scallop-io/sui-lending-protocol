@@ -1,5 +1,5 @@
 /// TODO: intergrate real oracle
-module mobius_core::price {
+module mobius_protocol::price {
   
   use std::type_name::{TypeName, get};
   use math::exponential::{Self, Exp};

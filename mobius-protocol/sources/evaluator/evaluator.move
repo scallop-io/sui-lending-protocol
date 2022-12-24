@@ -2,21 +2,23 @@
 Evaluate the value of collateral, and debt
 Calculate the borrowing power, health factor for position
 */
+/// TODO: consider decimals when calculating usd value
 module mobius_protocol::evaluator {
   use std::vector;
   use std::type_name::{get, TypeName};
 
   use math::exponential::{Self, Exp};
+  use x::ac_table::AcTable;
 
   use mobius_protocol::price;
-  use mobius_protocol::protocol_dynamics::{Self ,ProtocolDynamics};
   use mobius_protocol::position::{Self, Position};
+  use mobius_protocol::collateral_config::{Self, CollateralConfigs, CollateralConfig};
   
   public fun max_borrow_amount<T>(
     position: &Position,
-    protocolDynamics: &ProtocolDynamics
+    collateralConfigs: &AcTable<CollateralConfigs, TypeName, CollateralConfig>,
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, protocolDynamics);
+    let collaterals_value = calc_collaterals_value(position, collateralConfigs);
     let debts_value = calc_debts_value(position);
     if (exponential::greater_than_exp(collaterals_value, debts_value)) {
       let coinType = get<T>();
@@ -33,11 +35,11 @@ module mobius_protocol::evaluator {
 
   public fun max_withdraw_amount<T>(
     position: &Position,
-    protocolDynamics: &ProtocolDynamics
+    collateralConfigs: &AcTable<CollateralConfigs, TypeName, CollateralConfig>,
   ): u64 {
-    let maxBorrowAmount = max_borrow_amount<T>(position, protocolDynamics);
+    let maxBorrowAmount = max_borrow_amount<T>(position, collateralConfigs);
     let coinType = get<T>();
-    let collateralFactor = protocol_dynamics::collateral_factor(protocolDynamics, coinType);
+    let collateralFactor = collateral_config::collateral_factor(collateralConfigs, coinType);
     let maxWithdrawAmount = exponential::truncate(
       exponential::div_scalar_by_exp((maxBorrowAmount as u128), collateralFactor)
     );
@@ -46,9 +48,9 @@ module mobius_protocol::evaluator {
 
   public fun max_liquidate_amount<T>(
     position: &Position,
-    protocolDynamics: &ProtocolDynamics,
+    collateralConfigs: &AcTable<CollateralConfigs, TypeName, CollateralConfig>,
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, protocolDynamics);
+    let collaterals_value = calc_collaterals_value(position, collateralConfigs);
     let debts_value = calc_debts_value(position);
     if (exponential::greater_than_exp(collaterals_value, debts_value)) {
       0
@@ -67,7 +69,7 @@ module mobius_protocol::evaluator {
   // value = price x amount x collateralFactor
   fun calc_collaterals_value(
     position: &Position,
-    protocolDynamics: &ProtocolDynamics
+    collateralConfigs: &AcTable<CollateralConfigs, TypeName, CollateralConfig>,
   ): Exp {
     let collateralTypes = position::collateral_types(position);
     let totalValudInUsd = exponential::exp(0, 1);
@@ -75,9 +77,10 @@ module mobius_protocol::evaluator {
     while( i < n ) {
       let collateralType = *vector::borrow(&collateralTypes, i);
       let (collateralAmount, _) = position::debt(position, collateralType);
+      let collateralFactor = collateral_config::collateral_factor(collateralConfigs, collateralType);
       let coinValueInUsd = exponential::mul_exp(
         calc_token_value(collateralType, collateralAmount),
-        protocol_dynamics::collateral_factor(protocolDynamics, collateralType)
+        collateralFactor,
       );
       totalValudInUsd = exponential::add_exp(totalValudInUsd, coinValueInUsd);
       i = i + 1;

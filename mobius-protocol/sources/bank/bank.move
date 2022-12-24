@@ -6,6 +6,8 @@ module mobius_protocol::bank {
   
   friend mobius_protocol::admin;
   friend mobius_protocol::repay;
+  friend mobius_protocol::borrow;
+  friend mobius_protocol::bank_state;
   
   struct BankCoin<phantom T> has drop {}
   
@@ -28,6 +30,19 @@ module mobius_protocol::bank {
     }
   }
   
+  public fun bank_coin_total_supply<T>(
+    self: &Bank<T>
+  ): u64 {
+    balance::supply_value(&self.bankCoinSupply)
+  }
+  
+  public fun deposit_underlying_coin<T>(
+    self: &mut Bank<T>,
+    balance: Balance<T>
+  ) {
+    balance::join(&mut self.underlyingBalance, balance);
+  }
+  
   public(friend) fun issue_bank_coin<T>(
     self: &mut Bank<T>,
     amount: u64,
@@ -40,13 +55,6 @@ module mobius_protocol::bank {
     balance: Balance<BankCoin<T>>
   ) {
     balance::decrease_supply(&mut self.bankCoinSupply, balance);
-  }
-  
-  public(friend) fun deposit_underlying_coin<T>(
-    self: &mut Bank<T>,
-    balance: Balance<T>
-  ) {
-    balance::join(&mut self.underlyingBalance, balance);
   }
   
   public(friend) fun withdraw_underlying_coin<T>(

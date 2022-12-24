@@ -19,7 +19,7 @@ module mobius_protocol::coin_decimals_registry {
     }
   }
   
-  /// TODO: use this registry add when PR is merged
+  /// TODO: use this registry add when coinMeta is readable
   // Since coinMeta is 1:1 for a coin,
   // CoinMeta is the single source of truth for the coin
   // Anyone can add the registry

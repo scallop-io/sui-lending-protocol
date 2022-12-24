@@ -13,8 +13,15 @@ module mobius_protocol::position {
   
   use mobius_protocol::position_debts::{Self, PositionDebts, Debt};
   use mobius_protocol::position_collaterals::{Self, PositionCollaterals, Collateral};
+  use mobius_protocol::bank_state::{BankStates, BankState};
+  use std::vector;
+  use mobius_protocol::bank_state;
+  use math::exponential;
   
   friend mobius_protocol::repay;
+  friend mobius_protocol::borrow;
+  friend mobius_protocol::deposit_collateral;
+  friend mobius_protocol::withdraw_collateral;
   
   const EWithdrawTooMuch: u64 = 0;
   const EBorrowTooMuch: u64 = 1;
@@ -52,6 +59,25 @@ module mobius_protocol::position {
     (position, positionKey)
   }
   
+  public(friend) fun accure_interests(
+    position: &mut Position,
+    bankStates: &WitTable<BankStates, TypeName, BankState>,
+  ) {
+    let debtTypes = debt_types(position);
+    let (i, n) = (0, vector::length(&debtTypes));
+    while (i < n) {
+      let type = *vector::borrow(&debtTypes, i);
+      let (debtAmount, mark) = debt(position, type);
+      let currMark = bank_state::borrow_mark(bankStates, type);
+      let newDebtAmount = exponential::mul_scalar_exp_truncate(
+        (debtAmount as u128),
+        exponential::div_exp(currMark, mark)
+      );
+      update_debt(position, type, (newDebtAmount as u64), currMark);
+      i = i + 1;
+    };
+  }
+  
   public(friend) fun withdraw_collateral<T>(
     self: &mut Position,
     amount: u64,
@@ -64,16 +90,16 @@ module mobius_protocol::position {
     balance_bag::split(&mut self.balances, amount)
   }
   
-  public(friend) fun deposit_collateral<T>(
+  public fun deposit_collateral<T>(
     self: &mut Position,
     balance: Balance<T>,
   ) {
-    let typeName = type_name::get<T>();
     // increase collateral amount
+    let typeName = type_name::get<T>();
     let newCollateralAmount = collateral(self, typeName) + balance::value(&balance);
     position_collaterals::update_collateral(&mut self.collaterals, typeName, newCollateralAmount);
-    // take the collateral balance
-    balance_bag::join(&mut self.balances, balance)
+    // put the collateral balance
+    balance_bag::join(&mut self.balances, balance);
   }
   
   public (friend) fun update_debt(

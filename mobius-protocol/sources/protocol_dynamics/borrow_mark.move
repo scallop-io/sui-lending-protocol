@@ -48,16 +48,22 @@ module mobius_protocol::borrow_mark {
   
   
   fun accrue_borrow_mark(borrowMark: &mut BorrowMark, now: u64): Exp {
-    // the time passed
+    /**********
+      timeDelta = now - lastUpdated
+    ***********/
     let timeDelta = ((now - borrowMark.lastUpdated) as u128);
-    // update the borrow mark
-    let delta = exponential::mul_exp(
+    
+    /**********
+      increasedInMark = borrowMark * timeDelta * interestRate
+      newBorrowMark = borrowMark + increasedInMark
+    ***********/
+    let increasedInMark = exponential::mul_exp(
       borrowMark.mark,
       exponential::mul_scalar_exp(borrowMark.interestRate, timeDelta),
     );
     borrowMark.mark = exponential::add_exp(
       borrowMark.mark,
-      delta
+      increasedInMark
     );
     // update the lastUpdated for borrow index
     borrowMark.lastUpdated = now;

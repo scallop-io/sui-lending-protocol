@@ -25,7 +25,7 @@ module mobius_protocol::repay {
     // It must be done before updating interest rate,
     // As it'll impact the ultilization rate
     let typeName = type_name::get<T>();
-    protocol_dynamics::handle_repay(protocolDynamics, typeName, repayAmount);
+    protocol_dynamics::update_state_after_repay(protocolDynamics, typeName, repayAmount);
     // Update the interest rate for banks
     update_interest_rate(protocolDynamics, debtTypes);
     // put coin into the bank

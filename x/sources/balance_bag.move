@@ -9,57 +9,59 @@ It supports:
 By default, every operation will create a zero balance if not exist.
 */
 module x::balance_bag {
-  use sui::bag::{Self, Bag};
-  use sui::tx_context;
   use std::type_name::{Self, TypeName};
+  use sui::bag::{Self, Bag};
   use sui::balance::{Self, Balance};
+  use sui::object::{Self, UID};
+  use sui::tx_context;
   
   struct BalanceBag has store {
-    balances: Bag,
+    id: UID,
+    bag: Bag,
   }
   
   public fun new(ctx: &mut tx_context::TxContext): BalanceBag {
     BalanceBag {
-      balances: bag::new(ctx),
+      id: object::new(ctx),
+      bag: bag::new(ctx),
     }
   }
   
+  public fun init_balance<T>(self: &mut BalanceBag) {
+    let typeName = type_name::get<T>();
+    bag::add(&mut self.bag, typeName, balance::zero<T>())
+  }
+  
   public fun join<T>(self: &mut BalanceBag, balance: Balance<T>) {
-    let inBagBalance = borrow_balance_mut<T>(self);
+    let typeName = type_name::get<T>();
+    let inBagBalance = bag::borrow_mut<TypeName, Balance<T>>(&mut self.bag, typeName);
     balance::join(inBagBalance, balance);
   }
   
   public fun split<T>(self: &mut BalanceBag, amount: u64): Balance<T> {
-    let inBagBalance = borrow_balance_mut<T>(self);
+    let typeName = type_name::get<T>();
+    let inBagBalance = bag::borrow_mut<TypeName, Balance<T>>(&mut self.bag, typeName);
     balance::split(inBagBalance, amount)
   }
   
-  public fun remove<T>(self: &mut BalanceBag): Balance<T> {
-    remove_balance<T>(self)
+  public fun value<T>(self: &BalanceBag): u64 {
+    let typeName = type_name::get<T>();
+    let inBagBalance = bag::borrow<TypeName, Balance<T>>(&self.bag, typeName);
+    balance::value(inBagBalance)
+  }
+  
+  public fun contains<T>(self: &BalanceBag): bool {
+    let typeName = type_name::get<T>();
+    bag::contains(&self.bag, typeName)
+  }
+  
+  public fun bag(self: &BalanceBag): &Bag {
+    &self.bag
   }
   
   public fun destroy_empty(self: BalanceBag) {
-    let BalanceBag { balances } = self;
-    bag::destroy_empty(balances);
-  }
-  
-  fun borrow_balance_mut<T>(self: &mut BalanceBag): &mut Balance<T> {
-    let typeName = type_name::get<T>();
-    init_balance_if_not_exist<T>(self);
-    bag::borrow_mut<TypeName, Balance<T>>(&mut self.balances, typeName)
-  }
-  
-  fun remove_balance<T>(self: &mut BalanceBag): Balance<T> {
-    let typeName = type_name::get<T>();
-    init_balance_if_not_exist<T>(self);
-    bag::remove(&mut self.balances, typeName)
-  }
-  
-  fun init_balance_if_not_exist<T>(self: &mut BalanceBag) {
-    let typeName = type_name::get<T>();
-    let balanceExists = bag::contains_with_type<TypeName, Balance<T>>(&self.balances, typeName);
-    if (balanceExists == false) {
-      bag::add(&mut self.balances, typeName, balance::zero<T>())
-    }
+    let BalanceBag { id, bag } = self;
+    object::delete(id);
+    bag::destroy_empty(bag);
   }
 }

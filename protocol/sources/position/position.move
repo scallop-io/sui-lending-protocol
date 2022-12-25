@@ -2,21 +2,19 @@
 module protocol::position {
   
   use std::type_name::{Self, TypeName};
+  use std::vector;
   use sui::object::{Self, UID};
   use sui::tx_context;
   use sui::balance::{Self, Balance};
   
-  use math::exponential::Exp;
+  use math::exponential::{Self, Exp};
   use x::balance_bag::{Self, BalanceBag};
   use x::ownership::{Self, Ownership};
   use x::wit_table::{Self, WitTable};
   
   use protocol::position_debts::{Self, PositionDebts, Debt};
   use protocol::position_collaterals::{Self, PositionCollaterals, Collateral};
-  use protocol::bank_state::{BankStates, BankState};
-  use std::vector;
-  use protocol::bank_state;
-  use math::exponential;
+  use protocol::bank::{Self, Bank};
   
   friend protocol::repay;
   friend protocol::borrow;
@@ -61,14 +59,14 @@ module protocol::position {
   
   public(friend) fun accure_interests(
     position: &mut Position,
-    bankStates: &WitTable<BankStates, TypeName, BankState>,
+    bank: &Bank,
   ) {
     let debtTypes = debt_types(position);
     let (i, n) = (0, vector::length(&debtTypes));
     while (i < n) {
       let type = *vector::borrow(&debtTypes, i);
       let (debtAmount, mark) = debt(position, type);
-      let currMark = bank_state::borrow_mark(bankStates, type);
+      let currMark = bank::borrow_mark(bank, type);
       let newDebtAmount = exponential::mul_scalar_exp_truncate(
         (debtAmount as u128),
         exponential::div_exp(currMark, mark)

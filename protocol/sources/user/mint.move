@@ -1,28 +1,19 @@
 module protocol::mint {
-  use std::type_name::TypeName;
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self ,TxContext};
   use sui::transfer;
   use time::timestamp::{Self ,TimeStamp};
-  use x::ac_table::AcTable;
-  use x::wit_table::WitTable;
-  use protocol::bank::Bank;
-  use protocol::interest_model::{InterestModels, InterestModel};
-  use protocol::bank_state::{Self, BankStates, BankState};
+  use protocol::bank::{Self, Bank};
   
   public entry fun mint<T>(
-    bank: &mut Bank<T>,
-    bankStates: &mut WitTable<BankStates, TypeName, BankState>,
-    interestModels: &AcTable<InterestModels, TypeName, InterestModel>,
+    bank: &mut Bank,
     timeOracle: &TimeStamp,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
     let now = timestamp::timestamp(timeOracle);
-    let mintBalance = bank_state::handle_mint(
-      bankStates,
+    let mintBalance = bank::handle_mint(
       bank,
-      interestModels,
       coin::into_balance(coin),
       now
     );

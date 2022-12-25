@@ -1,25 +1,17 @@
 module protocol::borrow {
   
-  use std::type_name::{Self, TypeName};
+  use std::type_name;
   use sui::coin;
   use sui::transfer;
   use sui::tx_context::{Self ,TxContext};
   use time::timestamp::{Self ,TimeStamp};
-  use x::ac_table::AcTable;
-  use x::wit_table::WitTable;
   use protocol::position::{Self, Position};
-  use protocol::bank::Bank;
-  use protocol::interest_model::{InterestModels, InterestModel};
-  use protocol::bank_state::{Self, BankStates, BankState};
+  use protocol::bank::{Self, Bank};
   use protocol::evaluator;
-  use protocol::collateral_config::{CollateralConfigs, CollateralConfig};
   
   public entry fun borrow<T>(
     position: &mut Position,
-    bank: &mut Bank<T>,
-    bankStates: &mut WitTable<BankStates, TypeName, BankState>,
-    interestModels: &AcTable<InterestModels, TypeName, InterestModel>,
-    collateralConfigs: &AcTable<CollateralConfigs, TypeName, CollateralConfig>,
+    bank: &mut Bank,
     timeOracle: &TimeStamp,
     borrowAmount: u64,
     ctx: &mut TxContext,
@@ -28,20 +20,14 @@ module protocol::borrow {
     let now = timestamp::timestamp(timeOracle);
     // Always update bank state first
     // Because interest need to be accrued first before other operations
-    let borrowedBalance = bank_state::handle_borrow<T>(
-      bankStates,
-      bank,
-      interestModels,
-      now,
-      borrowAmount
-    );
+    let borrowedBalance = bank::handle_borrow<T>(bank, borrowAmount, now);
     
     // accure interests for position
-    position::accure_interests(position, bankStates);
+    position::accure_interests(position, bank);
   
     // calc the maximum borrow amount
     // If borrow too much, abort
-    let maxBorrowAmount = evaluator::max_borrow_amount<T>(position, collateralConfigs);
+    let maxBorrowAmount = evaluator::max_borrow_amount<T>(position, bank);
     assert!(borrowAmount > maxBorrowAmount, 0);
     
     // increase the debt for position

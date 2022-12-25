@@ -1,29 +1,21 @@
 module protocol::redeem {
   
-  use std::type_name::TypeName;
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self ,TxContext};
   use sui::transfer;
   use time::timestamp::{Self ,TimeStamp};
-  use x::ac_table::AcTable;
-  use x::wit_table::WitTable;
-  use protocol::bank::{Bank, BankCoin};
-  use protocol::interest_model::{InterestModels, InterestModel};
-  use protocol::bank_state::{Self, BankStates, BankState};
+  use protocol::bank::{Self, Bank};
+  use protocol::bank_vault::BankCoin;
   
   public entry fun redeem<T>(
-    bank: &mut Bank<T>,
-    bankStates: &mut WitTable<BankStates, TypeName, BankState>,
-    interestModels: &AcTable<InterestModels, TypeName, InterestModel>,
+    bank: &mut Bank,
     timeOracle: &TimeStamp,
     coin: Coin<BankCoin<T>>,
     ctx: &mut TxContext,
   ) {
     let now = timestamp::timestamp(timeOracle);
-    let redeemBalance = bank_state::handle_redeem(
-      bankStates,
+    let redeemBalance = bank::handle_redeem(
       bank,
-      interestModels,
       coin::into_balance(coin),
       now
     );

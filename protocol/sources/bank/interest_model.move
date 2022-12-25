@@ -57,20 +57,14 @@ module protocol::interest_model {
     ac_table::add(interestModelTable, ownership, typeName, model)
   }
   
-  public fun reserve_factor(
-    interestModelTable: &AcTable<InterestModels, TypeName, InterestModel>,
-    typeName: TypeName,
-  ): Exp {
-    let model = ac_table::borrow(interestModelTable, typeName);
+  public fun reserve_factor(model: &InterestModel): Exp {
     model.reserveFactor
   }
   
   public fun calc_interest(
-    interestModelTable: &AcTable<InterestModels, TypeName, InterestModel>,
-    typeName: TypeName,
+    interestModel: &InterestModel,
     ultiRate: Exp
   ): Exp {
-    let interestModel = ac_table::borrow(interestModelTable, typeName);
     let extraRate = if ( exponential::greater_than_exp(ultiRate, interestModel.kink) ) {
       let lowRate = exponential::mul_exp(interestModel.kink, interestModel.lowSlope);
       let highRate = exponential::mul_exp(

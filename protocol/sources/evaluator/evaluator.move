@@ -8,17 +8,16 @@ module protocol::evaluator {
   use std::type_name::{get, TypeName};
 
   use math::exponential::{Self, Exp};
-  use x::ac_table::AcTable;
 
   use protocol::price;
   use protocol::position::{Self, Position};
-  use protocol::collateral_config::{Self, CollateralConfigs, CollateralConfig};
+  use protocol::bank::{Self, Bank};
   
   public fun max_borrow_amount<T>(
     position: &Position,
-    collateralConfigs: &AcTable<CollateralConfigs, TypeName, CollateralConfig>,
+    bank: &Bank,
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, collateralConfigs);
+    let collaterals_value = calc_collaterals_value(position, bank);
     let debts_value = calc_debts_value(position);
     if (exponential::greater_than_exp(collaterals_value, debts_value)) {
       let coinType = get<T>();
@@ -35,11 +34,11 @@ module protocol::evaluator {
 
   public fun max_withdraw_amount<T>(
     position: &Position,
-    collateralConfigs: &AcTable<CollateralConfigs, TypeName, CollateralConfig>,
+    bank: &Bank,
   ): u64 {
-    let maxBorrowAmount = max_borrow_amount<T>(position, collateralConfigs);
+    let maxBorrowAmount = max_borrow_amount<T>(position, bank);
     let coinType = get<T>();
-    let collateralFactor = collateral_config::collateral_factor(collateralConfigs, coinType);
+    let collateralFactor = bank::collateral_factor(bank, coinType);
     let maxWithdrawAmount = exponential::truncate(
       exponential::div_scalar_by_exp((maxBorrowAmount as u128), collateralFactor)
     );
@@ -48,9 +47,9 @@ module protocol::evaluator {
 
   public fun max_liquidate_amount<T>(
     position: &Position,
-    collateralConfigs: &AcTable<CollateralConfigs, TypeName, CollateralConfig>,
+    bank: &Bank,
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, collateralConfigs);
+    let collaterals_value = calc_collaterals_value(position, bank);
     let debts_value = calc_debts_value(position);
     if (exponential::greater_than_exp(collaterals_value, debts_value)) {
       0
@@ -69,7 +68,7 @@ module protocol::evaluator {
   // value = price x amount x collateralFactor
   fun calc_collaterals_value(
     position: &Position,
-    collateralConfigs: &AcTable<CollateralConfigs, TypeName, CollateralConfig>,
+    bank: &Bank,
   ): Exp {
     let collateralTypes = position::collateral_types(position);
     let totalValudInUsd = exponential::exp(0, 1);
@@ -77,7 +76,7 @@ module protocol::evaluator {
     while( i < n ) {
       let collateralType = *vector::borrow(&collateralTypes, i);
       let (collateralAmount, _) = position::debt(position, collateralType);
-      let collateralFactor = collateral_config::collateral_factor(collateralConfigs, collateralType);
+      let collateralFactor = bank::collateral_factor(bank, collateralType);
       let coinValueInUsd = exponential::mul_exp(
         calc_token_value(collateralType, collateralAmount),
         collateralFactor,

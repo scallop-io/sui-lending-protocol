@@ -1,4 +1,4 @@
-module mobius_protocol::withdraw_collateral {
+module protocol::withdraw_collateral {
   
   use std::type_name::TypeName;
   use sui::coin;
@@ -7,11 +7,11 @@ module mobius_protocol::withdraw_collateral {
   use time::timestamp::{Self ,TimeStamp};
   use x::ac_table::AcTable;
   use x::wit_table::WitTable;
-  use mobius_protocol::position::{Self, Position};
-  use mobius_protocol::interest_model::{InterestModels, InterestModel};
-  use mobius_protocol::bank_state::{Self, BankStates, BankState};
-  use mobius_protocol::evaluator;
-  use mobius_protocol::collateral_config::{CollateralConfigs, CollateralConfig};
+  use protocol::position::{Self, Position};
+  use protocol::interest_model::{InterestModels, InterestModel};
+  use protocol::bank_state::{Self, BankStates, BankState};
+  use protocol::evaluator;
+  use protocol::collateral_config::{CollateralConfigs, CollateralConfig};
   
   public entry fun withdraw_collateral<T>(
     position: &mut Position,

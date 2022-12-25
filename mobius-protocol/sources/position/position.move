@@ -1,5 +1,5 @@
 // refactor position to better handle operations
-module mobius_protocol::position {
+module protocol::position {
   
   use std::type_name::{Self, TypeName};
   use sui::object::{Self, UID};
@@ -11,17 +11,17 @@ module mobius_protocol::position {
   use x::ownership::{Self, Ownership};
   use x::wit_table::{Self, WitTable};
   
-  use mobius_protocol::position_debts::{Self, PositionDebts, Debt};
-  use mobius_protocol::position_collaterals::{Self, PositionCollaterals, Collateral};
-  use mobius_protocol::bank_state::{BankStates, BankState};
+  use protocol::position_debts::{Self, PositionDebts, Debt};
+  use protocol::position_collaterals::{Self, PositionCollaterals, Collateral};
+  use protocol::bank_state::{BankStates, BankState};
   use std::vector;
-  use mobius_protocol::bank_state;
+  use protocol::bank_state;
   use math::exponential;
   
-  friend mobius_protocol::repay;
-  friend mobius_protocol::borrow;
-  friend mobius_protocol::deposit_collateral;
-  friend mobius_protocol::withdraw_collateral;
+  friend protocol::repay;
+  friend protocol::borrow;
+  friend protocol::deposit_collateral;
+  friend protocol::withdraw_collateral;
   
   const EWithdrawTooMuch: u64 = 0;
   const EBorrowTooMuch: u64 = 1;

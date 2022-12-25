@@ -1,13 +1,13 @@
-module mobius_protocol::bank {
+module protocol::bank {
   
   use sui::tx_context::TxContext;
   use sui::object::{Self, UID};
   use sui::balance::{Self, Supply, Balance};
   
-  friend mobius_protocol::admin;
-  friend mobius_protocol::repay;
-  friend mobius_protocol::borrow;
-  friend mobius_protocol::bank_state;
+  friend protocol::admin;
+  friend protocol::repay;
+  friend protocol::borrow;
+  friend protocol::bank_state;
   
   struct BankCoin<phantom T> has drop {}
   

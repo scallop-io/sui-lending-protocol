@@ -1,4 +1,4 @@
-module mobius_protocol::position_debts {
+module protocol::position_debts {
   
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;

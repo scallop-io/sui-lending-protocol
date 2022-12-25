@@ -3,10 +3,10 @@
 // When you add collateral, you only interact with your own position
 // So even the protocol is in a busy traffic,
 // Add collateral is still fast
-module mobius_protocol::deposit_collateral {
+module protocol::deposit_collateral {
   
   use sui::coin::{Self, Coin};
-  use mobius_protocol::position::{Self, Position};
+  use protocol::position::{Self, Position};
   
   public entry fun add_collateral<T>(
     position: &mut Position,

@@ -1,13 +1,13 @@
 /// Each new bank need to be registerred before create
 /// In order to make sure only one bank will be created per underlying coin
-module mobius_protocol::bank_registry {
+module protocol::bank_registry {
   
   use std::type_name::{get};
   use sui::tx_context::TxContext;
   use registry::registry::{Self, Registry};
-  use mobius_protocol::bank::Bank;
+  use protocol::bank::Bank;
   
-  friend mobius_protocol::admin;
+  friend protocol::admin;
   
   struct BankRegistry has drop {}
   

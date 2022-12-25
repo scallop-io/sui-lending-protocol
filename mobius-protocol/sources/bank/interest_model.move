@@ -1,4 +1,4 @@
-module mobius_protocol::interest_model {
+module protocol::interest_model {
   
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;

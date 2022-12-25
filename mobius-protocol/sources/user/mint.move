@@ -1,4 +1,4 @@
-module mobius_protocol::mint {
+module protocol::mint {
   use std::type_name::TypeName;
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self ,TxContext};
@@ -6,9 +6,9 @@ module mobius_protocol::mint {
   use time::timestamp::{Self ,TimeStamp};
   use x::ac_table::AcTable;
   use x::wit_table::WitTable;
-  use mobius_protocol::bank::Bank;
-  use mobius_protocol::interest_model::{InterestModels, InterestModel};
-  use mobius_protocol::bank_state::{Self, BankStates, BankState};
+  use protocol::bank::Bank;
+  use protocol::interest_model::{InterestModels, InterestModel};
+  use protocol::bank_state::{Self, BankStates, BankState};
   
   public entry fun mint<T>(
     bank: &mut Bank<T>,

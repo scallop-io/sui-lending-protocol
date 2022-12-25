@@ -3,16 +3,16 @@ Evaluate the value of collateral, and debt
 Calculate the borrowing power, health factor for position
 */
 /// TODO: consider decimals when calculating usd value
-module mobius_protocol::evaluator {
+module protocol::evaluator {
   use std::vector;
   use std::type_name::{get, TypeName};
 
   use math::exponential::{Self, Exp};
   use x::ac_table::AcTable;
 
-  use mobius_protocol::price;
-  use mobius_protocol::position::{Self, Position};
-  use mobius_protocol::collateral_config::{Self, CollateralConfigs, CollateralConfig};
+  use protocol::price;
+  use protocol::position::{Self, Position};
+  use protocol::collateral_config::{Self, CollateralConfigs, CollateralConfig};
   
   public fun max_borrow_amount<T>(
     position: &Position,

@@ -1,4 +1,4 @@
-module mobius_protocol::bank_state {
+module protocol::bank_state {
   
   use std::vector;
   use sui::tx_context::TxContext;
@@ -7,8 +7,8 @@ module mobius_protocol::bank_state {
   use x::ac_table::AcTable;
   use x::wit_table::{Self, WitTable};
   use math::exponential::{Self, Exp, exp};
-  use mobius_protocol::bank::{Self, Bank, BankCoin};
-  use mobius_protocol::interest_model::{Self, InterestModels, InterestModel};
+  use protocol::bank::{Self, Bank, BankCoin};
+  use protocol::interest_model::{Self, InterestModels, InterestModel};
   
   struct BalanceSheet has store {
     cash: u128,

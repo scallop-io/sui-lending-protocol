@@ -1,4 +1,4 @@
-module mobius_protocol::redeem {
+module protocol::redeem {
   
   use std::type_name::TypeName;
   use sui::coin::{Self, Coin};
@@ -7,9 +7,9 @@ module mobius_protocol::redeem {
   use time::timestamp::{Self ,TimeStamp};
   use x::ac_table::AcTable;
   use x::wit_table::WitTable;
-  use mobius_protocol::bank::{Bank, BankCoin};
-  use mobius_protocol::interest_model::{InterestModels, InterestModel};
-  use mobius_protocol::bank_state::{Self, BankStates, BankState};
+  use protocol::bank::{Bank, BankCoin};
+  use protocol::interest_model::{InterestModels, InterestModel};
+  use protocol::bank_state::{Self, BankStates, BankState};
   
   public entry fun redeem<T>(
     bank: &mut Bank<T>,

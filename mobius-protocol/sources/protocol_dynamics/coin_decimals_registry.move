@@ -1,5 +1,5 @@
 /// TODO: find a flexible way to get decimals
-module mobius_protocol::coin_decimals_registry {
+module protocol::coin_decimals_registry {
   
   use std::type_name::{Self, TypeName};
   use sui::table::{Self, Table};

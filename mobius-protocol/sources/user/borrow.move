@@ -1,4 +1,4 @@
-module mobius_protocol::borrow {
+module protocol::borrow {
   
   use std::type_name::{Self, TypeName};
   use sui::coin;
@@ -7,12 +7,12 @@ module mobius_protocol::borrow {
   use time::timestamp::{Self ,TimeStamp};
   use x::ac_table::AcTable;
   use x::wit_table::WitTable;
-  use mobius_protocol::position::{Self, Position};
-  use mobius_protocol::bank::Bank;
-  use mobius_protocol::interest_model::{InterestModels, InterestModel};
-  use mobius_protocol::bank_state::{Self, BankStates, BankState};
-  use mobius_protocol::evaluator;
-  use mobius_protocol::collateral_config::{CollateralConfigs, CollateralConfig};
+  use protocol::position::{Self, Position};
+  use protocol::bank::Bank;
+  use protocol::interest_model::{InterestModels, InterestModel};
+  use protocol::bank_state::{Self, BankStates, BankState};
+  use protocol::evaluator;
+  use protocol::collateral_config::{CollateralConfigs, CollateralConfig};
   
   public entry fun borrow<T>(
     position: &mut Position,

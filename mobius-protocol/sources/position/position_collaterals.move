@@ -1,4 +1,4 @@
-module mobius_protocol::position_collaterals {
+module protocol::position_collaterals {
   
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;

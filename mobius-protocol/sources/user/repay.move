@@ -1,14 +1,14 @@
-module mobius_protocol::repay {
+module protocol::repay {
 
   use std::type_name::{Self, TypeName};
   use sui::coin::{Self, Coin};
   use time::timestamp::{Self ,TimeStamp};
   use x::ac_table::AcTable;
   use x::wit_table::WitTable;
-  use mobius_protocol::position::{Self, Position};
-  use mobius_protocol::bank::Bank;
-  use mobius_protocol::interest_model::{InterestModels, InterestModel};
-  use mobius_protocol::bank_state::{Self, BankStates, BankState};
+  use protocol::position::{Self, Position};
+  use protocol::bank::Bank;
+  use protocol::interest_model::{InterestModels, InterestModel};
+  use protocol::bank_state::{Self, BankStates, BankState};
   
   public entry fun repay<T>(
     position: &mut Position,

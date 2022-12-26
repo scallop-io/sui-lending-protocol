@@ -51,9 +51,7 @@ module protocol::zq {
     transfer::freeze_object(coinMetadata);
   }
   
-  public fun claim_(
-    treasury: &mut Treasury,
-  ): Balance<ZQ> {
-    balance::split(&mut treasury.balance, 0)
+  public(friend) fun claim_(treasury: &mut Treasury, amount: u64): Balance<ZQ> {
+    balance::split(&mut treasury.balance, amount)
   }
 }

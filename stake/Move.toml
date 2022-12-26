@@ -1,0 +1,10 @@
+[package]
+name="Stake"
+version="0.0.1"
+
+[dependencies]
+Sui = { local = "../../sui/crates/sui-framework" }
+Math = { local = "../math" }
+
+[addresses]
+stake="0x0"

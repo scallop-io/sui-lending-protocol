@@ -7,6 +7,7 @@ module stake::reward {
   use stake::admin;
   
   friend stake::action;
+  friend stake::stake_sea;
   
   struct StakeRewardTreasury<phantom Wit, phantom RewardType> has key, store {
     id: UID,
@@ -15,14 +16,12 @@ module stake::reward {
   
   const EAdminNotAllowedToTakeRewards: u64 = 0;
   
-  public fun create_treasury<Wit, RewardType>(
-    _: &StakeAdminCap<Wit>,
-    coin: Coin<RewardType>,
+  public(friend) fun create_treasury<Wit, RewardType>(
     ctx: &mut TxContext
   ): StakeRewardTreasury<Wit, RewardType> {
     StakeRewardTreasury {
       id: object::new(ctx),
-      balance: coin::into_balance(coin)
+      balance: balance::zero()
     }
   }
   

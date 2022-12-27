@@ -9,12 +9,12 @@ module stake::action {
   
   const EUnstakeTooMuch: u64 = 0;
   
-  public fun stake<Wit, StakeCoin, Reward>(
+  public fun stake<Wit, Reward, StakeCoin>(
     coin: Coin<StakeCoin>,
-    stakePool: &mut StakePool<Wit, StakeCoin, Reward>,
+    stakePool: &mut StakePool<Wit, Reward, StakeCoin>,
     now: u64,
     ctx: &mut TxContext,
-  ): StakeCheck<Wit, StakeCoin, Reward> {
+  ): StakeCheck<Wit, Reward, StakeCoin> {
     let stakeAmount = coin::value(&coin);
     // Always accrue reward for the pool
     pool::accrue_reward(stakePool, now);
@@ -22,13 +22,13 @@ module stake::action {
     pool::increase_staked(stakePool, coin::into_balance(coin));
     
     // Issue the stake check
-    check::new<Wit, StakeCoin, Reward>(stakeAmount, pool::index(stakePool), ctx)
+    check::new<Wit, Reward, StakeCoin>(stakeAmount, pool::index(stakePool), ctx)
   }
   
-  public fun stake_more<Wit, StakeCoin, Reward>(
+  public fun stake_more<Wit, Reward, StakeCoin>(
     coin: Coin<StakeCoin>,
-    stakeCheck: &mut StakeCheck<Wit, StakeCoin, Reward>,
-    stakePool: &mut StakePool<Wit, StakeCoin, Reward>,
+    stakeCheck: &mut StakeCheck<Wit, Reward, StakeCoin>,
+    stakePool: &mut StakePool<Wit, Reward, StakeCoin>,
     now: u64,
   ) {
     let newStakeAmount = coin::value(&coin);
@@ -44,9 +44,9 @@ module stake::action {
     check::increase_staked(stakeCheck, newStakeAmount);
   }
   
-  public fun unstake<Wit, StakeCoin, Reward>(
-    stakeCheck: &mut StakeCheck<Wit, StakeCoin, Reward>,
-    stakePool: &mut StakePool<Wit, StakeCoin, Reward>,
+  public fun unstake<Wit, Reward, StakeCoin>(
+    stakeCheck: &mut StakeCheck<Wit, Reward, StakeCoin>,
+    stakePool: &mut StakePool<Wit, Reward, StakeCoin>,
     stakeRewardTreasury: &mut StakeRewardTreasury<Wit, Reward>,
     unstakeAmount: u64,
     now: u64,
@@ -65,8 +65,8 @@ module stake::action {
     (withdrawedBalance, rewardBalance)
   }
   
-  fun claim_reward<Wit, StakeCoin, Reward>(
-    stakeCheck: &mut StakeCheck<Wit, StakeCoin, Reward>,
+  fun claim_reward<Wit, Reward, StakeCoin>(
+    stakeCheck: &mut StakeCheck<Wit, Reward, StakeCoin>,
     stakeRewardTreasury: &mut StakeRewardTreasury<Wit, Reward>,
   ): Balance<Reward> {
     let rewardAmount = check::reward(stakeCheck);

@@ -1,10 +1,7 @@
 module stake::check {
   
   use sui::object::{Self, UID};
-  use sui::tx_context::{Self, TxContext};
-  use sui::balance::{Self, Balance};
-  use sui::transfer;
-  use sui::coin;
+  use sui::tx_context::TxContext;
   use stake::pool::{Self, StakePool};
   use stake::calculator;
   
@@ -13,16 +10,16 @@ module stake::check {
   const ERedeemAmountNotMatch: u64 = 0;
   const ERedeemRewardAmountNotMatch: u64 = 1;
   
-  struct StakeCheck<phantom Wit, phantom StakeCoin, phantom Reward> has key, store {
+  struct StakeCheck<phantom Wit, phantom Reward, phantom StakeCoin> has key, store {
     id: UID,
     staked: u64,
     reward: u64,
     index: u64
   }
   
-  public(friend) fun new<Wit, StakeCoin, Reward>(
+  public(friend) fun new<Wit, Reward, StakeCoin>(
     amount: u64, index: u64, ctx: &mut TxContext
-  ): StakeCheck<Wit, StakeCoin, Reward> {
+  ): StakeCheck<Wit, Reward, StakeCoin> {
     StakeCheck {
       id: object::new(ctx),
       staked: amount,
@@ -31,8 +28,8 @@ module stake::check {
     }
   }
   
-  public fun staked<Wit, StakeCoin, Reward>(
-    self: &StakeCheck<Wit, StakeCoin, Reward>
+  public fun staked<Wit, Reward, StakeCoin>(
+    self: &StakeCheck<Wit, Reward, StakeCoin>
   ): u64 {
     self.staked
   }
@@ -61,24 +58,9 @@ module stake::check {
     self.reward = 0;
   }
   
-  public(friend) fun redeem_check<Wit, StakeCoin, Reward>(
-    self: StakeCheck<Wit, StakeCoin, Reward>,
-    balance: Balance<StakeCoin>,
-    rewardBalance: Balance<Reward>,
-    ctx: &mut TxContext
-  ) {
-    assert!(balance::value(&balance) == self.staked, ERedeemAmountNotMatch);
-    assert!(balance::value(&rewardBalance) == self.reward, ERedeemRewardAmountNotMatch);
-    let sender = tx_context::sender(ctx);
-    transfer::transfer(coin::from_balance(balance, ctx), sender);
-    transfer::transfer(coin::from_balance(rewardBalance, ctx), sender);
-    let StakeCheck { id, staked: _, reward: _, index: _ } = self;
-    object::delete(id)
-  }
-  
-  public(friend) fun accrue_stake_reward<Wit, StakeCoin, Reward>(
-    self: &mut StakeCheck<Wit, StakeCoin, Reward>,
-    stakePool: &StakePool<Wit, StakeCoin, Reward>,
+  public(friend) fun accrue_stake_reward<Wit, Reward, StakeCoin>(
+    self: &mut StakeCheck<Wit, Reward, StakeCoin>,
+    stakePool: &StakePool<Wit, Reward, StakeCoin>,
   ) {
     let indexStaked = pool::index_staked(stakePool);
     let poolIndex = pool::index(stakePool);

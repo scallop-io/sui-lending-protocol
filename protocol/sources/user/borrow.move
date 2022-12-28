@@ -1,6 +1,6 @@
 module protocol::borrow {
   
-  use std::type_name;
+  use std::type_name::{Self, TypeName};
   use sui::coin;
   use sui::transfer;
   use sui::tx_context::{Self ,TxContext};
@@ -9,8 +9,19 @@ module protocol::borrow {
   use protocol::bank::{Self, Bank};
   use protocol::evaluator;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
+  use sui::object::ID;
+  use sui::event::emit;
+  use sui::object;
   
   const EBorrowTooMuch: u64 = 0;
+  
+  struct BorrowEvent has copy, drop {
+    borrower: address,
+    position: ID,
+    asset: TypeName,
+    amount: u64,
+    time: u64,
+  }
   
   public entry fun borrow<T>(
     position: &mut Position,
@@ -43,5 +54,13 @@ module protocol::borrow {
       coin::from_balance(borrowedBalance, ctx),
       tx_context::sender(ctx),
     );
+    
+    emit(BorrowEvent {
+      borrower: tx_context::sender(ctx),
+      position: object::id(position),
+      asset: coinType,
+      amount: borrowAmount,
+      time: now,
+    })
   }
 }

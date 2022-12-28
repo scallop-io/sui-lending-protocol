@@ -7,7 +7,6 @@ module protocol::position {
   use sui::tx_context;
   use sui::balance::{Self, Balance};
   
-  use math::exponential::{Self, Exp};
   use x::balance_bag::{Self, BalanceBag};
   use x::ownership::{Self, Ownership};
   use x::wit_table::{Self, WitTable};
@@ -15,6 +14,7 @@ module protocol::position {
   use protocol::position_debts::{Self, PositionDebts, Debt};
   use protocol::position_collaterals::{Self, PositionCollaterals, Collateral};
   use protocol::bank::{Self, Bank};
+  use math::u64;
   
   friend protocol::repay;
   friend protocol::borrow;
@@ -67,11 +67,8 @@ module protocol::position {
       let type = *vector::borrow(&debtTypes, i);
       let (debtAmount, mark) = debt(position, type);
       let currMark = bank::borrow_mark(bank, type);
-      let newDebtAmount = exponential::mul_scalar_exp_truncate(
-        (debtAmount as u128),
-        exponential::div_exp(currMark, mark)
-      );
-      update_debt(position, type, (newDebtAmount as u64), currMark);
+      let newDebtAmount = u64::mul_div(debtAmount, currMark, mark);
+      update_debt(position, type, newDebtAmount, currMark);
       i = i + 1;
     };
   }
@@ -104,7 +101,7 @@ module protocol::position {
     self: &mut Position,
     typeName: TypeName,
     amount: u64,
-    borrowMark: Exp,
+    borrowMark: u64,
   ) {
     position_debts::update_debt(&mut self.debts, typeName, amount, borrowMark)
   }
@@ -143,7 +140,7 @@ module protocol::position {
   public fun debt(
     self: &Position,
     typeName: TypeName,
-  ): (u64, Exp) {
+  ): (u64, u64) {
     position_debts::debt(&self.debts, typeName)
   }
   

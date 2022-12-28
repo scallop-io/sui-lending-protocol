@@ -8,24 +8,25 @@ module protocol::bank {
   use x::ac_table::{Self, AcTable, AcTableOwnership};
   use x::wit_table::{Self, WitTable};
   use x::ownership::Ownership;
-  use math::exponential::{Self, Exp, exp};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::bank_vault::{Self, BankVault, BankCoin};
+  use math::fr::{Self, Fr};
+  use math::mix;
   
   struct BalanceSheets has drop {}
   
   struct BalanceSheet has store {
-    cash: u128,
-    debt: u128,
-    reserve: u128,
+    cash: u64,
+    debt: u64,
+    reserve: u64,
   }
   
   struct BorrowIndexes has drop {}
   
   struct BorrowIndex has store {
-    mark: Exp,
-    interestRate: Exp,
+    mark: u64,
+    interestRate: Fr,
     lastUpdated: u64,
   }
   
@@ -109,12 +110,12 @@ module protocol::bank {
     update_interest_rates(self);
   }
   
-  public fun borrow_mark(self: &Bank, typeName: TypeName): Exp {
+  public fun borrow_mark(self: &Bank, typeName: TypeName): u64 {
     let borrowIndex = wit_table::borrow(&self.borrowIndexes, typeName);
     borrowIndex.mark
   }
   
-  public fun collateral_factor(self: &Bank, typeName: TypeName): Exp {
+  public fun collateral_factor(self: &Bank, typeName: TypeName): Fr {
     risk_model::collateral_factor(&self.riskModels, typeName)
   }
   
@@ -125,8 +126,8 @@ module protocol::bank {
     repayAmount: u64
   ) {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, typeName);
-    balanceSheet.debt = balanceSheet.debt - (repayAmount as u128);
-    balanceSheet.cash = balanceSheet.cash + (repayAmount as u128);
+    balanceSheet.debt = balanceSheet.debt - repayAmount;
+    balanceSheet.cash = balanceSheet.cash + repayAmount;
   }
   
   // update bank balance sheet for borrow
@@ -136,8 +137,8 @@ module protocol::bank {
     borrowAmount: u64
   ) {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, typeName);
-    balanceSheet.debt = balanceSheet.debt + (borrowAmount as u128);
-    balanceSheet.cash = balanceSheet.cash - (borrowAmount as u128);
+    balanceSheet.debt = balanceSheet.debt + borrowAmount;
+    balanceSheet.cash = balanceSheet.cash - borrowAmount;
   }
   
   // accure interest for all banks
@@ -179,38 +180,33 @@ module protocol::bank {
     /*********
     timeDelta = now - lastUpdated
     *********/
-    let timeDelta = ((now - borrowIndex.lastUpdated) as u128);
+    let timeDelta = now - borrowIndex.lastUpdated;
     
     /*********
     increaseFactor = 1 + timeDelta * interestRate
     *********/
-    let increaseFactor = exponential::add_exp(
-      exp(1, 1),
-      exponential::mul_scalar_exp(borrowIndex.interestRate, timeDelta)
+    let increaseFactor = fr::add(
+      fr::int(1),
+      fr::mul(borrowIndex.interestRate, fr::int(timeDelta))
     );
     
     /*********
     newDebt = oldDebt * increaseFactor
     *********/
     let oldDebt = balanceSheet.debt;
-    balanceSheet.debt = exponential::mul_scalar_exp_truncate(
-      balanceSheet.debt,
-      increaseFactor
-    );
+    balanceSheet.debt = mix::mul_ifrT(oldDebt, increaseFactor);
     
     /*********
     newMark = oldMark * increaseFactor
     *********/
-    borrowIndex.mark = exponential::mul_exp(borrowIndex.mark, increaseFactor);
+    borrowIndex.mark = mix::mul_ifrT(borrowIndex.mark, increaseFactor);
     
     /*******
      newReserve = reserve + reserveFactor * (newDebt - oldDebt)
     ********/
     let reserveFactor = interest_model::reserve_factor(interestModel);
-    balanceSheet.reserve = balanceSheet.reserve + exponential::mul_scalar_exp_truncate(
-      balanceSheet.debt - oldDebt,
-      reserveFactor
-    );
+    let reserveDelta = mix::mul_ifrT(balanceSheet.debt - oldDebt, reserveFactor);
+    balanceSheet.reserve = balanceSheet.reserve + reserveDelta;
     
     // set lastUpdated to now
     borrowIndex.lastUpdated = now
@@ -225,7 +221,7 @@ module protocol::bank {
     update interest with the new bank ulti rate
     ultiRate = debt / (debt + cash - reserve)
     ********/
-    let ultiRate = exponential::exp(
+    let ultiRate = fr::fr(
       balanceSheet.debt,
       balanceSheet.debt + balanceSheet.cash - balanceSheet.reserve
     );
@@ -244,19 +240,16 @@ module protocol::bank {
       redeemRate = (cash + debt - reserve) / totalBankCoinSupply
       redeemAmount = bankCoinAmount * redeemRate
     **********/
-    let redeemRate = exponential::exp(
+    let redeemRate = fr::fr(
       balanceSheet.cash + balanceSheet.debt - balanceSheet.reserve,
-      (bank_vault::bank_coin_total_supply<T>(&self.vault) as u128),
+      bank_vault::bank_coin_total_supply<T>(&self.vault),
     );
-    let redeemAmount = exponential::mul_scalar_exp_truncate(
-      (bankCoinAmount as u128),
-      redeemRate
-    );
+    let redeemAmount = mix::mul_ifrT(bankCoinAmount, redeemRate);
     // update the bank balance sheet
     balanceSheet.cash = balanceSheet.cash - redeemAmount;
     // burn the bank coin, and return the underyling coin
     bank_vault::burn_bank_coin(&mut self.vault, bankCoinBalance);
-    bank_vault::withdraw_underlying_coin(&mut self.vault, (redeemAmount as u64))
+    bank_vault::withdraw_underlying_coin(&mut self.vault, redeemAmount)
   }
   
   fun mint<T>(
@@ -264,24 +257,21 @@ module protocol::bank {
     balance: Balance<T>
   ): Balance<BankCoin<T>> {
     let typeName = type_name::get<T>();
-    let coinAmount = (balance::value(&balance) as u128);
+    let coinAmount = balance::value(&balance);
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, typeName);
     /**********
       mintRate = totalBankSupply / (cash + debt - reserve)
       mintAmount = coinAmount * mintRate
     **********/
-    let mintRate = exponential::exp(
-      (bank_vault::bank_coin_total_supply<T>(&self.vault) as u128),
+    let mintRate = fr::fr(
+      bank_vault::bank_coin_total_supply<T>(&self.vault),
       balanceSheet.cash + balanceSheet.debt - balanceSheet.reserve,
     );
-    let mintAmount = exponential::mul_scalar_exp_truncate(
-      coinAmount,
-      mintRate
-    );
+    let mintAmount = mix::mul_ifrT(coinAmount, mintRate);
     // update the bank balance sheet
     balanceSheet.cash = balanceSheet.cash + coinAmount;
     // put the underyling coin, and mint the bank coin
     bank_vault::deposit_underlying_coin(&mut self.vault, balance);
-    bank_vault::issue_bank_coin(&mut self.vault, (mintAmount as u64))
+    bank_vault::issue_bank_coin(&mut self.vault, mintAmount)
   }
 }

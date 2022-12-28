@@ -2,18 +2,18 @@ module protocol::interest_model {
   
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;
-  use math::exponential::{Self, Exp, exp};
   use x::ownership::Ownership;
   use x::ac_table::{Self, AcTable, AcTableOwnership};
+  use math::fr::{Self, fr, Fr};
   
   const EReserveFactorTooLarge: u64 = 0;
   
   struct InterestModel has store {
-    baseBorrowRatePersec: Exp,
-    lowSlope: Exp,
-    kink: Exp,
-    highSlope: Exp,
-    reserveFactor: Exp,
+    baseBorrowRatePersec: Fr,
+    lowSlope: Fr,
+    kink: Fr,
+    highSlope: Fr,
+    reserveFactor: Fr,
   }
   
   struct InterestModels has drop {}
@@ -29,24 +29,24 @@ module protocol::interest_model {
     interestModelTable: &mut AcTable<InterestModels, TypeName, InterestModel>,
     ownership: &Ownership<AcTableOwnership>,
     typeName: TypeName,
-    baseRatePersecEnu: u128,
-    baseRatePersecDeno: u128,
-    lowSlopeEnu: u128,
-    lowSlopeDeno: u128,
-    kinkEnu: u128,
-    kinkDeno: u128,
-    highSlopeEnu: u128,
-    highSlopeDeno: u128,
-    reserveFactorEnu: u128,
-    reserveFactorDeno: u128,
+    baseRatePersecEnu: u64,
+    baseRatePersecDeno: u64,
+    lowSlopeEnu: u64,
+    lowSlopeDeno: u64,
+    kinkEnu: u64,
+    kinkDeno: u64,
+    highSlopeEnu: u64,
+    highSlopeDeno: u64,
+    reserveFactorEnu: u64,
+    reserveFactorDeno: u64,
   ) {
     assert!(reserveFactorEnu < reserveFactorDeno, EReserveFactorTooLarge);
     
-    let baseBorrowRatePersec = exp(baseRatePersecEnu, baseRatePersecDeno);
-    let lowSlope = exp(lowSlopeEnu, lowSlopeDeno);
-    let kink = exp(kinkEnu, kinkDeno);
-    let highSlope = exp(highSlopeEnu, highSlopeDeno);
-    let reserveFactor = exp(reserveFactorEnu, reserveFactorDeno);
+    let baseBorrowRatePersec = fr(baseRatePersecEnu, baseRatePersecDeno);
+    let lowSlope = fr(lowSlopeEnu, lowSlopeDeno);
+    let kink = fr(kinkEnu, kinkDeno);
+    let highSlope = fr(highSlopeEnu, highSlopeDeno);
+    let reserveFactor = fr(reserveFactorEnu, reserveFactorDeno);
     let model = InterestModel {
       baseBorrowRatePersec,
       lowSlope,
@@ -57,24 +57,24 @@ module protocol::interest_model {
     ac_table::add(interestModelTable, ownership, typeName, model)
   }
   
-  public fun reserve_factor(model: &InterestModel): Exp {
+  public fun reserve_factor(model: &InterestModel): Fr {
     model.reserveFactor
   }
   
   public fun calc_interest(
     interestModel: &InterestModel,
-    ultiRate: Exp
-  ): Exp {
-    let extraRate = if ( exponential::greater_than_exp(ultiRate, interestModel.kink) ) {
-      let lowRate = exponential::mul_exp(interestModel.kink, interestModel.lowSlope);
-      let highRate = exponential::mul_exp(
-        exponential::sub_exp(ultiRate, interestModel.kink),
+    ultiRate: Fr,
+  ): Fr {
+    let extraRate = if (fr::gt(ultiRate, interestModel.kink)) {
+      let lowRate = fr::mul(interestModel.kink, interestModel.lowSlope);
+      let highRate = fr::mul(
+        fr::sub(ultiRate, interestModel.kink),
         interestModel.highSlope
       );
-      exponential::add_exp(lowRate, highRate)
+      fr::add(lowRate, highRate)
     } else {
-      exponential::mul_exp(ultiRate, interestModel.lowSlope)
+      fr::mul(ultiRate, interestModel.lowSlope)
     };
-    exponential::add_exp(interestModel.baseBorrowRatePersec, extraRate)
+    fr::add(interestModel.baseBorrowRatePersec, extraRate)
   }
 }

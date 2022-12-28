@@ -1,11 +1,10 @@
 module protocol::stake {
   
   use sui::tx_context::TxContext;
-  use protocol::stake_reward::STAKE_REWARD;
-  
-  use stake::stake_sea;
-  use stake::stake_sea::StakeSea;
+  use stake::stake_sea::{Self, StakeSea};
   use stake::admin::StakeAdminCap;
+  
+  use protocol::stake_reward::STAKE_REWARD;
   
   struct ZqStake has drop {}
   

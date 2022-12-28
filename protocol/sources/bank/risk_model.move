@@ -3,16 +3,16 @@ module protocol::risk_model {
   use sui::tx_context::TxContext;
   use x::ac_table::{Self, AcTable, AcTableOwnership};
   use x::ownership::Ownership;
-  use math::exponential::{Exp, exp};
+  use math::fr::{fr, Fr};
   
   const ECollateralFactoryTooBig: u64 = 0;
   
   struct RiskModel has store {
-    collateralFactor: Exp,
+    collateralFactor: Fr,
     // TODO: study how closeFactor works, and implement it
-    closeFactor: Exp,
+    closeFactor: Fr,
     // TODO: study liquidation mechanism, and implement it
-    liquidationIncentive: Exp,
+    liquidationIncentive: Fr,
   }
   
   struct RiskModels has drop {}
@@ -28,18 +28,18 @@ module protocol::risk_model {
     self: &mut AcTable<RiskModels, TypeName, RiskModel>,
     ownership: &Ownership<AcTableOwnership>,
     typeName: TypeName,
-    collateralFactorEnu: u128,
-    collateralFactorDeno: u128,
-    closeFactorEnu: u128,
-    closeFactorDeno: u128,
-    liquidationIncentiveEnu: u128,
-    liquidationIncentiveDeno: u128,
+    collateralFactorEnu: u64,
+    collateralFactorDeno: u64,
+    closeFactorEnu: u64,
+    closeFactorDeno: u64,
+    liquidationIncentiveEnu: u64,
+    liquidationIncentiveDeno: u64,
   ) {
     assert!(collateralFactorEnu < collateralFactorDeno, ECollateralFactoryTooBig);
     let riskModel = RiskModel {
-      collateralFactor: exp(collateralFactorEnu, collateralFactorDeno),
-      closeFactor: exp(closeFactorEnu, closeFactorDeno),
-      liquidationIncentive: exp(liquidationIncentiveEnu, liquidationIncentiveDeno)
+      collateralFactor: fr(collateralFactorEnu, collateralFactorDeno),
+      closeFactor: fr(closeFactorEnu, closeFactorDeno),
+      liquidationIncentive: fr(liquidationIncentiveEnu, liquidationIncentiveDeno)
     };
     ac_table::add(self, ownership, typeName, riskModel);
   }
@@ -47,7 +47,7 @@ module protocol::risk_model {
   public fun collateral_factor(
     self: &AcTable<RiskModels, TypeName, RiskModel>,
     typeName: TypeName,
-  ): Exp {
+  ): Fr {
     let riskModel = ac_table::borrow(self, typeName);
     riskModel.collateralFactor
   }

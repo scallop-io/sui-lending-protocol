@@ -1,7 +1,6 @@
 // Put all reward calculating logic here
 module stake::calculator {
-  
-  use math::exponential;
+  use math::u64;
   
   /**
    * @notice Calculate the new index for a StakePool
@@ -18,17 +17,16 @@ module stake::calculator {
     rewardRatePerSec: u64,
     timeDelta: u64,
   ): u64 {
+    // When nothing is staked, just return 0
+    if (totalStaked == 0) return 0;
     /********
       totalNewRewards = rewardRatePerSec * timeDelta
-      newIndexReward = (indexStaked / totalStaked) * totalNewRewards
+      newIndexReward = indexStaked * totalNewRewards / totalStaked;
       newIndex = prevIndex + newIndexReward
     *********/
-    let totalNewRewards = (rewardRatePerSec * timeDelta as u128);
-    let newIndexReward = exponential::mul_scalar_exp_truncate(
-      totalNewRewards,
-      exponential::exp((indexStaked as u128), (totalStaked as u128)),
-    );
-    prevIndex + (newIndexReward as u64)
+    let totalNewRewards = rewardRatePerSec * timeDelta;
+    let newIndexReward = u64::mul_div(indexStaked, totalNewRewards, totalStaked);
+    prevIndex + newIndexReward
   }
   
   /**
@@ -46,12 +44,8 @@ module stake::calculator {
     index: u64,
   ): u64 {
     /********
-      stakeReward = (staked / indexStaked) * (poolIndex - index)
+      stakeReward = (index - localIndex) * staked / indexStaked;
     ********/
-    let stakeReward = exponential::mul_scalar_exp_truncate(
-      ((index - localIndex) as u128),
-      exponential::exp((staked as u128), (indexStaked as u128)),
-    );
-    (stakeReward as u64)
+    u64::mul_div(index - localIndex, staked, indexStaked)
   }
 }

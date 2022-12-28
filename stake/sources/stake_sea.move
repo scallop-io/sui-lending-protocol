@@ -2,9 +2,10 @@
 module stake::stake_sea {
   
   use std::type_name::{Self, TypeName};
-  use sui::coin::Coin;
+  use sui::transfer;
+  use sui::coin::{Self, Coin};
   use sui::balance::Balance;
-  use sui::tx_context::TxContext;
+  use sui::tx_context::{Self ,TxContext};
   use sui::object::{Self, UID};
   use sui::object_bag::{Self, ObjectBag};
   use stake::pool::{Self, StakePool};
@@ -12,9 +13,6 @@ module stake::stake_sea {
   use stake::reward::{Self, StakeRewardTreasury};
   use stake::action;
   use stake::check::StakeCheck;
-  use sui::transfer;
-  use sui::tx_context;
-  use sui::coin;
   
   const IndexStaked: u64 = 1000000000;
   

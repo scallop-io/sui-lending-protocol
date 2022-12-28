@@ -3,11 +3,10 @@ module protocol::position_debts {
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
-  use math::exponential::Exp;
   
   struct Debt has store {
     amount: u64,
-    borrowMark: Exp
+    borrowMark: u64
   }
   
   struct PositionDebts has drop {}
@@ -20,7 +19,7 @@ module protocol::position_debts {
     debts: &mut WitTable<PositionDebts, TypeName, Debt>,
     typeName: TypeName,
     amount: u64,
-    borrowMark: Exp
+    borrowMark: u64
   ) {
     if (wit_table::contains(debts, typeName)) {
       let debt = wit_table::borrow_mut(PositionDebts{}, debts, typeName);
@@ -35,7 +34,7 @@ module protocol::position_debts {
   public fun debt(
     debts: &WitTable<PositionDebts, TypeName, Debt>,
     typeName: TypeName,
-  ): (u64, Exp) {
+  ): (u64, u64) {
     
     let debt = wit_table::borrow(debts, typeName);
     (debt.amount, debt.borrowMark)

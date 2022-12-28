@@ -3,6 +3,8 @@ module protocol::withdraw_collateral {
   use std::type_name::{Self, TypeName};
   use sui::coin;
   use sui::transfer;
+  use sui::event::emit;
+  use sui::balance;
   use sui::tx_context::{Self, TxContext};
   use sui::object::{Self, ID};
   use time::timestamp::{Self ,TimeStamp};
@@ -10,8 +12,6 @@ module protocol::withdraw_collateral {
   use protocol::evaluator;
   use protocol::bank::{Self, Bank};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
-  use sui::event::emit;
-  use sui::balance;
   
   const EWithdrawTooMuch: u64 = 0;
   

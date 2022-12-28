@@ -3,15 +3,14 @@ module protocol::borrow {
   use std::type_name::{Self, TypeName};
   use sui::coin;
   use sui::transfer;
+  use sui::event::emit;
   use sui::tx_context::{Self ,TxContext};
+  use sui::object::{Self, ID};
   use time::timestamp::{Self ,TimeStamp};
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
   use protocol::evaluator;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
-  use sui::object::ID;
-  use sui::event::emit;
-  use sui::object;
   
   const EBorrowTooMuch: u64 = 0;
   

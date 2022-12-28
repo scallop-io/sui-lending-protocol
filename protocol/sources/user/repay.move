@@ -1,15 +1,13 @@
 module protocol::repay {
 
   use std::type_name::{Self, TypeName};
-  use sui::object::ID;
+  use sui::event::emit;
+  use sui::object::{Self, ID};
   use sui::coin::{Self, Coin};
+  use sui::tx_context::{Self, TxContext};
   use time::timestamp::{Self ,TimeStamp};
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
-  use sui::event::emit;
-  use sui::tx_context::TxContext;
-  use sui::tx_context;
-  use sui::object;
   
   struct RepayEvent has copy, drop {
     repayer: address,

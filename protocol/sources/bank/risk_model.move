@@ -1,8 +1,7 @@
 module protocol::risk_model {
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;
-  use x::ac_table::{Self, AcTable, AcTableOwnership};
-  use x::ownership::Ownership;
+  use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{fr, Fr};
   
   const ECollateralFactoryTooBig: u64 = 0;
@@ -19,14 +18,14 @@ module protocol::risk_model {
   
   public fun new(ctx: &mut TxContext): (
     AcTable<RiskModels, TypeName, RiskModel>,
-    Ownership<AcTableOwnership>
+    AcTableCap<RiskModels>
   )  {
     ac_table::new(RiskModels {}, false, ctx)
   }
   
   public fun register_risk_model(
     self: &mut AcTable<RiskModels, TypeName, RiskModel>,
-    ownership: &Ownership<AcTableOwnership>,
+    cap: &AcTableCap<RiskModels>,
     typeName: TypeName,
     collateralFactorEnu: u64,
     collateralFactorDeno: u64,
@@ -41,7 +40,7 @@ module protocol::risk_model {
       closeFactor: fr(closeFactorEnu, closeFactorDeno),
       liquidationIncentive: fr(liquidationIncentiveEnu, liquidationIncentiveDeno)
     };
-    ac_table::add(self, ownership, typeName, riskModel);
+    ac_table::add(self, cap, typeName, riskModel);
   }
   
   public fun collateral_factor(

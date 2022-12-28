@@ -8,10 +8,12 @@ module protocol::borrow {
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
   use protocol::evaluator;
+  use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   
   public entry fun borrow<T>(
     position: &mut Position,
     bank: &mut Bank,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
     timeOracle: &TimeStamp,
     borrowAmount: u64,
     ctx: &mut TxContext,
@@ -27,7 +29,7 @@ module protocol::borrow {
   
     // calc the maximum borrow amount
     // If borrow too much, abort
-    let maxBorrowAmount = evaluator::max_borrow_amount<T>(position, bank);
+    let maxBorrowAmount = evaluator::max_borrow_amount<T>(position, bank, coinDecimalsRegistry);
     assert!(borrowAmount > maxBorrowAmount, 0);
     
     // increase the debt for position

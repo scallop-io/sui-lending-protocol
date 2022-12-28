@@ -2,23 +2,25 @@
 Evaluate the value of collateral, and debt
 Calculate the borrowing power, health factor for position
 */
-/// TODO: consider decimals when calculating usd value
 module protocol::evaluator {
   use std::vector;
   use std::type_name::{get, TypeName};
-
+  use math::mix;
+  use math::fr::{Self, Fr};
   use protocol::price;
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
-  use math::mix;
-  use math::fr::{Self, Fr};
+  use protocol::coin_decimals_registry::CoinDecimalsRegistry;
+  use sui::math;
+  use protocol::coin_decimals_registry;
   
   public fun max_borrow_amount<T>(
     position: &Position,
     bank: &Bank,
+    coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, bank);
-    let debts_value = calc_debts_value(position);
+    let collaterals_value = calc_collaterals_value(position, bank, coinDecimalsRegsitry);
+    let debts_value = calc_debts_value(position, coinDecimalsRegsitry);
     if (fr::gt(collaterals_value, debts_value)) {
       let coinType = get<T>();
       let netValue = fr::sub(collaterals_value, debts_value);
@@ -32,8 +34,9 @@ module protocol::evaluator {
   public fun max_withdraw_amount<T>(
     position: &Position,
     bank: &Bank,
+    coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): u64 {
-    let maxBorrowAmount = max_borrow_amount<T>(position, bank);
+    let maxBorrowAmount = max_borrow_amount<T>(position, bank, coinDecimalsRegsitry);
     let coinType = get<T>();
     let collateralFactor = bank::collateral_factor(bank, coinType);
     mix::div_ifrT(maxBorrowAmount, collateralFactor)
@@ -42,9 +45,10 @@ module protocol::evaluator {
   public fun max_liquidate_amount<T>(
     position: &Position,
     bank: &Bank,
+    coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, bank);
-    let debts_value = calc_debts_value(position);
+    let collaterals_value = calc_collaterals_value(position, bank, coinDecimalsRegsitry);
+    let debts_value = calc_debts_value(position, coinDecimalsRegsitry);
     if (fr::gt(collaterals_value, debts_value)) {
       0
     } else {
@@ -60,16 +64,18 @@ module protocol::evaluator {
   fun calc_collaterals_value(
     position: &Position,
     bank: &Bank,
+    coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): Fr {
     let collateralTypes = position::collateral_types(position);
     let totalValudInUsd = fr::fr(0, 1);
     let (i, n) = (0u64, vector::length(&collateralTypes));
     while( i < n ) {
       let collateralType = *vector::borrow(&collateralTypes, i);
+      let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
       let (collateralAmount, _) = position::debt(position, collateralType);
       let collateralFactor = bank::collateral_factor(bank, collateralType);
       let coinValueInUsd = fr::mul(
-        calc_token_value(collateralType, collateralAmount),
+        token_value(collateralType, collateralAmount, decimals),
         collateralFactor,
       );
       totalValudInUsd = fr::add(totalValudInUsd, coinValueInUsd);
@@ -82,25 +88,25 @@ module protocol::evaluator {
   // value = price x amount
   fun calc_debts_value(
     position: &Position,
+    coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): Fr {
     let debtTypes = position::debt_types(position);
     let totalValudInUsd = fr::fr(0, 1);
     let (i, n) = (0u64, vector::length(&debtTypes));
     while( i < n ) {
       let debtType = *vector::borrow(&debtTypes, i);
+      let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
       let (debtAmount, _) = position::debt(position, debtType);
-      let coinValueInUsd = calc_token_value(debtType, debtAmount);
+      let coinValueInUsd = token_value(debtType, debtAmount, decimals);
       totalValudInUsd =  fr::add(totalValudInUsd, coinValueInUsd);
       i = i + 1;
     };
     totalValudInUsd
   }
 
-  fun calc_token_value(
-    coinType: TypeName,
-    coinAmount: u64,
-  ): Fr {
+  fun token_value(coinType: TypeName, coinAmount: u64, decimals: u8): Fr {
     let price = price::get_price(coinType);
-    mix::mul_ifr(coinAmount, price)
+    let decimalAmount = fr::fr(coinAmount, math::pow(10, decimals));
+    fr::mul(price, decimalAmount)
   }
 }

@@ -30,7 +30,7 @@ module protocol::bank_vault {
     }
   }
   
-  public(friend) fun register_asset<T>(
+  public(friend) fun register_coin<T>(
     bankCoinWitness: BankCoin<T>,
     self: &mut BankVault
   ) {
@@ -38,7 +38,7 @@ module protocol::bank_vault {
     balance_bag::init_balance<T>(&mut self.underlyingBalances)
   }
   
-  public fun bank_coin_total_supply<T>(
+  public fun bank_coin_supply<T>(
     self: &BankVault
   ): u64 {
     supply_bag::supply_value<BankCoin<T>>(&self.bankCoinSupplies)

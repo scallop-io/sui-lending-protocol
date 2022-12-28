@@ -21,12 +21,17 @@ module x::ac_table {
   
   struct AcTableOwnership has drop {}
   
+  struct AcTableCap<phantom T> has key {
+    id: UID,
+    ownership: Ownership<AcTableOwnership>,
+  }
+  
   /// Creates a new, empty table
   public fun new<T: drop, K: copy + drop + store, V: store>(
     _: T,
     withKeys: bool,
     ctx: &mut TxContext
-  ): (AcTable<T, K, V>, Ownership<AcTableOwnership>) {
+  ): (AcTable<T, K, V>, AcTableCap<T>) {
     let keys = if (withKeys) {
       option::some(vec_set::empty<K>())
     }  else {
@@ -43,7 +48,11 @@ module x::ac_table {
       object::id(&acTable),
       ctx
     );
-    (acTable, acTableOwnership)
+    let acTableCap = AcTableCap {
+      id: object::new(ctx),
+      ownership: acTableOwnership
+    };
+    (acTable, acTableCap)
   }
   
   /// Adds a key-value pair to the table.
@@ -51,10 +60,10 @@ module x::ac_table {
   /// Access controlled
   public fun add<T: drop, K: copy + drop + store, V: store>(
     self: &mut AcTable<T, K, V>,
-    ownership: &Ownership<AcTableOwnership>,
+    cap: &AcTableCap<T>,
     k: K, v: V
   ) {
-    ownership::assert_owner(ownership, self);
+    ownership::assert_owner(&cap.ownership, self);
     table::add(&mut self.table, k, v);
     if (self.withKeys) {
       let keys = option::borrow_mut(&mut self.keys);
@@ -88,10 +97,10 @@ module x::ac_table {
   /// Access control
   public fun borrow_mut<T: drop, K: copy + drop + store, V: store>(
     self: &mut AcTable<T, K, V>,
-    ownership: &Ownership<AcTableOwnership>,
+    cap: &AcTableCap<T>,
     k: K
   ): &mut V {
-    ownership::assert_owner(ownership, self);
+    ownership::assert_owner(&cap.ownership, self);
     table::borrow_mut(&mut self.table, k)
   }
   
@@ -100,10 +109,10 @@ module x::ac_table {
   /// Witness control
   public fun remove<T: drop, K: copy + drop + store, V: store>(
     self: &mut AcTable<T, K, V>,
-    ownership: &Ownership<AcTableOwnership>,
+    cap: &AcTableCap<T>,
     k: K
   ): V {
-    ownership::assert_owner(ownership, self);
+    ownership::assert_owner(&cap.ownership, self);
     if (self.withKeys) {
       let keys = option::borrow_mut(&mut self.keys);
       vec_set::remove(keys, &k);
@@ -141,9 +150,9 @@ module x::ac_table {
   /// Witness control
   public fun destroy_empty<T: drop, K: copy + drop + store, V: store>(
     self: AcTable<T, K, V>,
-    ownership: &Ownership<AcTableOwnership>,
+    cap: &AcTableCap<T>,
   ) {
-    ownership::assert_owner(ownership, &self);
+    ownership::assert_owner(&cap.ownership, &self);
     let AcTable { id, table, keys: _, withKeys: _ } = self;
     table::destroy_empty(table);
     object::delete(id)
@@ -154,9 +163,9 @@ module x::ac_table {
   /// Witness control
   public fun drop<T: drop, K: copy + drop + store, V: drop + store>(
     self: AcTable<T, K, V>,
-    ownership: &Ownership<AcTableOwnership>,
+    cap: &AcTableCap<T>,
   ) {
-    ownership::assert_owner(ownership, &self);
+    ownership::assert_owner(&cap.ownership, &self);
     let AcTable { id, table, keys: _, withKeys: _ } = self;
     table::drop(table);
     object::delete(id)

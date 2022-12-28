@@ -7,10 +7,12 @@ module protocol::withdraw_collateral {
   use protocol::position::{Self, Position};
   use protocol::evaluator;
   use protocol::bank::{Self, Bank};
+  use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   
   public entry fun withdraw_collateral<T>(
     position: &mut Position,
     bank: &mut Bank,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
     timeOracle: &TimeStamp,
     withdrawAmount: u64,
     ctx: &mut TxContext,
@@ -24,7 +26,7 @@ module protocol::withdraw_collateral {
     // accure interests for position
     position::accure_interests(position, bank);
     
-    let maxWithdawAmount = evaluator::max_withdraw_amount<T>(position, bank);
+    let maxWithdawAmount = evaluator::max_withdraw_amount<T>(position, bank, coinDecimalsRegistry);
     if (withdrawAmount > maxWithdawAmount) { return };
     
     // withdraw collateral from position, send it to user

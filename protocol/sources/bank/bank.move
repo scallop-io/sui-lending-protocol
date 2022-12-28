@@ -5,14 +5,15 @@ module protocol::bank {
   use sui::tx_context::TxContext;
   use sui::balance::{Self, Balance};
   use sui::object::{Self, UID};
-  use x::ac_table::{Self, AcTable, AcTableOwnership};
+  use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
-  use x::ownership::Ownership;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::bank_vault::{Self, BankVault, BankCoin};
   use math::fr::{Self, Fr};
   use math::mix;
+  
+  const INITIAL_BANK_COIN_MINT_RATE: u64 = 1;
   
   struct BalanceSheets has drop {}
   
@@ -25,8 +26,8 @@ module protocol::bank {
   struct BorrowIndexes has drop {}
   
   struct BorrowIndex has store {
-    mark: u64,
     interestRate: Fr,
+    mark: u64,
     lastUpdated: u64,
   }
   
@@ -40,10 +41,10 @@ module protocol::bank {
   }
   
   public fun new(ctx: &mut TxContext)
-  : (Bank, Ownership<AcTableOwnership>, Ownership<AcTableOwnership>)
+  : (Bank, AcTableCap<InterestModels>, AcTableCap<RiskModels>)
   {
-    let (interestModels, interestModelsOwnership) = interest_model::new(ctx);
-    let (riskModels, riskModelsOwnership) = risk_model::new(ctx);
+    let (interestModels, interestModelsCap) = interest_model::new(ctx);
+    let (riskModels, riskModelsCap) = risk_model::new(ctx);
     let bank = Bank {
       id: object::new(ctx),
       balanceSheets: wit_table::new(BalanceSheets{}, true, ctx),
@@ -52,7 +53,7 @@ module protocol::bank {
       riskModels,
       vault: bank_vault::new(ctx),
     };
-    (bank, interestModelsOwnership, riskModelsOwnership)
+    (bank, interestModelsCap, riskModelsCap)
   }
   
   public fun handle_borrow<T>(
@@ -178,36 +179,27 @@ module protocol::bank {
     now: u64
   ) {
     /*********
-    timeDelta = now - lastUpdated
+    increaseFactor = 1 + (now - lastUpdated) * interestRate
     *********/
-    let timeDelta = now - borrowIndex.lastUpdated;
-    
-    /*********
-    increaseFactor = 1 + timeDelta * interestRate
-    *********/
-    let increaseFactor = fr::add(
-      fr::int(1),
-      fr::mul(borrowIndex.interestRate, fr::int(timeDelta))
+    let increaseFactor = mix::add_ifr(
+      1,
+      mix::mul_ifr(now - borrowIndex.lastUpdated, borrowIndex.interestRate)
     );
-    
     /*********
     newDebt = oldDebt * increaseFactor
     *********/
     let oldDebt = balanceSheet.debt;
     balanceSheet.debt = mix::mul_ifrT(oldDebt, increaseFactor);
-    
+    let increaseInDebt = balanceSheet.debt - oldDebt;
     /*********
     newMark = oldMark * increaseFactor
     *********/
     borrowIndex.mark = mix::mul_ifrT(borrowIndex.mark, increaseFactor);
-    
     /*******
-     newReserve = reserve + reserveFactor * (newDebt - oldDebt)
+     newReserve = reserve + reserveFactor * increaseInDebt
     ********/
     let reserveFactor = interest_model::reserve_factor(interestModel);
-    let reserveDelta = mix::mul_ifrT(balanceSheet.debt - oldDebt, reserveFactor);
-    balanceSheet.reserve = balanceSheet.reserve + reserveDelta;
-    
+    balanceSheet.reserve = balanceSheet.reserve + mix::mul_ifrT(increaseInDebt, reserveFactor);
     // set lastUpdated to now
     borrowIndex.lastUpdated = now
   }
@@ -225,8 +217,7 @@ module protocol::bank {
       balanceSheet.debt,
       balanceSheet.debt + balanceSheet.cash - balanceSheet.reserve
     );
-    let interestRate = interest_model::calc_interest(interestModel, ultiRate);
-    borrowIndex.interestRate = interestRate;
+    borrowIndex.interestRate = interest_model::calc_interest(interestModel, ultiRate);
   }
   
   fun redeem<T>(
@@ -242,7 +233,7 @@ module protocol::bank {
     **********/
     let redeemRate = fr::fr(
       balanceSheet.cash + balanceSheet.debt - balanceSheet.reserve,
-      bank_vault::bank_coin_total_supply<T>(&self.vault),
+      bank_vault::bank_coin_supply<T>(&self.vault),
     );
     let redeemAmount = mix::mul_ifrT(bankCoinAmount, redeemRate);
     // update the bank balance sheet
@@ -260,13 +251,21 @@ module protocol::bank {
     let coinAmount = balance::value(&balance);
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, typeName);
     /**********
-      mintRate = totalBankSupply / (cash + debt - reserve)
+    When the pool is empty:
+      mintRate = INITIAL_BANK_COIN_MINT_RATE
+    Otherwiese:
+      mintRate = bankCoinSupply / (cash + debt - reserve)
       mintAmount = coinAmount * mintRate
     **********/
-    let mintRate = fr::fr(
-      bank_vault::bank_coin_total_supply<T>(&self.vault),
-      balanceSheet.cash + balanceSheet.debt - balanceSheet.reserve,
-    );
+    let bankCoinSupply = bank_vault::bank_coin_supply<T>(&self.vault);
+    let mintRate = if (bankCoinSupply == 0) {
+      fr::fr(INITIAL_BANK_COIN_MINT_RATE, 1)
+    } else {
+      fr::fr(
+        bank_vault::bank_coin_supply<T>(&self.vault),
+        balanceSheet.cash + balanceSheet.debt - balanceSheet.reserve,
+      )
+    };
     let mintAmount = mix::mul_ifrT(coinAmount, mintRate);
     // update the bank balance sheet
     balanceSheet.cash = balanceSheet.cash + coinAmount;

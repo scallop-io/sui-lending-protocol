@@ -42,10 +42,10 @@ module protocol::coin_decimals_registry {
     table::add(&mut registry.table, typeName, decimals);
   }
   
-  public fun get_decimals<T>(
+  public fun decimals(
     registry: &CoinDecimalsRegistry,
+    typeName: TypeName,
   ): u8 {
-    let typeName = type_name::get<T>();
     *table::borrow(&registry.table, typeName)
   }
 }

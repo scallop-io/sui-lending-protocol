@@ -2,8 +2,7 @@ module protocol::interest_model {
   
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;
-  use x::ownership::Ownership;
-  use x::ac_table::{Self, AcTable, AcTableOwnership};
+  use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{Self, fr, Fr};
   
   const EReserveFactorTooLarge: u64 = 0;
@@ -20,14 +19,14 @@ module protocol::interest_model {
   
   public fun new(ctx: &mut TxContext): (
     AcTable<InterestModels, TypeName, InterestModel>,
-    Ownership<AcTableOwnership>
+    AcTableCap<InterestModels>,
   ) {
     ac_table::new<InterestModels, TypeName, InterestModel>(InterestModels{}, false, ctx)
   }
   
   public fun add_interest_model(
     interestModelTable: &mut AcTable<InterestModels, TypeName, InterestModel>,
-    ownership: &Ownership<AcTableOwnership>,
+    cap: &AcTableCap<InterestModels>,
     typeName: TypeName,
     baseRatePersecEnu: u64,
     baseRatePersecDeno: u64,
@@ -54,7 +53,7 @@ module protocol::interest_model {
       highSlope,
       reserveFactor,
     };
-    ac_table::add(interestModelTable, ownership, typeName, model)
+    ac_table::add(interestModelTable, cap, typeName, model)
   }
   
   public fun reserve_factor(model: &InterestModel): Fr {
@@ -65,16 +64,25 @@ module protocol::interest_model {
     interestModel: &InterestModel,
     ultiRate: Fr,
   ): Fr {
-    let extraRate = if (fr::gt(ultiRate, interestModel.kink)) {
-      let lowRate = fr::mul(interestModel.kink, interestModel.lowSlope);
-      let highRate = fr::mul(
-        fr::sub(ultiRate, interestModel.kink),
-        interestModel.highSlope
-      );
-      fr::add(lowRate, highRate)
+    let lowSlope = interestModel.lowSlope;
+    let highSlope = interestModel.highSlope;
+    let kink = interestModel.kink;
+    let baseRate = interestModel.baseBorrowRatePersec;
+    /*****************
+    Calculate the interest rate with the given utlilization rate of the pool
+    When ultiRate > kink:
+      interestRate = baseRate + kink * lowScope + (ultiRate - kink) * highScope
+    When ultiRate <= kink:
+      interestRate = baseRate + ultiRate * lowScope
+    ******************/
+    let extraRate = if (fr::gt(ultiRate, kink)) {
+      fr::add(
+        fr::mul(kink, lowSlope),
+        fr::mul(fr::sub(ultiRate, kink), highSlope)
+      )
     } else {
-      fr::mul(ultiRate, interestModel.lowSlope)
+      fr::mul(ultiRate, lowSlope)
     };
-    fr::add(interestModel.baseBorrowRatePersec, extraRate)
+    fr::add(baseRate, extraRate)
   }
 }

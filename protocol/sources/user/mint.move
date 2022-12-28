@@ -12,11 +12,7 @@ module protocol::mint {
     ctx: &mut TxContext,
   ) {
     let now = timestamp::timestamp(timeOracle);
-    let mintBalance = bank::handle_mint(
-      bank,
-      coin::into_balance(coin),
-      now
-    );
+    let mintBalance = bank::handle_mint(bank, coin::into_balance(coin), now);
     transfer::transfer(
       coin::from_balance(mintBalance, ctx),
       tx_context::sender(ctx)

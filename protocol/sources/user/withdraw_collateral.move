@@ -9,6 +9,8 @@ module protocol::withdraw_collateral {
   use protocol::bank::{Self, Bank};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   
+  const EWithdrawTooMuch: u64 = 0;
+  
   public entry fun withdraw_collateral<T>(
     position: &mut Position,
     bank: &mut Bank,
@@ -26,8 +28,9 @@ module protocol::withdraw_collateral {
     // accure interests for position
     position::accure_interests(position, bank);
     
+    // IF withdrawAmount bigger than max, then abort
     let maxWithdawAmount = evaluator::max_withdraw_amount<T>(position, bank, coinDecimalsRegistry);
-    if (withdrawAmount > maxWithdawAmount) { return };
+    assert!(withdrawAmount <= maxWithdawAmount, EWithdrawTooMuch);
     
     // withdraw collateral from position, send it to user
     let withdrawedBalance = position::withdraw_collateral<T>(position, withdrawAmount);

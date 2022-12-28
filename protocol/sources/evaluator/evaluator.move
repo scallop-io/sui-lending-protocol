@@ -5,13 +5,13 @@ Calculate the borrowing power, health factor for position
 module protocol::evaluator {
   use std::vector;
   use std::type_name::{get, TypeName};
+  use sui::math;
   use math::mix;
   use math::fr::{Self, Fr};
   use protocol::price;
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
-  use sui::math;
   use protocol::coin_decimals_registry;
   
   public fun max_borrow_amount<T>(
@@ -19,8 +19,8 @@ module protocol::evaluator {
     bank: &Bank,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, bank, coinDecimalsRegsitry);
-    let debts_value = calc_debts_value(position, coinDecimalsRegsitry);
+    let collaterals_value = collaterals_value(position, bank, coinDecimalsRegsitry);
+    let debts_value = debts_value(position, coinDecimalsRegsitry);
     if (fr::gt(collaterals_value, debts_value)) {
       let coinType = get<T>();
       let netValue = fr::sub(collaterals_value, debts_value);
@@ -47,8 +47,8 @@ module protocol::evaluator {
     bank: &Bank,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): u64 {
-    let collaterals_value = calc_collaterals_value(position, bank, coinDecimalsRegsitry);
-    let debts_value = calc_debts_value(position, coinDecimalsRegsitry);
+    let collaterals_value = collaterals_value(position, bank, coinDecimalsRegsitry);
+    let debts_value = debts_value(position, coinDecimalsRegsitry);
     if (fr::gt(collaterals_value, debts_value)) {
       0
     } else {
@@ -61,7 +61,7 @@ module protocol::evaluator {
 
   // sum of every collateral usd value
   // value = price x amount x collateralFactor
-  fun calc_collaterals_value(
+  fun collaterals_value(
     position: &Position,
     bank: &Bank,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
@@ -86,7 +86,7 @@ module protocol::evaluator {
 
   // sum of every debt usd value
   // value = price x amount
-  fun calc_debts_value(
+  fun debts_value(
     position: &Position,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): Fr {
@@ -98,7 +98,7 @@ module protocol::evaluator {
       let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
       let (debtAmount, _) = position::debt(position, debtType);
       let coinValueInUsd = token_value(debtType, debtAmount, decimals);
-      totalValudInUsd =  fr::add(totalValudInUsd, coinValueInUsd);
+      totalValudInUsd = fr::add(totalValudInUsd, coinValueInUsd);
       i = i + 1;
     };
     totalValudInUsd

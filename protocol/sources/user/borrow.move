@@ -10,6 +10,8 @@ module protocol::borrow {
   use protocol::evaluator;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   
+  const EBorrowTooMuch: u64 = 0;
+  
   public entry fun borrow<T>(
     position: &mut Position,
     bank: &mut Bank,
@@ -30,7 +32,7 @@ module protocol::borrow {
     // calc the maximum borrow amount
     // If borrow too much, abort
     let maxBorrowAmount = evaluator::max_borrow_amount<T>(position, bank, coinDecimalsRegistry);
-    assert!(borrowAmount > maxBorrowAmount, 0);
+    assert!(borrowAmount <= maxBorrowAmount, EBorrowTooMuch);
     
     // increase the debt for position
     let coinType = type_name::get<T>();

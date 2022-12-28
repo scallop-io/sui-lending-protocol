@@ -14,11 +14,7 @@ module protocol::redeem {
     ctx: &mut TxContext,
   ) {
     let now = timestamp::timestamp(timeOracle);
-    let redeemBalance = bank::handle_redeem(
-      bank,
-      coin::into_balance(coin),
-      now
-    );
+    let redeemBalance = bank::handle_redeem(bank, coin::into_balance(coin), now);
     transfer::transfer(
       coin::from_balance(redeemBalance, ctx),
       tx_context::sender(ctx)

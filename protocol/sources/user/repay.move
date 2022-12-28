@@ -19,11 +19,7 @@ module protocol::repay {
     // update bank balance sheet after repay
     // Always update bank state first
     // Because interest need to be accrued first before other operations
-    bank::handle_repay<T>(
-      bank,
-      coin::into_balance(coin),
-      now
-    );
+    bank::handle_repay<T>(bank, coin::into_balance(coin), now);
   
     // accure interests for position
     position::accure_interests(position, bank);

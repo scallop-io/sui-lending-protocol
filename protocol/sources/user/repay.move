@@ -34,7 +34,7 @@ module protocol::repay {
     bank::handle_repay<T>(bank, coin::into_balance(coin), now);
   
     // accure interests for position
-    position::accure_interests(position, bank);
+    position::accrue_interests(position, bank);
     // remove debt according to repay amount
     position::decrease_debt(position, coinType, repayAmount);
     

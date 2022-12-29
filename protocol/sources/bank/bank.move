@@ -81,6 +81,18 @@ module protocol::bank {
     bank_vault::deposit_underlying_coin(&mut self.vault, balance)
   }
   
+  public fun handle_liquidation<T>(
+    self: &mut Bank,
+    balance: Balance<T>,
+  ) {
+    // We don't accrue interest here, because it has already been accrued in previous step for liquidation
+    let typeName = type_name::get<T>();
+    let repayAmount = balance::value(&balance);
+    update_balance_sheet_for_liquidation(self, typeName, repayAmount);
+    update_interest_rates(self);
+    bank_vault::deposit_underlying_coin(&mut self.vault, balance)
+  }
+  
   public fun handle_redeem<T>(
     self: &mut Bank,
     bankCoinBalance: Balance<BankCoin<T>>,
@@ -120,6 +132,14 @@ module protocol::bank {
     risk_model::collateral_factor(&self.riskModels, typeName)
   }
   
+  public fun liquidation_factor(self: &Bank, typeName: TypeName): Fr {
+    risk_model::liquidation_factor(&self.riskModels, typeName)
+  }
+  
+  public fun liquidation_discount(self: &Bank, typeName: TypeName): Fr {
+    risk_model::liquidation_discount(&self.riskModels, typeName)
+  }
+  
   // update bank balance sheet for repay
   fun update_balance_sheet_for_repay(
     self: &mut Bank,
@@ -142,8 +162,19 @@ module protocol::bank {
     balanceSheet.cash = balanceSheet.cash - borrowAmount;
   }
   
+  // update bank balance sheet for liquidation
+  fun update_balance_sheet_for_liquidation(
+    self: &mut Bank,
+    typeName: TypeName,
+    repayAmount: u64
+  ) {
+    let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, typeName);
+    balanceSheet.debt = balanceSheet.debt - repayAmount;
+    balanceSheet.cash = balanceSheet.cash + repayAmount;
+  }
+  
   // accure interest for all banks
-  fun accrue_all_interests(self: &mut Bank, now: u64) {
+  public fun accrue_all_interests(self: &mut Bank, now: u64) {
     let assetTypes = wit_table::keys(&self.balanceSheets);
       let (i, n) = (0, vector::length(&assetTypes));
       while (i < n) {
@@ -157,7 +188,7 @@ module protocol::bank {
   }
   
   // accure interest for all banks
-  fun update_interest_rates(
+  public fun update_interest_rates(
     self: &mut Bank,
   ) {
     let assetTypes = wit_table::keys(&self.balanceSheets);

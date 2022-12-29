@@ -30,14 +30,13 @@ module protocol::borrow {
     borrowAmount: u64,
     ctx: &mut TxContext,
   ) {
-    // accrue interests for banks
     let now = timestamp::timestamp(timeOracle);
     // Always update bank state first
     // Because interest need to be accrued first before other operations
     let borrowedBalance = bank::handle_borrow<T>(bank, borrowAmount, now);
     
     // accure interests for position
-    position::accure_interests(position, bank);
+    position::accrue_interests(position, bank);
   
     // calc the maximum borrow amount
     // If borrow too much, abort

@@ -20,6 +20,7 @@ module protocol::position {
   friend protocol::borrow;
   friend protocol::deposit_collateral;
   friend protocol::withdraw_collateral;
+  friend protocol::liquidate;
   
   const EWithdrawTooMuch: u64 = 0;
   const EBorrowTooMuch: u64 = 1;
@@ -57,7 +58,7 @@ module protocol::position {
     (position, positionKey)
   }
   
-  public(friend) fun accure_interests(
+  public(friend) fun accrue_interests(
     position: &mut Position,
     bank: &Bank,
   ) {
@@ -137,17 +138,11 @@ module protocol::position {
     update_debt_amount(self, typeName, amount, false)
   }
   
-  public fun debt(
-    self: &Position,
-    typeName: TypeName,
-  ): (u64, u64) {
+  public fun debt(self: &Position, typeName: TypeName): (u64, u64) {
     position_debts::debt(&self.debts, typeName)
   }
   
-  public fun collateral(
-    self: &Position,
-    typeName: TypeName,
-  ): u64 {
+  public fun collateral(self: &Position, typeName: TypeName): u64 {
     position_collaterals::collateral(&self.collaterals, typeName)
   }
   

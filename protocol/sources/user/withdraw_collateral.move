@@ -37,7 +37,7 @@ module protocol::withdraw_collateral {
     bank::compound_interests(bank, now);
   
     // accure interests for position
-    position::accure_interests(position, bank);
+    position::accrue_interests(position, bank);
     
     // IF withdrawAmount bigger than max, then abort
     let maxWithdawAmount = evaluator::max_withdraw_amount<T>(position, bank, coinDecimalsRegistry);

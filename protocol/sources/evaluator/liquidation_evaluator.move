@@ -9,6 +9,8 @@ module protocol::liquidation_evaluator {
   use protocol::collateral_evaluator::collaterals_value_usd_for_liquidation;
   use protocol::price::{value_usd, coin_amount, get_price};
   
+  const ENotLiquidatable: u64 = 0;
+  
   // calculate the actual repayamount, and actual liquidate amount
   public fun liquidation_amounts<DebtType, CollateralType>(
     position: &Position,
@@ -16,29 +18,41 @@ module protocol::liquidation_evaluator {
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
     availableRepayAmount: u64
   ): (u64, u64, u64) {
+    let maxRepayAmount = max_repay_amount_for_liquidation<DebtType, CollateralType>(
+      position, bank, coinDecimalsRegsitry
+    );
+    assert!(maxRepayAmount > 0, ENotLiquidatable);
+    
     let debtType = get<DebtType>();
     let collateralType = get<CollateralType>();
     let debtPrice = get_price(debtType);
     let collateralPrice = get_price(collateralType);
     
-    let maxRepayAmount = max_repay_amount_for_liquidation<DebtType, CollateralType>(
-      position, bank, coinDecimalsRegsitry
-    );
     let actualRepayAmount = if (availableRepayAmount <= maxRepayAmount) {
       availableRepayAmount
     } else {
       maxRepayAmount
     };
+    /*********
+    actualLiquidateAmount = actualRepayAmount * (debtPrice / collateralPrice) / (1 - liquidationPanelty)
+    **********/
     let liquidationPanelty = bank::liquidation_panelty(bank, collateralType);
     let actualLiquidateAmount = mix::mul_ifrT(
       actualRepayAmount,
       fr::div(
         fr::div(debtPrice, collateralPrice),
-        liquidationPanelty
+        mix::sub_ifr(1, liquidationPanelty)
       )
     );
     let liquidationReserveFactor = bank::liquidation_reserve_factor(bank, collateralType);
-    let actualReserveAmount = mix::mul_ifrT(actualRepayAmount, liquidationReserveFactor);
+    let liquidationDiscount = bank::liquidation_discount(bank, collateralPrice);
+    /*********
+    actualReserveAmount = actualRepayAmount * liquidationReserveFactor / liquidationDiscount
+    **********/
+    let actualReserveAmount = mix::div_ifrT(
+      actualRepayAmount,
+      fr::div(liquidationReserveFactor, liquidationDiscount)
+    );
     let actualRepayOnBehalfAmount = actualRepayAmount - actualReserveAmount;
     (actualLiquidateAmount, actualRepayOnBehalfAmount, actualReserveAmount)
   }

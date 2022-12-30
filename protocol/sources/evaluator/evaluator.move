@@ -33,7 +33,7 @@ module protocol::evaluator {
       0
     }
   }
-
+  
   public fun max_withdraw_amount<T>(
     position: &Position,
     bank: &Bank,
@@ -60,20 +60,23 @@ module protocol::evaluator {
     } else {
       let debtType = get<DebtType>();
       let collateralType = get<CollateralType>();
+      let liquidationPanelty = bank::liquidation_panelty(bank, collateralType);
+      let liquidationFactor = bank::liquidation_factor(bank, collateralType);
       
       let debtDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
       let collateralDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
       
       let repayValueUSD = token_value(debtType, repayAmount, debtDecimals);
-  
+      
       let totalCollateralAmount = position::collateral(position, collateralType);
-      let totalCollateralUSD = token_value(collateralType, totalCollateralAmount, collateralDecimals);
-  
-      let liquidationDiscount = bank::liquidation_discount(bank, collateralType);
-      let liquidationFactor = bank::liquidation_factor(bank, collateralType);
+      let totalCollateralUSD = fr::mul(
+        liquidationPanelty,
+        token_value(collateralType, totalCollateralAmount, collateralDecimals),
+      );
+      
       let badDebtUSD = fr::div(
         fr::sub(debts_value, collaterals_value),
-        fr::sub(liquidationDiscount, liquidationFactor),
+        fr::sub(liquidationPanelty, liquidationFactor),
       );
       let maxRepayUSD = if(fr::gt(totalCollateralUSD, badDebtUSD)) {
         badDebtUSD
@@ -90,17 +93,20 @@ module protocol::evaluator {
       let collateralPrice = price::get_price(collateralType);
       let actualLiquidateAmount = mix::mul_ifrT(
         math::pow(10, collateralDecimals),
-        fr::div(actualRepayUSD, collateralPrice)
+        fr::div(
+          fr::div(actualRepayUSD, collateralPrice),
+          liquidationPanelty
+        )
       );
       let debtPrice = price::get_price(debtType);
       let actualRepayAmount = mix::mul_ifrT(
         math::pow(10, debtDecimals),
-        fr::div(maxRepayUSD, debtPrice)
+        fr::div(actualRepayUSD, debtPrice)
       );
       (actualRepayAmount, actualLiquidateAmount)
     }
   }
-
+  
   // sum of every collateral usd value for borrow
   // value = price x amount x collateralFactor
   fun collaterals_value_for_borrow(
@@ -150,7 +156,7 @@ module protocol::evaluator {
     };
     totalValudInUsd
   }
-
+  
   // sum of every debt usd value
   // value = price x amount
   fun debts_value(
@@ -170,7 +176,7 @@ module protocol::evaluator {
     };
     totalValudInUsd
   }
-
+  
   fun token_value(coinType: TypeName, coinAmount: u64, decimals: u8): Fr {
     let price = price::get_price(coinType);
     let decimalAmount = fr::fr(coinAmount, math::pow(10, decimals));

@@ -3,14 +3,16 @@ module protocol::risk_model {
   use sui::tx_context::TxContext;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{fr, Fr};
+  use math::fr;
   
   const ECollateralFactoryTooBig: u64 = 0;
   
   struct RiskModel has store {
     collateralFactor: Fr,
     liquidationFactor: Fr,
+    liquidationPanelty: Fr,
     liquidationDiscount: Fr,
-    seizeShare: Fr,
+    liquidationReserveFactor: Fr,
     /********
     when the principal and ratio of borrow indices are both small,
     the result can equal the principal, due to automatic truncation of division
@@ -33,22 +35,29 @@ module protocol::risk_model {
     self: &mut AcTable<RiskModels, TypeName, RiskModel>,
     cap: &AcTableCap<RiskModels>,
     typeName: TypeName,
-    collateralFactorEnu: u64,
+    collateralFactorEnu: u64, // exp. 70%,
     collateralFactorDeno: u64,
-    liquidationFactorEnu: u64,
+    liquidationFactorEnu: u64, // exp. 80%,
     liquidationFactorDeno: u64,
-    liquidationDiscountEnu: u64,
+    liquidationPaneltyEnu: u64, // exp. 7%,
+    liquidationPaneltyDeno: u64,
+    liquidationDiscountEnu: u64, // exp. 95%,
     liquidationDiscountDeno: u64,
-    seizeShareEnu: u64,
-    seizeShareDeno: u64,
     minimumBorrowAmount: u64,
   ) {
     assert!(collateralFactorEnu < collateralFactorDeno, ECollateralFactoryTooBig);
+    let liquidationPanelty = fr(liquidationPaneltyEnu, liquidationPaneltyDeno);
+    let liquidationDiscount = fr(liquidationDiscountEnu, liquidationDiscountDeno);
+    let liquidationReserveFactor = fr::div(
+      fr::sub(liquidationPanelty, liquidationDiscount),
+      liquidationDiscount
+    );
     let riskModel = RiskModel {
       collateralFactor: fr(collateralFactorEnu, collateralFactorDeno),
       liquidationFactor: fr(liquidationFactorEnu, liquidationFactorDeno),
-      liquidationDiscount: fr(liquidationDiscountEnu, liquidationDiscountDeno),
-      seizeShare: fr(seizeShareEnu, seizeShareDeno),
+      liquidationPanelty,
+      liquidationDiscount,
+      liquidationReserveFactor,
       minimumBorrowAmount
     };
     ac_table::add(self, cap, typeName, riskModel);
@@ -70,11 +79,27 @@ module protocol::risk_model {
     riskModel.liquidationFactor
   }
   
+  public fun liquidation_panelty(
+    self: &AcTable<RiskModels, TypeName, RiskModel>,
+    typeName: TypeName,
+  ): Fr {
+    let riskModel = ac_table::borrow(self, typeName);
+    riskModel.liquidationPanelty
+  }
+  
   public fun liquidation_discount(
     self: &AcTable<RiskModels, TypeName, RiskModel>,
     typeName: TypeName,
   ): Fr {
     let riskModel = ac_table::borrow(self, typeName);
     riskModel.liquidationDiscount
+  }
+  
+  public fun liquidation_reserve_factor(
+    self: &AcTable<RiskModels, TypeName, RiskModel>,
+    typeName: TypeName,
+  ): Fr {
+    let riskModel = ac_table::borrow(self, typeName);
+    riskModel.liquidationReserveFactor
   }
 }

@@ -6,13 +6,13 @@ module protocol::liquidate {
   
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
-  use protocol::evaluator;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
+  use protocol::liquidation_evaluator::liquidation_amounts;
   
   public fun liquidate<DebtType, CollateralType>(
     position: &mut Position,
     bank: &mut Bank,
-    repayBalance: Balance<DebtType>,
+    availableRepayBalance: Balance<DebtType>,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     timeOracle: &TimeStamp,
   ): (Balance<DebtType>, Balance<CollateralType>) {
@@ -22,23 +22,24 @@ module protocol::liquidate {
     // Accrue interests for position
     position::accrue_interests(position, bank);
     
-    // Calc liquidation amount for the given debt type
-    let repayAmount = balance::value(&repayBalance);
-    let (actualRepayAmount, actualLiquidateAmount) = evaluator::actual_liquidate_amount<DebtType, CollateralType>(
-      position, bank, coinDecimalsRegistry, repayAmount
-    );
+    // Calc liquidation amounts for the given debt type
+    let availableRepayAmount = balance::value(&availableRepayBalance);
+    let (liquidateAmount, repayOnBehalfAmount, reserveAmount) =
+      liquidation_amounts<DebtType, CollateralType>(position, bank, coinDecimalsRegistry, availableRepayAmount);
+    
     
     // withdraw the collateral balance from position
-    let collateralBalance = position::withdraw_collateral<CollateralType>(position, actualLiquidateAmount);
+    let collateralBalance = position::withdraw_collateral<CollateralType>(position, liquidateAmount);
     // Reduce the debt for the position
     let debtType = get<DebtType>();
-    position::decrease_debt(position, debtType, actualRepayAmount);
+    position::decrease_debt(position, debtType, repayOnBehalfAmount);
     
-    // Put the repayCoin to the bank
-    let actualRepayBalance =  balance::split(&mut repayBalance, actualRepayAmount);
-    bank::handle_liquidation(bank, actualRepayBalance);
+    // Put the repay and reserve balance to the bank
+    let repayOnBeHalfBalance = balance::split(&mut availableRepayBalance, repayOnBehalfAmount);
+    let reserveBalance = balance::split(&mut availableRepayBalance, reserveAmount);
+    bank::handle_liquidation(bank, repayOnBeHalfBalance, reserveBalance);
   
     // Send the remaining balance, and collateral balance to liquidator
-    (repayBalance, collateralBalance)
+    (availableRepayBalance, collateralBalance)
   }
 }

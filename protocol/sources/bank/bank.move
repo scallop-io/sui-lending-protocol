@@ -84,13 +84,16 @@ module protocol::bank {
   public fun handle_liquidation<T>(
     self: &mut Bank,
     balance: Balance<T>,
+    reserveBalance: Balance<T>,
   ) {
     // We don't accrue interest here, because it has already been accrued in previous step for liquidation
     let typeName = type_name::get<T>();
     let repayAmount = balance::value(&balance);
-    update_balance_sheet_for_liquidation(self, typeName, repayAmount);
+    let reserveAmount = balance::value(&balance);
+    update_balance_sheet_for_liquidation(self, typeName, repayAmount, reserveAmount);
     update_interest_rates(self);
-    bank_vault::deposit_underlying_coin(&mut self.vault, balance)
+    bank_vault::deposit_underlying_coin(&mut self.vault, balance);
+    bank_vault::deposit_underlying_coin(&mut self.vault, reserveBalance)
   }
   
   public fun handle_redeem<T>(
@@ -136,8 +139,16 @@ module protocol::bank {
     risk_model::liquidation_factor(&self.riskModels, typeName)
   }
   
+  public fun liquidation_panelty(self: &Bank, typeName: TypeName): Fr {
+    risk_model::liquidation_panelty(&self.riskModels, typeName)
+  }
+  
   public fun liquidation_discount(self: &Bank, typeName: TypeName): Fr {
     risk_model::liquidation_discount(&self.riskModels, typeName)
+  }
+  
+  public fun liquidation_reserve_factor(self: &Bank, typeName: TypeName): Fr {
+    risk_model::liquidation_reserve_factor(&self.riskModels, typeName)
   }
   
   // update bank balance sheet for repay
@@ -166,11 +177,13 @@ module protocol::bank {
   fun update_balance_sheet_for_liquidation(
     self: &mut Bank,
     typeName: TypeName,
-    repayAmount: u64
+    repayAmount: u64,
+    reserveAmount: u64
   ) {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, typeName);
     balanceSheet.debt = balanceSheet.debt - repayAmount;
     balanceSheet.cash = balanceSheet.cash + repayAmount;
+    balanceSheet.reserve = balanceSheet.reserve + reserveAmount;
   }
   
   // accure interest for all banks
@@ -242,11 +255,11 @@ module protocol::bank {
   ) {
     /*******
     update interest with the new bank ulti rate
-    ultiRate = debt / (debt + cash - reserve)
+    ultiRate = debt / (debt + cash)
     ********/
     let ultiRate = fr::fr(
       balanceSheet.debt,
-      balanceSheet.debt + balanceSheet.cash - balanceSheet.reserve
+      balanceSheet.debt + balanceSheet.cash
     );
     borrowIndex.interestRate = interest_model::calc_interest(interestModel, ultiRate);
   }

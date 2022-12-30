@@ -39,4 +39,14 @@ module protocol::price {
       fr::div(usdValue, price)
     )
   }
+  
+  // Calc the exchange ratio of type1 to type2
+  public fun exchange_rate(type1: TypeName, decimals1: u8, type2: TypeName, decimals2: u8): Fr {
+    let price1 = get_price(type1);
+    let price2 = get_price(type2);
+    fr::div(
+      mix::mul_ifr(math::pow(10, decimals2), price1),
+      mix::mul_ifr(math::pow(10, decimals1), price2),
+    )
+  }
 }

@@ -7,7 +7,7 @@ module protocol::liquidation_evaluator {
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::debt_evaluator::debts_value_usd;
   use protocol::collateral_evaluator::collaterals_value_usd_for_liquidation;
-  use protocol::price::{value_usd, coin_amount, get_price};
+  use protocol::price::{coin_amount, get_price, exchange_rate};
   
   const ENotLiquidatable: u64 = 0;
   
@@ -85,43 +85,37 @@ module protocol::liquidation_evaluator {
     ************/
     let maxLiquidatableCollateralValueUSD = fr::div(
       fr::sub(debts_value_usd, collaterals_value_usd),
-      fr::sub(
-        fr::fr(1, 1),
-        fr::add(liquidationPanelty, liquidationFactor)
-      )
+      mix::sub_ifr(1, fr::add(liquidationPanelty, liquidationFactor))
+    );
+    let collateralDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
+    let maxLiquidatableCollateralAmount = coin_amount(
+      collateralType, maxLiquidatableCollateralValueUSD, collateralDecimals
     );
     
-    /***********
-    3.Calc the total usd value for the collateral type of this position
-      let totalPositionCollateralValueUSD = price * decimalAmount
-    ************/
-    let collateralAmount = position::collateral(position, collateralType);
-    let collateralDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
-    let collateralValueUSD = value_usd(collateralType, collateralAmount, collateralDecimals);
     
+    let collateralAmount = position::collateral(position, collateralType);
     /***********
     4.The actual collateral usd value that can be liquidated is
       the minimum of collateralValueUSD and maxLiquidatableCollateralValueUSD
     ***********/
-    let actualLiquidatableCollateralValueUSD = if (fr::gt(maxLiquidatableCollateralValueUSD, collateralValueUSD)) {
-      collateralValueUSD
+    let actualLiquidatableCollateralAmount = if (maxLiquidatableCollateralAmount > collateralAmount) {
+      collateralAmount
     } else {
-      maxLiquidatableCollateralValueUSD
+      maxLiquidatableCollateralAmount
     };
     
     /***********
-    5.The liquidator gets a discount for liquidation, the maximum USD value can be repaid should refect this:
-      let maxRepayUSD = actualLiquidatableCollateralValueUSD * liquidationDiscount
-    ***********/
-    let liquidationDiscount = bank::liquidation_discount(bank, collateralType);
-    let maxRepayUSD = fr::mul(actualLiquidatableCollateralValueUSD, liquidationDiscount);
-    
-    /***********
-    6.The max repay amount is calc below:
+    5.The max repay amount is calc below:
       let maxRepayAmount = (maxRepayUSD / debtPrice) * (10**decimals)
     ***********/
     let debtDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
-    let maxRepayAmount = coin_amount(debtType, maxRepayUSD, debtDecimals);
+    let collateralDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
+    let exchangeRate = exchange_rate(debtType, debtDecimals, collateralType, collateralDecimals);
+    let liquidationDiscount = bank::liquidation_discount(bank, collateralType);
+    let maxRepayAmount = mix::mul_ifrT(
+      actualLiquidatableCollateralAmount,
+      fr::div(exchangeRate, liquidationDiscount)
+    );
     return maxRepayAmount
   }
 }

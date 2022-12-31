@@ -14,12 +14,12 @@ module protocol::collateral_evaluator {
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): Fr {
     let collateralTypes = position::collateral_types(position);
-    let totalValudInUsd = fr::fr(0, 1);
+    let totalValudInUsd = fr::zero();
     let (i, n) = (0, vector::length(&collateralTypes));
     while( i < n ) {
       let collateralType = *vector::borrow(&collateralTypes, i);
       let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
-      let (collateralAmount, _) = position::debt(position, collateralType);
+      let collateralAmount = position::collateral(position, collateralType);
       let collateralFactor = bank::collateral_factor(bank, collateralType);
       let coinValueInUsd = fr::mul(
         value_usd(collateralType, collateralAmount, decimals),
@@ -39,12 +39,12 @@ module protocol::collateral_evaluator {
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): Fr {
     let collateralTypes = position::collateral_types(position);
-    let totalValudInUsd = fr::fr(0, 1);
+    let totalValudInUsd = fr::zero();
     let (i, n) = (0, vector::length(&collateralTypes));
     while( i < n ) {
       let collateralType = *vector::borrow(&collateralTypes, i);
       let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
-      let (collateralAmount, _) = position::debt(position, collateralType);
+      let collateralAmount = position::collateral(position, collateralType);
       let liquidationFactor = bank::liquidation_factor(bank, collateralType);
       let coinValueInUsd = fr::mul(
         value_usd(collateralType, collateralAmount, decimals),

@@ -52,6 +52,10 @@ module math::fr {
     }
   }
   
+  public fun zero(): Fr {
+    Fr { mantissa: 0 }
+  }
+  
   public fun gt(f1: Fr, f2: Fr): bool {
     f1.mantissa > f2.mantissa
   }

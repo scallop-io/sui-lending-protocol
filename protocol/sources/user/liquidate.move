@@ -24,19 +24,19 @@ module protocol::liquidate {
     
     // Calc liquidation amounts for the given debt type
     let availableRepayAmount = balance::value(&availableRepayBalance);
-    let (liquidateAmount, repayOnBehalfAmount, reserveAmount) =
+    let (repayOnBehalf, repayReserve, liqAmount) =
       liquidation_amounts<DebtType, CollateralType>(position, bank, coinDecimalsRegistry, availableRepayAmount);
     
     
     // withdraw the collateral balance from position
-    let collateralBalance = position::withdraw_collateral<CollateralType>(position, liquidateAmount);
+    let collateralBalance = position::withdraw_collateral<CollateralType>(position, liqAmount);
     // Reduce the debt for the position
     let debtType = get<DebtType>();
-    position::decrease_debt(position, debtType, repayOnBehalfAmount);
+    position::decrease_debt(position, debtType, repayOnBehalf);
     
     // Put the repay and reserve balance to the bank
-    let repayOnBeHalfBalance = balance::split(&mut availableRepayBalance, repayOnBehalfAmount);
-    let reserveBalance = balance::split(&mut availableRepayBalance, reserveAmount);
+    let repayOnBeHalfBalance = balance::split(&mut availableRepayBalance, repayOnBehalf);
+    let reserveBalance = balance::split(&mut availableRepayBalance, repayReserve);
     bank::handle_liquidation(bank, repayOnBeHalfBalance, reserveBalance);
   
     // Send the remaining balance, and collateral balance to liquidator

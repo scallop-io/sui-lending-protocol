@@ -9,7 +9,7 @@ module protocol::borrow {
   use time::timestamp::{Self ,TimeStamp};
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
-  use protocol::evaluator;
+  use protocol::borrow_withdraw_evaluator;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   
   const EBorrowTooMuch: u64 = 0;
@@ -40,7 +40,7 @@ module protocol::borrow {
   
     // calc the maximum borrow amount
     // If borrow too much, abort
-    let maxBorrowAmount = evaluator::max_borrow_amount<T>(position, bank, coinDecimalsRegistry);
+    let maxBorrowAmount = borrow_withdraw_evaluator::max_borrow_amount<T>(position, bank, coinDecimalsRegistry);
     assert!(borrowAmount <= maxBorrowAmount, EBorrowTooMuch);
     
     // increase the debt for position

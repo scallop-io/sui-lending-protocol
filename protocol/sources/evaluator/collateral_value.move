@@ -1,4 +1,4 @@
-module protocol::collateral_evaluator {
+module protocol::collateral_value {
   use std::vector;
   use math::fr::{Self, Fr};
   use protocol::position::{Self, Position};

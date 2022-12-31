@@ -6,8 +6,8 @@ module protocol::liquidation_evaluator {
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
-  use protocol::debt_evaluator::debts_value_usd;
-  use protocol::collateral_evaluator::collaterals_value_usd_for_liquidation;
+  use protocol::debt_value::debts_value_usd;
+  use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::price::{get_price};
   
   const ENotLiquidatable: u64 = 0;

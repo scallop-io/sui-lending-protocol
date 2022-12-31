@@ -1,4 +1,4 @@
-module protocol::debt_evaluator {
+module protocol::debt_value {
   
   use std::vector;
   use math::fr::{Self, Fr};

@@ -9,7 +9,7 @@ module protocol::withdraw_collateral {
   use sui::object::{Self, ID};
   use time::timestamp::{Self ,TimeStamp};
   use protocol::position::{Self, Position};
-  use protocol::evaluator;
+  use protocol::borrow_withdraw_evaluator;
   use protocol::bank::{Self, Bank};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   
@@ -40,7 +40,7 @@ module protocol::withdraw_collateral {
     position::accrue_interests(position, bank);
     
     // IF withdrawAmount bigger than max, then abort
-    let maxWithdawAmount = evaluator::max_withdraw_amount<T>(position, bank, coinDecimalsRegistry);
+    let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(position, bank, coinDecimalsRegistry);
     assert!(withdrawAmount <= maxWithdawAmount, EWithdrawTooMuch);
     
     // withdraw collateral from position

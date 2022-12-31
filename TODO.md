@@ -21,5 +21,3 @@ https://blog.openzeppelin.com/compound-audit/
 
 
 # Optimization
-1. 包名称，函数名，变量名过长，需要简短
-2. 清算逻辑，计算过程步骤多，拆分简化

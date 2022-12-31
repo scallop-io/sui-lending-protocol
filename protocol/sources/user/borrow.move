@@ -11,8 +11,10 @@ module protocol::borrow {
   use protocol::bank::{Self, Bank};
   use protocol::borrow_withdraw_evaluator;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
+  use protocol::risk_model;
   
   const EBorrowTooMuch: u64 = 0;
+  const EBorrowTooLittle: u64 = 0;
   
   struct BorrowEvent has copy, drop {
     borrower: address,
@@ -30,6 +32,11 @@ module protocol::borrow {
     borrowAmount: u64,
     ctx: &mut TxContext,
   ) {
+    let coinType = type_name::get<T>();
+    let riskModel = bank::risk_model(bank, coinType);
+    let minBorrowAmount = risk_model::min_borrow_amount(riskModel);
+    assert!(borrowAmount > minBorrowAmount, EBorrowTooLittle);
+    
     let now = timestamp::timestamp(timeOracle);
     // Always update bank state first
     // Because interest need to be accrued first before other operations
@@ -44,7 +51,6 @@ module protocol::borrow {
     assert!(borrowAmount <= maxBorrowAmount, EBorrowTooMuch);
     
     // increase the debt for position
-    let coinType = type_name::get<T>();
     position::increase_debt(position, coinType, borrowAmount);
     
     // lend the coin to user from bank

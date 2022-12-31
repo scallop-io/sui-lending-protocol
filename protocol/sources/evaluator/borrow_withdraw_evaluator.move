@@ -13,6 +13,7 @@ module protocol::borrow_withdraw_evaluator {
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::collateral_value::collaterals_value_usd_for_borrow;
   use protocol::debt_value::debts_value_usd;
+  use protocol::risk_model;
   
   public fun max_borrow_amount<T>(
     position: &Position,
@@ -42,7 +43,8 @@ module protocol::borrow_withdraw_evaluator {
   ): u64 {
     let maxBorrowAmount = max_borrow_amount<T>(position, bank, coinDecimalsRegsitry);
     let coinType = get<T>();
-    let collateralFactor = bank::collateral_factor(bank, coinType);
+    let riskModel = bank::risk_model(bank, coinType);
+    let collateralFactor = risk_model::collateral_factor(riskModel);
     mix::div_ifrT(maxBorrowAmount, collateralFactor)
   }
 }

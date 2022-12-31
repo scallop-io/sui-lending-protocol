@@ -5,6 +5,7 @@ module protocol::collateral_value {
   use protocol::bank::{Self, Bank};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::price::value_usd;
+  use protocol::risk_model;
   
   // sum of every collateral usd value for borrow
   // value = price x amount x collateralFactor
@@ -20,7 +21,8 @@ module protocol::collateral_value {
       let collateralType = *vector::borrow(&collateralTypes, i);
       let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
       let collateralAmount = position::collateral(position, collateralType);
-      let collateralFactor = bank::collateral_factor(bank, collateralType);
+      let riskModel = bank::risk_model(bank, collateralType);
+      let collateralFactor = risk_model::collateral_factor(riskModel);
       let coinValueInUsd = fr::mul(
         value_usd(collateralType, collateralAmount, decimals),
         collateralFactor,
@@ -45,10 +47,11 @@ module protocol::collateral_value {
       let collateralType = *vector::borrow(&collateralTypes, i);
       let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
       let collateralAmount = position::collateral(position, collateralType);
-      let liquidationFactor = bank::liquidation_factor(bank, collateralType);
+      let riskModel = bank::risk_model(bank, collateralType);
+      let liqFactor = risk_model::liq_factor(riskModel);
       let coinValueInUsd = fr::mul(
         value_usd(collateralType, collateralAmount, decimals),
-        liquidationFactor,
+        liqFactor,
       );
       totalValudInUsd = fr::add(totalValudInUsd, coinValueInUsd);
       i = i + 1;

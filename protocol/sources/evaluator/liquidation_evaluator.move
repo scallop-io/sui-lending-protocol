@@ -9,6 +9,7 @@ module protocol::liquidation_evaluator {
   use protocol::debt_value::debts_value_usd;
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::price::{get_price};
+  use protocol::risk_model;
   
   const ENotLiquidatable: u64 = 0;
   
@@ -26,10 +27,11 @@ module protocol::liquidation_evaluator {
     let collateralDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
     let debtScale = math::pow(10, debtDecimals);
     let collateralScale = math::pow(10, collateralDecimals);
-    let liqDiscount = bank::liquidation_discount(bank, collateralType);
-    let liqPanelty = bank::liquidation_panelty(bank, collateralType);
-    let liqFactor = bank::liquidation_factor(bank, collateralType);
-    let liqReserveFactor = bank::liquidation_reserve_factor(bank, collateralType);
+    let riskModel = bank::risk_model(bank, collateralType);
+    let liqDiscount = risk_model::liq_discount(riskModel);
+    let liqPanelty = risk_model::liq_panelty(riskModel);
+    let liqFactor = risk_model::liq_factor(riskModel);
+    let liqReserveFactor = risk_model::liq_reserve_factor(riskModel);
     let debtPrice = get_price(debtType);
     let collateralPrice = get_price(collateralType);
     

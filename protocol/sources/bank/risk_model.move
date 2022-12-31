@@ -7,6 +7,8 @@ module protocol::risk_model {
   
   const ECollateralFactoryTooBig: u64 = 0;
   
+  struct RiskModels has drop {}
+  
   struct RiskModel has store {
     collateralFactor: Fr,
     liquidationFactor: Fr,
@@ -19,10 +21,15 @@ module protocol::risk_model {
     newDebt = debt * (current borrow index) / (original borrow index)
     so that the user could borrow without interest
     *********/
-    minimumBorrowAmount: u64,
+    minBorrowAmount: u64,
   }
   
-  struct RiskModels has drop {}
+  public fun collateral_factor(model: &RiskModel): Fr { model.collateralFactor }
+  public fun min_borrow_amount(model: &RiskModel): u64 { model.minBorrowAmount }
+  public fun liq_factor(model: &RiskModel): Fr { model.liquidationFactor }
+  public fun liq_panelty(model: &RiskModel): Fr { model.liquidationPanelty }
+  public fun liq_discount(model: &RiskModel): Fr { model.liquidationDiscount }
+  public fun liq_reserve_factor(model: &RiskModel): Fr { model.liquidationReserveFactor }
   
   public fun new(ctx: &mut TxContext): (
     AcTable<RiskModels, TypeName, RiskModel>,
@@ -43,7 +50,7 @@ module protocol::risk_model {
     liquidationPaneltyDeno: u64,
     liquidationDiscountEnu: u64, // exp. 95%,
     liquidationDiscountDeno: u64,
-    minimumBorrowAmount: u64,
+    minBorrowAmount: u64,
   ) {
     assert!(collateralFactorEnu < collateralFactorDeno, ECollateralFactoryTooBig);
     let liquidationPanelty = fr(liquidationPaneltyEnu, liquidationPaneltyDeno);
@@ -58,48 +65,8 @@ module protocol::risk_model {
       liquidationPanelty,
       liquidationDiscount,
       liquidationReserveFactor,
-      minimumBorrowAmount
+      minBorrowAmount
     };
     ac_table::add(self, cap, typeName, riskModel);
-  }
-  
-  public fun collateral_factor(
-    self: &AcTable<RiskModels, TypeName, RiskModel>,
-    typeName: TypeName,
-  ): Fr {
-    let riskModel = ac_table::borrow(self, typeName);
-    riskModel.collateralFactor
-  }
-  
-  public fun liquidation_factor(
-    self: &AcTable<RiskModels, TypeName, RiskModel>,
-    typeName: TypeName,
-  ): Fr {
-    let riskModel = ac_table::borrow(self, typeName);
-    riskModel.liquidationFactor
-  }
-  
-  public fun liquidation_panelty(
-    self: &AcTable<RiskModels, TypeName, RiskModel>,
-    typeName: TypeName,
-  ): Fr {
-    let riskModel = ac_table::borrow(self, typeName);
-    riskModel.liquidationPanelty
-  }
-  
-  public fun liquidation_discount(
-    self: &AcTable<RiskModels, TypeName, RiskModel>,
-    typeName: TypeName,
-  ): Fr {
-    let riskModel = ac_table::borrow(self, typeName);
-    riskModel.liquidationDiscount
-  }
-  
-  public fun liquidation_reserve_factor(
-    self: &AcTable<RiskModels, TypeName, RiskModel>,
-    typeName: TypeName,
-  ): Fr {
-    let riskModel = ac_table::borrow(self, typeName);
-    riskModel.liquidationReserveFactor
   }
 }

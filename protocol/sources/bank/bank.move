@@ -131,24 +131,8 @@ module protocol::bank {
     borrowIndex.mark
   }
   
-  public fun collateral_factor(self: &Bank, typeName: TypeName): Fr {
-    risk_model::collateral_factor(&self.riskModels, typeName)
-  }
-  
-  public fun liquidation_factor(self: &Bank, typeName: TypeName): Fr {
-    risk_model::liquidation_factor(&self.riskModels, typeName)
-  }
-  
-  public fun liquidation_panelty(self: &Bank, typeName: TypeName): Fr {
-    risk_model::liquidation_panelty(&self.riskModels, typeName)
-  }
-  
-  public fun liquidation_discount(self: &Bank, typeName: TypeName): Fr {
-    risk_model::liquidation_discount(&self.riskModels, typeName)
-  }
-  
-  public fun liquidation_reserve_factor(self: &Bank, typeName: TypeName): Fr {
-    risk_model::liquidation_reserve_factor(&self.riskModels, typeName)
+  public fun risk_model(self: &Bank, typeName: TypeName): &RiskModel {
+    ac_table::borrow(&self.riskModels, typeName)
   }
   
   // update bank balance sheet for repay

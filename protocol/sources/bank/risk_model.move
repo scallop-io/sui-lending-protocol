@@ -1,5 +1,5 @@
 module protocol::risk_model {
-  use std::type_name::TypeName;
+  use std::type_name::{TypeName, get};
   use sui::tx_context::TxContext;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{fr, Fr};
@@ -38,10 +38,9 @@ module protocol::risk_model {
     ac_table::new(RiskModels {}, false, ctx)
   }
   
-  public fun register_risk_model(
+  public fun register_risk_model<T>(
     self: &mut AcTable<RiskModels, TypeName, RiskModel>,
     cap: &AcTableCap<RiskModels>,
-    typeName: TypeName,
     collateralFactorEnu: u64, // exp. 70%,
     collateralFactorDeno: u64,
     liquidationFactorEnu: u64, // exp. 80%,
@@ -67,6 +66,6 @@ module protocol::risk_model {
       liquidationReserveFactor,
       minBorrowAmount
     };
-    ac_table::add(self, cap, typeName, riskModel);
+    ac_table::add(self, cap, get<T>(), riskModel);
   }
 }

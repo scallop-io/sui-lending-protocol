@@ -21,7 +21,7 @@ module x::ac_table {
   
   struct AcTableOwnership has drop {}
   
-  struct AcTableCap<phantom T> has key {
+  struct AcTableCap<phantom T> has key, store {
     id: UID,
     ownership: Ownership<AcTableOwnership>,
   }

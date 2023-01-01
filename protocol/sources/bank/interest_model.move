@@ -1,6 +1,6 @@
 module protocol::interest_model {
   
-  use std::type_name::TypeName;
+  use std::type_name::{TypeName, get};
   use sui::tx_context::TxContext;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{Self, fr, Fr};
@@ -24,10 +24,9 @@ module protocol::interest_model {
     ac_table::new<InterestModels, TypeName, InterestModel>(InterestModels{}, false, ctx)
   }
   
-  public fun add_interest_model(
+  public fun add_interest_model<T>(
     interestModelTable: &mut AcTable<InterestModels, TypeName, InterestModel>,
     cap: &AcTableCap<InterestModels>,
-    typeName: TypeName,
     baseRatePersecEnu: u64,
     baseRatePersecDeno: u64,
     lowSlopeEnu: u64,
@@ -53,7 +52,7 @@ module protocol::interest_model {
       highSlope,
       reserveFactor,
     };
-    ac_table::add(interestModelTable, cap, typeName, model)
+    ac_table::add(interestModelTable, cap, get<T>(), model)
   }
   
   public fun reserve_factor(model: &InterestModel): Fr {

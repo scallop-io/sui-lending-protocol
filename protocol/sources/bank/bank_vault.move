@@ -57,7 +57,7 @@ module protocol::bank_vault {
     wit_table::keys(&self.balanceSheets)
   }
   
-  public fun increase_debt(
+  public(friend) fun increase_debt(
     self: &mut BankVault,
     debtType: TypeName,
     debtIncreaseRate: Fr, // How much debt should be increased in percent, such as 0.05%
@@ -70,7 +70,7 @@ module protocol::bank_vault {
     balanceSheet.reserve = balanceSheet.reserve + reserveIncreased;
   }
   
-  public fun deposit_underlying_coin<T>(
+  public(friend) fun deposit_underlying_coin<T>(
     self: &mut BankVault,
     balance: Balance<T>
   ) {

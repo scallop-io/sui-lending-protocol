@@ -13,7 +13,15 @@ module protocol::bank {
   use protocol::bank_vault::{Self, BankVault, BankCoin};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
   
-  struct Bank has key {
+  friend protocol::app;
+  friend protocol::borrow;
+  friend protocol::repay;
+  friend protocol::liquidate;
+  friend protocol::mint;
+  friend protocol::redeem;
+  friend protocol::withdraw_collateral;
+  
+  struct Bank has key, store {
     id: UID,
     borrowDynamics: WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
     interestModels: AcTable<InterestModels, TypeName, InterestModel>,
@@ -21,7 +29,7 @@ module protocol::bank {
     vault: BankVault
   }
   
-  public fun new(ctx: &mut TxContext)
+  public(friend) fun new(ctx: &mut TxContext)
   : (Bank, AcTableCap<InterestModels>, AcTableCap<RiskModels>)
   {
     let (interestModels, interestModelsCap) = interest_model::new(ctx);
@@ -36,7 +44,15 @@ module protocol::bank {
     (bank, interestModelsCap, riskModelsCap)
   }
   
-  public fun handle_borrow<T>(
+  public(friend) fun risk_models_mut(self: &mut Bank): &mut AcTable<RiskModels, TypeName, RiskModel> {
+    &mut self.riskModels
+  }
+  
+  public(friend) fun interest_models_mut(self: &mut Bank): &mut AcTable<InterestModels, TypeName, InterestModel> {
+    &mut self.interestModels
+  }
+  
+  public(friend) fun handle_borrow<T>(
     self: &mut Bank,
     borrowAmount: u64,
     now: u64,
@@ -47,7 +63,7 @@ module protocol::bank {
     borrowedBalance
   }
   
-  public fun handle_repay<T>(
+  public(friend) fun handle_repay<T>(
     self: &mut Bank,
     balance: Balance<T>,
     now: u64,
@@ -57,7 +73,7 @@ module protocol::bank {
     update_interest_rates(self);
   }
   
-  public fun handle_liquidation<T>(
+  public(friend) fun handle_liquidation<T>(
     self: &mut Bank,
     balance: Balance<T>,
     reserveBalance: Balance<T>,
@@ -68,7 +84,7 @@ module protocol::bank {
     update_interest_rates(self);
   }
   
-  public fun handle_redeem<T>(
+  public(friend) fun handle_redeem<T>(
     self: &mut Bank,
     bankCoinBalance: Balance<BankCoin<T>>,
     now: u64,
@@ -79,7 +95,7 @@ module protocol::bank {
     reddemBalance
   }
   
-  public fun handle_mint<T>(
+  public(friend) fun handle_mint<T>(
     self: &mut Bank,
     balance: Balance<T>,
     now: u64,
@@ -90,7 +106,7 @@ module protocol::bank {
     mintBalance
   }
   
-  public fun compound_interests(
+  public(friend) fun compound_interests(
     self: &mut Bank,
     now: u64,
   ) {
@@ -107,7 +123,10 @@ module protocol::bank {
   }
   
   // accure interest for all banks
-  public fun accrue_all_interests(self: &mut Bank, now: u64) {
+  public(friend) fun accrue_all_interests(
+    self: &mut Bank,
+    now: u64
+  ) {
     let assetTypes = bank_vault::asset_types(&self.vault);
     let (i, n) = (0, vector::length(&assetTypes));
     while (i < n) {
@@ -127,7 +146,7 @@ module protocol::bank {
   }
   
   // accure interest for all banks
-  public fun update_interest_rates(
+  fun update_interest_rates(
     self: &mut Bank,
   ) {
     let assetTypes = bank_vault::asset_types(&self.vault);

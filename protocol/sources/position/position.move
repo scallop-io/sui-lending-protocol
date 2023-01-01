@@ -19,7 +19,6 @@ module protocol::position {
   
   friend protocol::repay;
   friend protocol::borrow;
-  friend protocol::deposit_collateral;
   friend protocol::withdraw_collateral;
   friend protocol::liquidate;
   

@@ -1,9 +1,9 @@
 module protocol::bank {
   
   use std::vector;
-  use std::type_name::{Self, TypeName};
+  use std::type_name::TypeName;
   use sui::tx_context::TxContext;
-  use sui::balance::{Self, Balance};
+  use sui::balance::Balance;
   use sui::object::{Self, UID};
   use math::mix;
   use math::fr::Fr;
@@ -12,7 +12,6 @@ module protocol::bank {
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::bank_vault::{Self, BankVault, BankCoin};
-  use protocol::balance_sheet::{Self, BalanceSheets, BalanceSheet};
   
   const INITIAL_BANK_COIN_MINT_RATE: u64 = 1;
   
@@ -26,7 +25,6 @@ module protocol::bank {
   
   struct Bank has key {
     id: UID,
-    balanceSheets: WitTable<BalanceSheets, TypeName, BalanceSheet>,
     borrowIndexes: WitTable<BorrowIndexes, TypeName, BorrowIndex>,
     interestModels: AcTable<InterestModels, TypeName, InterestModel>,
     riskModels: AcTable<RiskModels, TypeName, RiskModel>,
@@ -40,7 +38,6 @@ module protocol::bank {
     let (riskModels, riskModelsCap) = risk_model::new(ctx);
     let bank = Bank {
       id: object::new(ctx),
-      balanceSheets: balance_sheet::new(ctx),
       borrowIndexes: wit_table::new(BorrowIndexes{}, false, ctx),
       interestModels,
       riskModels,
@@ -65,12 +62,9 @@ module protocol::bank {
     balance: Balance<T>,
     now: u64,
   ) {
-    let typeName = type_name::get<T>();
-    let repayAmount = balance::value(&balance);
     accrue_all_interests(self, now);
-    balance_sheet::update_for_repay(&mut self.balanceSheets, typeName, repayAmount);
+    bank_vault::deposit_underlying_coin(&mut self.vault, balance);
     update_interest_rates(self);
-    bank_vault::deposit_underlying_coin(&mut self.vault, balance)
   }
   
   public fun handle_liquidation<T>(
@@ -79,10 +73,6 @@ module protocol::bank {
     reserveBalance: Balance<T>,
   ) {
     // We don't accrue interest here, because it has already been accrued in previous step for liquidation
-    let typeName = type_name::get<T>();
-    let repayAmount = balance::value(&balance);
-    let reserveAmount = balance::value(&reserveBalance);
-    balance_sheet::update_for_liquidation(&mut self.balanceSheets, typeName, repayAmount, reserveAmount);
     bank_vault::deposit_underlying_coin(&mut self.vault, balance);
     bank_vault::deposit_underlying_coin(&mut self.vault, reserveBalance);
     update_interest_rates(self);
@@ -129,7 +119,7 @@ module protocol::bank {
   
   // accure interest for all banks
   public fun accrue_all_interests(self: &mut Bank, now: u64) {
-    let assetTypes = wit_table::keys(&self.balanceSheets);
+    let assetTypes = bank_vault::asset_types(&self.vault);
     let (i, n) = (0, vector::length(&assetTypes));
     while (i < n) {
       let type = *vector::borrow(&assetTypes, i);
@@ -151,7 +141,7 @@ module protocol::bank {
   public fun update_interest_rates(
     self: &mut Bank,
   ) {
-    let assetTypes = wit_table::keys(&self.balanceSheets);
+    let assetTypes = bank_vault::asset_types(&self.vault);
     let (i, n) = (0, vector::length(&assetTypes));
     while (i < n) {
       let type = *vector::borrow(&assetTypes, i);

@@ -2,20 +2,15 @@ module protocol::bank_vault {
   
   use std::type_name::{TypeName, get};
   use sui::tx_context::TxContext;
-  use sui::balance::Balance;
+  use sui::balance::{Self, Balance};
   use sui::object::{Self, UID};
   use x::supply_bag::{Self, SupplyBag};
   use x::balance_bag::{Self, BalanceBag};
   use x::wit_table::{Self, WitTable};
-  use sui::balance;
-  use math::fr::Fr;
-  use math::fr;
+  use math::fr::{Self, Fr};
   use math::mix;
   use math::u64;
   
-  friend protocol::admin;
-  friend protocol::repay;
-  friend protocol::borrow;
   friend protocol::bank;
   
   struct BalanceSheets has drop {}
@@ -37,20 +32,16 @@ module protocol::bank_vault {
   }
   
   // create a vault for storing underlying assets and bank coin supplies
-  public fun new(
-    ctx: &mut TxContext
-  ): BankVault {
+  public fun new(ctx: &mut TxContext): BankVault {
     BankVault {
       id: object::new(ctx),
       bankCoinSupplies: supply_bag::new(ctx),
       underlyingBalances: balance_bag::new(ctx),
-      balanceSheets: wit_table::new(BalanceSheets{}, false, ctx),
+      balanceSheets: wit_table::new(BalanceSheets{}, true, ctx),
     }
   }
   
-  public(friend) fun register_coin<T>(
-    self: &mut BankVault
-  ) {
+  public(friend) fun register_coin<T>(self: &mut BankVault) {
     supply_bag::init_supply(BankCoin<T> {}, &mut self.bankCoinSupplies);
     balance_bag::init_balance<T>(&mut self.underlyingBalances);
     let balanceSheet = BalanceSheet { cash: 0, debt: 0, reserve: 0, bankCoinSupply: 0 };
@@ -60,6 +51,10 @@ module protocol::bank_vault {
   public fun ulti_rate(self: &BankVault, typeName: TypeName): Fr {
     let balanceSheet = wit_table::borrow(&self.balanceSheets, typeName);
     fr::fr(balanceSheet.debt, balanceSheet.debt + balanceSheet.cash)
+  }
+  
+  public fun asset_types(self: &BankVault): vector<TypeName> {
+    wit_table::keys(&self.balanceSheets)
   }
   
   public fun increase_debt(
@@ -123,19 +118,5 @@ module protocol::bank_vault {
     balanceSheet.bankCoinSupply = balanceSheet.bankCoinSupply - bankCoinAmount;
     supply_bag::decrease_supply(&mut self.bankCoinSupplies, bankCoinBalance);
     balance_bag::split<T>(&mut self.underlyingBalances, redeemAmount)
-  }
-  
-  public(friend) fun issue_bank_coin<T>(
-    self: &mut BankVault,
-    amount: u64,
-  ): Balance<BankCoin<T>> {
-    supply_bag::increase_supply<BankCoin<T>>(&mut self.bankCoinSupplies, amount)
-  }
-  
-  public(friend) fun burn_bank_coin<T>(
-    self: &mut BankVault,
-    balance: Balance<BankCoin<T>>
-  ) {
-    supply_bag::decrease_supply(&mut self.bankCoinSupplies, balance);
   }
 }

@@ -22,6 +22,7 @@ module protocol::position_debts {
     typeName: TypeName,
     borrowIndex: Fr,
   ) {
+    if (wit_table::contains(debts, typeName)) return;
     let debt = Debt { amount: 0, borrowIndex };
     wit_table::add(PositionDebts{}, debts, typeName, debt);
   }

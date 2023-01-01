@@ -31,7 +31,7 @@ module protocol::deposit_collateral {
       depositAsset: type_name::get<T>(),
       depositAmount: coin::value(&coin),
     });
-    
+  
     position::deposit_collateral(position, coin::into_balance(coin))
   }
 }

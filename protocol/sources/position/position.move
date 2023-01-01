@@ -73,13 +73,6 @@ module protocol::position {
     };
   }
   
-  public(friend) fun init_collateral(
-    self: &mut Position,
-    typeName: TypeName,
-  ) {
-    position_collaterals::init_collateral(&mut self.collaterals, typeName);
-  }
-  
   public(friend) fun withdraw_collateral<T>(
     self: &mut Position,
     amount: u64,

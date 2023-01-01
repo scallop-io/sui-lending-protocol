@@ -14,10 +14,11 @@ module protocol::position_collaterals {
     wit_table::new(PositionCollaterals{}, true, ctx)
   }
   
-  public fun init_collateral(
+  public fun init_collateral_if_none(
     collaterals: &mut WitTable<PositionCollaterals, TypeName, Collateral>,
     typeName: TypeName,
   ) {
+    if (wit_table::contains(collaterals, typeName)) return;
     wit_table::add(PositionCollaterals{}, collaterals, typeName, Collateral{ amount: 0 });
   }
   
@@ -26,6 +27,7 @@ module protocol::position_collaterals {
     typeName: TypeName,
     amount: u64,
   ) {
+    init_collateral_if_none(collaterals, typeName);
     let collateral = wit_table::borrow_mut(PositionCollaterals{}, collaterals, typeName);
     collateral.amount = collateral.amount + amount;
   }

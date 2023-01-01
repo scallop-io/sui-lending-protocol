@@ -42,6 +42,8 @@ module protocol::borrow {
     // Because interest need to be accrued first before other operations
     let borrowedBalance = bank::handle_borrow<T>(bank, borrowAmount, now);
     
+    // init debt if borrow for the first time
+    position::init_debt(position, bank, coinType);
     // accure interests for position
     position::accrue_interests(position, bank);
   
@@ -53,7 +55,7 @@ module protocol::borrow {
     // increase the debt for position
     position::increase_debt(position, coinType, borrowAmount);
     
-    // lend the coin to user from bank
+    // lend the coin to user
     transfer::transfer(
       coin::from_balance(borrowedBalance, ctx),
       tx_context::sender(ctx),

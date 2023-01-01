@@ -3,10 +3,12 @@ module protocol::position_debts {
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
+  use math::fr::{Self, Fr};
+  use math::mix;
   
   struct Debt has store {
     amount: u64,
-    borrowMark: u64
+    borrowIndex: Fr
   }
   
   struct PositionDebts has drop {}
@@ -15,28 +17,48 @@ module protocol::position_debts {
     wit_table::new(PositionDebts{}, true, ctx)
   }
   
-  public fun update_debt(
+  public fun init_debt(
+    debts: &mut WitTable<PositionDebts, TypeName, Debt>,
+    typeName: TypeName,
+    borrowIndex: Fr,
+  ) {
+    let debt = Debt { amount: 0, borrowIndex };
+    wit_table::add(PositionDebts{}, debts, typeName, debt);
+  }
+  
+  public fun increase(
     debts: &mut WitTable<PositionDebts, TypeName, Debt>,
     typeName: TypeName,
     amount: u64,
-    borrowMark: u64
   ) {
-    if (wit_table::contains(debts, typeName)) {
-      let debt = wit_table::borrow_mut(PositionDebts{}, debts, typeName);
-      debt.amount = amount;
-      debt.borrowMark = borrowMark;
-    } else {
-      let debt = Debt { amount, borrowMark };
-      wit_table::add(PositionDebts{}, debts, typeName, debt);
-    }
+    let debt = wit_table::borrow_mut(PositionDebts{}, debts, typeName);
+    debt.amount = debt.amount + amount;
+  }
+  
+  public fun decrease(
+    debts: &mut WitTable<PositionDebts, TypeName, Debt>,
+    typeName: TypeName,
+    amount: u64,
+  ) {
+    let debt = wit_table::borrow_mut(PositionDebts{}, debts, typeName);
+    debt.amount = debt.amount - amount;
+  }
+  
+  public fun accure_interest(
+    debts: &mut WitTable<PositionDebts, TypeName, Debt>,
+    typeName: TypeName,
+    newBorrowIndex: Fr
+  ) {
+    let debt = wit_table::borrow_mut(PositionDebts{}, debts, typeName);
+    debt.amount = mix::mul_ifrT(debt.amount, fr::div(newBorrowIndex, debt.borrowIndex));
+    debt.borrowIndex = newBorrowIndex;
   }
   
   public fun debt(
     debts: &WitTable<PositionDebts, TypeName, Debt>,
     typeName: TypeName,
-  ): (u64, u64) {
-    
+  ): (u64, Fr) {
     let debt = wit_table::borrow(debts, typeName);
-    (debt.amount, debt.borrowMark)
+    (debt.amount, debt.borrowIndex)
   }
 }

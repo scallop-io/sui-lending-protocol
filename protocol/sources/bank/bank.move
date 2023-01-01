@@ -5,27 +5,17 @@ module protocol::bank {
   use sui::tx_context::TxContext;
   use sui::balance::Balance;
   use sui::object::{Self, UID};
-  use math::mix;
-  use math::fr::Fr;
+  use math::fr::{Self, Fr};
   use x::ac_table::{Self, AcTable, AcTableCap};
-  use x::wit_table::{Self, WitTable};
+  use x::wit_table::WitTable;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::bank_vault::{Self, BankVault, BankCoin};
-  
-  const INITIAL_BANK_COIN_MINT_RATE: u64 = 1;
-  
-  struct BorrowIndexes has drop {}
-  
-  struct BorrowIndex has store {
-    interestRate: Fr,
-    mark: u64,
-    lastUpdated: u64,
-  }
+  use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
   
   struct Bank has key {
     id: UID,
-    borrowIndexes: WitTable<BorrowIndexes, TypeName, BorrowIndex>,
+    borrowDynamics: WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
     interestModels: AcTable<InterestModels, TypeName, InterestModel>,
     riskModels: AcTable<RiskModels, TypeName, RiskModel>,
     vault: BankVault
@@ -38,7 +28,7 @@ module protocol::bank {
     let (riskModels, riskModelsCap) = risk_model::new(ctx);
     let bank = Bank {
       id: object::new(ctx),
-      borrowIndexes: wit_table::new(BorrowIndexes{}, false, ctx),
+      borrowDynamics: borrow_dynamics::new(ctx),
       interestModels,
       riskModels,
       vault: bank_vault::new(ctx),
@@ -108,9 +98,8 @@ module protocol::bank {
     update_interest_rates(self);
   }
   
-  public fun borrow_mark(self: &Bank, typeName: TypeName): u64 {
-    let borrowIndex = wit_table::borrow(&self.borrowIndexes, typeName);
-    borrowIndex.mark
+  public fun borrow_index(self: &Bank, typeName: TypeName): Fr {
+    borrow_dynamics::borrow_index(&self.borrowDynamics, typeName)
   }
   
   public fun risk_model(self: &Bank, typeName: TypeName): &RiskModel {
@@ -123,16 +112,16 @@ module protocol::bank {
     let (i, n) = (0, vector::length(&assetTypes));
     while (i < n) {
       let type = *vector::borrow(&assetTypes, i);
-      let borrowIndex = wit_table::borrow_mut(BorrowIndexes {}, &mut self.borrowIndexes, type);
+      // update borrow index
+      let oldBorrowIndex = borrow_dynamics::borrow_index(&self.borrowDynamics, type);
+      borrow_dynamics::update_borrow_index(&mut self.borrowDynamics, type, now);
+      let newBorrowIndex = borrow_dynamics::borrow_index(&self.borrowDynamics, type);
+      let debtIncreaseRate = fr::div(newBorrowIndex, oldBorrowIndex);
+      // get reserve factor
       let interestModel = ac_table::borrow(&self.interestModels, type);
       let reserveFactor = interest_model::reserve_factor(interestModel);
-      let debtIncreaseRate = mix::mul_ifr(now - borrowIndex.lastUpdated, borrowIndex.interestRate);
+      // update bank debt
       bank_vault::increase_debt(&mut self.vault, type, debtIncreaseRate, reserveFactor);
-      borrowIndex.mark = mix::mul_ifrT(
-        borrowIndex.mark,
-        mix::add_ifr(1, debtIncreaseRate)
-      );
-      borrowIndex.lastUpdated = now;
       i = i + 1;
     };
   }
@@ -146,9 +135,9 @@ module protocol::bank {
     while (i < n) {
       let type = *vector::borrow(&assetTypes, i);
       let ultiRate = bank_vault::ulti_rate(&self.vault, type);
-      let borrowIndex = wit_table::borrow_mut(BorrowIndexes {}, &mut self.borrowIndexes, type);
       let interestModel = ac_table::borrow(&self.interestModels, type);
-      borrowIndex.interestRate = interest_model::calc_interest(interestModel, ultiRate);
+      let newInterestRate = interest_model::calc_interest(interestModel, ultiRate);
+      borrow_dynamics::update_interest_rate(&mut self.borrowDynamics, type, newInterestRate);
       i = i + 1;
     };
   }

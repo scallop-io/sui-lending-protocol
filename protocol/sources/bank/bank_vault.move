@@ -50,7 +50,7 @@ module protocol::bank_vault {
   
   public fun ulti_rate(self: &BankVault, typeName: TypeName): Fr {
     let balanceSheet = wit_table::borrow(&self.balanceSheets, typeName);
-    fr::fr(balanceSheet.debt, balanceSheet.debt + balanceSheet.cash)
+    fr::fr(balanceSheet.debt, balanceSheet.debt + balanceSheet.cash -balanceSheet.reserve)
   }
   
   public fun asset_types(self: &BankVault): vector<TypeName> {

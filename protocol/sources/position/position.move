@@ -11,10 +11,11 @@ module protocol::position {
   use x::ownership::{Self, Ownership};
   use x::wit_table::{Self, WitTable};
   
+  use math::fr::Fr;
+  
   use protocol::position_debts::{Self, PositionDebts, Debt};
   use protocol::position_collaterals::{Self, PositionCollaterals, Collateral};
   use protocol::bank::{Self, Bank};
-  use math::u64;
   
   friend protocol::repay;
   friend protocol::borrow;
@@ -66,12 +67,17 @@ module protocol::position {
     let (i, n) = (0, vector::length(&debtTypes));
     while (i < n) {
       let type = *vector::borrow(&debtTypes, i);
-      let (debtAmount, mark) = debt(position, type);
-      let currMark = bank::borrow_mark(bank, type);
-      let newDebtAmount = u64::mul_div(debtAmount, currMark, mark);
-      update_debt(position, type, newDebtAmount, currMark);
+      let newBorrowIndex = bank::borrow_index(bank, type);
+      position_debts::accure_interest(&mut position.debts, type, newBorrowIndex);
       i = i + 1;
     };
+  }
+  
+  public(friend) fun init_collateral(
+    self: &mut Position,
+    typeName: TypeName,
+  ) {
+    position_collaterals::init_collateral(&mut self.collaterals, typeName);
   }
   
   public(friend) fun withdraw_collateral<T>(
@@ -80,8 +86,7 @@ module protocol::position {
   ): Balance<T> {
     let typeName = type_name::get<T>();
     // reduce collateral amount
-    let newCollateralAmount = collateral(self, typeName) - amount;
-    position_collaterals::update_collateral(&mut self.collaterals, typeName, newCollateralAmount);
+    position_collaterals::decrease(&mut self.collaterals, typeName, amount);
     // return the collateral balance
     balance_bag::split(&mut self.balances, amount)
   }
@@ -92,34 +97,18 @@ module protocol::position {
   ) {
     // increase collateral amount
     let typeName = type_name::get<T>();
-    let newCollateralAmount = collateral(self, typeName) + balance::value(&balance);
-    position_collaterals::update_collateral(&mut self.collaterals, typeName, newCollateralAmount);
+    position_collaterals::increase(&mut self.collaterals, typeName, balance::value(&balance));
     // put the collateral balance
     balance_bag::join(&mut self.balances, balance);
   }
   
-  public (friend) fun update_debt(
+  public(friend) fun init_debt(
     self: &mut Position,
+    bank: &Bank,
     typeName: TypeName,
-    amount: u64,
-    borrowMark: u64,
   ) {
-    position_debts::update_debt(&mut self.debts, typeName, amount, borrowMark)
-  }
-  
-  public(friend) fun update_debt_amount(
-    self: &mut Position,
-    typeName: TypeName,
-    amount: u64,
-    isIncrease: bool,
-  ) {
-    let (debtAmount, mark) = debt(self, typeName);
-    let newDebtAmount = if(isIncrease) {
-      debtAmount + amount
-    } else {
-      debtAmount - amount
-    };
-    position_debts::update_debt(&mut self.debts, typeName, newDebtAmount, mark)
+    let borrowIndex = bank::borrow_index(bank, typeName);
+    position_debts::init_debt(&mut self.debts, typeName, borrowIndex);
   }
   
   public(friend) fun increase_debt(
@@ -127,7 +116,7 @@ module protocol::position {
     typeName: TypeName,
     amount: u64,
   ) {
-    update_debt_amount(self, typeName, amount, true)
+    position_debts::increase(&mut self.debts, typeName, amount);
   }
   
   public(friend) fun decrease_debt(
@@ -135,10 +124,10 @@ module protocol::position {
     typeName: TypeName,
     amount: u64,
   ) {
-    update_debt_amount(self, typeName, amount, false)
+    position_debts::decrease(&mut self.debts, typeName, amount);
   }
   
-  public fun debt(self: &Position, typeName: TypeName): (u64, u64) {
+  public fun debt(self: &Position, typeName: TypeName): (u64, Fr) {
     position_debts::debt(&self.debts, typeName)
   }
   

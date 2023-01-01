@@ -9,6 +9,8 @@ module protocol::liquidate {
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::liquidation_evaluator::liquidation_amounts;
   
+  const ECantBeLiquidated: u64 = 0;
+  
   public fun liquidate<DebtType, CollateralType>(
     position: &mut Position,
     bank: &mut Bank,
@@ -26,7 +28,7 @@ module protocol::liquidate {
     let availableRepayAmount = balance::value(&availableRepayBalance);
     let (repayOnBehalf, repayReserve, liqAmount) =
       liquidation_amounts<DebtType, CollateralType>(position, bank, coinDecimalsRegistry, availableRepayAmount);
-    
+    assert!(liqAmount > 0, ECantBeLiquidated);
     
     // withdraw the collateral balance from position
     let collateralBalance = position::withdraw_collateral<CollateralType>(position, liqAmount);

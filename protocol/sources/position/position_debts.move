@@ -3,12 +3,12 @@ module protocol::position_debts {
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
-  use math::fr::{Self, Fr};
+  use math::fr;
   use math::mix;
   
   struct Debt has store {
     amount: u64,
-    borrowIndex: Fr
+    borrowIndex: u64
   }
   
   struct PositionDebts has drop {}
@@ -20,7 +20,7 @@ module protocol::position_debts {
   public fun init_debt(
     debts: &mut WitTable<PositionDebts, TypeName, Debt>,
     typeName: TypeName,
-    borrowIndex: Fr,
+    borrowIndex: u64,
   ) {
     if (wit_table::contains(debts, typeName)) return;
     let debt = Debt { amount: 0, borrowIndex };
@@ -48,17 +48,17 @@ module protocol::position_debts {
   public fun accure_interest(
     debts: &mut WitTable<PositionDebts, TypeName, Debt>,
     typeName: TypeName,
-    newBorrowIndex: Fr
+    newBorrowIndex: u64
   ) {
     let debt = wit_table::borrow_mut(PositionDebts{}, debts, typeName);
-    debt.amount = mix::mul_ifrT(debt.amount, fr::div(newBorrowIndex, debt.borrowIndex));
+    debt.amount = mix::mul_ifrT(debt.amount, fr::fr(newBorrowIndex, debt.borrowIndex));
     debt.borrowIndex = newBorrowIndex;
   }
   
   public fun debt(
     debts: &WitTable<PositionDebts, TypeName, Debt>,
     typeName: TypeName,
-  ): (u64, Fr) {
+  ): (u64, u64) {
     let debt = wit_table::borrow(debts, typeName);
     (debt.amount, debt.borrowIndex)
   }

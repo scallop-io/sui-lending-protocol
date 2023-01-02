@@ -1,0 +1,11 @@
+[package]
+name="ProtocolTest"
+version="0.0.1"
+
+[dependencies]
+Sui = { local = "../../sui/crates/sui-framework" }
+Protocol = { local = "../protocol" }
+TestCoin = { local = "../test_coin" }
+
+[addresses]
+protocol_test="0x0"

@@ -4,10 +4,10 @@
 module math::fr {
   use math::u128;
   
-  // e18
-  const SCALE: u128 = 1000000000000000000;
+  // e9
+  const SCALE: u128 = 1000000000;
   
-  const U64_MAX: u128 = 18446744073709551615u128;
+  const U64_MAX: u128 = 18446744073709551615;
   const OVER_FLOW: u64 = 1001;
   
   struct Fr has copy, store, drop {

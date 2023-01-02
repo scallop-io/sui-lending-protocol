@@ -5,6 +5,8 @@ module protocol::coin_decimals_registry {
   use sui::table::{Self, Table};
   use sui::object::{Self, UID};
   use sui::tx_context::TxContext;
+  use sui::transfer;
+  
   // use sui::coin::{Self, CoinMetadata};
   
   struct CoinDecimalsRegistry has key, store {
@@ -12,11 +14,21 @@ module protocol::coin_decimals_registry {
     table: Table<TypeName, u8>
   }
   
-  public fun new(ctx: &mut TxContext): CoinDecimalsRegistry {
-    CoinDecimalsRegistry {
+  fun init(ctx: &mut TxContext){
+    let registry = CoinDecimalsRegistry {
       id: object::new(ctx),
       table: table::new(ctx)
-    }
+    };
+    transfer::share_object(registry);
+  }
+  
+  #[test_only]
+  public fun init_t(ctx: &mut TxContext){
+    let registry = CoinDecimalsRegistry {
+      id: object::new(ctx),
+      table: table::new(ctx)
+    };
+    transfer::share_object(registry);
   }
   
   /// TODO: use this registry add when coinMeta is readable

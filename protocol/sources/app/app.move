@@ -14,6 +14,15 @@ module protocol::app {
   }
   
   fun init(ctx: &mut TxContext) {
+    init_internal(ctx)
+  }
+  
+  #[test_only]
+  public fun init_t(ctx: &mut TxContext) {
+    init_internal(ctx)
+  }
+  
+  fun init_internal(ctx: &mut TxContext) {
     let (bank, interestModelCap, riskModelCap) = bank::new(ctx);
     let adminCap = AdminCap {
       id: object::new(ctx),
@@ -27,60 +36,48 @@ module protocol::app {
   public entry fun add_interest_model<T>(
     bank: &mut Bank,
     adminCap: &AdminCap,
-    baseRatePersecEnu: u64,
-    baseRatePersecDeno: u64,
-    lowSlopeEnu: u64,
-    lowSlopeDeno: u64,
-    kinkEnu: u64,
-    kinkDeno: u64,
-    highSlopeEnu: u64,
-    highSlopeDeno: u64,
-    reserveFactorEnu: u64,
-    reserveFactorDeno: u64,
+    baseRatePerSec: u64,
+    lowSlope: u64,
+    kink: u64,
+    highSlope: u64,
+    reserveFactor: u64,
+    scale: u64,
+    now: u64,
+    minBorrowAmount: u64,
   ) {
     let interestModels = bank::interest_models_mut(bank);
     interest_model::add_interest_model<T>(
       interestModels,
       &adminCap.interestModelCap,
-      baseRatePersecEnu,
-      baseRatePersecDeno,
-      lowSlopeEnu,
-      lowSlopeDeno,
-      kinkEnu,
-      kinkDeno,
-      highSlopeEnu,
-      highSlopeDeno,
-      reserveFactorEnu,
-      reserveFactorDeno,
-    )
+      baseRatePerSec,
+      lowSlope,
+      kink,
+      highSlope,
+      reserveFactor,
+      scale,
+      minBorrowAmount,
+    );
+    bank::register_coin<T>(bank, now);
   }
   
   public entry fun add_risk_model<T>(
     bank: &mut Bank,
     adminCap: &AdminCap,
-    collateralFactorEnu: u64, // exp. 70%,
-    collateralFactorDeno: u64,
-    liquidationFactorEnu: u64, // exp. 80%,
-    liquidationFactorDeno: u64,
-    liquidationPaneltyEnu: u64, // exp. 7%,
-    liquidationPaneltyDeno: u64,
-    liquidationDiscountEnu: u64, // exp. 95%,
-    liquidationDiscountDeno: u64,
-    minBorrowAmount: u64,
+    collateralFactor: u64, // exp. 70%,
+    liquidationFactor: u64, // exp. 80%,
+    liquidationPanelty: u64, // exp. 7%,
+    liquidationDiscount: u64, // exp. 95%,
+    scale: u64,
   ) {
     let riskModels = bank::risk_models_mut(bank);
     risk_model::register_risk_model<T>(
       riskModels,
       &adminCap.riskModelCap,
-      collateralFactorEnu,
-      collateralFactorDeno,
-      liquidationFactorEnu,
-      liquidationFactorDeno,
-      liquidationPaneltyEnu,
-      liquidationPaneltyDeno,
-      liquidationDiscountEnu,
-      liquidationDiscountDeno,
-      minBorrowAmount,
+      collateralFactor,
+      liquidationFactor,
+      liquidationPanelty,
+      liquidationDiscount,
+      scale,
     )
   }
 }

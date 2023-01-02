@@ -11,8 +11,6 @@ module protocol::position {
   use x::ownership::{Self, Ownership};
   use x::wit_table::{Self, WitTable};
   
-  use math::fr::Fr;
-  
   use protocol::position_debts::{Self, PositionDebts, Debt};
   use protocol::position_collaterals::{Self, PositionCollaterals, Collateral};
   use protocol::bank::{Self, Bank};
@@ -21,6 +19,7 @@ module protocol::position {
   friend protocol::borrow;
   friend protocol::withdraw_collateral;
   friend protocol::liquidate;
+  friend protocol::open_position;
   
   const EWithdrawTooMuch: u64 = 0;
   const EBorrowTooMuch: u64 = 1;
@@ -39,7 +38,7 @@ module protocol::position {
     ownership: Ownership<PositionOwnership>
   }
   
-  public (friend) fun new(ctx: &mut tx_context::TxContext): (Position, PositionKey) {
+  public(friend) fun new(ctx: &mut tx_context::TxContext): (Position, PositionKey) {
     let position = Position {
       id: object::new(ctx),
       balances: balance_bag::new(ctx),
@@ -56,6 +55,14 @@ module protocol::position {
       ownership: positionOwnership,
     };
     (position, positionKey)
+  }
+  
+  public fun assert_key_match(position: &Position, key: &PositionKey) {
+    ownership::assert_owner(&key.ownership, position)
+  }
+  
+  public fun is_key_match(position: &Position, key: &PositionKey): bool {
+    ownership::is_owner(&key.ownership, position)
   }
   
   public(friend) fun accrue_interests(
@@ -91,6 +98,9 @@ module protocol::position {
     let typeName = type_name::get<T>();
     position_collaterals::increase(&mut self.collaterals, typeName, balance::value(&balance));
     // put the collateral balance
+    if (balance_bag::contains<T>(&self.balances) == false) {
+      balance_bag::init_balance<T>(&mut self.balances);
+    };
     balance_bag::join(&mut self.balances, balance);
   }
   
@@ -119,7 +129,7 @@ module protocol::position {
     position_debts::decrease(&mut self.debts, typeName, amount);
   }
   
-  public fun debt(self: &Position, typeName: TypeName): (u64, Fr) {
+  public fun debt(self: &Position, typeName: TypeName): (u64, u64) {
     position_debts::debt(&self.debts, typeName)
   }
   

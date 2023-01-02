@@ -2,7 +2,6 @@ module protocol::liquidate {
   
   use std::type_name::get;
   use sui::balance::{Self, Balance};
-  use time::timestamp::{Self, TimeStamp};
   
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
@@ -16,9 +15,8 @@ module protocol::liquidate {
     bank: &mut Bank,
     availableRepayBalance: Balance<DebtType>,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-    timeOracle: &TimeStamp,
+    now: u64,
   ): (Balance<DebtType>, Balance<CollateralType>) {
-    let now = timestamp::timestamp(timeOracle);
     // Accrue interests for bank
     bank::accrue_all_interests(bank, now);
     // Accrue interests for position

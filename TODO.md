@@ -4,6 +4,7 @@
 
 # Feature
 - Implement flashloans
+- Add reward for borrowing and lending
 
 
 # Safety consideration

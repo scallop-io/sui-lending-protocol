@@ -1,11 +1,11 @@
 module protocol::bank {
   
   use std::vector;
-  use std::type_name::TypeName;
+  use std::type_name::{TypeName, get};
   use sui::tx_context::TxContext;
   use sui::balance::Balance;
   use sui::object::{Self, UID};
-  use math::fr::{Self, Fr};
+  use math::fr;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::WitTable;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
@@ -42,6 +42,13 @@ module protocol::bank {
       vault: bank_vault::new(ctx),
     };
     (bank, interestModelsCap, riskModelsCap)
+  }
+  
+  public(friend) fun register_coin<T>(self: &mut Bank, now: u64) {
+    bank_vault::register_coin<T>(&mut self.vault);
+    let interestModel = ac_table::borrow(&self.interestModels, get<T>());
+    let baseBorrowRate = interest_model::base_borrow_rate(interestModel);
+    borrow_dynamics::register_coin<T>(&mut self.borrowDynamics, baseBorrowRate, now);
   }
   
   public(friend) fun risk_models_mut(self: &mut Bank): &mut AcTable<RiskModels, TypeName, RiskModel> {
@@ -114,12 +121,16 @@ module protocol::bank {
     update_interest_rates(self);
   }
   
-  public fun borrow_index(self: &Bank, typeName: TypeName): Fr {
+  public fun borrow_index(self: &Bank, typeName: TypeName): u64 {
     borrow_dynamics::borrow_index(&self.borrowDynamics, typeName)
   }
   
   public fun risk_model(self: &Bank, typeName: TypeName): &RiskModel {
     ac_table::borrow(&self.riskModels, typeName)
+  }
+  
+  public fun interest_model(self: &Bank, typeName: TypeName): &InterestModel {
+    ac_table::borrow(&self.interestModels, typeName)
   }
   
   // accure interest for all banks
@@ -135,7 +146,7 @@ module protocol::bank {
       let oldBorrowIndex = borrow_dynamics::borrow_index(&self.borrowDynamics, type);
       borrow_dynamics::update_borrow_index(&mut self.borrowDynamics, type, now);
       let newBorrowIndex = borrow_dynamics::borrow_index(&self.borrowDynamics, type);
-      let debtIncreaseRate = fr::div(newBorrowIndex, oldBorrowIndex);
+      let debtIncreaseRate = fr::fr(newBorrowIndex, oldBorrowIndex);
       // get reserve factor
       let interestModel = ac_table::borrow(&self.interestModels, type);
       let reserveFactor = interest_model::reserve_factor(interestModel);

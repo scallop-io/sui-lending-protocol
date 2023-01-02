@@ -13,6 +13,8 @@ module protocol::bank_vault {
   
   friend protocol::bank;
   
+  const EFlashLoanNotPaidEnough: u64 = 0;
+  
   struct BalanceSheets has drop {}
   
   struct BalanceSheet has store {
@@ -20,6 +22,10 @@ module protocol::bank_vault {
     debt: u64,
     reserve: u64,
     bankCoinSupply: u64,
+  }
+  
+  struct FlashLoan<phantom T> {
+    amount: u64
   }
   
   struct BankCoin<phantom T> has drop {}
@@ -32,7 +38,7 @@ module protocol::bank_vault {
   }
   
   // create a vault for storing underlying assets and bank coin supplies
-  public fun new(ctx: &mut TxContext): BankVault {
+  public(friend) fun new(ctx: &mut TxContext): BankVault {
     BankVault {
       id: object::new(ctx),
       bankCoinSupplies: supply_bag::new(ctx),
@@ -50,7 +56,11 @@ module protocol::bank_vault {
   
   public fun ulti_rate(self: &BankVault, typeName: TypeName): Fr {
     let balanceSheet = wit_table::borrow(&self.balanceSheets, typeName);
-    fr::fr(balanceSheet.debt, balanceSheet.debt + balanceSheet.cash -balanceSheet.reserve)
+    if (balanceSheet.debt > 0)  {
+      fr::fr(balanceSheet.debt, balanceSheet.debt + balanceSheet.cash)
+    } else {
+      fr::zero()
+    }
   }
   
   public fun asset_types(self: &BankVault): vector<TypeName> {
@@ -118,5 +128,24 @@ module protocol::bank_vault {
     balanceSheet.bankCoinSupply = balanceSheet.bankCoinSupply - bankCoinAmount;
     supply_bag::decrease_supply(&mut self.bankCoinSupplies, bankCoinBalance);
     balance_bag::split<T>(&mut self.underlyingBalances, redeemAmount)
+  }
+  
+  public fun borrow_flash_loan<T>(
+    self: &mut BankVault,
+    amount: u64
+  ): (Balance<T>, FlashLoan<T>) {
+    let balance = balance_bag::split<T>(&mut self.underlyingBalances, amount);
+    let flashLoan = FlashLoan<T> { amount };
+    (balance, flashLoan)
+  }
+  
+  public fun return_flash_loan<T>(
+    self: &mut BankVault,
+    balance: Balance<T>,
+    flashLoan: FlashLoan<T>,
+  ) {
+    let FlashLoan { amount } = flashLoan;
+    assert!(balance::value(&balance) >= amount, EFlashLoanNotPaidEnough);
+    balance_bag::join(&mut self.underlyingBalances, balance);
   }
 }

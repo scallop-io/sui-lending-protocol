@@ -5,9 +5,9 @@ module protocol::mint {
   use sui::event::emit;
   use sui::transfer;
   use sui::balance;
-  use time::timestamp::{Self ,TimeStamp};
   use protocol::bank::{Self, Bank};
   use protocol::bank_vault::BankCoin;
+  use sui::balance::Balance;
   
   struct MintEvent has copy, drop {
     minter: address,
@@ -20,15 +20,25 @@ module protocol::mint {
   
   public entry fun mint<T>(
     bank: &mut Bank,
-    timeOracle: &TimeStamp,
+    now: u64,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
+    let mintBalance = mint_(bank, now, coin, ctx);
+    transfer::transfer(coin::from_balance(mintBalance, ctx), tx_context::sender(ctx));
+  }
+  
+  public fun mint_<T>(
+    bank: &mut Bank,
+    now: u64,
+    coin: Coin<T>,
+    ctx: &mut TxContext,
+  ): Balance<BankCoin<T>> {
     let depositAmount = coin::value(&coin);
-    let now = timestamp::timestamp(timeOracle);
     let mintBalance = bank::handle_mint(bank, coin::into_balance(coin), now);
     
     let sender = tx_context::sender(ctx);
+    
     emit(MintEvent{
       minter: sender,
       depositAsset: type_name::get<T>(),
@@ -38,6 +48,6 @@ module protocol::mint {
       time: now,
     });
     
-    transfer::transfer(coin::from_balance(mintBalance, ctx), sender);
+    mintBalance
   }
 }

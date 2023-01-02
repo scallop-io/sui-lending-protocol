@@ -19,7 +19,7 @@ module protocol::deposit_collateral {
     depositAmount: u64,
   }
   
-  public entry fun add_collateral<T>(
+  public entry fun deposit_collateral<T>(
     position: &mut Position,
     coin: Coin<T>,
     ctx: &mut TxContext,

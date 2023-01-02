@@ -6,7 +6,6 @@ module protocol::redeem {
   use sui::transfer;
   use sui::event::emit;
   use sui::balance;
-  use time::timestamp::{Self ,TimeStamp};
   use protocol::bank::{Self, Bank};
   use protocol::bank_vault::BankCoin;
   
@@ -21,12 +20,11 @@ module protocol::redeem {
   
   public entry fun redeem<T>(
     bank: &mut Bank,
-    timeOracle: &TimeStamp,
+    now: u64,
     coin: Coin<BankCoin<T>>,
     ctx: &mut TxContext,
   ) {
     let bankCoinAmount = coin::value(&coin);
-    let now = timestamp::timestamp(timeOracle);
     let redeemBalance = bank::handle_redeem(bank, coin::into_balance(coin), now);
     
     let sender = tx_context::sender(ctx);

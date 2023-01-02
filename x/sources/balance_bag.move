@@ -52,7 +52,7 @@ module x::balance_bag {
   
   public fun contains<T>(self: &BalanceBag): bool {
     let typeName = type_name::get<T>();
-    bag::contains(&self.bag, typeName)
+    bag::contains_with_type<TypeName, Balance<T>>(&self.bag, typeName)
   }
   
   public fun bag(self: &BalanceBag): &Bag {

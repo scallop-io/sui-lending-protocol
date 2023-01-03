@@ -48,12 +48,12 @@ module protocol_test::constants {
   
   public fun usdc_interest_model_params(): InterestModelParams<USDC> {
     InterestModelParams {
-      baseRatePerSec: 634195840,
-      lowSlope: 20 * math::pow(10, 8),
-      kink: 80 * math::pow(10, 16),
-      highSlope: 380 * math::pow(10, 8),
-      reserveFactor: 2 * math::pow(10, 16),
-      scale: math::pow(10, 18),
+      baseRatePerSec: 6341958,
+      lowSlope: 2 * math::pow(10, 16),
+      kink: 80 * math::pow(10, 14),
+      highSlope: 20 * math::pow(10, 16),
+      reserveFactor: 2 * math::pow(10, 14),
+      scale: math::pow(10, 16),
       minBorrowAmount: math::pow(10, 8),
     }
   }

@@ -5,8 +5,9 @@ module protocol::borrow_dynamics {
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
   use math::fr::Fr;
-  use math::mix;
   use sui::math;
+  use math::fr;
+  use std::debug;
   
   struct BorrowDynamics has drop {}
   
@@ -50,7 +51,11 @@ module protocol::borrow_dynamics {
   ) {
     let debtDynamic = wit_table::borrow_mut(BorrowDynamics {}, self, typeName);
     let timeDelta = now - debtDynamic.lastUpdated;
-    debtDynamic.borrowIndex = debtDynamic.borrowIndex + mix::mul_ifrT(timeDelta, debtDynamic.interestRate);
+    debtDynamic.borrowIndex =
+      debtDynamic.borrowIndex + fr::mul_iT(fr::mul_i(debtDynamic.interestRate, timeDelta), debtDynamic.borrowIndex);
+    debug::print(&timeDelta);
+    debug::print(&debtDynamic.interestRate);
+    debug::print(&debtDynamic.borrowIndex);
     debtDynamic.lastUpdated = now;
   }
   

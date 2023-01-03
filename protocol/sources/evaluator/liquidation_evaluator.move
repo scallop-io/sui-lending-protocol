@@ -10,6 +10,7 @@ module protocol::liquidation_evaluator {
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::price::{get_price};
   use protocol::risk_model;
+  use std::debug;
   
   const ENotLiquidatable: u64 = 0;
   
@@ -37,8 +38,10 @@ module protocol::liquidation_evaluator {
     
     let collateralsValue = collaterals_value_usd_for_liquidation(position, bank, coinDecimalsRegsitry);
     let debtsValue = debts_value_usd(position, coinDecimalsRegsitry);
+    debug::print(&debtsValue);
+    debug::print(&collateralsValue);
     if (fr::gt(debtsValue, collateralsValue) == false) return (0, 0, 0);
-    
+   
     let maxLiqValue = fr::div(
       fr::sub(debtsValue, collateralsValue),
       mix::sub_ifr(1, fr::add(liqPanelty, liqFactor))
@@ -54,9 +57,9 @@ module protocol::liquidation_evaluator {
       mix::mul_ifr(collateralScale, debtPrice),
       mix::mul_ifr(debtScale, collateralPrice),
     );
-    let liqExchangeRate = fr::div(exchangeRate, liqDiscount);
+    let liqExchangeRate = fr::div(exchangeRate, mix::sub_ifr(1,liqDiscount));
     
-    let liqAmountAtBest = mix::mul_ifrT(availableRepayAmount, liqExchangeRate);
+    let liqAmountAtBest = fr::mul_iT(liqExchangeRate, availableRepayAmount);
   
     let actualRepayAmount = availableRepayAmount;
     let actualLiqAmount = liqAmountAtBest;

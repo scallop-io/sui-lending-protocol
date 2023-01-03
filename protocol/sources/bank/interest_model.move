@@ -8,7 +8,7 @@ module protocol::interest_model {
   const EReserveFactorTooLarge: u64 = 0;
   
   struct InterestModel has store {
-    baseBorrowRatePersec: Fr,
+    baseBorrowRatePerSec: Fr,
     lowSlope: Fr,
     kink: Fr,
     highSlope: Fr,
@@ -23,7 +23,7 @@ module protocol::interest_model {
     minBorrowAmount: u64,
   }
   public fun reserve_factor(model: &InterestModel): Fr { model.reserveFactor }
-  public fun base_borrow_rate(model: &InterestModel): Fr { model.baseBorrowRatePersec }
+  public fun base_borrow_rate(model: &InterestModel): Fr { model.baseBorrowRatePerSec }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.minBorrowAmount }
   
   
@@ -49,13 +49,13 @@ module protocol::interest_model {
   ) {
     assert!(reserveFactor < scale, EReserveFactorTooLarge);
     
-    let baseBorrowRatePersec = fr(baseRatePerSec, scale);
+    let baseBorrowRatePerSec = fr(baseRatePerSec, scale);
     let lowSlope = fr(lowSlope, scale);
     let kink = fr(kink, scale);
     let highSlope = fr(highSlope, scale);
     let reserveFactor = fr(reserveFactor, scale);
     let model = InterestModel {
-      baseBorrowRatePersec,
+      baseBorrowRatePerSec,
       lowSlope,
       kink,
       highSlope,
@@ -72,15 +72,15 @@ module protocol::interest_model {
     let lowSlope = interestModel.lowSlope;
     let highSlope = interestModel.highSlope;
     let kink = interestModel.kink;
-    let baseRate = interestModel.baseBorrowRatePersec;
+    let baseRate = interestModel.baseBorrowRatePerSec;
     /*****************
     Calculate the interest rate with the given utlilization rate of the pool
     When ultiRate > kink:
-      interestRate = baseRate + kink * lowScope + (ultiRate - kink) * highScope
+      interestRate = baseRate(1 + kink * lowScope + (ultiRate - kink) * highScope)
     When ultiRate <= kink:
-      interestRate = baseRate + ultiRate * lowScope
+      interestRate = baseRate(1 + ultiRate * lowScope)
     ******************/
-    let extraRate = if (fr::gt(ultiRate, kink)) {
+    let rateGrowth = if (fr::gt(ultiRate, kink)) {
       fr::add(
         fr::mul(kink, lowSlope),
         fr::mul(fr::sub(ultiRate, kink), highSlope)
@@ -88,6 +88,6 @@ module protocol::interest_model {
     } else {
       fr::mul(ultiRate, lowSlope)
     };
-    fr::add(baseRate, extraRate)
+    fr::mul(baseRate, fr::add(fr::int(1), rateGrowth))
   }
 }

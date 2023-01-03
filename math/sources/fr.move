@@ -2,29 +2,29 @@
 // 1. The truncated result will always be u64, otherwise abort
 // 2. Only temporal result will be bigger than u64
 module math::fr {
-  use math::u128;
+  use math::u256;
   
-  // e9
-  const SCALE: u128 = 1000000000;
+  // e18
+  const SCALE: u256 = 1000000000000000000;
   
-  const U64_MAX: u128 = 18446744073709551615;
+  const U64_MAX: u256 = 18446744073709551615;
   const OVER_FLOW: u64 = 1001;
   
   struct Fr has copy, store, drop {
-    mantissa: u128
+    mantissa: u256
   }
   
   public fun fr(enu: u64, deno: u64): Fr {
-    let enu = (enu as u128);
-    let deno = (deno as u128);
+    let enu = (enu as u256);
+    let deno = (deno as u256);
     Fr {
-      mantissa: u128::mul_div(enu, SCALE, deno)
+      mantissa: u256::mul_div(enu, SCALE, deno)
     }
   }
   
   public fun int(int: u64): Fr {
     Fr {
-      mantissa: (int as u128) * SCALE
+      mantissa: (int as u256) * SCALE
     }
   }
   
@@ -42,13 +42,13 @@ module math::fr {
   
   public fun mul(f1: Fr, f2: Fr): Fr {
     Fr {
-      mantissa: u128::mul_div(f1.mantissa, f2.mantissa, SCALE)
+      mantissa: u256::mul_div(f1.mantissa, f2.mantissa, SCALE)
     }
   }
   
   public fun div(f1: Fr, f2: Fr): Fr {
     Fr {
-      mantissa: u128::mul_div(f1.mantissa, SCALE, f2.mantissa)
+      mantissa: u256::mul_div(f1.mantissa, SCALE, f2.mantissa)
     }
   }
   
@@ -72,5 +72,15 @@ module math::fr {
   
   public fun divT(f1: Fr, f2: Fr): u64 {
     trunc(div(f1, f2))
+  }
+  
+  public fun mul_i(f1: Fr, i2: u64): Fr {
+    Fr {
+      mantissa: f1.mantissa * (i2 as u256)
+    }
+  }
+  
+  public fun mul_iT(f1: Fr, i2: u64): u64 {
+    trunc(mul_i(f1, i2))
   }
 }

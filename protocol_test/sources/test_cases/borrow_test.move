@@ -28,8 +28,12 @@ module protocol_test::borrow_test {
   use protocol_test::coin_decimals_registry_t::coin_decimals_registry_init;
   #[test_only]
   use sui::balance;
+  // #[test_only]
+  // use protocol_test::withdraw_collateral_t::withdraw_collateral_t;
   #[test_only]
-  use protocol_test::withdraw_collateral_t::withdraw_collateral_t;
+  use protocol_test::liquidate_t::liquidate_t;
+  #[test_only]
+  use std::debug;
   
   #[test]
   public fun borrow_test() {
@@ -69,13 +73,20 @@ module protocol_test::borrow_test {
     assert!(balance::value(&borrowed) == borrowAmount, 0);
     balance::destroy_for_testing(borrowed);
     
-    test_scenario::next_tx(senario, borrower);
-    let withdrawAmount = 1 * math::pow(10, 17);
-    let withdrawTime = 400;
-    let withdrawed = withdraw_collateral_t<ETH>(
-      senario, borrower, &mut position, &positionKey, &mut bank, &coinDecimalsRegistiry, withdrawAmount, withdrawTime
+    let liquidator = @0xDD;
+    test_scenario::next_tx(senario, liquidator);
+    let liqTime = 300 + 365 * 24 * 3600 * 80;
+    let liqRepayAmount = 95 * math::pow(10, 8);
+    let liqRepayCoin = coin::mint_for_testing<USDC>(liqRepayAmount, test_scenario::ctx(senario));
+    let (restRepayBalance, collateralBalance) = liquidate_t<USDC, ETH>(
+      &mut position, &mut bank, &coinDecimalsRegistiry, liqRepayCoin, liqTime
     );
-    coin::destroy_for_testing(withdrawed);
+    assert!(balance::value(&restRepayBalance) == 0, 0);
+    debug::print(&collateralBalance);
+    assert!(balance::value(&collateralBalance) == math::pow(10, 16), 1);
+    
+    balance::destroy_for_testing(restRepayBalance);
+    balance::destroy_for_testing(collateralBalance);
     
     
     

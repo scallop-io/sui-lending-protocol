@@ -15,7 +15,7 @@ module protocol::price {
     if (typeName == get<BTC>()) {
       fr(1678766, 100)
     } else if (typeName == get<ETH>()) {
-      fr(121000, 100)
+      fr(100000, 100)
     } else if (typeName == get<USDC>()) {
       fr(100, 100)
     } else if (typeName == get<SUI>()) {

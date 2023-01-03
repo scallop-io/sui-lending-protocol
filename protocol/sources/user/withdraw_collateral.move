@@ -12,7 +12,6 @@ module protocol::withdraw_collateral {
   use protocol::bank::{Self, Bank};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use sui::balance::Balance;
-  use std::debug;
   
   const EWithdrawTooMuch: u64 = 0;
   
@@ -62,7 +61,6 @@ module protocol::withdraw_collateral {
     // IF withdrawAmount bigger than max, then abort
     let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(position, bank, coinDecimalsRegistry);
     assert!(withdrawAmount <= maxWithdawAmount, EWithdrawTooMuch);
-    debug::print(&maxWithdawAmount);
     
     // withdraw collateral from position
     let withdrawedBalance = position::withdraw_collateral<T>(position, withdrawAmount);

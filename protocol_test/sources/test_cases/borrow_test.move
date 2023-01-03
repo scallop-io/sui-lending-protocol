@@ -32,8 +32,6 @@ module protocol_test::borrow_test {
   // use protocol_test::withdraw_collateral_t::withdraw_collateral_t;
   #[test_only]
   use protocol_test::liquidate_t::liquidate_t;
-  #[test_only]
-  use std::debug;
   
   #[test]
   public fun borrow_test() {
@@ -76,14 +74,13 @@ module protocol_test::borrow_test {
     let liquidator = @0xDD;
     test_scenario::next_tx(senario, liquidator);
     let liqTime = 300 + 365 * 24 * 3600 * 80;
-    let liqRepayAmount = 95 * math::pow(10, 8);
+    let liqRepayAmount = 1000 * math::pow(10, 9);
     let liqRepayCoin = coin::mint_for_testing<USDC>(liqRepayAmount, test_scenario::ctx(senario));
     let (restRepayBalance, collateralBalance) = liquidate_t<USDC, ETH>(
       &mut position, &mut bank, &coinDecimalsRegistiry, liqRepayCoin, liqTime
     );
-    assert!(balance::value(&restRepayBalance) == 0, 0);
-    debug::print(&collateralBalance);
-    assert!(balance::value(&collateralBalance) == math::pow(10, 16), 1);
+    assert!(balance::value(&restRepayBalance) == 50 * math::pow(10, 9), 0);
+    assert!(balance::value(&collateralBalance) == math::pow(10, 18), 1);
     
     balance::destroy_for_testing(restRepayBalance);
     balance::destroy_for_testing(collateralBalance);

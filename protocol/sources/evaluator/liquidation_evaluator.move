@@ -10,7 +10,6 @@ module protocol::liquidation_evaluator {
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::price::{get_price};
   use protocol::risk_model;
-  use std::debug;
   
   const ENotLiquidatable: u64 = 0;
   
@@ -38,8 +37,6 @@ module protocol::liquidation_evaluator {
     
     let collateralsValue = collaterals_value_usd_for_liquidation(position, bank, coinDecimalsRegsitry);
     let debtsValue = debts_value_usd(position, coinDecimalsRegsitry);
-    debug::print(&debtsValue);
-    debug::print(&collateralsValue);
     if (fr::gt(debtsValue, collateralsValue) == false) return (0, 0, 0);
    
     let maxLiqValue = fr::div(

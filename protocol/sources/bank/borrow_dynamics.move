@@ -7,7 +7,6 @@ module protocol::borrow_dynamics {
   use math::fr::Fr;
   use sui::math;
   use math::fr;
-  use std::debug;
   
   struct BorrowDynamics has drop {}
   
@@ -53,9 +52,6 @@ module protocol::borrow_dynamics {
     let timeDelta = now - debtDynamic.lastUpdated;
     debtDynamic.borrowIndex =
       debtDynamic.borrowIndex + fr::mul_iT(fr::mul_i(debtDynamic.interestRate, timeDelta), debtDynamic.borrowIndex);
-    debug::print(&timeDelta);
-    debug::print(&debtDynamic.interestRate);
-    debug::print(&debtDynamic.borrowIndex);
     debtDynamic.lastUpdated = now;
   }
   

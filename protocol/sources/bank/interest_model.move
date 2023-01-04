@@ -1,10 +1,11 @@
 module protocol::interest_model {
   
   use std::type_name::{TypeName, get};
-  use sui::tx_context::{Self, TxContext};
-  use sui::object::{Self, UID};
+  use sui::tx_context::TxContext;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{Self, fr, Fr};
+  use x::one_time_lock_value::OneTimeLockValue;
+  use x::one_time_lock_value;
   
   const InterestChangeDelay: u64 = 11;
   
@@ -12,14 +13,8 @@ module protocol::interest_model {
   const EInterestModelChangeConsumed: u64 = 1;
   const EInterestModelChangePending: u64 = 1;
   
-  struct InterestModelChange<phantom T> has key, store {
-    id: UID,
-    interestModel: InterestModel,
-    epochLock: u64,
-    consumed: bool,
-  }
-  
   struct InterestModel has copy, store {
+    type: TypeName,
     baseBorrowRatePerSec: Fr,
     lowSlope: Fr,
     kink: Fr,
@@ -61,13 +56,14 @@ module protocol::interest_model {
     scale: u64,
     minBorrowAmount: u64,
     ctx: &mut TxContext,
-  ): InterestModelChange<T> {
+  ): OneTimeLockValue<InterestModel> {
     let baseBorrowRatePerSec = fr(baseRatePerSec, scale);
     let lowSlope = fr(lowSlope, scale);
     let kink = fr(kink, scale);
     let highSlope = fr(highSlope, scale);
     let reserveFactor = fr(reserveFactor, scale);
     let interestModel = InterestModel {
+      type: get<T>(),
       baseBorrowRatePerSec,
       lowSlope,
       kink,
@@ -75,24 +71,17 @@ module protocol::interest_model {
       reserveFactor,
       minBorrowAmount
     };
-    let epochLock = tx_context::epoch(ctx) + InterestChangeDelay;
-    InterestModelChange {
-      id: object::new(ctx),
-      interestModel,
-      epochLock,
-      consumed: false
-    }
+    one_time_lock_value::new(interestModel, InterestChangeDelay, 7, ctx)
   }
   
   public fun add_interest_model<T>(
     interestModelTable: &mut AcTable<InterestModels, TypeName, InterestModel>,
     cap: &AcTableCap<InterestModels>,
-    interestModelChange: &mut InterestModelChange<T>,
+    interestModelChange: &mut OneTimeLockValue<InterestModel>,
     ctx: &mut TxContext,
   ) {
-    assert!(interestModelChange.consumed == false, EInterestModelChangeConsumed);
-    assert!(interestModelChange.epochLock <= tx_context::epoch(ctx), EInterestModelChangePending);
-    ac_table::add(interestModelTable, cap, get<T>(), interestModelChange.interestModel)
+    let interestModel = one_time_lock_value::get_value(interestModelChange, ctx);
+    ac_table::add(interestModelTable, cap, get<T>(), interestModel)
   }
   
   public fun calc_interest(

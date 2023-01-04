@@ -4,8 +4,9 @@ module protocol::app {
   use sui::transfer;
   use x::ac_table::AcTableCap;
   use protocol::bank::{Self, Bank};
-  use protocol::interest_model::{Self, InterestModels, InterestModelChange};
+  use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels};
+  use x::one_time_lock_value::OneTimeLockValue;
   
   struct AdminCap has key, store {
     id: UID,
@@ -61,7 +62,7 @@ module protocol::app {
   public entry fun add_interest_model<T>(
     bank: &mut Bank,
     adminCap: &AdminCap,
-    interestModelChange: &mut InterestModelChange<T>,
+    interestModelChange: &mut OneTimeLockValue<InterestModel>,
     now: u64,
     ctx: &mut TxContext,
   ) {

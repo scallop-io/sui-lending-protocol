@@ -29,6 +29,21 @@ module protocol::bank {
     vault: BankVault
   }
   
+  public fun borrow_dynamics(bank: &Bank): &WitTable<BorrowDynamics, TypeName, BorrowDynamic> { &bank.borrowDynamics }
+  public fun interest_models(bank: &Bank): &AcTable<InterestModels, TypeName, InterestModel> { &bank.interestModels }
+  public fun risk_models(bank: &Bank): &AcTable<RiskModels, TypeName, RiskModel> { &bank.riskModels }
+  public fun vault(bank: &Bank): &BankVault { &bank.vault }
+  
+  public fun borrow_index(self: &Bank, typeName: TypeName): u64 {
+    borrow_dynamics::borrow_index_by_type(&self.borrowDynamics, typeName)
+  }
+  public fun risk_model(self: &Bank, typeName: TypeName): &RiskModel {
+    ac_table::borrow(&self.riskModels, typeName)
+  }
+  public fun interest_model(self: &Bank, typeName: TypeName): &InterestModel {
+    ac_table::borrow(&self.interestModels, typeName)
+  }
+  
   public(friend) fun new(ctx: &mut TxContext)
   : (Bank, AcTableCap<InterestModels>, AcTableCap<RiskModels>)
   {
@@ -121,18 +136,6 @@ module protocol::bank {
     update_interest_rates(self);
   }
   
-  public fun borrow_index(self: &Bank, typeName: TypeName): u64 {
-    borrow_dynamics::borrow_index(&self.borrowDynamics, typeName)
-  }
-  
-  public fun risk_model(self: &Bank, typeName: TypeName): &RiskModel {
-    ac_table::borrow(&self.riskModels, typeName)
-  }
-  
-  public fun interest_model(self: &Bank, typeName: TypeName): &InterestModel {
-    ac_table::borrow(&self.interestModels, typeName)
-  }
-  
   // accure interest for all banks
   public(friend) fun accrue_all_interests(
     self: &mut Bank,
@@ -143,9 +146,9 @@ module protocol::bank {
     while (i < n) {
       let type = *vector::borrow(&assetTypes, i);
       // update borrow index
-      let oldBorrowIndex = borrow_dynamics::borrow_index(&self.borrowDynamics, type);
+      let oldBorrowIndex = borrow_dynamics::borrow_index_by_type(&self.borrowDynamics, type);
       borrow_dynamics::update_borrow_index(&mut self.borrowDynamics, type, now);
-      let newBorrowIndex = borrow_dynamics::borrow_index(&self.borrowDynamics, type);
+      let newBorrowIndex = borrow_dynamics::borrow_index_by_type(&self.borrowDynamics, type);
       let debtIncreaseRate = fr::fr(newBorrowIndex, oldBorrowIndex);
       // get reserve factor
       let interestModel = ac_table::borrow(&self.interestModels, type);

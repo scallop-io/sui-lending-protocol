@@ -1,13 +1,25 @@
 module protocol::interest_model {
   
   use std::type_name::{TypeName, get};
-  use sui::tx_context::TxContext;
+  use sui::tx_context::{Self, TxContext};
+  use sui::object::{Self, UID};
   use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{Self, fr, Fr};
   
-  const EReserveFactorTooLarge: u64 = 0;
+  const InterestChangeDelay: u64 = 11;
   
-  struct InterestModel has store {
+  const EReserveFactorTooLarge: u64 = 0;
+  const EInterestModelChangeConsumed: u64 = 1;
+  const EInterestModelChangePending: u64 = 1;
+  
+  struct InterestModelChange<phantom T> has key, store {
+    id: UID,
+    interestModel: InterestModel,
+    epochLock: u64,
+    consumed: bool,
+  }
+  
+  struct InterestModel has copy, store {
     baseBorrowRatePerSec: Fr,
     lowSlope: Fr,
     kink: Fr,
@@ -22,8 +34,11 @@ module protocol::interest_model {
     // TODO: put this field somewhere else, it's not meant to be in interest model
     minBorrowAmount: u64,
   }
-  public fun reserve_factor(model: &InterestModel): Fr { model.reserveFactor }
   public fun base_borrow_rate(model: &InterestModel): Fr { model.baseBorrowRatePerSec }
+  public fun low_slope(model: &InterestModel): Fr { model.lowSlope }
+  public fun kink(model: &InterestModel): Fr { model.kink }
+  public fun high_slope(model: &InterestModel): Fr { model.highSlope }
+  public fun reserve_factor(model: &InterestModel): Fr { model.reserveFactor }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.minBorrowAmount }
   
   
@@ -36,9 +51,8 @@ module protocol::interest_model {
     ac_table::new<InterestModels, TypeName, InterestModel>(InterestModels{}, false, ctx)
   }
   
-  public fun add_interest_model<T>(
-    interestModelTable: &mut AcTable<InterestModels, TypeName, InterestModel>,
-    cap: &AcTableCap<InterestModels>,
+  public fun create_interest_model_change<T>(
+    _: &AcTableCap<InterestModels>,
     baseRatePerSec: u64,
     lowSlope: u64,
     kink: u64,
@@ -46,15 +60,14 @@ module protocol::interest_model {
     reserveFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
-  ) {
-    assert!(reserveFactor < scale, EReserveFactorTooLarge);
-    
+    ctx: &mut TxContext,
+  ): InterestModelChange<T> {
     let baseBorrowRatePerSec = fr(baseRatePerSec, scale);
     let lowSlope = fr(lowSlope, scale);
     let kink = fr(kink, scale);
     let highSlope = fr(highSlope, scale);
     let reserveFactor = fr(reserveFactor, scale);
-    let model = InterestModel {
+    let interestModel = InterestModel {
       baseBorrowRatePerSec,
       lowSlope,
       kink,
@@ -62,7 +75,24 @@ module protocol::interest_model {
       reserveFactor,
       minBorrowAmount
     };
-    ac_table::add(interestModelTable, cap, get<T>(), model)
+    let epochLock = tx_context::epoch(ctx) + InterestChangeDelay;
+    InterestModelChange {
+      id: object::new(ctx),
+      interestModel,
+      epochLock,
+      consumed: false
+    }
+  }
+  
+  public fun add_interest_model<T>(
+    interestModelTable: &mut AcTable<InterestModels, TypeName, InterestModel>,
+    cap: &AcTableCap<InterestModels>,
+    interestModelChange: &mut InterestModelChange<T>,
+    ctx: &mut TxContext,
+  ) {
+    assert!(interestModelChange.consumed == false, EInterestModelChangeConsumed);
+    assert!(interestModelChange.epochLock <= tx_context::epoch(ctx), EInterestModelChangePending);
+    ac_table::add(interestModelTable, cap, get<T>(), interestModelChange.interestModel)
   }
   
   public fun calc_interest(

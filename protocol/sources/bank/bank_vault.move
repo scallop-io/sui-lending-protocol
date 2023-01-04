@@ -37,6 +37,14 @@ module protocol::bank_vault {
     balanceSheets: WitTable<BalanceSheets, TypeName, BalanceSheet>,
   }
   
+  public fun bank_coin_supplies(vault: &BankVault): &SupplyBag { &vault.bankCoinSupplies }
+  public fun underlying_balances(vault: &BankVault): &BalanceBag { &vault.underlyingBalances }
+  public fun balance_sheets(vault: &BankVault): &WitTable<BalanceSheets, TypeName, BalanceSheet> { &vault.balanceSheets }
+  
+  public fun balance_sheet(balanceSheet: &BalanceSheet): (u64, u64, u64, u64) {
+    (balanceSheet.cash, balanceSheet.debt, balanceSheet.reserve, balanceSheet.bankCoinSupply)
+  }
+  
   // create a vault for storing underlying assets and bank coin supplies
   public(friend) fun new(ctx: &mut TxContext): BankVault {
     BankVault {

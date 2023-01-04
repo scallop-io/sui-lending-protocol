@@ -4,7 +4,7 @@ module protocol::app {
   use sui::transfer;
   use x::ac_table::AcTableCap;
   use protocol::bank::{Self, Bank};
-  use protocol::interest_model::{Self, InterestModels};
+  use protocol::interest_model::{Self, InterestModels, InterestModelChange};
   use protocol::risk_model::{Self, RiskModels};
   
   struct AdminCap has key, store {
@@ -33,8 +33,7 @@ module protocol::app {
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }
   
-  public entry fun add_interest_model<T>(
-    bank: &mut Bank,
+  public entry fun create_interest_model_change<T>(
     adminCap: &AdminCap,
     baseRatePerSec: u64,
     lowSlope: u64,
@@ -42,12 +41,10 @@ module protocol::app {
     highSlope: u64,
     reserveFactor: u64,
     scale: u64,
-    now: u64,
     minBorrowAmount: u64,
+    ctx: &mut TxContext,
   ) {
-    let interestModels = bank::interest_models_mut(bank);
-    interest_model::add_interest_model<T>(
-      interestModels,
+    let interestModelChange = interest_model::create_interest_model_change<T>(
       &adminCap.interestModelCap,
       baseRatePerSec,
       lowSlope,
@@ -56,6 +53,24 @@ module protocol::app {
       reserveFactor,
       scale,
       minBorrowAmount,
+      ctx,
+    );
+    transfer::share_object(interestModelChange);
+  }
+  
+  public entry fun add_interest_model<T>(
+    bank: &mut Bank,
+    adminCap: &AdminCap,
+    interestModelChange: &mut InterestModelChange<T>,
+    now: u64,
+    ctx: &mut TxContext,
+  ) {
+    let interestModels = bank::interest_models_mut(bank);
+    interest_model::add_interest_model<T>(
+      interestModels,
+      &adminCap.interestModelCap,
+      interestModelChange,
+      ctx
     );
     bank::register_coin<T>(bank, now);
   }

@@ -16,6 +16,10 @@ module protocol::borrow_dynamics {
     lastUpdated: u64,
   }
   
+  public fun interest_rate(dynamic: &BorrowDynamic): Fr { dynamic.interestRate }
+  public fun borrow_index(dynamic: &BorrowDynamic): u64 { dynamic.borrowIndex }
+  public fun last_updated(dynamic: &BorrowDynamic): u64 { dynamic.lastUpdated }
+  
   public fun new(ctx: &mut TxContext): WitTable<BorrowDynamics, TypeName, BorrowDynamic> {
     wit_table::new<BorrowDynamics, TypeName, BorrowDynamic>(BorrowDynamics {}, false, ctx)
   }
@@ -35,7 +39,7 @@ module protocol::borrow_dynamics {
   }
   
   
-  public fun borrow_index(
+  public fun borrow_index_by_type(
     self: &WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
     typeName: TypeName,
   ): u64 {

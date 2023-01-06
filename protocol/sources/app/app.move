@@ -3,10 +3,10 @@ module protocol::app {
   use sui::object::{Self, UID};
   use sui::transfer;
   use x::ac_table::AcTableCap;
+  use x::one_time_lock_value::OneTimeLockValue;
   use protocol::bank::{Self, Bank};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
-  use protocol::risk_model::{Self, RiskModels};
-  use x::one_time_lock_value::OneTimeLockValue;
+  use protocol::risk_model::{Self, RiskModels, RiskModel};
   
   struct AdminCap has key, store {
     id: UID,
@@ -76,24 +76,39 @@ module protocol::app {
     bank::register_coin<T>(bank, now);
   }
   
-  public entry fun add_risk_model<T>(
-    bank: &mut Bank,
+  public entry fun create_risk_model_change<T>(
     adminCap: &AdminCap,
     collateralFactor: u64, // exp. 70%,
     liquidationFactor: u64, // exp. 80%,
     liquidationPanelty: u64, // exp. 7%,
     liquidationDiscount: u64, // exp. 95%,
     scale: u64,
+    ctx: &mut TxContext,
+  ) {
+    let riskModelChange = risk_model::create_risk_model_change<T>(
+      &adminCap.riskModelCap,
+      collateralFactor, // exp. 70%,
+      liquidationFactor, // exp. 80%,
+      liquidationPanelty, // exp. 7%,
+      liquidationDiscount, // exp. 95%,
+      scale,
+      ctx
+    );
+    transfer::share_object(riskModelChange);
+  }
+  
+  public entry fun add_risk_model<T>(
+    bank: &mut Bank,
+    adminCap: &AdminCap,
+    riskModelChange: &mut OneTimeLockValue<RiskModel>,
+    ctx: &mut TxContext
   ) {
     let riskModels = bank::risk_models_mut(bank);
-    risk_model::register_risk_model<T>(
+    risk_model::add_risk_model<T>(
       riskModels,
       &adminCap.riskModelCap,
-      collateralFactor,
-      liquidationFactor,
-      liquidationPanelty,
-      liquidationDiscount,
-      scale,
+      riskModelChange,
+      ctx
     )
   }
 }

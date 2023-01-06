@@ -23,9 +23,9 @@ module x::one_time_lock_value {
     validBeforeEpoch: u64 // If expireEpoch is 0, then it will always be valid.
   }
   
-  public fun consumed<T>(self: &OneTimeLockValue<T>): bool {self.consumed}
-  public fun lock_until_epoch<T>(self: &OneTimeLockValue<T>): u64 {self.lockUntilEpoch}
-  public fun valid_before_epoch<T>(self: &OneTimeLockValue<T>): u64 {self.validBeforeEpoch}
+  public fun consumed<T: store + copy>(self: &OneTimeLockValue<T>): bool {self.consumed}
+  public fun lock_until_epoch<T: store + copy>(self: &OneTimeLockValue<T>): u64 {self.lockUntilEpoch}
+  public fun valid_before_epoch<T: store + copy>(self: &OneTimeLockValue<T>): u64 {self.validBeforeEpoch}
   
   public fun new<T: store + copy>(
     value: T,

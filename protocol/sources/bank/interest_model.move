@@ -2,16 +2,14 @@ module protocol::interest_model {
   
   use std::type_name::{TypeName, get};
   use sui::tx_context::TxContext;
-  use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{Self, fr, Fr};
-  use x::one_time_lock_value::OneTimeLockValue;
-  use x::one_time_lock_value;
+  use x::ac_table::{Self, AcTable, AcTableCap};
+  use x::one_time_lock_value::{Self, OneTimeLockValue};
   
   const InterestChangeDelay: u64 = 11;
   
   const EReserveFactorTooLarge: u64 = 0;
-  const EInterestModelChangeConsumed: u64 = 1;
-  const EInterestModelChangePending: u64 = 1;
+  const EInterestModelTypeNotMatch: u64 = 1;
   
   struct InterestModel has copy, store {
     type: TypeName,
@@ -81,7 +79,9 @@ module protocol::interest_model {
     ctx: &mut TxContext,
   ) {
     let interestModel = one_time_lock_value::get_value(interestModelChange, ctx);
-    ac_table::add(interestModelTable, cap, get<T>(), interestModel)
+    let typeName = get<T>();
+    assert!(interestModel.type == typeName, EInterestModelTypeNotMatch);
+    ac_table::add(interestModelTable, cap, typeName, interestModel)
   }
   
   public fun calc_interest(

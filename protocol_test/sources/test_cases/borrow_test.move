@@ -1,7 +1,7 @@
 module protocol_test::borrow_test {
   
   #[test_only]
-  use protocol_test::app_test::{app_init, add_risk_model};
+  use protocol_test::app_test::app_init;
   #[test_only]
   use sui::test_scenario;
   #[test_only]
@@ -34,6 +34,8 @@ module protocol_test::borrow_test {
   use protocol_test::liquidate_t::liquidate_t;
   #[test_only]
   use protocol_test::interest_model_t::add_interest_model_t;
+  #[test_only]
+  use protocol_test::risk_model_t::add_risk_model_t;
   
   #[test]
   public fun borrow_test() {
@@ -47,7 +49,7 @@ module protocol_test::borrow_test {
     let initTime = 100;
     add_interest_model_t<USDC>(senario, &mut bank, &adminCap, &usdcInterestParams, initTime);
     let ethRiskParams = eth_risk_model_params();
-    add_risk_model<ETH>(&mut bank, &adminCap, &ethRiskParams);
+    add_risk_model_t<ETH>(senario, &mut bank, &adminCap, &ethRiskParams);
     let coinDecimalsRegistiry = coin_decimals_registry_init(senario);
     coin_decimals_registry::register_decimals<USDC>(&mut coinDecimalsRegistiry, 9);
     coin_decimals_registry::register_decimals<ETH>(&mut coinDecimalsRegistiry, 18);

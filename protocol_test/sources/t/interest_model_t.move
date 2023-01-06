@@ -2,10 +2,10 @@
 module protocol_test::interest_model_t {
   
   use sui::test_scenario::{Self, Scenario};
+  use x::one_time_lock_value::OneTimeLockValue;
   use protocol::bank::Bank;
   use protocol::app::{Self, AdminCap};
   use protocol_test::constants::{Self, InterestModelParams};
-  use x::one_time_lock_value::OneTimeLockValue;
   use protocol::interest_model::InterestModel;
   
   public fun add_interest_model_t<T>(

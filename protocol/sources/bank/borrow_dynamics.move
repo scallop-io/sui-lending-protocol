@@ -7,6 +7,7 @@ module protocol::borrow_dynamics {
   use math::fr::Fr;
   use sui::math;
   use math::fr;
+  use std::type_name;
   
   struct BorrowDynamics has drop {}
   

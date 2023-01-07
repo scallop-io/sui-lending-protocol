@@ -5,8 +5,6 @@ This module is created for this purpose.
 It supports:
 1. Put any type of balance into the bag
 2. Retrieve, update the balances in the bag
-
-By default, every operation will create a zero balance if not exist.
 */
 module x::balance_bag {
   use std::type_name::{Self, TypeName};

@@ -11,7 +11,6 @@
 - Implement imergency mechanism: something like https://blog.openzeppelin.com/introducing-sentinels/
 - the calculated borrow balance is always rounded up instead of being truncated.
 - having a separate recipient role for reserves
-- Set a minimum borrow amount for each token
 
 
 

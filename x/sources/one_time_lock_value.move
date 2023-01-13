@@ -13,7 +13,6 @@ module x::one_time_lock_value {
   const EAlreadyConsumed: u64 = 0;
   const EValueExpired: u64 = 1;
   const EValuePending: u64 = 2;
-  const ELockUntilEpochTooSmall: u64 = 3;
   
   struct OneTimeLockValue<T: store + copy> has key, store {
     id: UID,
@@ -33,7 +32,6 @@ module x::one_time_lock_value {
     validEpoches: u64, // how long the value will be valid after lock
     ctx: &mut TxContext
   ): OneTimeLockValue<T> {
-    assert!(lockEpoches > 0, ELockUntilEpochTooSmall);
     let  curEpoch = tx_context::epoch(ctx);
     let lockUntilEpoch = curEpoch + lockEpoches;
     let validBeforeEpoch = if (validEpoches > 0) { lockUntilEpoch + validEpoches } else 0;

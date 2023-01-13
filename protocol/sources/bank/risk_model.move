@@ -4,8 +4,9 @@ module protocol::risk_model {
   use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{Self, Fr};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
+  use sui::tx_context;
   
-  const RiskModelChangeDelay: u64 = 11;
+  const RiskModelChangeDelay: u64 = 0;
   
   const ECollateralFactoryTooBig: u64 = 0;
   const ERiskModelTypeNotMatch: u64 = 1;

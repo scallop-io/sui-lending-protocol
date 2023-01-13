@@ -24,7 +24,6 @@ module protocol::interest_model {
     newDebt = debt * (current borrow index) / (original borrow index)
     so that the user could borrow without interest
     *********/
-    // TODO: put this field somewhere else, it's not meant to be in interest model
     minBorrowAmount: u64,
   }
   public fun base_borrow_rate(model: &InterestModel): Fr { model.baseBorrowRatePerSec }

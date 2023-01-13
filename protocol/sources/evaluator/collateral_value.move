@@ -12,14 +12,14 @@ module protocol::collateral_value {
   public fun collaterals_value_usd_for_borrow(
     position: &Position,
     bank: &Bank,
-    coinDecimalsRegsitry: &CoinDecimalsRegistry,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
   ): Fr {
     let collateralTypes = position::collateral_types(position);
     let totalValudInUsd = fr::zero();
     let (i, n) = (0, vector::length(&collateralTypes));
     while( i < n ) {
       let collateralType = *vector::borrow(&collateralTypes, i);
-      let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
+      let decimals = coin_decimals_registry::decimals(coinDecimalsRegistry, collateralType);
       let collateralAmount = position::collateral(position, collateralType);
       let riskModel = bank::risk_model(bank, collateralType);
       let collateralFactor = risk_model::collateral_factor(riskModel);

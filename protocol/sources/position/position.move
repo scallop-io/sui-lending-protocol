@@ -18,6 +18,7 @@ module protocol::position {
   friend protocol::repay;
   friend protocol::borrow;
   friend protocol::withdraw_collateral;
+  friend protocol::deposit_collateral;
   friend protocol::liquidate;
   friend protocol::open_position;
   
@@ -90,7 +91,7 @@ module protocol::position {
     balance_bag::split(&mut self.balances, amount)
   }
   
-  public fun deposit_collateral<T>(
+  public(friend) fun deposit_collateral<T>(
     self: &mut Position,
     balance: Balance<T>,
   ) {

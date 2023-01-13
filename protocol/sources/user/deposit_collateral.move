@@ -1,16 +1,14 @@
-// Add collateral is extremely simple
-// It's the big advantages of the protocol
-// When you add collateral, you only interact with your own position
-// So even the protocol is in a busy traffic,
-// Add collateral is still fast
 module protocol::deposit_collateral {
   
-  use std::type_name::{Self, TypeName};
+  use std::type_name::{Self, TypeName, get};
   use sui::object::{Self, ID};
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};
   use sui::event::emit;
   use protocol::position::{Self, Position};
+  use protocol::bank::{Self, Bank};
+  
+  const EIllegalCollateralType: u64 = 0;
   
   struct CollateralDepositEvent has copy, drop {
     provider: address,
@@ -21,9 +19,12 @@ module protocol::deposit_collateral {
   
   public entry fun deposit_collateral<T>(
     position: &mut Position,
+    bank: &Bank,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
+    let hasRiskModel = bank::has_risk_model(bank, get<T>());
+    assert!(hasRiskModel == true, EIllegalCollateralType);
     
     emit(CollateralDepositEvent{
       provider: tx_context::sender(ctx),

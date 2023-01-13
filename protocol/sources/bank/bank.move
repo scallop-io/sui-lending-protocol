@@ -43,6 +43,9 @@ module protocol::bank {
   public fun interest_model(self: &Bank, typeName: TypeName): &InterestModel {
     ac_table::borrow(&self.interestModels, typeName)
   }
+  public fun has_risk_model(self: &Bank, typeName: TypeName): bool {
+    ac_table::contains(&self.riskModels, typeName)
+  }
   
   public(friend) fun new(ctx: &mut TxContext)
   : (Bank, AcTableCap<InterestModels>, AcTableCap<RiskModels>)

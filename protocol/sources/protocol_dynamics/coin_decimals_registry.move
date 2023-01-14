@@ -1,13 +1,12 @@
-/// TODO: find a flexible way to get decimals
 module protocol::coin_decimals_registry {
   
   use std::type_name::{Self, TypeName};
   use sui::table::{Self, Table};
   use sui::object::{Self, UID};
+  use sui::coin::{Self, CoinMetadata};
   use sui::tx_context::TxContext;
   use sui::transfer;
   
-  // use sui::coin::{Self, CoinMetadata};
   
   struct CoinDecimalsRegistry has key, store {
     id: UID,
@@ -31,26 +30,15 @@ module protocol::coin_decimals_registry {
     transfer::share_object(registry);
   }
   
-  /// TODO: use this registry add when coinMeta is readable
   // Since coinMeta is 1:1 for a coin,
   // CoinMeta is the single source of truth for the coin
   // Anyone can add the registry
-  // public entry fun register_decimals<T>(
-  //   registry: &mut CoinDecimalsRegistry,
-  //   coinMeta: &CoinMetadata<T>
-  // ) {
-  //   let typeName = type_name::get<T>();
-  //   // Returns the decimals of this coin
-  //   // Adding this read method, won't cause any issues for coin framework
-  //   let decimals = coin::decimals(coinMeta);
-  //   table::add(&mut registry.table, typeName, decimals);
-  // }
-  
   public entry fun register_decimals<T>(
     registry: &mut CoinDecimalsRegistry,
-    decimals: u8
+    coinMeta: &CoinMetadata<T>
   ) {
     let typeName = type_name::get<T>();
+    let decimals = coin::get_decimals(coinMeta);
     table::add(&mut registry.table, typeName, decimals);
   }
   
@@ -59,5 +47,11 @@ module protocol::coin_decimals_registry {
     typeName: TypeName,
   ): u8 {
     *table::borrow(&registry.table, typeName)
+  }
+  
+  public fun registry_table(
+    registry: &CoinDecimalsRegistry,
+  ): &Table<TypeName, u8> {
+    &registry.table
   }
 }

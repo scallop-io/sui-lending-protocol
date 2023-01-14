@@ -24,6 +24,8 @@ module protocol::bank {
   friend protocol::withdraw_collateral;
   friend protocol::deposit_collateral;
   
+  const EMaxCollateralReached: u64 = 0;
+  
   struct Bank has key, store {
     id: UID,
     borrowDynamics: WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
@@ -112,7 +114,12 @@ module protocol::bank {
     self: &mut Bank,
     collateralAmount: u64
   ) {
-    collateral_stats::increase(&mut self.collateralStats, get<T>(), collateralAmount)
+    let type = get<T>();
+    let riskModel = ac_table::borrow(&self.riskModels, type);
+    collateral_stats::increase(&mut self.collateralStats, type, collateralAmount);
+    let totalCollateralAmount = collateral_stats::collateral_amount(&self.collateralStats, type);
+    let maxCollateralAmount = risk_model::max_collateral_Amount(riskModel);
+    assert!(totalCollateralAmount <= maxCollateralAmount, EMaxCollateralReached);
   }
   
   public(friend) fun handle_withdraw_collateral<T>(

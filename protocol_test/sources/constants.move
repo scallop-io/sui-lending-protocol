@@ -9,6 +9,7 @@ module protocol_test::constants {
     liquidationPanelty: u64,
     liquidationDiscount: u64,
     scale: u64,
+    maxCollateralAmount: u64
   }
   
   struct InterestModelParams<phantom T> has copy, drop {
@@ -26,6 +27,7 @@ module protocol_test::constants {
   public fun liquidation_panelty<T>(params: &RiskModelParams<T>): u64 { params.liquidationPanelty }
   public fun liquidation_discount<T>(params: &RiskModelParams<T>): u64 { params.liquidationDiscount }
   public fun risk_model_scale<T>(params: &RiskModelParams<T>): u64 { params.scale }
+  public fun max_collateral_amount<T>(params: &RiskModelParams<T>): u64 { params.maxCollateralAmount }
   
   public fun base_rate_per_sec<T>(params: &InterestModelParams<T>): u64 { params.baseRatePerSec }
   public fun low_slope<T>(params: &InterestModelParams<T>): u64 { params.lowSlope }
@@ -43,6 +45,7 @@ module protocol_test::constants {
       liquidationPanelty: 8,
       liquidationDiscount: 5,
       scale: 100,
+      maxCollateralAmount: math::pow(10, 9 + 7)
     }
   }
   

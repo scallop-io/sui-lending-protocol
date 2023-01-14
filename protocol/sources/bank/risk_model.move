@@ -19,6 +19,7 @@ module protocol::risk_model {
     liquidationPanelty: Fr,
     liquidationDiscount: Fr,
     liquidationReserveFactor: Fr,
+    maxCollateralAmount: u64
   }
   
   public fun collateral_factor(model: &RiskModel): Fr { model.collateralFactor }
@@ -26,6 +27,7 @@ module protocol::risk_model {
   public fun liq_panelty(model: &RiskModel): Fr { model.liquidationPanelty }
   public fun liq_discount(model: &RiskModel): Fr { model.liquidationDiscount }
   public fun liq_reserve_factor(model: &RiskModel): Fr { model.liquidationReserveFactor }
+  public fun max_collateral_Amount(model: &RiskModel): u64 { model.maxCollateralAmount }
   
   public fun new(ctx: &mut TxContext): (
     AcTable<RiskModels, TypeName, RiskModel>,
@@ -41,6 +43,7 @@ module protocol::risk_model {
     liquidationPanelty: u64, // exp. 7%,
     liquidationDiscount: u64, // exp. 95%,
     scale: u64,
+    maxCollateralAmount: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<RiskModel> {
     let liquidationPanelty = fr::fr(liquidationPanelty, scale);
@@ -56,6 +59,7 @@ module protocol::risk_model {
       liquidationPanelty,
       liquidationDiscount,
       liquidationReserveFactor,
+      maxCollateralAmount
     };
     one_time_lock_value::new(riskModel, RiskModelChangeDelay, 7, ctx)
   }

@@ -83,6 +83,7 @@ module protocol::app {
     liquidationPanelty: u64, // exp. 7%,
     liquidationDiscount: u64, // exp. 95%,
     scale: u64,
+    maxCollateralAmount: u64,
     ctx: &mut TxContext,
   ) {
     let riskModelChange = risk_model::create_risk_model_change<T>(
@@ -92,6 +93,7 @@ module protocol::app {
       liquidationPanelty, // exp. 7%,
       liquidationDiscount, // exp. 95%,
       scale,
+      maxCollateralAmount,
       ctx
     );
     transfer::share_object(riskModelChange);

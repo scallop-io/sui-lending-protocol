@@ -20,6 +20,7 @@ module protocol_test::risk_model_t {
       constants::liquidation_panelty(params),
       constants::liquidation_discount(params),
       constants::risk_model_scale(params),
+      constants::max_collateral_amount(params),
       test_scenario::ctx(senario)
     );
     

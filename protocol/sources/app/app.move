@@ -109,6 +109,7 @@ module protocol::app {
       &adminCap.riskModelCap,
       riskModelChange,
       ctx
-    )
+    );
+    bank::register_collateral<T>(bank);
   }
 }

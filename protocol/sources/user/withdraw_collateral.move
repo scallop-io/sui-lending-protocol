@@ -53,7 +53,7 @@ module protocol::withdraw_collateral {
     // accrue interests for banks
     // Always update bank state first
     // Because interest need to be accrued first before other operations
-    bank::compound_interests(bank, now);
+    bank::handle_withdraw_collateral<T>(bank, withdrawAmount, now);
   
     // accure interests for position
     position::accrue_interests(position, bank);

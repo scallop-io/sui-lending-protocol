@@ -4,7 +4,6 @@ module protocol::risk_model {
   use x::ac_table::{Self, AcTable, AcTableCap};
   use math::fr::{Self, Fr};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
-  use sui::tx_context;
   
   const RiskModelChangeDelay: u64 = 0;
   
@@ -32,7 +31,7 @@ module protocol::risk_model {
     AcTable<RiskModels, TypeName, RiskModel>,
     AcTableCap<RiskModels>
   )  {
-    ac_table::new(RiskModels {}, false, ctx)
+    ac_table::new(RiskModels {}, true, ctx)
   }
   
   public fun create_risk_model_change<T>(

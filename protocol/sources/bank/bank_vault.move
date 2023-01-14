@@ -17,7 +17,7 @@ module protocol::bank_vault {
   
   struct BalanceSheets has drop {}
   
-  struct BalanceSheet has store {
+  struct BalanceSheet has copy, store {
     cash: u64,
     debt: u64,
     reserve: u64,

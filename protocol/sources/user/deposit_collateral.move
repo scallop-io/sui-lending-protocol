@@ -19,7 +19,7 @@ module protocol::deposit_collateral {
   
   public entry fun deposit_collateral<T>(
     position: &mut Position,
-    bank: &Bank,
+    bank: &mut Bank,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
@@ -33,6 +33,7 @@ module protocol::deposit_collateral {
       depositAmount: coin::value(&coin),
     });
   
+    bank::handle_add_collateral<T>(bank, coin::value(&coin));
     position::deposit_collateral(position, coin::into_balance(coin))
   }
 }

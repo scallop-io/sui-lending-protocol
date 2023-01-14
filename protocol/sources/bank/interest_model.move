@@ -40,7 +40,7 @@ module protocol::interest_model {
     AcTable<InterestModels, TypeName, InterestModel>,
     AcTableCap<InterestModels>,
   ) {
-    ac_table::new<InterestModels, TypeName, InterestModel>(InterestModels{}, false, ctx)
+    ac_table::new<InterestModels, TypeName, InterestModel>(InterestModels{}, true, ctx)
   }
   
   public fun create_interest_model_change<T>(

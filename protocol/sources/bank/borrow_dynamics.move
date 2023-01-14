@@ -7,11 +7,12 @@ module protocol::borrow_dynamics {
   use math::fr::Fr;
   use sui::math;
   use math::fr;
-  use std::type_name;
+  
+  friend protocol::bank;
   
   struct BorrowDynamics has drop {}
   
-  struct BorrowDynamic has store {
+  struct BorrowDynamic has copy, store {
     interestRate: Fr,
     borrowIndex: u64,
     lastUpdated: u64,
@@ -21,11 +22,11 @@ module protocol::borrow_dynamics {
   public fun borrow_index(dynamic: &BorrowDynamic): u64 { dynamic.borrowIndex }
   public fun last_updated(dynamic: &BorrowDynamic): u64 { dynamic.lastUpdated }
   
-  public fun new(ctx: &mut TxContext): WitTable<BorrowDynamics, TypeName, BorrowDynamic> {
-    wit_table::new<BorrowDynamics, TypeName, BorrowDynamic>(BorrowDynamics {}, false, ctx)
+  public(friend) fun new(ctx: &mut TxContext): WitTable<BorrowDynamics, TypeName, BorrowDynamic> {
+    wit_table::new<BorrowDynamics, TypeName, BorrowDynamic>(BorrowDynamics {}, true, ctx)
   }
   
-  public fun register_coin<T>(
+  public(friend) fun register_coin<T>(
     self: &mut WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
     baseInterestRate: Fr,
     now: u64,
@@ -48,7 +49,7 @@ module protocol::borrow_dynamics {
     debtDynamic.borrowIndex
   }
   
-  public fun update_borrow_index(
+  public(friend) fun update_borrow_index(
     self: &mut WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
     typeName: TypeName,
     now: u64
@@ -60,7 +61,7 @@ module protocol::borrow_dynamics {
     debtDynamic.lastUpdated = now;
   }
   
-  public fun update_interest_rate(
+  public(friend) fun update_interest_rate(
     self: &mut WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
     typeName: TypeName,
     newInterestRate: Fr,

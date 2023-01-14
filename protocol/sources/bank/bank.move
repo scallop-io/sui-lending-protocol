@@ -12,6 +12,8 @@ module protocol::bank {
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::bank_vault::{Self, BankVault, BankCoin};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
+  use protocol::collateral_stats::{CollateralStats, CollateralStat};
+  use protocol::collateral_stats;
   
   friend protocol::app;
   friend protocol::borrow;
@@ -20,10 +22,12 @@ module protocol::bank {
   friend protocol::mint;
   friend protocol::redeem;
   friend protocol::withdraw_collateral;
+  friend protocol::deposit_collateral;
   
   struct Bank has key, store {
     id: UID,
     borrowDynamics: WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
+    collateralStats: WitTable<CollateralStats, TypeName, CollateralStat>,
     interestModels: AcTable<InterestModels, TypeName, InterestModel>,
     riskModels: AcTable<RiskModels, TypeName, RiskModel>,
     vault: BankVault
@@ -31,17 +35,18 @@ module protocol::bank {
   
   public fun borrow_dynamics(bank: &Bank): &WitTable<BorrowDynamics, TypeName, BorrowDynamic> { &bank.borrowDynamics }
   public fun interest_models(bank: &Bank): &AcTable<InterestModels, TypeName, InterestModel> { &bank.interestModels }
-  public fun risk_models(bank: &Bank): &AcTable<RiskModels, TypeName, RiskModel> { &bank.riskModels }
   public fun vault(bank: &Bank): &BankVault { &bank.vault }
+  public fun risk_models(bank: &Bank): &AcTable<RiskModels, TypeName, RiskModel> { &bank.riskModels }
+  public fun collateral_stats(bank: &Bank): &WitTable<CollateralStats, TypeName, CollateralStat> { &bank.collateralStats }
   
   public fun borrow_index(self: &Bank, typeName: TypeName): u64 {
     borrow_dynamics::borrow_index_by_type(&self.borrowDynamics, typeName)
   }
-  public fun risk_model(self: &Bank, typeName: TypeName): &RiskModel {
-    ac_table::borrow(&self.riskModels, typeName)
-  }
   public fun interest_model(self: &Bank, typeName: TypeName): &InterestModel {
     ac_table::borrow(&self.interestModels, typeName)
+  }
+  public fun risk_model(self: &Bank, typeName: TypeName): &RiskModel {
+    ac_table::borrow(&self.riskModels, typeName)
   }
   public fun has_risk_model(self: &Bank, typeName: TypeName): bool {
     ac_table::contains(&self.riskModels, typeName)
@@ -55,6 +60,7 @@ module protocol::bank {
     let bank = Bank {
       id: object::new(ctx),
       borrowDynamics: borrow_dynamics::new(ctx),
+      collateralStats: collateral_stats::new(ctx),
       interestModels,
       riskModels,
       vault: bank_vault::new(ctx),
@@ -67,6 +73,10 @@ module protocol::bank {
     let interestModel = ac_table::borrow(&self.interestModels, get<T>());
     let baseBorrowRate = interest_model::base_borrow_rate(interestModel);
     borrow_dynamics::register_coin<T>(&mut self.borrowDynamics, baseBorrowRate, now);
+  }
+  
+  public(friend) fun register_collateral<T>(self: &mut Bank) {
+    collateral_stats::init_collateral_if_none(&mut self.collateralStats, get<T>());
   }
   
   public(friend) fun risk_models_mut(self: &mut Bank): &mut AcTable<RiskModels, TypeName, RiskModel> {
@@ -95,6 +105,23 @@ module protocol::bank {
   ) {
     accrue_all_interests(self, now);
     bank_vault::deposit_underlying_coin(&mut self.vault, balance);
+    update_interest_rates(self);
+  }
+  
+  public(friend) fun handle_add_collateral<T>(
+    self: &mut Bank,
+    collateralAmount: u64
+  ) {
+    collateral_stats::increase(&mut self.collateralStats, get<T>(), collateralAmount)
+  }
+  
+  public(friend) fun handle_withdraw_collateral<T>(
+    self: &mut Bank,
+    amount: u64,
+    now: u64
+  ) {
+    accrue_all_interests(self, now);
+    collateral_stats::decrease(&mut self.collateralStats, get<T>(), amount);
     update_interest_rates(self);
   }
   

@@ -1,0 +1,10 @@
+[package]
+name="ProtocolQuery"
+version="0.0.1"
+
+[dependencies]
+Sui = { local = "../../sui/crates/sui-framework" }
+Protocol = { local = "../protocol" }
+
+[addresses]
+protocol_query="0x0"

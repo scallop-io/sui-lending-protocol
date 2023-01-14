@@ -147,4 +147,16 @@ module protocol::position {
   public fun collateral_types(self: &Position): vector<TypeName> {
     wit_table::keys(&self.collaterals)
   }
+  
+  public fun balance_bag(self: &Position): &BalanceBag {
+    &self.balances
+  }
+  
+  public fun debts(self: &Position): &WitTable<PositionDebts, TypeName, Debt> {
+    &self.debts
+  }
+  
+  public fun collaterals(self: &Position): &WitTable<PositionCollaterals, TypeName, Collateral> {
+    &self.collaterals
+  }
 }

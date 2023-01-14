@@ -6,7 +6,7 @@ module protocol::position_debts {
   use math::fr;
   use math::mix;
   
-  struct Debt has store {
+  struct Debt has copy, store {
     amount: u64,
     borrowIndex: u64
   }

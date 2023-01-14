@@ -4,7 +4,7 @@ module protocol::position_collaterals {
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
   
-  struct Collateral has store {
+  struct Collateral has copy, store {
     amount: u64
   }
   

@@ -1,9 +1,0 @@
-[package]
-name = "Lock"
-version = "0.0.1"
-
-[dependencies]
-Sui = { local = "../../sui/crates/sui-framework" }
-
-[addresses]
-lock="0x0"

@@ -6,4 +6,5 @@ version="0.0.1"
 Sui = { local = "../../sui/crates/sui-framework" }
 
 [addresses]
-math="0x0"
+#math="0x0"
+math="0x9332413133c80bc8e4f330f34376856e4d4436a9"

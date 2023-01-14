@@ -1,9 +1,0 @@
-[package]
-name="oracle"
-version="0.0.1"
-
-[dependencies]
-Sui = { local = "../../sui/crates/sui-framework" }
-
-[addresses]
-oracle="0x0"

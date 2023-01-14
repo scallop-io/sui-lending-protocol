@@ -7,4 +7,5 @@ Sui = { local = "../../sui/crates/sui-framework" }
 Math = { local = "../math" }
 
 [addresses]
-stake="0x0"
+#stake="0x0"
+stake="0x8756b0e3e71d5f589753fc3d403d7fc6cdcfc0a7"

@@ -1,9 +1,0 @@
-[package]
-name="Time"
-version="0.0.1"
-
-[dependencies]
-Sui = { local = "../../sui/crates/sui-framework" }
-
-[addresses]
-time="0x5b6dfcba05eb6f7dfc491c2c0704b40cc0b22162"

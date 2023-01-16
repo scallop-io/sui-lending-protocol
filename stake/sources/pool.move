@@ -1,78 +1,83 @@
 module stake::pool {
   
-  use sui::object::{Self, UID};
   use sui::tx_context::TxContext;
-  use sui::balance::{Self, Balance};
   use stake::calculator;
+  use x::wit_table::WitTable;
+  use std::type_name::{TypeName, get};
+  use x::wit_table;
+  use std::vector;
   
   friend stake::action;
   friend stake::stake_sea;
   
-  struct StakePool<phantom Wit, phantom Reward, phantom StakeCoin> has key, store {
-    id: UID,
-    totalStaked: Balance<StakeCoin>,
+  struct StakePools has drop {}
+  struct StakePool has copy, store {
+    totalStaked: u64,
     rewardRatePerSec: u64,
     index: u64,
     indexStaked: u64,
     lastUpdated: u64
   }
   
-  // Admin only
-  public(friend) fun create_pool<Wit, Reward, StakeCoin>(
+  public(friend) fun new(ctx: &mut TxContext): WitTable<StakePools, TypeName, StakePool> {
+    wit_table::new(StakePools{}, true, ctx)
+  }
+  
+  public(friend) fun create_pool<StakeCoin>(
+    pools: &mut WitTable<StakePools, TypeName, StakePool>,
     rewardRatePerSec: u64,
     indexStaked: u64,
     now: u64,
-    ctx: &mut TxContext
-  ): StakePool<Wit, Reward, StakeCoin> {
-    StakePool<Wit, Reward, StakeCoin> {
-      id: object::new(ctx),
-      totalStaked: balance::zero(),
+  ) {
+    let stakePool = StakePool {
+      totalStaked: 0,
       rewardRatePerSec,
       index: 0,
       indexStaked,
       lastUpdated: now
-    }
+    };
+    wit_table::add(StakePools{}, pools, get<StakeCoin>(), stakePool);
   }
   
-  public fun index<Wit, Reward, StakeCoin>(
-    self: &StakePool<Wit, Reward, StakeCoin>
-  ): u64 {
-    self.index
-  }
+  public fun index(pool: &StakePool): u64 { pool.index }
+  public fun index_staked(pool: &StakePool): u64 { pool.indexStaked }
   
-  public fun index_staked<Wit, Reward, StakeCoin>(
-    self: &StakePool<Wit, Reward, StakeCoin>
-  ): u64 {
-    self.indexStaked
-  }
-  
-  public(friend) fun increase_staked<Wit, Reward, StakeCoin>(
-    self: &mut StakePool<Wit, Reward, StakeCoin>,
-    balanceToStake: Balance<StakeCoin>,
+  public(friend) fun increase_staked<StakeCoin>(
+    self: &mut WitTable<StakePools, TypeName, StakePool>,
+    stakeAmount: u64,
   ) {
-    balance::join(&mut self.totalStaked, balanceToStake);
+    let pool = wit_table::borrow_mut(StakePools{}, self, get<StakeCoin>());
+    pool.totalStaked = pool.totalStaked + stakeAmount;
   }
   
-  public(friend) fun decrease_staked<Wit, Reward, StakeCoin>(
-    self: &mut StakePool<Wit, Reward, StakeCoin>,
-    amount: u64,
-  ): Balance<StakeCoin> {
-    balance::split(&mut self.totalStaked, amount)
+  public(friend) fun decrease_staked<StakeCoin>(
+    self: &mut WitTable<StakePools, TypeName, StakePool>,
+    unStakeAmount: u64,
+  ) {
+    let pool = wit_table::borrow_mut(StakePools{}, self, get<StakeCoin>());
+    pool.totalStaked = pool.totalStaked - unStakeAmount;
   }
   
-  public(friend) fun accrue_reward<Wit, Reward, StakeCoin>(
-    self: &mut StakePool<Wit, Reward, StakeCoin>,
+  public(friend) fun accrue_rewards(
+    self: &mut WitTable<StakePools, TypeName, StakePool>,
     now: u64
   ) {
-    let timeDelta = now - self.lastUpdated;
-    self.index = calculator::calc_stake_index(
-      self.index,
-      self.indexStaked,
-      balance::value(&self.totalStaked),
-      self.rewardRatePerSec,
-      timeDelta
-    );
-    // set lastupdated
-    self.lastUpdated = now;
+    let types = wit_table::keys(self);
+    let (i, n) = (0, vector::length(&types));
+    while(i < n) {
+      let type = *vector::borrow(&types, i);
+      let pool = wit_table::borrow_mut(StakePools{}, self, type);
+      let timeDelta = now - pool.lastUpdated;
+      pool.index = calculator::calc_stake_index(
+        pool.index,
+        pool.indexStaked,
+        pool.totalStaked,
+        pool.rewardRatePerSec,
+        timeDelta
+      );
+      // set lastupdated
+      pool.lastUpdated = now;
+      i = i + 1;
+    };
   }
 }

@@ -14,6 +14,10 @@ module stake::reward {
     balance: Balance<RewardType>
   }
   
+  public fun reward_amount<Wit, RewardType>(self: &StakeRewardTreasury<Wit, RewardType>): u64 {
+    balance::value(&self.balance)
+  }
+  
   const EAdminNotAllowedToTakeRewards: u64 = 0;
   
   public(friend) fun create_treasury<Wit, RewardType>(

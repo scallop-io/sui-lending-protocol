@@ -1,8 +1,10 @@
 module stake::check {
   
+  use std::type_name::{TypeName, get};
   use sui::object::{Self, UID};
   use sui::tx_context::TxContext;
-  use stake::pool::{Self, StakePool};
+  use x::wit_table::{Self, WitTable};
+  use stake::pool::{Self, StakePool, StakePools};
   use stake::calculator;
   
   friend stake::action;
@@ -60,8 +62,9 @@ module stake::check {
   
   public(friend) fun accrue_stake_reward<Wit, Reward, StakeCoin>(
     self: &mut StakeCheck<Wit, Reward, StakeCoin>,
-    stakePool: &StakePool<Wit, Reward, StakeCoin>,
+    stakePools: &mut WitTable<StakePools, TypeName, StakePool>,
   ) {
+    let stakePool = wit_table::borrow(stakePools, get<StakeCoin>());
     let indexStaked = pool::index_staked(stakePool);
     let poolIndex = pool::index(stakePool);
     

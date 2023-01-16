@@ -5,6 +5,7 @@ version="0.0.1"
 [dependencies]
 Sui = { local = "../../sui/crates/sui-framework" }
 Math = { local = "../math" }
+X = { local = "../x" }
 
 [addresses]
 #stake="0x0"

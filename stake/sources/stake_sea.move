@@ -69,6 +69,7 @@ module stake::stake_sea {
     rewardPerSec: u64,
     now: u64,
   ) {
+    balance_bag::init_balance<StakeCoin>(&mut self.stakeBalances);
     pool::create_pool<StakeCoin>(&mut self.pools, rewardPerSec, IndexStaked, now);
   }
   

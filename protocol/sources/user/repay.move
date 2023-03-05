@@ -5,6 +5,7 @@ module protocol::repay {
   use sui::object::{Self, ID};
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};
+  use sui::clock::{Self, Clock};
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
   
@@ -19,10 +20,11 @@ module protocol::repay {
   public entry fun repay<T>(
     position: &mut Position,
     bank: &mut Bank,
-    now: u64,
+    clock: &Clock,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
+    let now = clock::timestamp_ms(clock);
     let coinType = type_name::get<T>();
     let repayAmount = coin::value(&coin);
     

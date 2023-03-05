@@ -1,6 +1,7 @@
 module protocol::app {
   use sui::tx_context::{Self, TxContext};
   use sui::object::{Self, UID};
+  use sui::clock::{Self, Clock};
   use sui::transfer;
   use x::ac_table::AcTableCap;
   use x::one_time_lock_value::OneTimeLockValue;
@@ -63,7 +64,7 @@ module protocol::app {
     bank: &mut Bank,
     adminCap: &AdminCap,
     interestModelChange: &mut OneTimeLockValue<InterestModel>,
-    now: u64,
+    clock: &Clock,
     ctx: &mut TxContext,
   ) {
     let interestModels = bank::interest_models_mut(bank);
@@ -73,6 +74,7 @@ module protocol::app {
       interestModelChange,
       ctx
     );
+    let now = clock::timestamp_ms(clock);
     bank::register_coin<T>(bank, now);
   }
   

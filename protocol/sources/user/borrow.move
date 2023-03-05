@@ -7,6 +7,7 @@ module protocol::borrow {
   use sui::balance::Balance;
   use sui::tx_context::{Self ,TxContext};
   use sui::object::{Self, ID};
+  use sui::clock::{Self, Clock};
   use protocol::position::{Self, Position, PositionKey};
   use protocol::bank::{Self, Bank};
   use protocol::borrow_withdraw_evaluator;
@@ -29,10 +30,11 @@ module protocol::borrow {
     positionKey: &PositionKey,
     bank: &mut Bank,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-    now: u64,
+    clock: &Clock,
     borrowAmount: u64,
     ctx: &mut TxContext,
   ) {
+    let now = clock::timestamp_ms(clock);
     let borrowedBalance = borrow_<T>(position, positionKey, bank, coinDecimalsRegistry, now, borrowAmount, ctx);
     // lend the coin to user
     transfer::transfer(
@@ -41,7 +43,7 @@ module protocol::borrow {
     );
   }
   
-  public fun borrow_<T>(
+  fun borrow_<T>(
     position: &mut Position,
     positionKey: &PositionKey,
     bank: &mut Bank,

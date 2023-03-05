@@ -3,6 +3,7 @@ module protocol::redeem {
   use std::type_name::{Self, TypeName};
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self ,TxContext};
+  use sui::clock::{Self, Clock};
   use sui::transfer;
   use sui::event::emit;
   use sui::balance;
@@ -20,10 +21,11 @@ module protocol::redeem {
   
   public entry fun redeem<T>(
     bank: &mut Bank,
-    now: u64,
+    clock: &Clock,
     coin: Coin<BankCoin<T>>,
     ctx: &mut TxContext,
   ) {
+    let now = clock::timestamp_ms(clock);
     let bankCoinAmount = coin::value(&coin);
     let redeemBalance = bank::handle_redeem(bank, coin::into_balance(coin), now);
     

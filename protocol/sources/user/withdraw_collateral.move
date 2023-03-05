@@ -7,6 +7,7 @@ module protocol::withdraw_collateral {
   use sui::balance;
   use sui::tx_context::{Self, TxContext};
   use sui::object::{Self, ID};
+  use sui::clock::{Self, Clock};
   use protocol::position::{Self, Position, PositionKey};
   use protocol::borrow_withdraw_evaluator;
   use protocol::bank::{Self, Bank};
@@ -27,10 +28,11 @@ module protocol::withdraw_collateral {
     positionKey: &PositionKey,
     bank: &mut Bank,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-    now: u64,
+    clock: &Clock,
     withdrawAmount: u64,
     ctx: &mut TxContext,
   ) {
+    let now = clock::timestamp_ms(clock);
     let withdrawedBalance = withdraw_collateral_<T>(
       position, positionKey, bank, coinDecimalsRegistry, now, withdrawAmount, ctx
     );
@@ -40,7 +42,7 @@ module protocol::withdraw_collateral {
     )
   }
   
-  public fun withdraw_collateral_<T>(
+  fun withdraw_collateral_<T>(
     position: &mut Position,
     positionKey: &PositionKey,
     bank: &mut Bank,

@@ -2,6 +2,7 @@ module protocol::mint {
   use std::type_name::{Self, TypeName};
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self ,TxContext};
+  use sui::clock::{Self, Clock};
   use sui::event::emit;
   use sui::transfer;
   use sui::balance;
@@ -20,15 +21,16 @@ module protocol::mint {
   
   public entry fun mint<T>(
     bank: &mut Bank,
-    now: u64,
+    clock: &Clock,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
+    let now = clock::timestamp_ms(clock);
     let mintBalance = mint_(bank, now, coin, ctx);
     transfer::transfer(coin::from_balance(mintBalance, ctx), tx_context::sender(ctx));
   }
   
-  public fun mint_<T>(
+  fun mint_<T>(
     bank: &mut Bank,
     now: u64,
     coin: Coin<T>,

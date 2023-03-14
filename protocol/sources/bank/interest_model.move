@@ -1,8 +1,9 @@
 module protocol::interest_model {
   
   use std::type_name::{TypeName, get};
+  use std::fixed_point32::{Self, FixedPoint32};
   use sui::tx_context::TxContext;
-  use math::fr::{Self, fr, Fr};
+  use math::fixed_point32_empower;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
   
@@ -13,11 +14,11 @@ module protocol::interest_model {
   
   struct InterestModel has copy, store {
     type: TypeName,
-    baseBorrowRatePerSec: Fr,
-    lowSlope: Fr,
-    kink: Fr,
-    highSlope: Fr,
-    reserveFactor: Fr,
+    baseBorrowRatePerSec: FixedPoint32,
+    lowSlope: FixedPoint32,
+    kink: FixedPoint32,
+    highSlope: FixedPoint32,
+    reserveFactor: FixedPoint32,
     /********
     when the principal and ratio of borrow indices are both small,
     the result can equal the principal, due to automatic truncation of division
@@ -26,13 +27,12 @@ module protocol::interest_model {
     *********/
     minBorrowAmount: u64,
   }
-  public fun base_borrow_rate(model: &InterestModel): Fr { model.baseBorrowRatePerSec }
-  public fun low_slope(model: &InterestModel): Fr { model.lowSlope }
-  public fun kink(model: &InterestModel): Fr { model.kink }
-  public fun high_slope(model: &InterestModel): Fr { model.highSlope }
-  public fun reserve_factor(model: &InterestModel): Fr { model.reserveFactor }
+  public fun base_borrow_rate(model: &InterestModel): FixedPoint32 { model.baseBorrowRatePerSec }
+  public fun low_slope(model: &InterestModel): FixedPoint32 { model.lowSlope }
+  public fun kink(model: &InterestModel): FixedPoint32 { model.kink }
+  public fun high_slope(model: &InterestModel): FixedPoint32 { model.highSlope }
+  public fun reserve_factor(model: &InterestModel): FixedPoint32 { model.reserveFactor }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.minBorrowAmount }
-  
   
   struct InterestModels has drop {}
   
@@ -54,11 +54,11 @@ module protocol::interest_model {
     minBorrowAmount: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
-    let baseBorrowRatePerSec = fr(baseRatePerSec, scale);
-    let lowSlope = fr(lowSlope, scale);
-    let kink = fr(kink, scale);
-    let highSlope = fr(highSlope, scale);
-    let reserveFactor = fr(reserveFactor, scale);
+    let baseBorrowRatePerSec = fixed_point32::create_from_rational(baseRatePerSec, scale);
+    let lowSlope = fixed_point32::create_from_rational(lowSlope, scale);
+    let kink = fixed_point32::create_from_rational(kink, scale);
+    let highSlope = fixed_point32::create_from_rational(highSlope, scale);
+    let reserveFactor = fixed_point32::create_from_rational(reserveFactor, scale);
     let interestModel = InterestModel {
       type: get<T>(),
       baseBorrowRatePerSec,
@@ -85,8 +85,8 @@ module protocol::interest_model {
   
   public fun calc_interest(
     interestModel: &InterestModel,
-    ultiRate: Fr,
-  ): Fr {
+    ultiRate: FixedPoint32,
+  ): FixedPoint32 {
     let lowSlope = interestModel.lowSlope;
     let highSlope = interestModel.highSlope;
     let kink = interestModel.kink;
@@ -98,14 +98,17 @@ module protocol::interest_model {
     When ultiRate <= kink:
       interestRate = baseRate(1 + ultiRate * lowScope)
     ******************/
-    let rateGrowth = if (fr::gt(ultiRate, kink)) {
-      fr::add(
-        fr::mul(kink, lowSlope),
-        fr::mul(fr::sub(ultiRate, kink), highSlope)
+    let rateGrowth = if (fixed_point32_empower::gt(ultiRate, kink)) {
+      fixed_point32_empower::add(
+        fixed_point32_empower::mul(kink, lowSlope),
+        fixed_point32_empower::mul(fixed_point32_empower::sub(ultiRate, kink), highSlope)
       )
     } else {
-      fr::mul(ultiRate, lowSlope)
+      fixed_point32_empower::mul(ultiRate, lowSlope)
     };
-    fr::mul(baseRate, fr::add(fr::int(1), rateGrowth))
+    fixed_point32_empower::mul(
+      baseRate,
+      fixed_point32_empower::add(fixed_point32::create_from_rational(1, 1), rateGrowth)
+    )
   }
 }

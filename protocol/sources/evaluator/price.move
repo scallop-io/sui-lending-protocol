@@ -4,30 +4,30 @@ module protocol::price {
   
   use std::type_name::{TypeName, get};
   use sui::math;
-  use math::fr::{Self, fr, Fr};
-  
   use sui::sui::SUI;
   use test_coin::btc::BTC;
   use test_coin::eth::ETH;
   use test_coin::usdc::USDC;
+  use std::fixed_point32::{Self, FixedPoint32};
+  use math::fixed_point32_empower;
   
-  public fun get_price(typeName: TypeName): Fr {
+  public fun get_price(typeName: TypeName): FixedPoint32 {
     if (typeName == get<BTC>()) {
-      fr(1678766, 100)
+      fixed_point32::create_from_rational(1678766, 100)
     } else if (typeName == get<ETH>()) {
-      fr(100000, 100)
+      fixed_point32::create_from_rational(100000, 100)
     } else if (typeName == get<USDC>()) {
-      fr(100, 100)
+      fixed_point32::create_from_rational(100, 100)
     } else if (typeName == get<SUI>()) {
-      fr(866, 100)
+      fixed_point32::create_from_rational(866, 100)
     } else {
-      fr(0, 100)
+      fixed_point32_empower::zero()
     }
   }
   
-  public fun value_usd(coinType: TypeName, coinAmount: u64, decimals: u8): Fr {
+  public fun value_usd(coinType: TypeName, coinAmount: u64, decimals: u8): FixedPoint32 {
     let price = get_price(coinType);
-    let decimalAmount = fr::fr(coinAmount, math::pow(10, decimals));
-    fr::mul(price, decimalAmount)
+    let decimalAmount = fixed_point32::create_from_rational(coinAmount, math::pow(10, decimals));
+    fixed_point32_empower::mul(price, decimalAmount)
   }
 }

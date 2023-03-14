@@ -25,17 +25,17 @@ module protocol::mint {
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
-    let now = clock::timestamp_ms(clock);
-    let mintBalance = mint_(bank, now, coin, ctx);
+    let mintBalance = mint_(bank, clock, coin, ctx);
     transfer::transfer(coin::from_balance(mintBalance, ctx), tx_context::sender(ctx));
   }
   
-  fun mint_<T>(
+  public fun mint_<T>(
     bank: &mut Bank,
-    now: u64,
+    clock: &Clock,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ): Balance<BankCoin<T>> {
+    let now = clock::timestamp_ms(clock);
     let depositAmount = coin::value(&coin);
     let mintBalance = bank::handle_mint(bank, coin::into_balance(coin), now);
     

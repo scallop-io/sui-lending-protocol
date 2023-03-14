@@ -1,14 +1,13 @@
 module protocol::bank_vault {
   
   use std::type_name::{TypeName, get};
+  use std::fixed_point32::{Self, FixedPoint32};
   use sui::tx_context::TxContext;
   use sui::balance::{Self, Balance};
   use sui::object::{Self, UID};
   use x::supply_bag::{Self, SupplyBag};
   use x::balance_bag::{Self, BalanceBag};
   use x::wit_table::{Self, WitTable};
-  use math::fr::{Self, Fr};
-  use math::mix;
   use math::u64;
   
   friend protocol::bank;
@@ -62,12 +61,12 @@ module protocol::bank_vault {
     wit_table::add(BalanceSheets{}, &mut self.balanceSheets, get<T>(), balanceSheet);
   }
   
-  public fun ulti_rate(self: &BankVault, typeName: TypeName): Fr {
+  public fun ulti_rate(self: &BankVault, typeName: TypeName): FixedPoint32 {
     let balanceSheet = wit_table::borrow(&self.balanceSheets, typeName);
     if (balanceSheet.debt > 0)  {
-      fr::fr(balanceSheet.debt, balanceSheet.debt + balanceSheet.cash)
+      fixed_point32::create_from_rational(balanceSheet.debt, balanceSheet.debt + balanceSheet.cash)
     } else {
-      fr::zero()
+      fixed_point32::create_from_rational(0, 1)
     }
   }
   
@@ -78,12 +77,12 @@ module protocol::bank_vault {
   public(friend) fun increase_debt(
     self: &mut BankVault,
     debtType: TypeName,
-    debtIncreaseRate: Fr, // How much debt should be increased in percent, such as 0.05%
-    reserveFactor: Fr,
+    debtIncreaseRate: FixedPoint32, // How much debt should be increased in percent, such as 0.05%
+    reserveFactor: FixedPoint32,
   ) {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, debtType);
-    let debtIncreased = mix::mul_ifrT(balanceSheet.debt, debtIncreaseRate);
-    let reserveIncreased = mix::mul_ifrT(debtIncreased, reserveFactor);
+    let debtIncreased = fixed_point32::multiply_u64(balanceSheet.debt, debtIncreaseRate);
+    let reserveIncreased = fixed_point32::multiply_u64(debtIncreased, reserveFactor);
     balanceSheet.debt = balanceSheet.debt + debtIncreased;
     balanceSheet.reserve = balanceSheet.reserve + reserveIncreased;
   }

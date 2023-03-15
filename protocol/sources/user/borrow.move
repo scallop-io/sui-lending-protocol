@@ -34,7 +34,8 @@ module protocol::borrow {
     borrowAmount: u64,
     ctx: &mut TxContext,
   ) {
-    let borrowedBalance = borrow_<T>(position, positionKey, bank, coinDecimalsRegistry, clock, borrowAmount, ctx);
+    let now = clock::timestamp_ms(clock);
+    let borrowedBalance = borrow_<T>(position, positionKey, bank, coinDecimalsRegistry, now, borrowAmount, ctx);
     // lend the coin to user
     transfer::transfer(
       coin::from_balance(borrowedBalance, ctx),
@@ -42,18 +43,30 @@ module protocol::borrow {
     );
   }
   
-  public fun borrow_<T>(
+  #[test_only]
+  public fun borrow_t<T>(
     position: &mut Position,
     positionKey: &PositionKey,
     bank: &mut Bank,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-    clock: &Clock,
+    now: u64,
+    borrowAmount: u64,
+    ctx: &mut TxContext,
+  ): Balance<T> {
+    borrow_(position, positionKey, bank, coinDecimalsRegistry, now, borrowAmount, ctx)
+  }
+  
+  fun borrow_<T>(
+    position: &mut Position,
+    positionKey: &PositionKey,
+    bank: &mut Bank,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
+    now: u64,
     borrowAmount: u64,
     ctx: &mut TxContext,
   ): Balance<T> {
     position::assert_key_match(position, positionKey);
   
-    let now = clock::timestamp_ms(clock);
     let coinType = type_name::get<T>();
     let interestModel = bank::interest_model(bank, coinType);
     let minBorrowAmount = interest_model::min_borrow_amount(interestModel);

@@ -19,6 +19,27 @@ module protocol::liquidate {
     clock: &Clock,
   ): (Balance<DebtType>, Balance<CollateralType>) {
     let now = clock::timestamp_ms(clock);
+    liquidate_(position, bank, availableRepayBalance, coinDecimalsRegistry, now)
+  }
+  
+  #[test_only]
+  public fun liquidate_t<DebtType, CollateralType>(
+    position: &mut Position,
+    bank: &mut Bank,
+    availableRepayBalance: Balance<DebtType>,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
+    now: u64,
+  ): (Balance<DebtType>, Balance<CollateralType>) {
+    liquidate_(position, bank, availableRepayBalance, coinDecimalsRegistry, now)
+  }
+  
+  fun liquidate_<DebtType, CollateralType>(
+    position: &mut Position,
+    bank: &mut Bank,
+    availableRepayBalance: Balance<DebtType>,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
+    now: u64,
+  ): (Balance<DebtType>, Balance<CollateralType>) {
     // Accrue interests for bank
     bank::accrue_all_interests(bank, now);
     // Accrue interests for position

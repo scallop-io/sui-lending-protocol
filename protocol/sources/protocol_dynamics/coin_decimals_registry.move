@@ -42,6 +42,15 @@ module protocol::coin_decimals_registry {
     table::add(&mut registry.table, typeName, decimals);
   }
   
+  #[test_only]
+  public fun register_decimals_t<T>(
+    registry: &mut CoinDecimalsRegistry,
+    decimals: u8,
+  ) {
+    let typeName = type_name::get<T>();
+    table::add(&mut registry.table, typeName, decimals);
+  }
+  
   public fun decimals(
     registry: &CoinDecimalsRegistry,
     typeName: TypeName,

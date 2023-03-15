@@ -31,7 +31,7 @@ module protocol_test::interest_model_t {
       i = i + 1;
     };
     let interestModelChange = test_scenario::take_shared<OneTimeLockValue<InterestModel>>(senario);
-    app::add_interest_model<T>(
+    app::add_interest_model_t<T>(
       bank,
       adminCap,
       &mut interestModelChange,

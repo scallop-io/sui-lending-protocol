@@ -10,5 +10,4 @@ X = { local = "../x" }
 TestCoin = { local = "../test_coin" }
 
 [addresses]
-#protocol ="0x0"
-protocol="0xf2ba6d7783511cc747e018dd5b1389ce67acd4cd"
+protocol ="0x0"

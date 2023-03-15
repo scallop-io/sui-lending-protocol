@@ -7,7 +7,7 @@ module protocol::interest_model {
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
   
-  const InterestChangeDelay: u64 = 0;
+  const InterestChangeDelay: u64 = 7;
   
   const EReserveFactorTooLarge: u64 = 0;
   const EInterestModelTypeNotMatch: u64 = 1;

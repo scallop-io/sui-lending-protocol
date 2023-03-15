@@ -32,12 +32,28 @@ module protocol::withdraw_collateral {
     withdrawAmount: u64,
     ctx: &mut TxContext,
   ) {
+    let now = clock::timestamp_ms(clock);
     let withdrawedBalance = withdraw_collateral_<T>(
-      position, positionKey, bank, coinDecimalsRegistry, clock, withdrawAmount, ctx
+      position, positionKey, bank, coinDecimalsRegistry, now, withdrawAmount, ctx
     );
     transfer::transfer(
       coin::from_balance(withdrawedBalance, ctx),
       tx_context::sender(ctx)
+    )
+  }
+  
+  #[test_only]
+  public fun withdraw_collateral_t<T>(
+    position: &mut Position,
+    positionKey: &PositionKey,
+    bank: &mut Bank,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
+    now: u64,
+    withdrawAmount: u64,
+    ctx: &mut TxContext,
+  ): Balance<T> {
+    withdraw_collateral_<T>(
+      position, positionKey, bank, coinDecimalsRegistry, now, withdrawAmount, ctx
     )
   }
   
@@ -46,7 +62,7 @@ module protocol::withdraw_collateral {
     positionKey: &PositionKey,
     bank: &mut Bank,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-    clock: &Clock,
+    now: u64,
     withdrawAmount: u64,
     ctx: &mut TxContext,
   ): Balance<T> {
@@ -54,7 +70,6 @@ module protocol::withdraw_collateral {
     // accrue interests for banks
     // Always update bank state first
     // Because interest need to be accrued first before other operations
-    let now = clock::timestamp_ms(clock);
     bank::handle_withdraw_collateral<T>(bank, withdrawAmount, now);
   
     // accure interests for position

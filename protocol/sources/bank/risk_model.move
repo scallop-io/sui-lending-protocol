@@ -6,7 +6,7 @@ module protocol::risk_model {
   use x::one_time_lock_value::{Self, OneTimeLockValue};
   use math::fixed_point32_empower;
   
-  const RiskModelChangeDelay: u64 = 0;
+  const RiskModelChangeDelay: u64 = 7;
   
   const ECollateralFactoryTooBig: u64 = 0;
   const ERiskModelTypeNotMatch: u64 = 1;

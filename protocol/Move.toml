@@ -1,0 +1,14 @@
+[package]
+name = "Protocol"
+version = "0.0.1"
+
+[dependencies]
+Sui = { local = "../../sui/crates/sui-framework" }
+Math = { local = "../math" }
+Stake = { local = "../stake" }
+X = { local = "../x" }
+TestCoin = { local = "../test_coin" }
+
+[addresses]
+#protocol ="0x0"
+protocol="0xf2ba6d7783511cc747e018dd5b1389ce67acd4cd"

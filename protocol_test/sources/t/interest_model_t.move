@@ -3,14 +3,14 @@ module protocol_test::interest_model_t {
   
   use sui::test_scenario::{Self, Scenario};
   use x::one_time_lock_value::OneTimeLockValue;
-  use protocol::bank::Bank;
+  use protocol::reserve::Reserve;
   use protocol::app::{Self, AdminCap};
   use protocol_test::constants::{Self, InterestModelParams};
   use protocol::interest_model::InterestModel;
   
   public fun add_interest_model_t<T>(
     senario: &mut Scenario,
-    bank: &mut Bank, adminCap: &AdminCap, params: &InterestModelParams<T>, now: u64,
+    reserve: &mut Reserve, adminCap: &AdminCap, params: &InterestModelParams<T>, now: u64,
   ) {
     test_scenario::next_tx(senario, @0x0);
     app::create_interest_model_change<T>(
@@ -32,7 +32,7 @@ module protocol_test::interest_model_t {
     };
     let interestModelChange = test_scenario::take_shared<OneTimeLockValue<InterestModel>>(senario);
     app::add_interest_model_t<T>(
-      bank,
+      reserve,
       adminCap,
       &mut interestModelChange,
       now,

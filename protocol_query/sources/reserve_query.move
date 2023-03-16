@@ -1,13 +1,13 @@
-module protocol_query::bank_query {
+module protocol_query::reserve_query {
   
   use std::vector;
   use x::wit_table;
   use x::ac_table;
-  use protocol::bank::{Self, Bank};
-  use protocol::bank_vault;
+  use protocol::reserve::{Self, Reserve};
+  use protocol::reserve_vault;
   use protocol::borrow_dynamics::BorrowDynamic;
   use protocol::interest_model::InterestModel;
-  use protocol::bank_vault::BalanceSheet;
+  use protocol::reserve_vault::BalanceSheet;
   use protocol::risk_model::RiskModel;
   use protocol::collateral_stats::CollateralStat;
   
@@ -22,22 +22,22 @@ module protocol_query::bank_query {
     collateralStat: CollateralStat
   }
   
-  struct BankData has copy {
+  struct ReserveData has copy {
     pools: vector<PoolData>,
     collaterals: vector<CollateralData>
   }
   
-  public fun bank_data(bank: &Bank): BankData {
-    let pools = pool_data(bank);
-    let collaterals = collateral_data(bank);
-    BankData { pools, collaterals }
+  public fun reserve_data(reserve: &Reserve): ReserveData {
+    let pools = pool_data(reserve);
+    let collaterals = collateral_data(reserve);
+    ReserveData { pools, collaterals }
   }
   
-  public fun pool_data(bank: &Bank): vector<PoolData> {
-    let borrowDynamics = bank::borrow_dynamics(bank);
-    let interestModels = bank::interest_models(bank);
-    let vault = bank::vault(bank);
-    let balanceSheets = bank_vault::balance_sheets(vault);
+  public fun pool_data(reserve: &Reserve): vector<PoolData> {
+    let borrowDynamics = reserve::borrow_dynamics(reserve);
+    let interestModels = reserve::interest_models(reserve);
+    let vault = reserve::vault(reserve);
+    let balanceSheets = reserve_vault::balance_sheets(vault);
     
     let poolAssetTypes = ac_table::keys(interestModels);
     let (i, n) = (0, vector::length(&poolAssetTypes));
@@ -54,9 +54,9 @@ module protocol_query::bank_query {
     poolDataList
   }
   
-  public fun collateral_data(bank: &Bank): vector<CollateralData> {
-    let riskModels = bank::risk_models(bank);
-    let collateralStats = bank::collateral_stats(bank);
+  public fun collateral_data(reserve: &Reserve): vector<CollateralData> {
+    let riskModels = reserve::risk_models(reserve);
+    let collateralStats = reserve::collateral_stats(reserve);
     let collateralTypes = ac_table::keys(riskModels);
     let (i, n) = (0, vector::length(&collateralTypes));
     let collateralDataList = vector::empty<CollateralData>();

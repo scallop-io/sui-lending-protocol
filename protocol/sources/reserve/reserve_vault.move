@@ -1,4 +1,4 @@
-module protocol::bank_vault {
+module protocol::reserve_vault {
   
   use std::type_name::{TypeName, get};
   use std::fixed_point32::{Self, FixedPoint32};
@@ -10,7 +10,7 @@ module protocol::bank_vault {
   use x::wit_table::{Self, WitTable};
   use math::u64;
   
-  friend protocol::bank;
+  friend protocol::reserve;
   
   const EFlashLoanNotPaidEnough: u64 = 0;
   
@@ -20,48 +20,48 @@ module protocol::bank_vault {
     cash: u64,
     debt: u64,
     reserve: u64,
-    bankCoinSupply: u64,
+    reserveCoinSupply: u64,
   }
   
   struct FlashLoan<phantom T> {
     amount: u64
   }
   
-  struct BankCoin<phantom T> has drop {}
+  struct ReserveCoin<phantom T> has drop {}
   
-  struct BankVault has key, store {
+  struct ReserveVault has key, store {
     id: UID,
-    bankCoinSupplies: SupplyBag,
+    reserveCoinSupplies: SupplyBag,
     underlyingBalances: BalanceBag,
     balanceSheets: WitTable<BalanceSheets, TypeName, BalanceSheet>,
   }
   
-  public fun bank_coin_supplies(vault: &BankVault): &SupplyBag { &vault.bankCoinSupplies }
-  public fun underlying_balances(vault: &BankVault): &BalanceBag { &vault.underlyingBalances }
-  public fun balance_sheets(vault: &BankVault): &WitTable<BalanceSheets, TypeName, BalanceSheet> { &vault.balanceSheets }
+  public fun reserve_coin_supplies(vault: &ReserveVault): &SupplyBag { &vault.reserveCoinSupplies }
+  public fun underlying_balances(vault: &ReserveVault): &BalanceBag { &vault.underlyingBalances }
+  public fun balance_sheets(vault: &ReserveVault): &WitTable<BalanceSheets, TypeName, BalanceSheet> { &vault.balanceSheets }
   
   public fun balance_sheet(balanceSheet: &BalanceSheet): (u64, u64, u64, u64) {
-    (balanceSheet.cash, balanceSheet.debt, balanceSheet.reserve, balanceSheet.bankCoinSupply)
+    (balanceSheet.cash, balanceSheet.debt, balanceSheet.reserve, balanceSheet.reserveCoinSupply)
   }
   
-  // create a vault for storing underlying assets and bank coin supplies
-  public(friend) fun new(ctx: &mut TxContext): BankVault {
-    BankVault {
+  // create a vault for storing underlying assets and reserve coin supplies
+  public(friend) fun new(ctx: &mut TxContext): ReserveVault {
+    ReserveVault {
       id: object::new(ctx),
-      bankCoinSupplies: supply_bag::new(ctx),
+      reserveCoinSupplies: supply_bag::new(ctx),
       underlyingBalances: balance_bag::new(ctx),
       balanceSheets: wit_table::new(BalanceSheets{}, true, ctx),
     }
   }
   
-  public(friend) fun register_coin<T>(self: &mut BankVault) {
-    supply_bag::init_supply(BankCoin<T> {}, &mut self.bankCoinSupplies);
+  public(friend) fun register_coin<T>(self: &mut ReserveVault) {
+    supply_bag::init_supply(ReserveCoin<T> {}, &mut self.reserveCoinSupplies);
     balance_bag::init_balance<T>(&mut self.underlyingBalances);
-    let balanceSheet = BalanceSheet { cash: 0, debt: 0, reserve: 0, bankCoinSupply: 0 };
+    let balanceSheet = BalanceSheet { cash: 0, debt: 0, reserve: 0, reserveCoinSupply: 0 };
     wit_table::add(BalanceSheets{}, &mut self.balanceSheets, get<T>(), balanceSheet);
   }
   
-  public fun ulti_rate(self: &BankVault, typeName: TypeName): FixedPoint32 {
+  public fun ulti_rate(self: &ReserveVault, typeName: TypeName): FixedPoint32 {
     let balanceSheet = wit_table::borrow(&self.balanceSheets, typeName);
     if (balanceSheet.debt > 0)  {
       fixed_point32::create_from_rational(balanceSheet.debt, balanceSheet.debt + balanceSheet.cash)
@@ -70,12 +70,12 @@ module protocol::bank_vault {
     }
   }
   
-  public fun asset_types(self: &BankVault): vector<TypeName> {
+  public fun asset_types(self: &ReserveVault): vector<TypeName> {
     wit_table::keys(&self.balanceSheets)
   }
   
   public(friend) fun increase_debt(
-    self: &mut BankVault,
+    self: &mut ReserveVault,
     debtType: TypeName,
     debtIncreaseRate: FixedPoint32, // How much debt should be increased in percent, such as 0.05%
     reserveFactor: FixedPoint32,
@@ -88,7 +88,7 @@ module protocol::bank_vault {
   }
   
   public(friend) fun deposit_underlying_coin<T>(
-    self: &mut BankVault,
+    self: &mut ReserveVault,
     balance: Balance<T>
   ) {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, get<T>());
@@ -97,7 +97,7 @@ module protocol::bank_vault {
   }
   
   public(friend) fun withdraw_underlying_coin<T>(
-    self: &mut BankVault,
+    self: &mut ReserveVault,
     amount: u64
   ): Balance<T> {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, get<T>());
@@ -105,40 +105,40 @@ module protocol::bank_vault {
     balance_bag::split<T>(&mut self.underlyingBalances, amount)
   }
   
-  public(friend) fun mint_bank_coin<T>(
-    self: &mut BankVault,
+  public(friend) fun mint_reserve_coin<T>(
+    self: &mut ReserveVault,
     underlyingBalance: Balance<T>,
-  ): Balance<BankCoin<T>> {
+  ): Balance<ReserveCoin<T>> {
     let underlyingAmount = balance::value(&underlyingBalance);
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, get<T>());
-    let mintAmount = if (balanceSheet.bankCoinSupply > 0) {
-      u64::mul_div(underlyingAmount, balanceSheet.bankCoinSupply, balanceSheet.cash + balanceSheet.debt)
+    let mintAmount = if (balanceSheet.reserveCoinSupply > 0) {
+      u64::mul_div(underlyingAmount, balanceSheet.reserveCoinSupply, balanceSheet.cash + balanceSheet.debt)
     } else {
       underlyingAmount
     };
     balanceSheet.cash = balanceSheet.cash + underlyingAmount;
-    balanceSheet.bankCoinSupply = balanceSheet.bankCoinSupply + mintAmount;
+    balanceSheet.reserveCoinSupply = balanceSheet.reserveCoinSupply + mintAmount;
     balance_bag::join(&mut self.underlyingBalances, underlyingBalance);
-    supply_bag::increase_supply<BankCoin<T>>(&mut self.bankCoinSupplies, mintAmount)
+    supply_bag::increase_supply<ReserveCoin<T>>(&mut self.reserveCoinSupplies, mintAmount)
   }
   
   public(friend) fun redeem_underlying_coin<T>(
-    self: &mut BankVault,
-    bankCoinBalance: Balance<BankCoin<T>>,
+    self: &mut ReserveVault,
+    reserveCoinBalance: Balance<ReserveCoin<T>>,
   ): Balance<T> {
-    let bankCoinAmount = balance::value(&bankCoinBalance);
+    let reserveCoinAmount = balance::value(&reserveCoinBalance);
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, get<T>());
     let redeemAmount = u64::mul_div(
-      bankCoinAmount, balanceSheet.cash + balanceSheet.debt, balanceSheet.bankCoinSupply
+      reserveCoinAmount, balanceSheet.cash + balanceSheet.debt, balanceSheet.reserveCoinSupply
     );
     balanceSheet.cash = balanceSheet.cash - redeemAmount;
-    balanceSheet.bankCoinSupply = balanceSheet.bankCoinSupply - bankCoinAmount;
-    supply_bag::decrease_supply(&mut self.bankCoinSupplies, bankCoinBalance);
+    balanceSheet.reserveCoinSupply = balanceSheet.reserveCoinSupply - reserveCoinAmount;
+    supply_bag::decrease_supply(&mut self.reserveCoinSupplies, reserveCoinBalance);
     balance_bag::split<T>(&mut self.underlyingBalances, redeemAmount)
   }
   
   public fun borrow_flash_loan<T>(
-    self: &mut BankVault,
+    self: &mut ReserveVault,
     amount: u64
   ): (Balance<T>, FlashLoan<T>) {
     let balance = balance_bag::split<T>(&mut self.underlyingBalances, amount);
@@ -147,7 +147,7 @@ module protocol::bank_vault {
   }
   
   public fun return_flash_loan<T>(
-    self: &mut BankVault,
+    self: &mut ReserveVault,
     balance: Balance<T>,
     flashLoan: FlashLoan<T>,
   ) {

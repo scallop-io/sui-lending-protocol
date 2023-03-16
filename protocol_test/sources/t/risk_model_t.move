@@ -3,14 +3,14 @@ module protocol_test::risk_model_t {
   
   use sui::test_scenario::{Self, Scenario};
   use x::one_time_lock_value::OneTimeLockValue;
-  use protocol::bank::Bank;
+  use protocol::reserve::Reserve;
   use protocol::app::{Self, AdminCap};
   use protocol_test::constants::{Self, RiskModelParams};
   use protocol::risk_model::RiskModel;
   
   public fun add_risk_model_t<T>(
     senario: &mut Scenario,
-    bank: &mut Bank, adminCap: &AdminCap, params: &RiskModelParams<T>
+    reserve: &mut Reserve, adminCap: &AdminCap, params: &RiskModelParams<T>
   ) {
     test_scenario::next_tx(senario, @0x0);
     app::create_risk_model_change<T>(
@@ -31,7 +31,7 @@ module protocol_test::risk_model_t {
     };
     let riskModelChange = test_scenario::take_shared<OneTimeLockValue<RiskModel>>(senario);
     app::add_risk_model<T>(
-      bank,
+      reserve,
       adminCap,
       &mut riskModelChange,
       test_scenario::ctx(senario),

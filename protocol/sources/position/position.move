@@ -13,7 +13,7 @@ module protocol::position {
   
   use protocol::position_debts::{Self, PositionDebts, Debt};
   use protocol::position_collaterals::{Self, PositionCollaterals, Collateral};
-  use protocol::bank::{Self, Bank};
+  use protocol::reserve::{Self, Reserve};
   
   friend protocol::repay;
   friend protocol::borrow;
@@ -68,13 +68,13 @@ module protocol::position {
   
   public(friend) fun accrue_interests(
     position: &mut Position,
-    bank: &Bank,
+    reserve: &Reserve,
   ) {
     let debtTypes = debt_types(position);
     let (i, n) = (0, vector::length(&debtTypes));
     while (i < n) {
       let type = *vector::borrow(&debtTypes, i);
-      let newBorrowIndex = bank::borrow_index(bank, type);
+      let newBorrowIndex = reserve::borrow_index(reserve, type);
       position_debts::accure_interest(&mut position.debts, type, newBorrowIndex);
       i = i + 1;
     };
@@ -107,10 +107,10 @@ module protocol::position {
   
   public(friend) fun init_debt(
     self: &mut Position,
-    bank: &Bank,
+    reserve: &Reserve,
     typeName: TypeName,
   ) {
-    let borrowIndex = bank::borrow_index(bank, typeName);
+    let borrowIndex = reserve::borrow_index(reserve, typeName);
     position_debts::init_debt(&mut self.debts, typeName, borrowIndex);
   }
   

@@ -9,7 +9,7 @@ module protocol::borrow_withdraw_evaluator {
   use math::fixed_point32_empower;
   use protocol::price;
   use protocol::position::Position;
-  use protocol::bank::{Self, Bank};
+  use protocol::reserve::{Self, Reserve};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::collateral_value::collaterals_value_usd_for_borrow;
   use protocol::debt_value::debts_value_usd;
@@ -17,10 +17,10 @@ module protocol::borrow_withdraw_evaluator {
   
   public fun max_borrow_amount<T>(
     position: &Position,
-    bank: &Bank,
+    reserve: &Reserve,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): u64 {
-    let collaterals_value = collaterals_value_usd_for_borrow(position, bank, coinDecimalsRegsitry);
+    let collaterals_value = collaterals_value_usd_for_borrow(position, reserve, coinDecimalsRegsitry);
     let debts_value = debts_value_usd(position, coinDecimalsRegsitry);
     if (fixed_point32_empower::gt(collaterals_value, debts_value)) {
       let coinType = get<T>();
@@ -38,12 +38,12 @@ module protocol::borrow_withdraw_evaluator {
   
   public fun max_withdraw_amount<T>(
     position: &Position,
-    bank: &Bank,
+    reserve: &Reserve,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): u64 {
-    let maxBorrowAmount = max_borrow_amount<T>(position, bank, coinDecimalsRegsitry);
+    let maxBorrowAmount = max_borrow_amount<T>(position, reserve, coinDecimalsRegsitry);
     let coinType = get<T>();
-    let riskModel = bank::risk_model(bank, coinType);
+    let riskModel = reserve::risk_model(reserve, coinType);
     let collateralFactor = risk_model::collateral_factor(riskModel);
     fixed_point32::divide_u64(maxBorrowAmount, collateralFactor)
   }

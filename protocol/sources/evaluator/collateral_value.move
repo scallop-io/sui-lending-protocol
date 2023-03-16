@@ -3,7 +3,7 @@ module protocol::collateral_value {
   use std::fixed_point32::FixedPoint32;
   use math::fixed_point32_empower;
   use protocol::position::{Self, Position};
-  use protocol::bank::{Self, Bank};
+  use protocol::reserve::{Self, Reserve};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::risk_model;
   use protocol::price::value_usd;
@@ -12,7 +12,7 @@ module protocol::collateral_value {
   // value = price x amount x collateralFactor
   public fun collaterals_value_usd_for_borrow(
     position: &Position,
-    bank: &Bank,
+    reserve: &Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
   ): FixedPoint32 {
     let collateralTypes = position::collateral_types(position);
@@ -22,7 +22,7 @@ module protocol::collateral_value {
       let collateralType = *vector::borrow(&collateralTypes, i);
       let decimals = coin_decimals_registry::decimals(coinDecimalsRegistry, collateralType);
       let collateralAmount = position::collateral(position, collateralType);
-      let riskModel = bank::risk_model(bank, collateralType);
+      let riskModel = reserve::risk_model(reserve, collateralType);
       let collateralFactor = risk_model::collateral_factor(riskModel);
       let coinValueInUsd = fixed_point32_empower::mul(
         value_usd(collateralType, collateralAmount, decimals),
@@ -38,7 +38,7 @@ module protocol::collateral_value {
   // value = price x amount x liquidationFactor
   public fun collaterals_value_usd_for_liquidation(
     position: &Position,
-    bank: &Bank,
+    reserve: &Reserve,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): FixedPoint32 {
     let collateralTypes = position::collateral_types(position);
@@ -48,7 +48,7 @@ module protocol::collateral_value {
       let collateralType = *vector::borrow(&collateralTypes, i);
       let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
       let collateralAmount = position::collateral(position, collateralType);
-      let riskModel = bank::risk_model(bank, collateralType);
+      let riskModel = reserve::risk_model(reserve, collateralType);
       let liqFactor = risk_model::liq_factor(riskModel);
       let coinValueInUsd = fixed_point32_empower::mul(
         value_usd(collateralType, collateralAmount, decimals),

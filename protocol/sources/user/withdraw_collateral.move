@@ -10,7 +10,7 @@ module protocol::withdraw_collateral {
   use sui::clock::{Self, Clock};
   use protocol::position::{Self, Position, PositionKey};
   use protocol::borrow_withdraw_evaluator;
-  use protocol::bank::{Self, Bank};
+  use protocol::reserve::{Self, Reserve};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use sui::balance::Balance;
   
@@ -26,7 +26,7 @@ module protocol::withdraw_collateral {
   public entry fun withdraw_collateral<T>(
     position: &mut Position,
     positionKey: &PositionKey,
-    bank: &mut Bank,
+    reserve: &mut Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     clock: &Clock,
     withdrawAmount: u64,
@@ -34,7 +34,7 @@ module protocol::withdraw_collateral {
   ) {
     let now = clock::timestamp_ms(clock);
     let withdrawedBalance = withdraw_collateral_<T>(
-      position, positionKey, bank, coinDecimalsRegistry, now, withdrawAmount, ctx
+      position, positionKey, reserve, coinDecimalsRegistry, now, withdrawAmount, ctx
     );
     transfer::transfer(
       coin::from_balance(withdrawedBalance, ctx),
@@ -46,37 +46,37 @@ module protocol::withdraw_collateral {
   public fun withdraw_collateral_t<T>(
     position: &mut Position,
     positionKey: &PositionKey,
-    bank: &mut Bank,
+    reserve: &mut Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     now: u64,
     withdrawAmount: u64,
     ctx: &mut TxContext,
   ): Balance<T> {
     withdraw_collateral_<T>(
-      position, positionKey, bank, coinDecimalsRegistry, now, withdrawAmount, ctx
+      position, positionKey, reserve, coinDecimalsRegistry, now, withdrawAmount, ctx
     )
   }
   
   fun withdraw_collateral_<T>(
     position: &mut Position,
     positionKey: &PositionKey,
-    bank: &mut Bank,
+    reserve: &mut Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     now: u64,
     withdrawAmount: u64,
     ctx: &mut TxContext,
   ): Balance<T> {
     position::assert_key_match(position, positionKey);
-    // accrue interests for banks
-    // Always update bank state first
+    // accrue interests for reserves
+    // Always update reserve state first
     // Because interest need to be accrued first before other operations
-    bank::handle_withdraw_collateral<T>(bank, withdrawAmount, now);
+    reserve::handle_withdraw_collateral<T>(reserve, withdrawAmount, now);
   
     // accure interests for position
-    position::accrue_interests(position, bank);
+    position::accrue_interests(position, reserve);
     
     // IF withdrawAmount bigger than max, then abort
-    let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(position, bank, coinDecimalsRegistry);
+    let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(position, reserve, coinDecimalsRegistry);
     assert!(withdrawAmount <= maxWithdawAmount, EWithdrawTooMuch);
     
     // withdraw collateral from position

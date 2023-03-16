@@ -6,7 +6,7 @@ module protocol::collateral_stats {
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
   
-  friend protocol::bank;
+  friend protocol::reserve;
   
   struct CollateralStats has drop {}
   struct CollateralStat has copy, store {

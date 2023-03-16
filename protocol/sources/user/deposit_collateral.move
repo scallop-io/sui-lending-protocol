@@ -6,7 +6,7 @@ module protocol::deposit_collateral {
   use sui::tx_context::{Self, TxContext};
   use sui::event::emit;
   use protocol::position::{Self, Position};
-  use protocol::bank::{Self, Bank};
+  use protocol::reserve::{Self, Reserve};
   
   const EIllegalCollateralType: u64 = 0;
   
@@ -19,11 +19,11 @@ module protocol::deposit_collateral {
   
   public entry fun deposit_collateral<T>(
     position: &mut Position,
-    bank: &mut Bank,
+    reserve: &mut Reserve,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
-    let hasRiskModel = bank::has_risk_model(bank, get<T>());
+    let hasRiskModel = reserve::has_risk_model(reserve, get<T>());
     assert!(hasRiskModel == true, EIllegalCollateralType);
     
     emit(CollateralDepositEvent{
@@ -33,7 +33,7 @@ module protocol::deposit_collateral {
       depositAmount: coin::value(&coin),
     });
   
-    bank::handle_add_collateral<T>(bank, coin::value(&coin));
+    reserve::handle_add_collateral<T>(reserve, coin::value(&coin));
     position::deposit_collateral(position, coin::into_balance(coin))
   }
 }

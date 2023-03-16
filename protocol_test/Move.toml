@@ -3,7 +3,7 @@ name="ProtocolTest"
 version="0.0.1"
 
 [dependencies]
-Sui = { local = "../../sui/crates/sui-framework" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "devnet" }
 Protocol = { local = "../protocol" }
 TestCoin = { local = "../test_coin" }
 

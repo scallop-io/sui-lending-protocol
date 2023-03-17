@@ -43,6 +43,19 @@ module protocol::borrow {
     );
   }
   
+  #[test_only]
+  public fun borrow_t<T>(
+    position: &mut Position,
+    positionKey: &PositionKey,
+    bank: &mut Bank,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
+    now: u64,
+    borrowAmount: u64,
+    ctx: &mut TxContext,
+  ): Balance<T> {
+    borrow_(position, positionKey, bank, coinDecimalsRegistry, now, borrowAmount, ctx)
+  }
+  
   fun borrow_<T>(
     position: &mut Position,
     positionKey: &PositionKey,
@@ -53,7 +66,7 @@ module protocol::borrow {
     ctx: &mut TxContext,
   ): Balance<T> {
     position::assert_key_match(position, positionKey);
-    
+  
     let coinType = type_name::get<T>();
     let interestModel = bank::interest_model(bank, coinType);
     let minBorrowAmount = interest_model::min_borrow_amount(interestModel);

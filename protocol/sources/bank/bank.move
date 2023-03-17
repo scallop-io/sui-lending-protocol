@@ -1,11 +1,11 @@
 module protocol::bank {
   
   use std::vector;
+  use std::fixed_point32;
   use std::type_name::{TypeName, get};
   use sui::tx_context::TxContext;
   use sui::balance::Balance;
   use sui::object::{Self, UID};
-  use math::fr;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::WitTable;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
@@ -186,7 +186,7 @@ module protocol::bank {
       let oldBorrowIndex = borrow_dynamics::borrow_index_by_type(&self.borrowDynamics, type);
       borrow_dynamics::update_borrow_index(&mut self.borrowDynamics, type, now);
       let newBorrowIndex = borrow_dynamics::borrow_index_by_type(&self.borrowDynamics, type);
-      let debtIncreaseRate = fr::fr(newBorrowIndex, oldBorrowIndex);
+      let debtIncreaseRate = fixed_point32::create_from_rational(newBorrowIndex, oldBorrowIndex);
       // get reserve factor
       let interestModel = ac_table::borrow(&self.interestModels, type);
       let reserveFactor = interest_model::reserve_factor(interestModel);

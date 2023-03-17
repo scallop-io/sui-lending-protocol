@@ -30,6 +30,16 @@ module protocol::mint {
     transfer::transfer(coin::from_balance(mintBalance, ctx), tx_context::sender(ctx));
   }
   
+  #[test_only]
+  public fun mint_t<T>(
+    bank: &mut Bank,
+    now: u64,
+    coin: Coin<T>,
+    ctx: &mut TxContext,
+  ): Balance<BankCoin<T>> {
+    mint_(bank, now, coin, ctx)
+  }
+  
   fun mint_<T>(
     bank: &mut Bank,
     now: u64,

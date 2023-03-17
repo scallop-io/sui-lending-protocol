@@ -19,6 +19,6 @@ module protocol_test::borrow_t {
     borrowAmount: u64,
   ): Balance<T> {
     let ctx = test_scenario::ctx(scenario);
-    borrow::borrow_<T>(postion, positionKey, bank, coinDecimalsRegistry, now, borrowAmount, ctx)
+    borrow::borrow_t<T>(postion, positionKey, bank, coinDecimalsRegistry, now, borrowAmount, ctx)
   }
 }

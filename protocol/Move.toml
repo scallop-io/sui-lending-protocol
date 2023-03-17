@@ -1,11 +1,13 @@
 [package]
-name="ProtocolTest"
-version="0.0.1"
+name = "Protocol"
+version = "0.0.1"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "devnet" }
-Protocol = { local = "../protocol" }
+Math = { local = "../math" }
+Stake = { local = "../stake" }
+X = { local = "../x" }
 TestCoin = { local = "../test_coin" }
 
 [addresses]
-protocol_test="0x0"
+protocol ="0x0"

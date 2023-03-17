@@ -25,6 +25,27 @@ module protocol::repay {
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
+    repay_(position, bank, now, coin, ctx)
+  }
+  
+  #[test_only]
+  public fun repay_t<T>(
+    position: &mut Position,
+    bank: &mut Bank,
+    now: u64,
+    coin: Coin<T>,
+    ctx: &mut TxContext,
+  ) {
+    repay_(position, bank, now, coin, ctx)
+  }
+  
+  fun repay_<T>(
+    position: &mut Position,
+    bank: &mut Bank,
+    now: u64,
+    coin: Coin<T>,
+    ctx: &mut TxContext,
+  ) {
     let coinType = type_name::get<T>();
     let repayAmount = coin::value(&coin);
     

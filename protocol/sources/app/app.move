@@ -59,12 +59,33 @@ module protocol::app {
     );
     transfer::share_object(interestModelChange);
   }
-  
   public entry fun add_interest_model<T>(
     bank: &mut Bank,
     adminCap: &AdminCap,
     interestModelChange: &mut OneTimeLockValue<InterestModel>,
     clock: &Clock,
+    ctx: &mut TxContext,
+  ) {
+    let now = clock::timestamp_ms(clock);
+    add_interest_model_<T>(bank, adminCap, interestModelChange, now, ctx)
+  }
+  
+  #[test_only]
+  public fun add_interest_model_t<T>(
+    bank: &mut Bank,
+    adminCap: &AdminCap,
+    interestModelChange: &mut OneTimeLockValue<InterestModel>,
+    now: u64,
+    ctx: &mut TxContext,
+  ) {
+    add_interest_model_<T>(bank, adminCap, interestModelChange, now, ctx)
+  }
+  
+  fun add_interest_model_<T>(
+    bank: &mut Bank,
+    adminCap: &AdminCap,
+    interestModelChange: &mut OneTimeLockValue<InterestModel>,
+    now: u64,
     ctx: &mut TxContext,
   ) {
     let interestModels = bank::interest_models_mut(bank);
@@ -74,7 +95,6 @@ module protocol::app {
       interestModelChange,
       ctx
     );
-    let now = clock::timestamp_ms(clock);
     bank::register_coin<T>(bank, now);
   }
   

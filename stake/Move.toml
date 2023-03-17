@@ -3,10 +3,9 @@ name="Stake"
 version="0.0.1"
 
 [dependencies]
-Sui = { local = "../../sui/crates/sui-framework" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "devnet" }
 Math = { local = "../math" }
 X = { local = "../x" }
 
 [addresses]
-#stake="0x0"
-stake="0x8756b0e3e71d5f589753fc3d403d7fc6cdcfc0a7"
+stake="0x0"

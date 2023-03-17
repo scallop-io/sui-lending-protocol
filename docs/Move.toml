@@ -3,7 +3,7 @@ name="MyPkg"
 version="0.0.1"
 
 [dependencies]
-Sui = { local = "../../sui/crates/sui-framework" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "devnet" }
 
 [addresses]
 my_pkg="0x0"

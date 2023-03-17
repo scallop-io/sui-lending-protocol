@@ -42,6 +42,21 @@ module protocol::withdraw_collateral {
     )
   }
   
+  #[test_only]
+  public fun withdraw_collateral_t<T>(
+    position: &mut Position,
+    positionKey: &PositionKey,
+    bank: &mut Bank,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
+    now: u64,
+    withdrawAmount: u64,
+    ctx: &mut TxContext,
+  ): Balance<T> {
+    withdraw_collateral_<T>(
+      position, positionKey, bank, coinDecimalsRegistry, now, withdrawAmount, ctx
+    )
+  }
+  
   fun withdraw_collateral_<T>(
     position: &mut Position,
     positionKey: &PositionKey,

@@ -1,8 +1,8 @@
 module protocol::liquidation_evaluator {
   use std::type_name::get;
+  use std::fixed_point32;
   use sui::math;
-  use math::mix;
-  use math::fr;
+  use math::fixed_point32_empower;
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
@@ -37,35 +37,38 @@ module protocol::liquidation_evaluator {
     
     let collateralsValue = collaterals_value_usd_for_liquidation(position, bank, coinDecimalsRegsitry);
     let debtsValue = debts_value_usd(position, coinDecimalsRegsitry);
-    if (fr::gt(debtsValue, collateralsValue) == false) return (0, 0, 0);
+    if (fixed_point32_empower::gt(debtsValue, collateralsValue) == false) return (0, 0, 0);
    
-    let maxLiqValue = fr::div(
-      fr::sub(debtsValue, collateralsValue),
-      mix::sub_ifr(1, fr::add(liqPanelty, liqFactor))
+    let maxLiqValue = fixed_point32_empower::div(
+      fixed_point32_empower::sub(debtsValue, collateralsValue),
+      fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), fixed_point32_empower::add(liqPanelty, liqFactor))
     );
     
-    let maxLiqAmount = fr::divT(
-      mix::mul_ifr(collateralScale, maxLiqValue),
-      collateralPrice
+    let maxLiqAmount = fixed_point32::multiply_u64(
+      collateralScale,
+      fixed_point32_empower::div(maxLiqValue, collateralPrice)
     );
     let maxLiqAmount = math::min(maxLiqAmount, totalCollateralAmount);
     
-    let exchangeRate = fr::div(
-      mix::mul_ifr(collateralScale, debtPrice),
-      mix::mul_ifr(debtScale, collateralPrice),
+    let exchangeRate = fixed_point32_empower::mul(
+      fixed_point32::create_from_rational(collateralScale, debtScale),
+      fixed_point32_empower::div(debtPrice, collateralPrice),
     );
-    let liqExchangeRate = fr::div(exchangeRate, mix::sub_ifr(1,liqDiscount));
+    let liqExchangeRate = fixed_point32_empower::div(
+      exchangeRate,
+      fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), liqDiscount)
+    );
     
-    let liqAmountAtBest = fr::mul_iT(liqExchangeRate, availableRepayAmount);
+    let liqAmountAtBest = fixed_point32::multiply_u64(availableRepayAmount, liqExchangeRate);
   
     let actualRepayAmount = availableRepayAmount;
     let actualLiqAmount = liqAmountAtBest;
     if (actualLiqAmount > maxLiqAmount) {
       actualLiqAmount = maxLiqAmount;
-      actualRepayAmount = mix::div_ifrT(maxLiqAmount, liqExchangeRate);
+      actualRepayAmount = fixed_point32::divide_u64(maxLiqAmount, liqExchangeRate);
     };
     
-    let actualRepayReserve = mix::mul_ifrT(actualRepayAmount, liqReserveFactor);
+    let actualRepayReserve = fixed_point32::multiply_u64(actualRepayAmount, liqReserveFactor);
     let actualRepayOnBehalf = actualRepayAmount - actualRepayReserve;
     (actualRepayOnBehalf, actualRepayReserve, actualLiqAmount)
   }

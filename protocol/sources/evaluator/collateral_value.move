@@ -1,11 +1,12 @@
 module protocol::collateral_value {
   use std::vector;
-  use math::fr::{Self, Fr};
+  use std::fixed_point32::FixedPoint32;
+  use math::fixed_point32_empower;
   use protocol::position::{Self, Position};
   use protocol::bank::{Self, Bank};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
-  use protocol::price::value_usd;
   use protocol::risk_model;
+  use protocol::price::value_usd;
   
   // sum of every collateral usd value for borrow
   // value = price x amount x collateralFactor
@@ -13,9 +14,9 @@ module protocol::collateral_value {
     position: &Position,
     bank: &Bank,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-  ): Fr {
+  ): FixedPoint32 {
     let collateralTypes = position::collateral_types(position);
-    let totalValudInUsd = fr::zero();
+    let totalValudInUsd = fixed_point32_empower::zero();
     let (i, n) = (0, vector::length(&collateralTypes));
     while( i < n ) {
       let collateralType = *vector::borrow(&collateralTypes, i);
@@ -23,11 +24,11 @@ module protocol::collateral_value {
       let collateralAmount = position::collateral(position, collateralType);
       let riskModel = bank::risk_model(bank, collateralType);
       let collateralFactor = risk_model::collateral_factor(riskModel);
-      let coinValueInUsd = fr::mul(
+      let coinValueInUsd = fixed_point32_empower::mul(
         value_usd(collateralType, collateralAmount, decimals),
         collateralFactor,
       );
-      totalValudInUsd = fr::add(totalValudInUsd, coinValueInUsd);
+      totalValudInUsd = fixed_point32_empower::add(totalValudInUsd, coinValueInUsd);
       i = i + 1;
     };
     totalValudInUsd
@@ -39,9 +40,9 @@ module protocol::collateral_value {
     position: &Position,
     bank: &Bank,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
-  ): Fr {
+  ): FixedPoint32 {
     let collateralTypes = position::collateral_types(position);
-    let totalValudInUsd = fr::zero();
+    let totalValudInUsd = fixed_point32_empower::zero();
     let (i, n) = (0, vector::length(&collateralTypes));
     while( i < n ) {
       let collateralType = *vector::borrow(&collateralTypes, i);
@@ -49,11 +50,11 @@ module protocol::collateral_value {
       let collateralAmount = position::collateral(position, collateralType);
       let riskModel = bank::risk_model(bank, collateralType);
       let liqFactor = risk_model::liq_factor(riskModel);
-      let coinValueInUsd = fr::mul(
+      let coinValueInUsd = fixed_point32_empower::mul(
         value_usd(collateralType, collateralAmount, decimals),
         liqFactor,
       );
-      totalValudInUsd = fr::add(totalValudInUsd, coinValueInUsd);
+      totalValudInUsd = fixed_point32_empower::add(totalValudInUsd, coinValueInUsd);
       i = i + 1;
     };
     totalValudInUsd

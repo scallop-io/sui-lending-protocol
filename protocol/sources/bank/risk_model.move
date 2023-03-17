@@ -1,11 +1,12 @@
 module protocol::risk_model {
   use std::type_name::{TypeName, get};
+  use std::fixed_point32::{Self, FixedPoint32};
   use sui::tx_context::TxContext;
   use x::ac_table::{Self, AcTable, AcTableCap};
-  use math::fr::{Self, Fr};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
+  use math::fixed_point32_empower;
   
-  const RiskModelChangeDelay: u64 = 0;
+  const RiskModelChangeDelay: u64 = 7;
   
   const ECollateralFactoryTooBig: u64 = 0;
   const ERiskModelTypeNotMatch: u64 = 1;
@@ -14,19 +15,19 @@ module protocol::risk_model {
   
   struct RiskModel has copy, store {
     type: TypeName,
-    collateralFactor: Fr,
-    liquidationFactor: Fr,
-    liquidationPanelty: Fr,
-    liquidationDiscount: Fr,
-    liquidationReserveFactor: Fr,
+    collateralFactor: FixedPoint32,
+    liquidationFactor: FixedPoint32,
+    liquidationPanelty: FixedPoint32,
+    liquidationDiscount: FixedPoint32,
+    liquidationReserveFactor: FixedPoint32,
     maxCollateralAmount: u64
   }
   
-  public fun collateral_factor(model: &RiskModel): Fr { model.collateralFactor }
-  public fun liq_factor(model: &RiskModel): Fr { model.liquidationFactor }
-  public fun liq_panelty(model: &RiskModel): Fr { model.liquidationPanelty }
-  public fun liq_discount(model: &RiskModel): Fr { model.liquidationDiscount }
-  public fun liq_reserve_factor(model: &RiskModel): Fr { model.liquidationReserveFactor }
+  public fun collateral_factor(model: &RiskModel): FixedPoint32 { model.collateralFactor }
+  public fun liq_factor(model: &RiskModel): FixedPoint32 { model.liquidationFactor }
+  public fun liq_panelty(model: &RiskModel): FixedPoint32 { model.liquidationPanelty }
+  public fun liq_discount(model: &RiskModel): FixedPoint32 { model.liquidationDiscount }
+  public fun liq_reserve_factor(model: &RiskModel): FixedPoint32 { model.liquidationReserveFactor }
   public fun max_collateral_Amount(model: &RiskModel): u64 { model.maxCollateralAmount }
   
   public fun new(ctx: &mut TxContext): (
@@ -46,16 +47,18 @@ module protocol::risk_model {
     maxCollateralAmount: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<RiskModel> {
-    let liquidationPanelty = fr::fr(liquidationPanelty, scale);
-    let liquidationDiscount = fr::fr(liquidationDiscount, scale);
-    let liquidationReserveFactor = fr::div(
-      fr::sub(liquidationPanelty, liquidationDiscount),
+    let liquidationPanelty = fixed_point32::create_from_rational(liquidationPanelty, scale);
+    let liquidationDiscount = fixed_point32::create_from_rational(liquidationDiscount, scale);
+    let liquidationReserveFactor = fixed_point32_empower::div(
+      fixed_point32_empower::sub(liquidationPanelty, liquidationDiscount),
       liquidationDiscount
     );
+    let collateralFactor = fixed_point32::create_from_rational(collateralFactor, scale);
+    let liquidationFactor = fixed_point32::create_from_rational(liquidationFactor, scale);
     let riskModel = RiskModel {
       type: get<T>(),
-      collateralFactor: fr::fr(collateralFactor, scale),
-      liquidationFactor: fr::fr(liquidationFactor, scale),
+      collateralFactor,
+      liquidationFactor,
       liquidationPanelty,
       liquidationDiscount,
       liquidationReserveFactor,

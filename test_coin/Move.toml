@@ -3,8 +3,7 @@ name="TestCoin"
 version="0.0.1"
 
 [dependencies]
-Sui = { local = "../../sui/crates/sui-framework" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "devnet" }
 
 [addresses]
-#test_coin="0x0"
-test_coin="0x2472d484ca22fc7f3c1b28e8cd87a7d970c22c90"
+test_coin="0x0"

@@ -26,6 +26,25 @@ module protocol::redeem {
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
+    redeem_(bank, now, coin, ctx)
+  }
+  
+  #[test_only]
+  public fun redeem_t<T>(
+    bank: &mut Bank,
+    now: u64,
+    coin: Coin<BankCoin<T>>,
+    ctx: &mut TxContext,
+  ) {
+    redeem_(bank, now, coin, ctx)
+  }
+  
+  fun redeem_<T>(
+    bank: &mut Bank,
+    now: u64,
+    coin: Coin<BankCoin<T>>,
+    ctx: &mut TxContext,
+  ) {
     let bankCoinAmount = coin::value(&coin);
     let redeemBalance = bank::handle_redeem(bank, coin::into_balance(coin), now);
     

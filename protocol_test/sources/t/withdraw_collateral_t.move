@@ -2,7 +2,7 @@
 module protocol_test::withdraw_collateral_t {
   
   use protocol::withdraw_collateral;
-  use protocol::position::{Position, PositionKey};
+  use protocol::obligation::{Obligation, ObligationKey};
   use protocol::reserve::Reserve;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use sui::test_scenario::Scenario;
@@ -12,8 +12,8 @@ module protocol_test::withdraw_collateral_t {
   public fun withdraw_collateral_t<T>(
     senario: &mut Scenario,
     user: address,
-    position: &mut Position,
-    postionKey: &PositionKey,
+    obligation: &mut Obligation,
+    postionKey: &ObligationKey,
     reserve: &mut Reserve,
     decimalsRegistry: &CoinDecimalsRegistry,
     withdrawAmount: u64,
@@ -21,7 +21,7 @@ module protocol_test::withdraw_collateral_t {
   ): Balance<T> {
     test_scenario::next_tx(senario, user);
     withdraw_collateral::withdraw_collateral_t<T>(
-      position, postionKey, reserve, decimalsRegistry, now, withdrawAmount, test_scenario::ctx(senario)
+      obligation, postionKey, reserve, decimalsRegistry, now, withdrawAmount, test_scenario::ctx(senario)
     )
   }
 }

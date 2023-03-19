@@ -8,7 +8,7 @@ module protocol::withdraw_collateral {
   use sui::tx_context::{Self, TxContext};
   use sui::object::{Self, ID};
   use sui::clock::{Self, Clock};
-  use protocol::position::{Self, Position, PositionKey};
+  use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::borrow_withdraw_evaluator;
   use protocol::reserve::{Self, Reserve};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
@@ -18,14 +18,14 @@ module protocol::withdraw_collateral {
   
   struct CollateralWithdrawEvent has copy, drop {
     taker: address,
-    position: ID,
+    obligation: ID,
     withdrawAsset: TypeName,
     withdrawAmount: u64,
   }
   
   public entry fun withdraw_collateral<T>(
-    position: &mut Position,
-    positionKey: &PositionKey,
+    obligation: &mut Obligation,
+    obligationKey: &ObligationKey,
     reserve: &mut Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     clock: &Clock,
@@ -34,7 +34,7 @@ module protocol::withdraw_collateral {
   ) {
     let now = clock::timestamp_ms(clock);
     let withdrawedBalance = withdraw_collateral_<T>(
-      position, positionKey, reserve, coinDecimalsRegistry, now, withdrawAmount, ctx
+      obligation, obligationKey, reserve, coinDecimalsRegistry, now, withdrawAmount, ctx
     );
     transfer::transfer(
       coin::from_balance(withdrawedBalance, ctx),
@@ -44,8 +44,8 @@ module protocol::withdraw_collateral {
   
   #[test_only]
   public fun withdraw_collateral_t<T>(
-    position: &mut Position,
-    positionKey: &PositionKey,
+    obligation: &mut Obligation,
+    obligationKey: &ObligationKey,
     reserve: &mut Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     now: u64,
@@ -53,39 +53,39 @@ module protocol::withdraw_collateral {
     ctx: &mut TxContext,
   ): Balance<T> {
     withdraw_collateral_<T>(
-      position, positionKey, reserve, coinDecimalsRegistry, now, withdrawAmount, ctx
+      obligation, obligationKey, reserve, coinDecimalsRegistry, now, withdrawAmount, ctx
     )
   }
   
   fun withdraw_collateral_<T>(
-    position: &mut Position,
-    positionKey: &PositionKey,
+    obligation: &mut Obligation,
+    obligationKey: &ObligationKey,
     reserve: &mut Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     now: u64,
     withdrawAmount: u64,
     ctx: &mut TxContext,
   ): Balance<T> {
-    position::assert_key_match(position, positionKey);
+    obligation::assert_key_match(obligation, obligationKey);
     // accrue interests for reserves
     // Always update reserve state first
     // Because interest need to be accrued first before other operations
     reserve::handle_withdraw_collateral<T>(reserve, withdrawAmount, now);
   
-    // accure interests for position
-    position::accrue_interests(position, reserve);
+    // accure interests for obligation
+    obligation::accrue_interests(obligation, reserve);
     
     // IF withdrawAmount bigger than max, then abort
-    let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(position, reserve, coinDecimalsRegistry);
+    let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, reserve, coinDecimalsRegistry);
     assert!(withdrawAmount <= maxWithdawAmount, EWithdrawTooMuch);
     
-    // withdraw collateral from position
-    let withdrawedBalance = position::withdraw_collateral<T>(position, withdrawAmount);
+    // withdraw collateral from obligation
+    let withdrawedBalance = obligation::withdraw_collateral<T>(obligation, withdrawAmount);
     
     let sender = tx_context::sender(ctx);
     emit(CollateralWithdrawEvent{
       taker: sender,
-      position: object::id(position),
+      obligation: object::id(obligation),
       withdrawAsset: type_name::get<T>(),
       withdrawAmount: balance::value(&withdrawedBalance),
     });

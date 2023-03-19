@@ -6,41 +6,41 @@ module protocol::repay {
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};
   use sui::clock::{Self, Clock};
-  use protocol::position::{Self, Position};
+  use protocol::obligation::{Self, Obligation};
   use protocol::reserve::{Self, Reserve};
   
   struct RepayEvent has copy, drop {
     repayer: address,
-    position: ID,
+    obligation: ID,
     asset: TypeName,
     amount: u64,
     time: u64,
   }
   
   public entry fun repay<T>(
-    position: &mut Position,
+    obligation: &mut Obligation,
     reserve: &mut Reserve,
     clock: &Clock,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    repay_(position, reserve, now, coin, ctx)
+    repay_(obligation, reserve, now, coin, ctx)
   }
   
   #[test_only]
   public fun repay_t<T>(
-    position: &mut Position,
+    obligation: &mut Obligation,
     reserve: &mut Reserve,
     now: u64,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
-    repay_(position, reserve, now, coin, ctx)
+    repay_(obligation, reserve, now, coin, ctx)
   }
   
   fun repay_<T>(
-    position: &mut Position,
+    obligation: &mut Obligation,
     reserve: &mut Reserve,
     now: u64,
     coin: Coin<T>,
@@ -54,14 +54,14 @@ module protocol::repay {
     // Because interest need to be accrued first before other operations
     reserve::handle_repay<T>(reserve, coin::into_balance(coin), now);
   
-    // accure interests for position
-    position::accrue_interests(position, reserve);
+    // accure interests for obligation
+    obligation::accrue_interests(obligation, reserve);
     // remove debt according to repay amount
-    position::decrease_debt(position, coinType, repayAmount);
+    obligation::decrease_debt(obligation, coinType, repayAmount);
     
     emit(RepayEvent {
       repayer: tx_context::sender(ctx),
-      position: object::id(position),
+      obligation: object::id(obligation),
       asset: coinType,
       amount: repayAmount,
       time: now,

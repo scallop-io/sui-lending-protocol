@@ -1,17 +1,17 @@
 #[test_only]
-module protocol_test::open_position_t {
+module protocol_test::open_obligation_t {
   
-  use protocol::position::{PositionKey, Position};
-  use protocol::open_position::open_position;
+  use protocol::obligation::{ObligationKey, Obligation};
+  use protocol::open_obligation::open_obligation;
   use sui::test_scenario::Scenario;
   use sui::test_scenario;
   
-  public fun open_position_t(senario: &mut Scenario, user: address): (Position, PositionKey) {
+  public fun open_obligation_t(senario: &mut Scenario, user: address): (Obligation, ObligationKey) {
     test_scenario::next_tx(senario, user);
-    open_position(test_scenario::ctx(senario));
+    open_obligation(test_scenario::ctx(senario));
     test_scenario::next_tx(senario, user);
-    let position = test_scenario::take_shared<Position>(senario);
-    let positionKey = test_scenario::take_from_sender<PositionKey>(senario);
-    (position, positionKey)
+    let obligation = test_scenario::take_shared<Obligation>(senario);
+    let obligationKey = test_scenario::take_from_sender<ObligationKey>(senario);
+    (obligation, obligationKey)
   }
 }

@@ -1,24 +1,24 @@
-module protocol_query::position_query {
+module protocol_query::obligation_query {
   
   use std::vector;
-  use protocol::position::{Self, Position};
-  use protocol::position_collaterals::Collateral;
-  use protocol::position_debts::Debt;
+  use protocol::obligation::{Self, Obligation};
+  use protocol::obligation_collaterals::Collateral;
+  use protocol::obligation_debts::Debt;
   use x::wit_table;
   
-  struct PositionData has copy {
+  struct ObligationData has copy {
     collaterals: vector<Collateral>,
     debts: vector<Debt>
   }
   
-  public fun position_data(position: &Position): PositionData {
-    let collaterals = collateral_data(position);
-    let debts = debt_data(position);
-    PositionData { collaterals, debts }
+  public fun obligation_data(obligation: &Obligation): ObligationData {
+    let collaterals = collateral_data(obligation);
+    let debts = debt_data(obligation);
+    ObligationData { collaterals, debts }
   }
   
-  public fun collateral_data(position: &Position): vector<Collateral> {
-    let collaterals = position::collaterals(position);
+  public fun collateral_data(obligation: &Obligation): vector<Collateral> {
+    let collaterals = obligation::collaterals(obligation);
     let collateralTypes = wit_table::keys(collaterals);
     let (i, n) = (0, vector::length(&collateralTypes));
     let collateralData = vector::empty<Collateral>();
@@ -31,8 +31,8 @@ module protocol_query::position_query {
     collateralData
   }
   
-  public fun debt_data(position: &Position): vector<Debt> {
-    let debts = position::debts(position);
+  public fun debt_data(obligation: &Obligation): vector<Debt> {
+    let debts = obligation::debts(obligation);
     let debtTypes = wit_table::keys(debts);
     let (i, n) = (0, vector::length(&debtTypes));
     let debtData = vector::empty<Debt>();

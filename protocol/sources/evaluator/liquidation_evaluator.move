@@ -3,7 +3,7 @@ module protocol::liquidation_evaluator {
   use std::fixed_point32;
   use sui::math;
   use math::fixed_point32_empower;
-  use protocol::position::{Self, Position};
+  use protocol::obligation::{Self, Obligation};
   use protocol::reserve::{Self, Reserve};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::debt_value::debts_value_usd;
@@ -15,14 +15,14 @@ module protocol::liquidation_evaluator {
   
   // calculate the actual repay amount, actual liquidate amount, actual reserve amount
   public fun liquidation_amounts<DebtType, CollateralType>(
-    position: &Position,
+    obligation: &Obligation,
     reserve: &Reserve,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
     availableRepayAmount: u64
   ): (u64, u64, u64) {
     let debtType = get<DebtType>();
     let collateralType = get<CollateralType>();
-    let totalCollateralAmount = position::collateral(position, collateralType);
+    let totalCollateralAmount = obligation::collateral(obligation, collateralType);
     let debtDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
     let collateralDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
     let debtScale = math::pow(10, debtDecimals);
@@ -35,8 +35,8 @@ module protocol::liquidation_evaluator {
     let debtPrice = get_price(debtType);
     let collateralPrice = get_price(collateralType);
     
-    let collateralsValue = collaterals_value_usd_for_liquidation(position, reserve, coinDecimalsRegsitry);
-    let debtsValue = debts_value_usd(position, coinDecimalsRegsitry);
+    let collateralsValue = collaterals_value_usd_for_liquidation(obligation, reserve, coinDecimalsRegsitry);
+    let debtsValue = debts_value_usd(obligation, coinDecimalsRegsitry);
     if (fixed_point32_empower::gt(debtsValue, collateralsValue) == false) return (0, 0, 0);
    
     let maxLiqValue = fixed_point32_empower::div(

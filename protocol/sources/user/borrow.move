@@ -8,7 +8,7 @@ module protocol::borrow {
   use sui::tx_context::{Self ,TxContext};
   use sui::object::{Self, ID};
   use sui::clock::{Self, Clock};
-  use protocol::position::{Self, Position, PositionKey};
+  use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::reserve::{Self, Reserve};
   use protocol::borrow_withdraw_evaluator;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
@@ -19,15 +19,15 @@ module protocol::borrow {
   
   struct BorrowEvent has copy, drop {
     borrower: address,
-    position: ID,
+    obligation: ID,
     asset: TypeName,
     amount: u64,
     time: u64,
   }
   
   public entry fun borrow<T>(
-    position: &mut Position,
-    positionKey: &PositionKey,
+    obligation: &mut Obligation,
+    obligationKey: &ObligationKey,
     reserve: &mut Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     clock: &Clock,
@@ -35,7 +35,7 @@ module protocol::borrow {
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    let borrowedBalance = borrow_<T>(position, positionKey, reserve, coinDecimalsRegistry, now, borrowAmount, ctx);
+    let borrowedBalance = borrow_<T>(obligation, obligationKey, reserve, coinDecimalsRegistry, now, borrowAmount, ctx);
     // lend the coin to user
     transfer::transfer(
       coin::from_balance(borrowedBalance, ctx),
@@ -45,27 +45,27 @@ module protocol::borrow {
   
   #[test_only]
   public fun borrow_t<T>(
-    position: &mut Position,
-    positionKey: &PositionKey,
+    obligation: &mut Obligation,
+    obligationKey: &ObligationKey,
     reserve: &mut Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     now: u64,
     borrowAmount: u64,
     ctx: &mut TxContext,
   ): Balance<T> {
-    borrow_(position, positionKey, reserve, coinDecimalsRegistry, now, borrowAmount, ctx)
+    borrow_(obligation, obligationKey, reserve, coinDecimalsRegistry, now, borrowAmount, ctx)
   }
   
   fun borrow_<T>(
-    position: &mut Position,
-    positionKey: &PositionKey,
+    obligation: &mut Obligation,
+    obligationKey: &ObligationKey,
     reserve: &mut Reserve,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     now: u64,
     borrowAmount: u64,
     ctx: &mut TxContext,
   ): Balance<T> {
-    position::assert_key_match(position, positionKey);
+    obligation::assert_key_match(obligation, obligationKey);
   
     let coinType = type_name::get<T>();
     let interestModel = reserve::interest_model(reserve, coinType);
@@ -77,19 +77,19 @@ module protocol::borrow {
     let borrowedBalance = reserve::handle_borrow<T>(reserve, borrowAmount, now);
     
     // init debt if borrow for the first time
-    position::init_debt(position, reserve, coinType);
-    // accure interests for position
-    position::accrue_interests(position, reserve);
+    obligation::init_debt(obligation, reserve, coinType);
+    // accure interests for obligation
+    obligation::accrue_interests(obligation, reserve);
     // calc the maximum borrow amount
     // If borrow too much, abort
-    let maxBorrowAmount = borrow_withdraw_evaluator::max_borrow_amount<T>(position, reserve, coinDecimalsRegistry);
+    let maxBorrowAmount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, reserve, coinDecimalsRegistry);
     assert!(borrowAmount <= maxBorrowAmount, EBorrowTooMuch);
-    // increase the debt for position
-    position::increase_debt(position, coinType, borrowAmount);
+    // increase the debt for obligation
+    obligation::increase_debt(obligation, coinType, borrowAmount);
     
     emit(BorrowEvent {
       borrower: tx_context::sender(ctx),
-      position: object::id(position),
+      obligation: object::id(obligation),
       asset: coinType,
       amount: borrowAmount,
       time: now,

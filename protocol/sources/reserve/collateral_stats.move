@@ -1,5 +1,5 @@
 // This module is used to track the overall collateral statistics
-// The real collateral balance is in each position's balanceBag
+// The real collateral balance is in each obligation's balanceBag
 module protocol::collateral_stats {
   
   use std::type_name::TypeName;

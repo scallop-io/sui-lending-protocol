@@ -1,6 +1,6 @@
 /**
 Evaluate the value of collateral, and debt
-Calculate the borrowing power, health factor for position
+Calculate the borrowing power, health factor for obligation
 */
 module protocol::borrow_withdraw_evaluator {
   use std::type_name::get;
@@ -8,7 +8,7 @@ module protocol::borrow_withdraw_evaluator {
   use sui::math;
   use math::fixed_point32_empower;
   use protocol::price;
-  use protocol::position::Position;
+  use protocol::obligation::Obligation;
   use protocol::reserve::{Self, Reserve};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::collateral_value::collaterals_value_usd_for_borrow;
@@ -16,12 +16,12 @@ module protocol::borrow_withdraw_evaluator {
   use protocol::risk_model;
   
   public fun max_borrow_amount<T>(
-    position: &Position,
+    obligation: &Obligation,
     reserve: &Reserve,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): u64 {
-    let collaterals_value = collaterals_value_usd_for_borrow(position, reserve, coinDecimalsRegsitry);
-    let debts_value = debts_value_usd(position, coinDecimalsRegsitry);
+    let collaterals_value = collaterals_value_usd_for_borrow(obligation, reserve, coinDecimalsRegsitry);
+    let debts_value = debts_value_usd(obligation, coinDecimalsRegsitry);
     if (fixed_point32_empower::gt(collaterals_value, debts_value)) {
       let coinType = get<T>();
       let coinDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, coinType);
@@ -37,11 +37,11 @@ module protocol::borrow_withdraw_evaluator {
   }
   
   public fun max_withdraw_amount<T>(
-    position: &Position,
+    obligation: &Obligation,
     reserve: &Reserve,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
   ): u64 {
-    let maxBorrowAmount = max_borrow_amount<T>(position, reserve, coinDecimalsRegsitry);
+    let maxBorrowAmount = max_borrow_amount<T>(obligation, reserve, coinDecimalsRegsitry);
     let coinType = get<T>();
     let riskModel = reserve::risk_model(reserve, coinType);
     let collateralFactor = risk_model::collateral_factor(riskModel);

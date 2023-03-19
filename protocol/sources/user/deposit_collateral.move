@@ -5,20 +5,20 @@ module protocol::deposit_collateral {
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};
   use sui::event::emit;
-  use protocol::position::{Self, Position};
+  use protocol::obligation::{Self, Obligation};
   use protocol::reserve::{Self, Reserve};
   
   const EIllegalCollateralType: u64 = 0;
   
   struct CollateralDepositEvent has copy, drop {
     provider: address,
-    position: ID,
+    obligation: ID,
     depositAsset: TypeName,
     depositAmount: u64,
   }
   
   public entry fun deposit_collateral<T>(
-    position: &mut Position,
+    obligation: &mut Obligation,
     reserve: &mut Reserve,
     coin: Coin<T>,
     ctx: &mut TxContext,
@@ -28,12 +28,12 @@ module protocol::deposit_collateral {
     
     emit(CollateralDepositEvent{
       provider: tx_context::sender(ctx),
-      position: object::id(position),
+      obligation: object::id(obligation),
       depositAsset: type_name::get<T>(),
       depositAmount: coin::value(&coin),
     });
   
     reserve::handle_add_collateral<T>(reserve, coin::value(&coin));
-    position::deposit_collateral(position, coin::into_balance(coin))
+    obligation::deposit_collateral(obligation, coin::into_balance(coin))
   }
 }

@@ -10,7 +10,7 @@ module protocol::withdraw_collateral {
   use sui::clock::{Self, Clock};
   use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::borrow_withdraw_evaluator;
-  use protocol::reserve::{Self, Reserve};
+  use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use sui::balance::Balance;
   
@@ -26,7 +26,7 @@ module protocol::withdraw_collateral {
   public entry fun withdraw_collateral<T>(
     obligation: &mut Obligation,
     obligationKey: &ObligationKey,
-    reserve: &mut Reserve,
+    market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     clock: &Clock,
     withdrawAmount: u64,
@@ -34,7 +34,7 @@ module protocol::withdraw_collateral {
   ) {
     let now = clock::timestamp_ms(clock);
     let withdrawedBalance = withdraw_collateral_<T>(
-      obligation, obligationKey, reserve, coinDecimalsRegistry, now, withdrawAmount, ctx
+      obligation, obligationKey, market, coinDecimalsRegistry, now, withdrawAmount, ctx
     );
     transfer::transfer(
       coin::from_balance(withdrawedBalance, ctx),
@@ -46,37 +46,37 @@ module protocol::withdraw_collateral {
   public fun withdraw_collateral_t<T>(
     obligation: &mut Obligation,
     obligationKey: &ObligationKey,
-    reserve: &mut Reserve,
+    market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     now: u64,
     withdrawAmount: u64,
     ctx: &mut TxContext,
   ): Balance<T> {
     withdraw_collateral_<T>(
-      obligation, obligationKey, reserve, coinDecimalsRegistry, now, withdrawAmount, ctx
+      obligation, obligationKey, market, coinDecimalsRegistry, now, withdrawAmount, ctx
     )
   }
   
   fun withdraw_collateral_<T>(
     obligation: &mut Obligation,
     obligationKey: &ObligationKey,
-    reserve: &mut Reserve,
+    market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     now: u64,
     withdrawAmount: u64,
     ctx: &mut TxContext,
   ): Balance<T> {
     obligation::assert_key_match(obligation, obligationKey);
-    // accrue interests for reserves
-    // Always update reserve state first
+    // accrue interests for markets
+    // Always update market state first
     // Because interest need to be accrued first before other operations
-    reserve::handle_withdraw_collateral<T>(reserve, withdrawAmount, now);
+    market::handle_withdraw_collateral<T>(market, withdrawAmount, now);
   
     // accure interests for obligation
-    obligation::accrue_interests(obligation, reserve);
+    obligation::accrue_interests(obligation, market);
     
     // IF withdrawAmount bigger than max, then abort
-    let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, reserve, coinDecimalsRegistry);
+    let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coinDecimalsRegistry);
     assert!(withdrawAmount <= maxWithdawAmount, EWithdrawTooMuch);
     
     // withdraw collateral from obligation

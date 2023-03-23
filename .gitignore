@@ -1,3 +1,4 @@
 math/build
 protocol_test/build
 protocol/build
+sui.log.*

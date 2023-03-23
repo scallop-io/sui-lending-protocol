@@ -13,7 +13,7 @@ module protocol::obligation {
   
   use protocol::obligation_debts::{Self, ObligationDebts, Debt};
   use protocol::obligation_collaterals::{Self, ObligationCollaterals, Collateral};
-  use protocol::reserve::{Self, Reserve};
+  use protocol::market::{Self, Market};
   
   friend protocol::repay;
   friend protocol::borrow;
@@ -68,13 +68,13 @@ module protocol::obligation {
   
   public(friend) fun accrue_interests(
     obligation: &mut Obligation,
-    reserve: &Reserve,
+    market: &Market,
   ) {
     let debtTypes = debt_types(obligation);
     let (i, n) = (0, vector::length(&debtTypes));
     while (i < n) {
       let type = *vector::borrow(&debtTypes, i);
-      let newBorrowIndex = reserve::borrow_index(reserve, type);
+      let newBorrowIndex = market::borrow_index(market, type);
       obligation_debts::accure_interest(&mut obligation.debts, type, newBorrowIndex);
       i = i + 1;
     };
@@ -107,10 +107,10 @@ module protocol::obligation {
   
   public(friend) fun init_debt(
     self: &mut Obligation,
-    reserve: &Reserve,
+    market: &Market,
     typeName: TypeName,
   ) {
-    let borrowIndex = reserve::borrow_index(reserve, typeName);
+    let borrowIndex = market::borrow_index(market, typeName);
     obligation_debts::init_debt(&mut self.debts, typeName, borrowIndex);
   }
   

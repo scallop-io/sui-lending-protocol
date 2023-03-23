@@ -17,7 +17,7 @@ module protocol_test::constants {
     lowSlope: u64,
     kink: u64,
     highSlope: u64,
-    reserveFactor: u64,
+    marketFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
   }
@@ -33,7 +33,7 @@ module protocol_test::constants {
   public fun low_slope<T>(params: &InterestModelParams<T>): u64 { params.lowSlope }
   public fun kink<T>(params: &InterestModelParams<T>): u64 { params.kink }
   public fun high_slope<T>(params: &InterestModelParams<T>): u64 { params.highSlope }
-  public fun reserve_factor<T>(params: &InterestModelParams<T>): u64 { params.reserveFactor }
+  public fun market_factor<T>(params: &InterestModelParams<T>): u64 { params.marketFactor }
   public fun interest_model_scale<T>(params: &InterestModelParams<T>): u64 { params.scale }
   public fun min_borrow_amount<T>(params: &InterestModelParams<T>): u64 { params.minBorrowAmount }
   
@@ -55,7 +55,7 @@ module protocol_test::constants {
       lowSlope: 2 * math::pow(10, 16),
       kink: 80 * math::pow(10, 14),
       highSlope: 20 * math::pow(10, 16),
-      reserveFactor: 2 * math::pow(10, 14),
+      marketFactor: 2 * math::pow(10, 14),
       scale: math::pow(10, 16),
       minBorrowAmount: math::pow(10, 8),
     }

@@ -19,7 +19,7 @@ module protocol::risk_model {
     liquidationFactor: FixedPoint32,
     liquidationPanelty: FixedPoint32,
     liquidationDiscount: FixedPoint32,
-    liquidationReserveFactor: FixedPoint32,
+    liquidationMarketFactor: FixedPoint32,
     maxCollateralAmount: u64
   }
   
@@ -27,7 +27,7 @@ module protocol::risk_model {
   public fun liq_factor(model: &RiskModel): FixedPoint32 { model.liquidationFactor }
   public fun liq_panelty(model: &RiskModel): FixedPoint32 { model.liquidationPanelty }
   public fun liq_discount(model: &RiskModel): FixedPoint32 { model.liquidationDiscount }
-  public fun liq_reserve_factor(model: &RiskModel): FixedPoint32 { model.liquidationReserveFactor }
+  public fun liq_market_factor(model: &RiskModel): FixedPoint32 { model.liquidationMarketFactor }
   public fun max_collateral_Amount(model: &RiskModel): u64 { model.maxCollateralAmount }
   
   public fun new(ctx: &mut TxContext): (
@@ -49,7 +49,7 @@ module protocol::risk_model {
   ): OneTimeLockValue<RiskModel> {
     let liquidationPanelty = fixed_point32::create_from_rational(liquidationPanelty, scale);
     let liquidationDiscount = fixed_point32::create_from_rational(liquidationDiscount, scale);
-    let liquidationReserveFactor = fixed_point32_empower::div(
+    let liquidationMarketFactor = fixed_point32_empower::div(
       fixed_point32_empower::sub(liquidationPanelty, liquidationDiscount),
       liquidationDiscount
     );
@@ -61,7 +61,7 @@ module protocol::risk_model {
       liquidationFactor,
       liquidationPanelty,
       liquidationDiscount,
-      liquidationReserveFactor,
+      liquidationMarketFactor,
       maxCollateralAmount
     };
     one_time_lock_value::new(riskModel, RiskModelChangeDelay, 7, ctx)

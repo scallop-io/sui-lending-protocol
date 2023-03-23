@@ -9,7 +9,7 @@ module protocol::interest_model {
   
   const InterestChangeDelay: u64 = 7;
   
-  const EReserveFactorTooLarge: u64 = 0;
+  const EMarketFactorTooLarge: u64 = 0;
   const EInterestModelTypeNotMatch: u64 = 1;
   
   struct InterestModel has copy, store {
@@ -18,7 +18,7 @@ module protocol::interest_model {
     lowSlope: FixedPoint32,
     kink: FixedPoint32,
     highSlope: FixedPoint32,
-    reserveFactor: FixedPoint32,
+    marketFactor: FixedPoint32,
     /********
     when the principal and ratio of borrow indices are both small,
     the result can equal the principal, due to automatic truncation of division
@@ -31,7 +31,7 @@ module protocol::interest_model {
   public fun low_slope(model: &InterestModel): FixedPoint32 { model.lowSlope }
   public fun kink(model: &InterestModel): FixedPoint32 { model.kink }
   public fun high_slope(model: &InterestModel): FixedPoint32 { model.highSlope }
-  public fun reserve_factor(model: &InterestModel): FixedPoint32 { model.reserveFactor }
+  public fun market_factor(model: &InterestModel): FixedPoint32 { model.marketFactor }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.minBorrowAmount }
   
   struct InterestModels has drop {}
@@ -49,7 +49,7 @@ module protocol::interest_model {
     lowSlope: u64,
     kink: u64,
     highSlope: u64,
-    reserveFactor: u64,
+    marketFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
     ctx: &mut TxContext,
@@ -58,14 +58,14 @@ module protocol::interest_model {
     let lowSlope = fixed_point32::create_from_rational(lowSlope, scale);
     let kink = fixed_point32::create_from_rational(kink, scale);
     let highSlope = fixed_point32::create_from_rational(highSlope, scale);
-    let reserveFactor = fixed_point32::create_from_rational(reserveFactor, scale);
+    let marketFactor = fixed_point32::create_from_rational(marketFactor, scale);
     let interestModel = InterestModel {
       type: get<T>(),
       baseBorrowRatePerSec,
       lowSlope,
       kink,
       highSlope,
-      reserveFactor,
+      marketFactor,
       minBorrowAmount
     };
     one_time_lock_value::new(interestModel, InterestChangeDelay, 7, ctx)

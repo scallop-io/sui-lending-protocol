@@ -2,7 +2,7 @@
 module protocol_test::borrow_t {
   use protocol::borrow;
   use protocol::obligation::Obligation;
-  use protocol::reserve::Reserve;
+  use protocol::market::Market;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use sui::test_scenario::Scenario;
   use protocol::obligation::ObligationKey;
@@ -13,12 +13,12 @@ module protocol_test::borrow_t {
     scenario: &mut Scenario,
     postion: &mut Obligation,
     obligationKey: &ObligationKey,
-    reserve: &mut Reserve,
+    market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     now: u64,
     borrowAmount: u64,
   ): Balance<T> {
     let ctx = test_scenario::ctx(scenario);
-    borrow::borrow_t<T>(postion, obligationKey, reserve, coinDecimalsRegistry, now, borrowAmount, ctx)
+    borrow::borrow_t<T>(postion, obligationKey, market, coinDecimalsRegistry, now, borrowAmount, ctx)
   }
 }

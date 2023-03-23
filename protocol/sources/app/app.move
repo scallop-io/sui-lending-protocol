@@ -5,7 +5,7 @@ module protocol::app {
   use sui::transfer;
   use x::ac_table::AcTableCap;
   use x::one_time_lock_value::OneTimeLockValue;
-  use protocol::reserve::{Self, Reserve};
+  use protocol::market::{Self, Market};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   
@@ -25,13 +25,13 @@ module protocol::app {
   }
   
   fun init_internal(ctx: &mut TxContext) {
-    let (reserve, interestModelCap, riskModelCap) = reserve::new(ctx);
+    let (market, interestModelCap, riskModelCap) = market::new(ctx);
     let adminCap = AdminCap {
       id: object::new(ctx),
       interestModelCap,
       riskModelCap
     };
-    transfer::share_object(reserve);
+    transfer::share_object(market);
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }
   
@@ -41,7 +41,7 @@ module protocol::app {
     lowSlope: u64,
     kink: u64,
     highSlope: u64,
-    reserveFactor: u64,
+    marketFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
     ctx: &mut TxContext,
@@ -52,7 +52,7 @@ module protocol::app {
       lowSlope,
       kink,
       highSlope,
-      reserveFactor,
+      marketFactor,
       scale,
       minBorrowAmount,
       ctx,
@@ -60,42 +60,42 @@ module protocol::app {
     transfer::share_object(interestModelChange);
   }
   public entry fun add_interest_model<T>(
-    reserve: &mut Reserve,
+    market: &mut Market,
     adminCap: &AdminCap,
     interestModelChange: &mut OneTimeLockValue<InterestModel>,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    add_interest_model_<T>(reserve, adminCap, interestModelChange, now, ctx)
+    add_interest_model_<T>(market, adminCap, interestModelChange, now, ctx)
   }
   
   #[test_only]
   public fun add_interest_model_t<T>(
-    reserve: &mut Reserve,
+    market: &mut Market,
     adminCap: &AdminCap,
     interestModelChange: &mut OneTimeLockValue<InterestModel>,
     now: u64,
     ctx: &mut TxContext,
   ) {
-    add_interest_model_<T>(reserve, adminCap, interestModelChange, now, ctx)
+    add_interest_model_<T>(market, adminCap, interestModelChange, now, ctx)
   }
   
   fun add_interest_model_<T>(
-    reserve: &mut Reserve,
+    market: &mut Market,
     adminCap: &AdminCap,
     interestModelChange: &mut OneTimeLockValue<InterestModel>,
     now: u64,
     ctx: &mut TxContext,
   ) {
-    let interestModels = reserve::interest_models_mut(reserve);
+    let interestModels = market::interest_models_mut(market);
     interest_model::add_interest_model<T>(
       interestModels,
       &adminCap.interestModelCap,
       interestModelChange,
       ctx
     );
-    reserve::register_coin<T>(reserve, now);
+    market::register_coin<T>(market, now);
   }
   
   public entry fun create_risk_model_change<T>(
@@ -122,18 +122,18 @@ module protocol::app {
   }
   
   public entry fun add_risk_model<T>(
-    reserve: &mut Reserve,
+    market: &mut Market,
     adminCap: &AdminCap,
     riskModelChange: &mut OneTimeLockValue<RiskModel>,
     ctx: &mut TxContext
   ) {
-    let riskModels = reserve::risk_models_mut(reserve);
+    let riskModels = market::risk_models_mut(market);
     risk_model::add_risk_model<T>(
       riskModels,
       &adminCap.riskModelCap,
       riskModelChange,
       ctx
     );
-    reserve::register_collateral<T>(reserve);
+    market::register_collateral<T>(market);
   }
 }

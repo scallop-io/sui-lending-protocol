@@ -6,9 +6,9 @@ module protocol_test::deposit_collateral_t {
   use sui::coin::Coin;
   use sui::test_scenario::Scenario;
   use sui::test_scenario;
-  use protocol::reserve::Reserve;
+  use protocol::market::Market;
   
-  public fun deposit_collateral_t<T>(senario: &mut Scenario, obligation: &mut Obligation, reserve: &mut Reserve, coin: Coin<T>) {
-    deposit_collateral(obligation, reserve, coin, test_scenario::ctx(senario))
+  public fun deposit_collateral_t<T>(senario: &mut Scenario, obligation: &mut Obligation, market: &mut Market, coin: Coin<T>) {
+    deposit_collateral(obligation, market, coin, test_scenario::ctx(senario))
   }
 }

@@ -8,7 +8,7 @@ module protocol::borrow_dynamics {
   use x::wit_table::{Self, WitTable};
   use math::fixed_point32_empower;
   
-  friend protocol::reserve;
+  friend protocol::market;
   
   struct BorrowDynamics has drop {}
   

@@ -7,8 +7,8 @@ module protocol::redeem {
   use sui::transfer;
   use sui::event::emit;
   use sui::balance;
-  use protocol::bank::{Self, Bank};
-  use protocol::bank_vault::BankCoin;
+  use protocol::market::{Self, Market};
+  use protocol::market_vault::MarketCoin;
   
   struct RedeemEvent has copy, drop {
     redeemer: address,
@@ -20,41 +20,41 @@ module protocol::redeem {
   }
   
   public entry fun redeem<T>(
-    bank: &mut Bank,
+    market: &mut Market,
     clock: &Clock,
-    coin: Coin<BankCoin<T>>,
+    coin: Coin<MarketCoin<T>>,
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    redeem_(bank, now, coin, ctx)
+    redeem_(market, now, coin, ctx)
   }
   
   #[test_only]
   public fun redeem_t<T>(
-    bank: &mut Bank,
+    market: &mut Market,
     now: u64,
-    coin: Coin<BankCoin<T>>,
+    coin: Coin<MarketCoin<T>>,
     ctx: &mut TxContext,
   ) {
-    redeem_(bank, now, coin, ctx)
+    redeem_(market, now, coin, ctx)
   }
   
   fun redeem_<T>(
-    bank: &mut Bank,
+    market: &mut Market,
     now: u64,
-    coin: Coin<BankCoin<T>>,
+    coin: Coin<MarketCoin<T>>,
     ctx: &mut TxContext,
   ) {
-    let bankCoinAmount = coin::value(&coin);
-    let redeemBalance = bank::handle_redeem(bank, coin::into_balance(coin), now);
+    let marketCoinAmount = coin::value(&coin);
+    let redeemBalance = market::handle_redeem(market, coin::into_balance(coin), now);
     
     let sender = tx_context::sender(ctx);
     emit(RedeemEvent {
       redeemer: tx_context::sender(ctx),
       withdrawAsset: type_name::get<T>(),
       withdrawAmount: balance::value(&redeemBalance),
-      burnAsset: type_name::get<BankCoin<T>>(),
-      burnAmount: bankCoinAmount,
+      burnAsset: type_name::get<MarketCoin<T>>(),
+      burnAmount: marketCoinAmount,
       time: now
     });
     

@@ -1,2 +1,4 @@
 math/build
-protocol_test/build
+test/build
+protocol/build
+sui.log.*

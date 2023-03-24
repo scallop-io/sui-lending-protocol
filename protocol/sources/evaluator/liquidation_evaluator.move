@@ -3,8 +3,8 @@ module protocol::liquidation_evaluator {
   use std::fixed_point32;
   use sui::math;
   use math::fixed_point32_empower;
-  use protocol::position::{Self, Position};
-  use protocol::bank::{Self, Bank};
+  use protocol::obligation::{Self, Obligation};
+  use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::debt_value::debts_value_usd;
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
@@ -13,30 +13,30 @@ module protocol::liquidation_evaluator {
   
   const ENotLiquidatable: u64 = 0;
   
-  // calculate the actual repay amount, actual liquidate amount, actual reserve amount
+  // calculate the actual repay amount, actual liquidate amount, actual market amount
   public fun liquidation_amounts<DebtType, CollateralType>(
-    position: &Position,
-    bank: &Bank,
+    obligation: &Obligation,
+    market: &Market,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
     availableRepayAmount: u64
   ): (u64, u64, u64) {
     let debtType = get<DebtType>();
     let collateralType = get<CollateralType>();
-    let totalCollateralAmount = position::collateral(position, collateralType);
+    let totalCollateralAmount = obligation::collateral(obligation, collateralType);
     let debtDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
     let collateralDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
     let debtScale = math::pow(10, debtDecimals);
     let collateralScale = math::pow(10, collateralDecimals);
-    let riskModel = bank::risk_model(bank, collateralType);
+    let riskModel = market::risk_model(market, collateralType);
     let liqDiscount = risk_model::liq_discount(riskModel);
     let liqPanelty = risk_model::liq_panelty(riskModel);
     let liqFactor = risk_model::liq_factor(riskModel);
-    let liqReserveFactor = risk_model::liq_reserve_factor(riskModel);
+    let liqMarketFactor = risk_model::liq_market_factor(riskModel);
     let debtPrice = get_price(debtType);
     let collateralPrice = get_price(collateralType);
     
-    let collateralsValue = collaterals_value_usd_for_liquidation(position, bank, coinDecimalsRegsitry);
-    let debtsValue = debts_value_usd(position, coinDecimalsRegsitry);
+    let collateralsValue = collaterals_value_usd_for_liquidation(obligation, market, coinDecimalsRegsitry);
+    let debtsValue = debts_value_usd(obligation, coinDecimalsRegsitry);
     if (fixed_point32_empower::gt(debtsValue, collateralsValue) == false) return (0, 0, 0);
    
     let maxLiqValue = fixed_point32_empower::div(
@@ -68,8 +68,8 @@ module protocol::liquidation_evaluator {
       actualRepayAmount = fixed_point32::divide_u64(maxLiqAmount, liqExchangeRate);
     };
     
-    let actualRepayReserve = fixed_point32::multiply_u64(actualRepayAmount, liqReserveFactor);
-    let actualRepayOnBehalf = actualRepayAmount - actualRepayReserve;
-    (actualRepayOnBehalf, actualRepayReserve, actualLiqAmount)
+    let actualRepayMarket = fixed_point32::multiply_u64(actualRepayAmount, liqMarketFactor);
+    let actualRepayOnBehalf = actualRepayAmount - actualRepayMarket;
+    (actualRepayOnBehalf, actualRepayMarket, actualLiqAmount)
   }
 }

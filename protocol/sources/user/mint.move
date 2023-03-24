@@ -6,8 +6,8 @@ module protocol::mint {
   use sui::event::emit;
   use sui::transfer;
   use sui::balance;
-  use protocol::bank::{Self, Bank};
-  use protocol::bank_vault::BankCoin;
+  use protocol::market::{Self, Market};
+  use protocol::market_vault::MarketCoin;
   use sui::balance::Balance;
   
   struct MintEvent has copy, drop {
@@ -20,34 +20,34 @@ module protocol::mint {
   }
   
   public entry fun mint<T>(
-    bank: &mut Bank,
+    market: &mut Market,
     clock: &Clock,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    let mintBalance = mint_(bank, now, coin, ctx);
+    let mintBalance = mint_(market, now, coin, ctx);
     transfer::transfer(coin::from_balance(mintBalance, ctx), tx_context::sender(ctx));
   }
   
   #[test_only]
   public fun mint_t<T>(
-    bank: &mut Bank,
+    market: &mut Market,
     now: u64,
     coin: Coin<T>,
     ctx: &mut TxContext,
-  ): Balance<BankCoin<T>> {
-    mint_(bank, now, coin, ctx)
+  ): Balance<MarketCoin<T>> {
+    mint_(market, now, coin, ctx)
   }
   
   fun mint_<T>(
-    bank: &mut Bank,
+    market: &mut Market,
     now: u64,
     coin: Coin<T>,
     ctx: &mut TxContext,
-  ): Balance<BankCoin<T>> {
+  ): Balance<MarketCoin<T>> {
     let depositAmount = coin::value(&coin);
-    let mintBalance = bank::handle_mint(bank, coin::into_balance(coin), now);
+    let mintBalance = market::handle_mint(market, coin::into_balance(coin), now);
     
     let sender = tx_context::sender(ctx);
     
@@ -55,7 +55,7 @@ module protocol::mint {
       minter: sender,
       depositAsset: type_name::get<T>(),
       depositAmount,
-      mintAsset: type_name::get<BankCoin<T>>(),
+      mintAsset: type_name::get<MarketCoin<T>>(),
       mintAmount: balance::value(&mintBalance),
       time: now,
     });

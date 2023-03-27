@@ -7,7 +7,7 @@ module protocol::mint {
   use sui::transfer;
   use sui::balance;
   use protocol::market::{Self, Market};
-  use protocol::market_vault::MarketCoin;
+  use protocol::reserve::MarketCoin;
   use sui::balance::Balance;
   
   struct MintEvent has copy, drop {

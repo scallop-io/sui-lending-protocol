@@ -10,7 +10,7 @@ module protocol::market {
   use x::wit_table::WitTable;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
-  use protocol::market_vault::{Self, Reserve, MarketCoin};
+  use protocol::reserve::{Self, Reserve, MarketCoin};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
   use protocol::collateral_stats::{CollateralStats, CollateralStat};
   use protocol::collateral_stats;
@@ -65,13 +65,13 @@ module protocol::market {
       collateralStats: collateral_stats::new(ctx),
       interestModels,
       riskModels,
-      vault: market_vault::new(ctx),
+      vault: reserve::new(ctx),
     };
     (market, interestModelsCap, riskModelsCap)
   }
   
   public(friend) fun register_coin<T>(self: &mut Market, now: u64) {
-    market_vault::register_coin<T>(&mut self.vault);
+    reserve::register_coin<T>(&mut self.vault);
     let interestModel = ac_table::borrow(&self.interestModels, get<T>());
     let baseBorrowRate = interest_model::base_borrow_rate(interestModel);
     borrow_dynamics::register_coin<T>(&mut self.borrowDynamics, baseBorrowRate, now);
@@ -95,7 +95,7 @@ module protocol::market {
     now: u64,
   ): Balance<T> {
     accrue_all_interests(self, now);
-    let borrowedBalance = market_vault::withdraw_underlying_coin(&mut self.vault, borrowAmount);
+    let borrowedBalance = reserve::withdraw_underlying_coin(&mut self.vault, borrowAmount);
     update_interest_rates(self);
     borrowedBalance
   }
@@ -106,7 +106,7 @@ module protocol::market {
     now: u64,
   ) {
     accrue_all_interests(self, now);
-    market_vault::deposit_underlying_coin(&mut self.vault, balance);
+    reserve::deposit_underlying_coin(&mut self.vault, balance);
     update_interest_rates(self);
   }
   
@@ -138,8 +138,8 @@ module protocol::market {
     marketBalance: Balance<T>,
   ) {
     // We don't accrue interest here, because it has already been accrued in previous step for liquidation
-    market_vault::deposit_underlying_coin(&mut self.vault, balance);
-    market_vault::deposit_underlying_coin(&mut self.vault, marketBalance);
+    reserve::deposit_underlying_coin(&mut self.vault, balance);
+    reserve::deposit_underlying_coin(&mut self.vault, marketBalance);
     update_interest_rates(self);
   }
   
@@ -149,7 +149,7 @@ module protocol::market {
     now: u64,
   ): Balance<T> {
     accrue_all_interests(self, now);
-    let reddemBalance = market_vault::redeem_underlying_coin(&mut self.vault, marketCoinBalance);
+    let reddemBalance = reserve::redeem_underlying_coin(&mut self.vault, marketCoinBalance);
     update_interest_rates(self);
     reddemBalance
   }
@@ -160,7 +160,7 @@ module protocol::market {
     now: u64,
   ): Balance<MarketCoin<T>> {
     accrue_all_interests(self, now);
-    let mintBalance = market_vault::mint_market_coin(&mut self.vault, balance);
+    let mintBalance = reserve::mint_market_coin(&mut self.vault, balance);
     update_interest_rates(self);
     mintBalance
   }
@@ -178,7 +178,7 @@ module protocol::market {
     self: &mut Market,
     now: u64
   ) {
-    let assetTypes = market_vault::asset_types(&self.vault);
+    let assetTypes = reserve::asset_types(&self.vault);
     let (i, n) = (0, vector::length(&assetTypes));
     while (i < n) {
       let type = *vector::borrow(&assetTypes, i);
@@ -191,7 +191,7 @@ module protocol::market {
       let interestModel = ac_table::borrow(&self.interestModels, type);
       let marketFactor = interest_model::market_factor(interestModel);
       // update market debt
-      market_vault::increase_debt(&mut self.vault, type, debtIncreaseRate, marketFactor);
+      reserve::increase_debt(&mut self.vault, type, debtIncreaseRate, marketFactor);
       i = i + 1;
     };
   }
@@ -200,11 +200,11 @@ module protocol::market {
   fun update_interest_rates(
     self: &mut Market,
   ) {
-    let assetTypes = market_vault::asset_types(&self.vault);
+    let assetTypes = reserve::asset_types(&self.vault);
     let (i, n) = (0, vector::length(&assetTypes));
     while (i < n) {
       let type = *vector::borrow(&assetTypes, i);
-      let ultiRate = market_vault::ulti_rate(&self.vault, type);
+      let ultiRate = reserve::ulti_rate(&self.vault, type);
       let interestModel = ac_table::borrow(&self.interestModels, type);
       let newInterestRate = interest_model::calc_interest(interestModel, ultiRate);
       borrow_dynamics::update_interest_rate(&mut self.borrowDynamics, type, newInterestRate);

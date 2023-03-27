@@ -5,7 +5,6 @@ version = "0.0.1"
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "devnet" }
 Math = { local = "../math" }
-Stake = { local = "../stake" }
 X = { local = "../x" }
 TestCoin = { local = "../test_coin" }
 

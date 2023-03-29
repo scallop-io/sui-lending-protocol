@@ -58,6 +58,6 @@ module protocol::redeem {
       time: now
     });
     
-    transfer::transfer(coin::from_balance(redeemBalance, ctx), sender);
+    transfer::public_transfer(coin::from_balance(redeemBalance, ctx), sender);
   }
 }

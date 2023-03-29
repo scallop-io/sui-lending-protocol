@@ -37,7 +37,7 @@ module protocol::borrow {
     let now = clock::timestamp_ms(clock);
     let borrowedBalance = borrow_<T>(obligation, obligationKey, market, coinDecimalsRegistry, now, borrowAmount, ctx);
     // lend the coin to user
-    transfer::transfer(
+    transfer::public_transfer(
       coin::from_balance(borrowedBalance, ctx),
       tx_context::sender(ctx),
     );

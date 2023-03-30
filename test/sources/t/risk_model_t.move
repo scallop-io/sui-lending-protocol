@@ -17,7 +17,7 @@ module protocol_test::risk_model_t {
       adminCap,
       constants::collateral_factor(params),
       constants::liquidation_factor(params),
-      constants::liquidation_panelty(params),
+      constants::liquidation_penalty(params),
       constants::liquidation_discount(params),
       constants::risk_model_scale(params),
       constants::max_collateral_amount(params),

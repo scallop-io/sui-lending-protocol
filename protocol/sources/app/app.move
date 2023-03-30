@@ -32,7 +32,7 @@ module protocol::app {
       riskModelCap
     };
     transfer::public_share_object(market);
-    transfer::public_transfer(adminCap, tx_context::sender(ctx));
+    transfer::transfer(adminCap, tx_context::sender(ctx));
   }
   
   public entry fun create_interest_model_change<T>(
@@ -41,7 +41,7 @@ module protocol::app {
     lowSlope: u64,
     kink: u64,
     highSlope: u64,
-    marketFactor: u64,
+    revenueFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
     ctx: &mut TxContext,
@@ -52,7 +52,7 @@ module protocol::app {
       lowSlope,
       kink,
       highSlope,
-      marketFactor,
+      revenueFactor,
       scale,
       minBorrowAmount,
       ctx,
@@ -102,7 +102,7 @@ module protocol::app {
     adminCap: &AdminCap,
     collateralFactor: u64, // exp. 70%,
     liquidationFactor: u64, // exp. 80%,
-    liquidationPanelty: u64, // exp. 7%,
+    liquidationPenalty: u64, // exp. 7%,
     liquidationDiscount: u64, // exp. 95%,
     scale: u64,
     maxCollateralAmount: u64,
@@ -112,7 +112,7 @@ module protocol::app {
       &adminCap.riskModelCap,
       collateralFactor, // exp. 70%,
       liquidationFactor, // exp. 80%,
-      liquidationPanelty, // exp. 7%,
+      liquidationPenalty, // exp. 7%,
       liquidationDiscount, // exp. 95%,
       scale,
       maxCollateralAmount,

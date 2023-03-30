@@ -19,7 +19,7 @@ module protocol::reserve {
   struct BalanceSheet has copy, store {
     cash: u64,
     debt: u64,
-    market: u64,
+    revenue: u64,
     marketCoinSupply: u64,
   }
   
@@ -41,7 +41,7 @@ module protocol::reserve {
   public fun balance_sheets(vault: &Reserve): &WitTable<BalanceSheets, TypeName, BalanceSheet> { &vault.balanceSheets }
   
   public fun balance_sheet(balanceSheet: &BalanceSheet): (u64, u64, u64, u64) {
-    (balanceSheet.cash, balanceSheet.debt, balanceSheet.market, balanceSheet.marketCoinSupply)
+    (balanceSheet.cash, balanceSheet.debt, balanceSheet.revenue, balanceSheet.marketCoinSupply)
   }
   
   // create a vault for storing underlying assets and market coin supplies
@@ -57,7 +57,7 @@ module protocol::reserve {
   public(friend) fun register_coin<T>(self: &mut Reserve) {
     supply_bag::init_supply(MarketCoin<T> {}, &mut self.marketCoinSupplies);
     balance_bag::init_balance<T>(&mut self.underlyingBalances);
-    let balanceSheet = BalanceSheet { cash: 0, debt: 0, market: 0, marketCoinSupply: 0 };
+    let balanceSheet = BalanceSheet { cash: 0, debt: 0, revenue: 0, marketCoinSupply: 0 };
     wit_table::add(BalanceSheets{}, &mut self.balanceSheets, get<T>(), balanceSheet);
   }
   
@@ -78,13 +78,13 @@ module protocol::reserve {
     self: &mut Reserve,
     debtType: TypeName,
     debtIncreaseRate: FixedPoint32, // How much debt should be increased in percent, such as 0.05%
-    marketFactor: FixedPoint32,
+    revenueFactor: FixedPoint32,
   ) {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, debtType);
     let debtIncreased = fixed_point32::multiply_u64(balanceSheet.debt, debtIncreaseRate);
-    let marketIncreased = fixed_point32::multiply_u64(debtIncreased, marketFactor);
+    let revenueIncreased = fixed_point32::multiply_u64(debtIncreased, revenueFactor);
     balanceSheet.debt = balanceSheet.debt + debtIncreased;
-    balanceSheet.market = balanceSheet.market + marketIncreased;
+    balanceSheet.revenue = balanceSheet.revenue + revenueIncreased;
   }
   
   public(friend) fun deposit_underlying_coin<T>(

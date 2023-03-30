@@ -187,11 +187,11 @@ module protocol::market {
       borrow_dynamics::update_borrow_index(&mut self.borrowDynamics, type, now);
       let newBorrowIndex = borrow_dynamics::borrow_index_by_type(&self.borrowDynamics, type);
       let debtIncreaseRate = fixed_point32::create_from_rational(newBorrowIndex, oldBorrowIndex);
-      // get market factor
+      // get revenue factor
       let interestModel = ac_table::borrow(&self.interestModels, type);
-      let marketFactor = interest_model::market_factor(interestModel);
+      let revenueFactor = interest_model::revenue_factor(interestModel);
       // update market debt
-      reserve::increase_debt(&mut self.vault, type, debtIncreaseRate, marketFactor);
+      reserve::increase_debt(&mut self.vault, type, debtIncreaseRate, revenueFactor);
       i = i + 1;
     };
   }

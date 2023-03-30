@@ -15,6 +15,6 @@ module protocol_test::coin_test_utils {
   
   #[test_only]
   public fun destory_test_coin<T>(coin: Coin<T>) {
-    coin::destroy_for_testing(coin);
+    coin::burn_for_testing(coin);
   }
 }

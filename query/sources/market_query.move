@@ -4,10 +4,10 @@ module protocol_query::market_query {
   use x::wit_table;
   use x::ac_table;
   use protocol::market::{Self, Market};
-  use protocol::market_vault;
+  use protocol::reserve;
   use protocol::borrow_dynamics::BorrowDynamic;
   use protocol::interest_model::InterestModel;
-  use protocol::market_vault::BalanceSheet;
+  use protocol::reserve::BalanceSheet;
   use protocol::risk_model::RiskModel;
   use protocol::collateral_stats::CollateralStat;
   
@@ -37,7 +37,7 @@ module protocol_query::market_query {
     let borrowDynamics = market::borrow_dynamics(market);
     let interestModels = market::interest_models(market);
     let vault = market::vault(market);
-    let balanceSheets = market_vault::balance_sheets(vault);
+    let balanceSheets = reserve::balance_sheets(vault);
     
     let poolAssetTypes = ac_table::keys(interestModels);
     let (i, n) = (0, vector::length(&poolAssetTypes));

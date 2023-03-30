@@ -8,7 +8,7 @@ module protocol::redeem {
   use sui::event::emit;
   use sui::balance;
   use protocol::market::{Self, Market};
-  use protocol::market_vault::MarketCoin;
+  use protocol::reserve::MarketCoin;
   
   struct RedeemEvent has copy, drop {
     redeemer: address,

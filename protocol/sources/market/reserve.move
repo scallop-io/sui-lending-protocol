@@ -1,4 +1,4 @@
-module protocol::market_vault {
+module protocol::reserve {
   
   use std::type_name::{TypeName, get};
   use std::fixed_point32::{Self, FixedPoint32};

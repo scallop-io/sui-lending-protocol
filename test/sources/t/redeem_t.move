@@ -4,7 +4,7 @@ module protocol_test::redeem_t {
   use sui::coin::Coin;
   use sui::test_scenario;
   use protocol::market::Market;
-  use protocol::market_vault::MarketCoin;
+  use protocol::reserve::MarketCoin;
   use protocol::redeem;
   
   public fun redeem_t<T>(

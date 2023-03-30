@@ -5,7 +5,7 @@ module protocol_test::mint_t {
   use protocol::market::Market;
   use sui::coin::Coin;
   use sui::test_scenario;
-  use protocol::market_vault::MarketCoin;
+  use protocol::reserve::MarketCoin;
   use sui::balance::Balance;
   
   public fun mint_t<T>(

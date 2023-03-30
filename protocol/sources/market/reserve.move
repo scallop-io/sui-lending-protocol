@@ -96,12 +96,13 @@ module protocol::market_vault {
     balance_bag::join(&mut self.underlyingBalances, balance)
   }
   
-  public(friend) fun withdraw_underlying_coin<T>(
+  public(friend) fun handle_brrow<T>(
     self: &mut Reserve,
     amount: u64
   ): Balance<T> {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, get<T>());
     balanceSheet.cash = balanceSheet.cash - amount;
+    balanceSheet.debt = balanceSheet.debt + amount;
     balance_bag::split<T>(&mut self.underlyingBalances, amount)
   }
   

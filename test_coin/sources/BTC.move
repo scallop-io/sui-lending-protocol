@@ -45,7 +45,7 @@ module test_coin::btc {
     transfer::share_object(
       Treasury { id: object::new(ctx), cap: treasuryCap }
     );
-    transfer::freeze_object(coinMeta)
+    transfer::public_freeze_object(coinMeta)
   }
   
   public entry fun mint(treasury: &mut Treasury, ctx: &mut TxContext) {

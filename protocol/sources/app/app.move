@@ -31,8 +31,8 @@ module protocol::app {
       interestModelCap,
       riskModelCap
     };
-    transfer::share_object(market);
-    transfer::transfer(adminCap, tx_context::sender(ctx));
+    transfer::public_share_object(market);
+    transfer::public_transfer(adminCap, tx_context::sender(ctx));
   }
   
   public entry fun create_interest_model_change<T>(
@@ -57,7 +57,7 @@ module protocol::app {
       minBorrowAmount,
       ctx,
     );
-    transfer::share_object(interestModelChange);
+    transfer::public_share_object(interestModelChange);
   }
   public entry fun add_interest_model<T>(
     market: &mut Market,
@@ -118,7 +118,7 @@ module protocol::app {
       maxCollateralAmount,
       ctx
     );
-    transfer::share_object(riskModelChange);
+    transfer::public_share_object(riskModelChange);
   }
   
   public entry fun add_risk_model<T>(

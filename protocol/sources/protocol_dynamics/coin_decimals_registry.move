@@ -18,7 +18,7 @@ module protocol::coin_decimals_registry {
       id: object::new(ctx),
       table: table::new(ctx)
     };
-    transfer::share_object(registry);
+    transfer::public_share_object(registry);
   }
   
   #[test_only]
@@ -27,7 +27,7 @@ module protocol::coin_decimals_registry {
       id: object::new(ctx),
       table: table::new(ctx)
     };
-    transfer::share_object(registry);
+    transfer::public_share_object(registry);
   }
   
   // Since coinMeta is 1:1 for a coin,

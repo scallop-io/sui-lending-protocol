@@ -27,7 +27,7 @@ module protocol::mint {
   ) {
     let now = clock::timestamp_ms(clock);
     let mintBalance = mint_(market, now, coin, ctx);
-    transfer::transfer(coin::from_balance(mintBalance, ctx), tx_context::sender(ctx));
+    transfer::public_transfer(coin::from_balance(mintBalance, ctx), tx_context::sender(ctx));
   }
   
   #[test_only]

@@ -36,7 +36,7 @@ module protocol::withdraw_collateral {
     let withdrawedBalance = withdraw_collateral_<T>(
       obligation, obligationKey, market, coinDecimalsRegistry, now, withdrawAmount, ctx
     );
-    transfer::transfer(
+    transfer::public_transfer(
       coin::from_balance(withdrawedBalance, ctx),
       tx_context::sender(ctx)
     )

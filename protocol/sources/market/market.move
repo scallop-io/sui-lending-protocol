@@ -95,7 +95,7 @@ module protocol::market {
     now: u64,
   ): Balance<T> {
     accrue_all_interests(self, now);
-    let borrowedBalance = reserve::withdraw_underlying_coin(&mut self.vault, borrowAmount);
+    let borrowedBalance = reserve::handle_borrow<T>(&mut self.vault, borrowAmount);
     update_interest_rates(self);
     borrowedBalance
   }
@@ -106,7 +106,7 @@ module protocol::market {
     now: u64,
   ) {
     accrue_all_interests(self, now);
-    reserve::deposit_underlying_coin(&mut self.vault, balance);
+    reserve::handle_repay(&mut self.vault, balance);
     update_interest_rates(self);
   }
   

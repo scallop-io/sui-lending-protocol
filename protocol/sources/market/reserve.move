@@ -87,21 +87,23 @@ module protocol::reserve {
     balanceSheet.market = balanceSheet.market + marketIncreased;
   }
   
-  public(friend) fun deposit_underlying_coin<T>(
+  public(friend) fun handle_repay<T>(
     self: &mut Reserve,
     balance: Balance<T>
   ) {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, get<T>());
     balanceSheet.cash = balanceSheet.cash + balance::value(&balance);
+    balanceSheet.debt = balanceSheet.debt - balance::value(&balance);
     balance_bag::join(&mut self.underlyingBalances, balance)
   }
   
-  public(friend) fun withdraw_underlying_coin<T>(
+  public(friend) fun handle_borrow<T>(
     self: &mut Reserve,
     amount: u64
   ): Balance<T> {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, get<T>());
     balanceSheet.cash = balanceSheet.cash - amount;
+    balanceSheet.debt = balanceSheet.debt + amount;
     balance_bag::split<T>(&mut self.underlyingBalances, amount)
   }
   

@@ -14,6 +14,7 @@ module protocol::market {
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
   use protocol::collateral_stats::{CollateralStats, CollateralStat};
   use protocol::collateral_stats;
+  use math::fixed_point32_empower;
   
   friend protocol::app;
   friend protocol::borrow;
@@ -138,8 +139,8 @@ module protocol::market {
     marketBalance: Balance<T>,
   ) {
     // We don't accrue interest here, because it has already been accrued in previous step for liquidation
-    reserve::deposit_underlying_coin(&mut self.vault, balance);
-    reserve::deposit_underlying_coin(&mut self.vault, marketBalance);
+    reserve::handle_repay(&mut self.vault, balance);
+    reserve::handle_repay(&mut self.vault, marketBalance);
     update_interest_rates(self);
   }
   
@@ -186,7 +187,7 @@ module protocol::market {
       let oldBorrowIndex = borrow_dynamics::borrow_index_by_type(&self.borrowDynamics, type);
       borrow_dynamics::update_borrow_index(&mut self.borrowDynamics, type, now);
       let newBorrowIndex = borrow_dynamics::borrow_index_by_type(&self.borrowDynamics, type);
-      let debtIncreaseRate = fixed_point32::create_from_rational(newBorrowIndex, oldBorrowIndex);
+      let debtIncreaseRate = fixed_point32_empower::sub(fixed_point32::create_from_rational(newBorrowIndex, oldBorrowIndex), fixed_point32_empower::from_u64(1));
       // get revenue factor
       let interestModel = ac_table::borrow(&self.interestModels, type);
       let revenueFactor = interest_model::revenue_factor(interestModel);

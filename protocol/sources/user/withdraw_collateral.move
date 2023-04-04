@@ -12,7 +12,6 @@ module protocol::withdraw_collateral {
   use protocol::borrow_withdraw_evaluator;
   use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
-  use sui::balance::Balance;
   use sui::coin::Coin;
 
   const EWithdrawTooMuch: u64 = 0;
@@ -36,10 +35,7 @@ module protocol::withdraw_collateral {
     let withdrawedCoin = withdraw_collateral<T>(
       obligation, obligationKey, market, coinDecimalsRegistry, withdrawAmount, clock, ctx
     );
-    transfer::public_transfer(
-      coin::from_balance(withdrawedCoin, ctx),
-      tx_context::sender(ctx)
-    )
+    transfer::public_transfer(withdrawedCoin, tx_context::sender(ctx));
   }
   
   public fun withdraw_collateral<T>(

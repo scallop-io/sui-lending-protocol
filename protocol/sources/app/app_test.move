@@ -10,7 +10,6 @@ module protocol::app_test {
 
   use test_coin::usdc::{Self, USDC};
   use test_coin::eth::{Self, ETH};
-  use sui::coin::Coin;
   use sui::clock::Clock;
   use protocol::deposit_collateral::deposit_collateral;
   use protocol::borrow::{borrow_entry};
@@ -24,7 +23,7 @@ module protocol::app_test {
     ctx: &mut TxContext
   ) {
     init_risk_models(market, adminCap, ctx);
-    init_intrest_models(market, adminCap, ctx);
+    init_intrest_models(market, adminCap, clock, ctx);
     let usdcCoin = usdc::mint(usdcTreasury, ctx);
     mint::mint_entry(market, usdcCoin, clock, ctx);
   }
@@ -40,17 +39,8 @@ module protocol::app_test {
   ) {
     let ethCoin = eth::mint(ethTreasury, ctx);
     deposit_collateral(obligation, market, ethCoin, ctx);
-    borrow_entry<USDC>(obligation, obligationKey, market, coinDecimalsRegistry, 10**10, clock, ctx);
-  }
-
-  fun mint_coins(
-    usdcTreasury: &mut usdc::Treasury,
-    ethTreasury: &mut eth::Treasury,
-    ctx: &mut TxContext
-  ): (Coin<USDC>, Coin<ETH>) {
-    let usdcCoin = usdc::mint(usdcTreasury, ctx);
-    let ethCoin = eth::mint(ethTreasury, ctx);
-    (usdcCoin, ethCoin)
+    let borrowAmount = math::pow(10, 10);
+    borrow_entry<USDC>(obligation, obligationKey, market, coinDecimalsRegistry, borrowAmount, clock, ctx);
   }
 
   fun init_risk_models(
@@ -82,6 +72,7 @@ module protocol::app_test {
   fun init_intrest_models(
     market: &mut Market,
     adminCap: &AdminCap,
+    clock: &Clock,
     ctx: &mut TxContext
   ) {
     // Init the interest model for USDC
@@ -103,7 +94,7 @@ module protocol::app_test {
       minBorrowAmount,
       ctx,
     );
-    app::add_interest_model<USDC>(market, adminCap, &mut interestModelChange, ctx);
+    app::add_interest_model<USDC>(market, adminCap, &mut interestModelChange, clock, ctx);
     transfer::public_freeze_object(interestModelChange);
   }
 }

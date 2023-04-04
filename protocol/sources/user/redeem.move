@@ -25,7 +25,7 @@ module protocol::redeem {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let coin = redeem(market, clock, coin, ctx);
+    let coin = redeem(market, coin, clock, ctx);
     transfer::public_transfer(coin, tx_context::sender(ctx));
   }
   

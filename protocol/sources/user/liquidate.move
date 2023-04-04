@@ -24,7 +24,7 @@ module protocol::liquidate {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let (remainCoin, collateralCoin) = liquidate(obligation, market, availableRepayBalance, coinDecimalsRegistry, clock, ctx);
+    let (remainCoin, collateralCoin) = liquidate<DebtType, CollateralType>(obligation, market, availableRepayBalance, coinDecimalsRegistry, clock, ctx);
     transfer::public_transfer(remainCoin, tx_context::sender(ctx));
     transfer::public_transfer(collateralCoin, tx_context::sender(ctx));
   }

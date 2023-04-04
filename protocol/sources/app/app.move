@@ -36,7 +36,7 @@ module protocol::app {
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }
   
-  public entry fun create_interest_model_change<T>(
+  public fun create_interest_model_change<T>(
     adminCap: &AdminCap,
     baseRatePerSec: u64,
     lowSlope: u64,
@@ -60,7 +60,7 @@ module protocol::app {
     );
     interestModelChange
   }
-  public entry fun add_interest_model<T>(
+  public fun add_interest_model<T>(
     market: &mut Market,
     adminCap: &AdminCap,
     interestModelChange: &mut OneTimeLockValue<InterestModel>,
@@ -68,27 +68,6 @@ module protocol::app {
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    add_interest_model_<T>(market, adminCap, interestModelChange, now, ctx)
-  }
-  
-  #[test_only]
-  public fun add_interest_model_t<T>(
-    market: &mut Market,
-    adminCap: &AdminCap,
-    interestModelChange: &mut OneTimeLockValue<InterestModel>,
-    now: u64,
-    ctx: &mut TxContext,
-  ) {
-    add_interest_model_<T>(market, adminCap, interestModelChange, now, ctx)
-  }
-  
-  fun add_interest_model_<T>(
-    market: &mut Market,
-    adminCap: &AdminCap,
-    interestModelChange: &mut OneTimeLockValue<InterestModel>,
-    now: u64,
-    ctx: &mut TxContext,
-  ) {
     let interestModels = market::interest_models_mut(market);
     interest_model::add_interest_model<T>(
       interestModels,

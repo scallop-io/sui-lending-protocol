@@ -4,7 +4,6 @@ module protocol::borrow {
   use sui::coin;
   use sui::transfer;
   use sui::event::emit;
-  use sui::balance::Balance;
   use sui::tx_context::{Self ,TxContext};
   use sui::object::{Self, ID};
   use sui::clock::{Self, Clock};

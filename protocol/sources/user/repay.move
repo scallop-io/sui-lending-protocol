@@ -49,6 +49,8 @@ module protocol::repay {
     let coinType = type_name::get<T>();
     let repayAmount = coin::value(&coin);
     
+    market::handle_inflow<T>(market, repayAmount, now);
+
     // update market balance sheet after repay
     // Always update market state first
     // Because interest need to be accrued first before other operations

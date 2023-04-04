@@ -136,4 +136,46 @@ module protocol::app {
     );
     market::register_collateral<T>(market);
   }
+
+  public entry fun add_limiter<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    outflow_limit: u64,
+    outflow_cycle_duration: u32,
+    outflow_segment_duration: u32,
+    _ctx: &mut TxContext
+  ) {
+    market::add_limiter<T>(
+      market,
+      outflow_limit,
+      outflow_cycle_duration,
+      outflow_segment_duration,
+    );
+  }
+
+  public entry fun update_outflow_segment_params<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    outflow_cycle_duration: u32,
+    outflow_segment_duration: u32,
+    _ctx: &mut TxContext
+  ) {
+    market::update_outflow_segment_params<T>(
+      market,
+      outflow_cycle_duration,
+      outflow_segment_duration,
+    );
+  }
+
+  public entry fun update_outflow_limit_params<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    outflow_limit: u64,
+    _ctx: &mut TxContext
+  ) {
+    market::update_outflow_limit_params<T>(
+      market,
+      outflow_limit,
+    );
+  }
 }

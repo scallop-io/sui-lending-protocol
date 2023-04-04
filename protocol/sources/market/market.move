@@ -2,13 +2,14 @@ module protocol::market {
   
   use std::vector;
   use std::fixed_point32;
-  use std::type_name::{TypeName, get};
+  use std::type_name::{TypeName, get, Self};
   use sui::tx_context::TxContext;
   use sui::balance::Balance;
   use sui::object::{Self, UID};
   use x::ac_table::{Self, AcTable, AcTableCap};
-  use x::wit_table::WitTable;
+  use x::wit_table::{Self, WitTable};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
+  use protocol::limiter::{Self, Limiters, Limiter};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::reserve::{Self, Reserve, MarketCoin};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
@@ -33,6 +34,7 @@ module protocol::market {
     collateralStats: WitTable<CollateralStats, TypeName, CollateralStat>,
     interestModels: AcTable<InterestModels, TypeName, InterestModel>,
     riskModels: AcTable<RiskModels, TypeName, RiskModel>,
+    limiters: WitTable<Limiters, TypeName, Limiter>,
     vault: Reserve
   }
   
@@ -54,6 +56,9 @@ module protocol::market {
   public fun has_risk_model(self: &Market, typeName: TypeName): bool {
     ac_table::contains(&self.riskModels, typeName)
   }
+  public fun has_limiter(self: &Market, type_name: TypeName): bool {
+    wit_table::contains(&self.limiters, type_name)
+  } 
   
   public(friend) fun new(ctx: &mut TxContext)
   : (Market, AcTableCap<InterestModels>, AcTableCap<RiskModels>)
@@ -66,9 +71,80 @@ module protocol::market {
       collateralStats: collateral_stats::new(ctx),
       interestModels,
       riskModels,
+      limiters: limiter::init_table(ctx),
       vault: reserve::new(ctx),
     };
     (market, interestModelsCap, riskModelsCap)
+  }
+
+  public(friend) fun add_limiter<T>(
+    self: &mut Market, 
+    outflow_limit: u64,
+    outflow_cycle_duration: u32,
+    outflow_segment_duration: u32,
+  ) {
+    let key = type_name::get<T>();
+    limiter::add_limiter(
+        &mut self.limiters,
+        key,
+        outflow_limit,
+        outflow_cycle_duration,
+        outflow_segment_duration,
+    );
+  }
+
+  public(friend) fun update_outflow_segment_params<T>(
+    self: &mut Market,
+    outflow_cycle_duration: u32,
+    outflow_segment_duration: u32,
+  ) {
+    let key = type_name::get<T>();
+    limiter::update_outflow_segment_params(
+        &mut self.limiters,
+        key,
+        outflow_cycle_duration,
+        outflow_segment_duration,
+    );
+  }
+
+  public(friend) fun update_outflow_limit_params<T>(
+    self: &mut Market,
+    outflow_limit: u64,
+  ) {
+    let key = type_name::get<T>();
+    limiter::update_outflow_limit_params(
+        &mut self.limiters,
+        key,
+        outflow_limit,
+    );
+  }
+
+  public(friend) fun handle_outflow<T>(
+    self: &mut Market,
+    outflow_value: u64,
+    now: u64,
+  ) {
+    let key = type_name::get<T>();
+    limiter::add_outflow(
+        &mut self.limiters,
+        key,
+        now,
+        outflow_value,
+    );
+  }
+
+  public(friend) fun handle_inflow<T>(
+    self: &mut Market,
+    inflow_value: u64,
+    now: u64,
+  ) {
+    let key = type_name::get<T>();
+    limiter::reduce_outflow(
+        &mut self.limiters,
+        key,
+        now,
+        inflow_value,
+    );
   }
   
   public(friend) fun register_coin<T>(self: &mut Market, now: u64) {

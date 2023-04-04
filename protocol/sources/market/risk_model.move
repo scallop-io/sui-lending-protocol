@@ -5,8 +5,9 @@ module protocol::risk_model {
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
   use math::fixed_point32_empower;
-  
-  const RiskModelChangeDelay: u64 = 7;
+
+  // TODO: change it to a bgger value when launch on mainnet
+  const RiskModelChangeDelay: u64 = 0;
   
   const ECollateralFactoryTooBig: u64 = 0;
   const ERiskModelTypeNotMatch: u64 = 1;

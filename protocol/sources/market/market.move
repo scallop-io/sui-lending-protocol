@@ -23,6 +23,9 @@ module protocol::market {
   friend protocol::redeem;
   friend protocol::withdraw_collateral;
   friend protocol::deposit_collateral;
+
+  // TODO: remove this when launch on mainnet
+  friend protocol::app_test;
   
   const EMaxCollateralReached: u64 = 0;
   

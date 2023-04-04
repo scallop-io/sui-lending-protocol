@@ -4,7 +4,6 @@ module protocol::mint {
   use sui::tx_context::{Self ,TxContext};
   use sui::clock::{Self, Clock};
   use sui::event::emit;
-  use sui::transfer;
   use sui::balance;
   use protocol::market::{Self, Market};
   use protocol::reserve::MarketCoin;
@@ -19,33 +18,23 @@ module protocol::mint {
     time: u64,
   }
   
-  public entry fun mint<T>(
+  public fun mint_entry<T>(
     market: &mut Market,
+    coin: Coin<T>,
     clock: &Clock,
-    coin: Coin<T>,
     ctx: &mut TxContext,
-  ) {
+  ): Coin<MarketCoin<T>> {
+    let mintBalance = mint(market, coin, clock, ctx);
+    coin::from_balance(mintBalance, ctx)
+  }
+  
+  public fun mint<T>(
+    market: &mut Market,
+    coin: Coin<T>,
+    clock: &Clock,
+    ctx: &mut TxContext,
+  ): Balance<MarketCoin<T>> {
     let now = clock::timestamp_ms(clock);
-    let mintBalance = mint_(market, now, coin, ctx);
-    transfer::transfer(coin::from_balance(mintBalance, ctx), tx_context::sender(ctx));
-  }
-  
-  #[test_only]
-  public fun mint_t<T>(
-    market: &mut Market,
-    now: u64,
-    coin: Coin<T>,
-    ctx: &mut TxContext,
-  ): Balance<MarketCoin<T>> {
-    mint_(market, now, coin, ctx)
-  }
-  
-  fun mint_<T>(
-    market: &mut Market,
-    now: u64,
-    coin: Coin<T>,
-    ctx: &mut TxContext,
-  ): Balance<MarketCoin<T>> {
     let depositAmount = coin::value(&coin);
     let mintBalance = market::handle_mint(market, coin::into_balance(coin), now);
     

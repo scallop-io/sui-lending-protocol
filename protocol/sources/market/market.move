@@ -138,8 +138,7 @@ module protocol::market {
     marketBalance: Balance<T>,
   ) {
     // We don't accrue interest here, because it has already been accrued in previous step for liquidation
-    reserve::deposit_underlying_coin(&mut self.vault, balance);
-    reserve::deposit_underlying_coin(&mut self.vault, marketBalance);
+    reserve::handle_liquidation(&mut self.vault, balance, marketBalance);
     update_interest_rates(self);
   }
   

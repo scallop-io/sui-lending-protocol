@@ -6,8 +6,9 @@ module protocol::interest_model {
   use math::fixed_point32_empower;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
-  
-  const InterestChangeDelay: u64 = 7;
+
+  // TODO: change it to a bgger value when launch on mainnet
+  const InterestChangeDelay: u64 = 0;
   
   const EMarketFactorTooLarge: u64 = 0;
   const EInterestModelTypeNotMatch: u64 = 1;
@@ -33,6 +34,7 @@ module protocol::interest_model {
   public fun high_slope(model: &InterestModel): FixedPoint32 { model.highSlope }
   public fun market_factor(model: &InterestModel): FixedPoint32 { model.marketFactor }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.minBorrowAmount }
+  public fun type_name(model: &InterestModel): TypeName { model.type }
   
   struct InterestModels has drop {}
   

@@ -31,11 +31,12 @@ module protocol::app {
       interestModelCap,
       riskModelCap
     };
-    transfer::share_object(market);
+
+    transfer::public_share_object(market);
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }
   
-  public entry fun create_interest_model_change<T>(
+  public fun create_interest_model_change<T>(
     adminCap: &AdminCap,
     baseRatePerSec: u64,
     lowSlope: u64,
@@ -45,7 +46,7 @@ module protocol::app {
     scale: u64,
     minBorrowAmount: u64,
     ctx: &mut TxContext,
-  ) {
+  ): OneTimeLockValue<InterestModel> {
     let interestModelChange = interest_model::create_interest_model_change<T>(
       &adminCap.interestModelCap,
       baseRatePerSec,
@@ -57,9 +58,9 @@ module protocol::app {
       minBorrowAmount,
       ctx,
     );
-    transfer::share_object(interestModelChange);
+    interestModelChange
   }
-  public entry fun add_interest_model<T>(
+  public fun add_interest_model<T>(
     market: &mut Market,
     adminCap: &AdminCap,
     interestModelChange: &mut OneTimeLockValue<InterestModel>,
@@ -67,27 +68,6 @@ module protocol::app {
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    add_interest_model_<T>(market, adminCap, interestModelChange, now, ctx)
-  }
-  
-  #[test_only]
-  public fun add_interest_model_t<T>(
-    market: &mut Market,
-    adminCap: &AdminCap,
-    interestModelChange: &mut OneTimeLockValue<InterestModel>,
-    now: u64,
-    ctx: &mut TxContext,
-  ) {
-    add_interest_model_<T>(market, adminCap, interestModelChange, now, ctx)
-  }
-  
-  fun add_interest_model_<T>(
-    market: &mut Market,
-    adminCap: &AdminCap,
-    interestModelChange: &mut OneTimeLockValue<InterestModel>,
-    now: u64,
-    ctx: &mut TxContext,
-  ) {
     let interestModels = market::interest_models_mut(market);
     interest_model::add_interest_model<T>(
       interestModels,
@@ -97,8 +77,8 @@ module protocol::app {
     );
     market::register_coin<T>(market, now);
   }
-  
-  public entry fun create_risk_model_change<T>(
+
+  public fun create_risk_model_change<T>(
     adminCap: &AdminCap,
     collateralFactor: u64, // exp. 70%,
     liquidationFactor: u64, // exp. 80%,
@@ -107,7 +87,7 @@ module protocol::app {
     scale: u64,
     maxCollateralAmount: u64,
     ctx: &mut TxContext,
-  ) {
+  ): OneTimeLockValue<RiskModel> {
     let riskModelChange = risk_model::create_risk_model_change<T>(
       &adminCap.riskModelCap,
       collateralFactor, // exp. 70%,
@@ -118,7 +98,7 @@ module protocol::app {
       maxCollateralAmount,
       ctx
     );
-    transfer::share_object(riskModelChange);
+    riskModelChange
   }
   
   public entry fun add_risk_model<T>(

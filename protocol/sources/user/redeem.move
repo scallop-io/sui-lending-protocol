@@ -19,36 +19,26 @@ module protocol::redeem {
     time: u64,
   }
   
-  public entry fun redeem<T>(
+  public fun redeem_entry<T>(
     market: &mut Market,
+    coin: Coin<MarketCoin<T>>,
     clock: &Clock,
-    coin: Coin<MarketCoin<T>>,
     ctx: &mut TxContext,
   ) {
+    let coin = redeem(market, coin, clock, ctx);
+    transfer::public_transfer(coin, tx_context::sender(ctx));
+  }
+  
+  public fun redeem<T>(
+    market: &mut Market,
+    coin: Coin<MarketCoin<T>>,
+    clock: &Clock,
+    ctx: &mut TxContext,
+  ): Coin<T> {
     let now = clock::timestamp_ms(clock);
-    redeem_(market, now, coin, ctx)
-  }
-  
-  #[test_only]
-  public fun redeem_t<T>(
-    market: &mut Market,
-    now: u64,
-    coin: Coin<MarketCoin<T>>,
-    ctx: &mut TxContext,
-  ) {
-    redeem_(market, now, coin, ctx)
-  }
-  
-  fun redeem_<T>(
-    market: &mut Market,
-    now: u64,
-    coin: Coin<MarketCoin<T>>,
-    ctx: &mut TxContext,
-  ) {
     let marketCoinAmount = coin::value(&coin);
     let redeemBalance = market::handle_redeem(market, coin::into_balance(coin), now);
     
-    let sender = tx_context::sender(ctx);
     emit(RedeemEvent {
       redeemer: tx_context::sender(ctx),
       withdrawAsset: type_name::get<T>(),
@@ -57,7 +47,6 @@ module protocol::redeem {
       burnAmount: marketCoinAmount,
       time: now
     });
-    
-    transfer::transfer(coin::from_balance(redeemBalance, ctx), sender);
+    coin::from_balance(redeemBalance, ctx)
   }
 }

@@ -1,0 +1,19 @@
+{
+  "name": "sui-lending-protocol",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "publish": "ts-node typescript/publish-package.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@scallop-dao/sui-kit": "^0.30.3"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "ts-node": "^10.9.1"
+  }
+}

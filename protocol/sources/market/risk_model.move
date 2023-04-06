@@ -5,8 +5,9 @@ module protocol::risk_model {
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
   use math::fixed_point32_empower;
-  
-  const RiskModelChangeDelay: u64 = 7;
+
+  // TODO: change it to a bgger value when launch on mainnet
+  const RiskModelChangeDelay: u64 = 0;
   
   const ECollateralFactoryTooBig: u64 = 0;
   const ERiskModelTypeNotMatch: u64 = 1;
@@ -29,6 +30,7 @@ module protocol::risk_model {
   public fun liq_discount(model: &RiskModel): FixedPoint32 { model.liquidationDiscount }
   public fun liq_market_factor(model: &RiskModel): FixedPoint32 { model.liquidationMarketFactor }
   public fun max_collateral_Amount(model: &RiskModel): u64 { model.maxCollateralAmount }
+  public fun type_name(model: &RiskModel): TypeName { model.type }
   
   public fun new(ctx: &mut TxContext): (
     AcTable<RiskModels, TypeName, RiskModel>,

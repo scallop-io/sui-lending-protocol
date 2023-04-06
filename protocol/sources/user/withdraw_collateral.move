@@ -12,8 +12,8 @@ module protocol::withdraw_collateral {
   use protocol::borrow_withdraw_evaluator;
   use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
-  use sui::balance::Balance;
-  
+  use sui::coin::Coin;
+
   const EWithdrawTooMuch: u64 = 0;
   
   struct CollateralWithdrawEvent has copy, drop {
@@ -23,49 +23,32 @@ module protocol::withdraw_collateral {
     withdrawAmount: u64,
   }
   
-  public entry fun withdraw_collateral<T>(
+  public entry fun withdraw_collateral_entry<T>(
     obligation: &mut Obligation,
     obligationKey: &ObligationKey,
     market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-    clock: &Clock,
     withdrawAmount: u64,
+    clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let now = clock::timestamp_ms(clock);
-    let withdrawedBalance = withdraw_collateral_<T>(
-      obligation, obligationKey, market, coinDecimalsRegistry, now, withdrawAmount, ctx
+    let withdrawedCoin = withdraw_collateral<T>(
+      obligation, obligationKey, market, coinDecimalsRegistry, withdrawAmount, clock, ctx
     );
-    transfer::transfer(
-      coin::from_balance(withdrawedBalance, ctx),
-      tx_context::sender(ctx)
-    )
+    transfer::public_transfer(withdrawedCoin, tx_context::sender(ctx));
   }
   
-  #[test_only]
-  public fun withdraw_collateral_t<T>(
+  public fun withdraw_collateral<T>(
     obligation: &mut Obligation,
     obligationKey: &ObligationKey,
     market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-    now: u64,
     withdrawAmount: u64,
+    clock: &Clock,
     ctx: &mut TxContext,
-  ): Balance<T> {
-    withdraw_collateral_<T>(
-      obligation, obligationKey, market, coinDecimalsRegistry, now, withdrawAmount, ctx
-    )
-  }
-  
-  fun withdraw_collateral_<T>(
-    obligation: &mut Obligation,
-    obligationKey: &ObligationKey,
-    market: &mut Market,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    now: u64,
-    withdrawAmount: u64,
-    ctx: &mut TxContext,
-  ): Balance<T> {
+  ): Coin<T> {
+    let now = clock::timestamp_ms(clock);
+
     obligation::assert_key_match(obligation, obligationKey);
     // accrue interests for markets
     // Always update market state first
@@ -89,6 +72,6 @@ module protocol::withdraw_collateral {
       withdrawAsset: type_name::get<T>(),
       withdrawAmount: balance::value(&withdrawedBalance),
     });
-    withdrawedBalance
+    coin::from_balance(withdrawedBalance, ctx)
   }
 }

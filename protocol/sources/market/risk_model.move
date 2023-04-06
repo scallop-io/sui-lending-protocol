@@ -30,6 +30,7 @@ module protocol::risk_model {
   public fun liq_discount(model: &RiskModel): FixedPoint32 { model.liquidationDiscount }
   public fun liq_market_factor(model: &RiskModel): FixedPoint32 { model.liquidationMarketFactor }
   public fun max_collateral_Amount(model: &RiskModel): u64 { model.maxCollateralAmount }
+  public fun type_name(model: &RiskModel): TypeName { model.type }
   
   public fun new(ctx: &mut TxContext): (
     AcTable<RiskModels, TypeName, RiskModel>,

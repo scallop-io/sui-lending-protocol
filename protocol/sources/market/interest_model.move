@@ -34,6 +34,7 @@ module protocol::interest_model {
   public fun high_slope(model: &InterestModel): FixedPoint32 { model.highSlope }
   public fun market_factor(model: &InterestModel): FixedPoint32 { model.marketFactor }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.minBorrowAmount }
+  public fun type_name(model: &InterestModel): TypeName { model.type }
   
   struct InterestModels has drop {}
   

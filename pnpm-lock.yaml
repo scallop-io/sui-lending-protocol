@@ -2,8 +2,8 @@ lockfileVersion: '6.0'
 
 dependencies:
   '@scallop-dao/sui-kit':
-    specifier: ^0.30.2
-    version: 0.30.2
+    specifier: ^0.30.3
+    version: 0.30.3
 
 devDependencies:
   dotenv:
@@ -84,8 +84,8 @@ packages:
     resolution: {integrity: sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==}
     dev: false
 
-  /@scallop-dao/sui-kit@0.30.2:
-    resolution: {integrity: sha512-b/X/wxbsFcmduqpJGeAoCoYlTRCaVMaP636g+cHl/RpNlCiwSZx35oJBuMZq2WwRjvIVIwUVtdtyOQibEP8WeQ==}
+  /@scallop-dao/sui-kit@0.30.3:
+    resolution: {integrity: sha512-UDDw1t7vcJsrJiVteFRHIiiU+qVsUVynyMPaaqMngry03QT2qJNJDFGtCzosajowANvj1Hewt0DcWUdBczMnPw==}
     engines: {node: '>=16'}
     dependencies:
       '@mysten/bcs': 0.7.0

@@ -1,47 +1,61 @@
 module protocol_query::obligation_query {
   
   use std::vector;
-  use protocol::obligation::{Self, Obligation};
-  use protocol::obligation_collaterals::Collateral;
-  use protocol::obligation_debts::Debt;
+  use std::type_name::TypeName;
+  use sui::event::emit;
   use x::wit_table;
-  
-  struct ObligationData has copy {
-    collaterals: vector<Collateral>,
-    debts: vector<Debt>
+  use protocol::obligation::{Self, Obligation};
+  use protocol::obligation_collaterals;
+  use protocol::obligation_debts;
+
+  struct CollateralData has copy, store, drop {
+    type: TypeName,
+    amount: u64
   }
-  
-  public fun obligation_data(obligation: &Obligation): ObligationData {
+
+  struct DebtData has copy, store, drop {
+    type: TypeName,
+    amount: u64,
+    borrowIndex: u64,
+  }
+
+  struct ObligationData has copy, store, drop {
+    collaterals: vector<CollateralData>,
+    debts: vector<DebtData>
+  }
+
+  public fun obligation_data(obligation: &Obligation) {
     let collaterals = collateral_data(obligation);
     let debts = debt_data(obligation);
-    ObligationData { collaterals, debts }
+    let obligationData =  ObligationData { collaterals, debts };
+    emit(obligationData);
   }
   
-  public fun collateral_data(obligation: &Obligation): vector<Collateral> {
+  public fun collateral_data(obligation: &Obligation): vector<CollateralData> {
     let collaterals = obligation::collaterals(obligation);
     let collateralTypes = wit_table::keys(collaterals);
     let (i, n) = (0, vector::length(&collateralTypes));
-    let collateralData = vector::empty<Collateral>();
+    let collateralDataVec= vector::empty<CollateralData>();
     while(i < n) {
-      let collateralType = *vector::borrow(&collateralTypes, i);
-      let collateral = *wit_table::borrow(collaterals, collateralType);
-      vector::push_back(&mut collateralData, collateral);
+      let type = *vector::borrow(&collateralTypes, i);
+      let amount = obligation_collaterals::collateral(collaterals, type);
+      vector::push_back(&mut collateralDataVec, CollateralData { type, amount } );
       i = i + 1;
     };
-    collateralData
+    collateralDataVec
   }
   
-  public fun debt_data(obligation: &Obligation): vector<Debt> {
+  public fun debt_data(obligation: &Obligation): vector<DebtData> {
     let debts = obligation::debts(obligation);
     let debtTypes = wit_table::keys(debts);
     let (i, n) = (0, vector::length(&debtTypes));
-    let debtData = vector::empty<Debt>();
+    let debtDataVec = vector::empty<DebtData>();
     while(i < n) {
-      let debtType = *vector::borrow(&debtTypes, i);
-      let debt = *wit_table::borrow(debts, debtType);
-      vector::push_back(&mut debtData, debt);
+      let type = *vector::borrow(&debtTypes, i);
+      let (amount, borrowIndex) = obligation_debts::debt(debts, type);
+      vector::push_back(&mut debtDataVec, DebtData { type, amount, borrowIndex });
       i = i + 1;
     };
-    debtData
+    debtDataVec
   }
 }

@@ -20,32 +20,11 @@ module protocol::repay {
   public entry fun repay<T>(
     obligation: &mut Obligation,
     market: &mut Market,
-    clock: &Clock,
     coin: Coin<T>,
+    clock: &Clock,
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    repay_(obligation, market, now, coin, ctx)
-  }
-  
-  #[test_only]
-  public fun repay_t<T>(
-    obligation: &mut Obligation,
-    market: &mut Market,
-    now: u64,
-    coin: Coin<T>,
-    ctx: &mut TxContext,
-  ) {
-    repay_(obligation, market, now, coin, ctx)
-  }
-  
-  fun repay_<T>(
-    obligation: &mut Obligation,
-    market: &mut Market,
-    now: u64,
-    coin: Coin<T>,
-    ctx: &mut TxContext,
-  ) {
     let coinType = type_name::get<T>();
     let repayAmount = coin::value(&coin);
     

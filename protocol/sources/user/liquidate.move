@@ -8,8 +8,26 @@ module protocol::liquidate {
   use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::liquidation_evaluator::liquidation_amounts;
-  
+  use sui::coin::Coin;
+  use sui::coin;
+  use sui::tx_context::TxContext;
+  use sui::transfer;
+  use sui::tx_context;
+
   const ECantBeLiquidated: u64 = 0;
+  
+  public fun liquidate_entry<DebtType, CollateralType>(
+    obligation: &mut Obligation,
+    market: &mut Market,
+    availableRepayBalance: Balance<DebtType>,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
+    clock: &Clock,
+    ctx: &mut TxContext,
+  ) {
+    let (remainCoin, collateralCoin) = liquidate<DebtType, CollateralType>(obligation, market, availableRepayBalance, coinDecimalsRegistry, clock, ctx);
+    transfer::public_transfer(remainCoin, tx_context::sender(ctx));
+    transfer::public_transfer(collateralCoin, tx_context::sender(ctx));
+  }
   
   public fun liquidate<DebtType, CollateralType>(
     obligation: &mut Obligation,
@@ -17,29 +35,9 @@ module protocol::liquidate {
     availableRepayBalance: Balance<DebtType>,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     clock: &Clock,
-  ): (Balance<DebtType>, Balance<CollateralType>) {
+    ctx: &mut TxContext,
+  ): (Coin<DebtType>, Coin<CollateralType>) {
     let now = clock::timestamp_ms(clock);
-    liquidate_(obligation, market, availableRepayBalance, coinDecimalsRegistry, now)
-  }
-  
-  #[test_only]
-  public fun liquidate_t<DebtType, CollateralType>(
-    obligation: &mut Obligation,
-    market: &mut Market,
-    availableRepayBalance: Balance<DebtType>,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    now: u64,
-  ): (Balance<DebtType>, Balance<CollateralType>) {
-    liquidate_(obligation, market, availableRepayBalance, coinDecimalsRegistry, now)
-  }
-  
-  fun liquidate_<DebtType, CollateralType>(
-    obligation: &mut Obligation,
-    market: &mut Market,
-    availableRepayBalance: Balance<DebtType>,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    now: u64,
-  ): (Balance<DebtType>, Balance<CollateralType>) {
     // Accrue interests for market
     market::accrue_all_interests(market, now);
     // Accrue interests for obligation
@@ -63,6 +61,9 @@ module protocol::liquidate {
     market::handle_liquidation(market, repayOnBeHalfBalance, marketBalance);
   
     // Send the remaining balance, and collateral balance to liquidator
-    (availableRepayBalance, collateralBalance)
+    (
+      coin::from_balance(availableRepayBalance, ctx),
+      coin::from_balance(collateralBalance, ctx)
+    )
   }
 }

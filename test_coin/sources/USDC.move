@@ -1,7 +1,7 @@
 module test_coin::usdc {
   
   use sui::tx_context::TxContext;
-  use sui::coin::{Self, TreasuryCap};
+  use sui::coin::{Self, TreasuryCap, Coin};
   use sui::url;
   use std::option;
   use sui::tx_context;
@@ -45,16 +45,15 @@ module test_coin::usdc {
     transfer::share_object(
       Treasury { id: object::new(ctx), cap: treasuryCap }
     );
-    transfer::freeze_object(coinMeta)
+    transfer::public_freeze_object(coinMeta)
   }
   
-  public entry fun mint(treasury: &mut Treasury, ctx: &mut TxContext) {
+  public fun mint(treasury: &mut Treasury, ctx: &mut TxContext): Coin<USDC> {
     let amount = pow(10, 9 + 2);
-    coin::mint_and_transfer(
+    coin::mint(
       &mut treasury.cap,
       amount,
-      tx_context::sender(ctx),
       ctx,
-    );
+    )
   }
 }

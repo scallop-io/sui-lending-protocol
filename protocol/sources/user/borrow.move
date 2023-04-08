@@ -4,7 +4,6 @@ module protocol::borrow {
   use sui::coin;
   use sui::transfer;
   use sui::event::emit;
-  use sui::balance::Balance;
   use sui::tx_context::{Self ,TxContext};
   use sui::object::{Self, ID};
   use sui::clock::{Self, Clock};
@@ -13,7 +12,8 @@ module protocol::borrow {
   use protocol::borrow_withdraw_evaluator;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::interest_model;
-  
+  use sui::coin::Coin;
+
   const EBorrowTooMuch: u64 = 0;
   const EBorrowTooLittle: u64 = 0;
   
@@ -25,46 +25,29 @@ module protocol::borrow {
     time: u64,
   }
   
-  public entry fun borrow<T>(
+  public entry fun borrow_entry<T>(
     obligation: &mut Obligation,
     obligationKey: &ObligationKey,
     market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-    clock: &Clock,
     borrowAmount: u64,
+    clock: &Clock,
     ctx: &mut TxContext,
   ) {
+    let borrowedCoin = borrow<T>(obligation, obligationKey, market, coinDecimalsRegistry, borrowAmount, clock, ctx);
+    transfer::public_transfer(borrowedCoin, tx_context::sender(ctx));
+  }
+  
+  public fun borrow<T>(
+    obligation: &mut Obligation,
+    obligationKey: &ObligationKey,
+    market: &mut Market,
+    coinDecimalsRegistry: &CoinDecimalsRegistry,
+    borrowAmount: u64,
+    clock: &Clock,
+    ctx: &mut TxContext,
+  ): Coin<T> {
     let now = clock::timestamp_ms(clock);
-    let borrowedBalance = borrow_<T>(obligation, obligationKey, market, coinDecimalsRegistry, now, borrowAmount, ctx);
-    // lend the coin to user
-    transfer::public_transfer(
-      coin::from_balance(borrowedBalance, ctx),
-      tx_context::sender(ctx),
-    );
-  }
-  
-  #[test_only]
-  public fun borrow_t<T>(
-    obligation: &mut Obligation,
-    obligationKey: &ObligationKey,
-    market: &mut Market,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    now: u64,
-    borrowAmount: u64,
-    ctx: &mut TxContext,
-  ): Balance<T> {
-    borrow_(obligation, obligationKey, market, coinDecimalsRegistry, now, borrowAmount, ctx)
-  }
-  
-  fun borrow_<T>(
-    obligation: &mut Obligation,
-    obligationKey: &ObligationKey,
-    market: &mut Market,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    now: u64,
-    borrowAmount: u64,
-    ctx: &mut TxContext,
-  ): Balance<T> {
     obligation::assert_key_match(obligation, obligationKey);
   
     let coinType = type_name::get<T>();
@@ -96,6 +79,6 @@ module protocol::borrow {
       amount: borrowAmount,
       time: now,
     });
-    borrowedBalance
+    coin::from_balance(borrowedBalance, ctx)
   }
 }

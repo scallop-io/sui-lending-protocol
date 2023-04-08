@@ -25,6 +25,9 @@ module protocol::market {
   friend protocol::redeem;
   friend protocol::withdraw_collateral;
   friend protocol::deposit_collateral;
+
+  // TODO: remove this when launch on mainnet
+  friend protocol::app_test;
   
   const EMaxCollateralReached: u64 = 0;
   
@@ -215,8 +218,7 @@ module protocol::market {
     marketBalance: Balance<T>,
   ) {
     // We don't accrue interest here, because it has already been accrued in previous step for liquidation
-    reserve::handle_repay(&mut self.vault, balance);
-    reserve::handle_repay(&mut self.vault, marketBalance);
+    reserve::handle_liquidation(&mut self.vault, balance, marketBalance);
     update_interest_rates(self);
   }
   

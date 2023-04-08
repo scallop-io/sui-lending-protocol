@@ -215,10 +215,10 @@ module protocol::market {
   public(friend) fun handle_liquidation<T>(
     self: &mut Market,
     balance: Balance<T>,
-    marketBalance: Balance<T>,
+    revenueBalance: Balance<T>,
   ) {
     // We don't accrue interest here, because it has already been accrued in previous step for liquidation
-    reserve::handle_liquidation(&mut self.vault, balance, marketBalance);
+    reserve::handle_liquidation(&mut self.vault, balance, revenueBalance);
     update_interest_rates(self);
   }
   

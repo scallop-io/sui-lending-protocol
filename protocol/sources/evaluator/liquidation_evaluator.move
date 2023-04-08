@@ -68,8 +68,8 @@ module protocol::liquidation_evaluator {
       actualRepayAmount = fixed_point32::divide_u64(maxLiqAmount, liqExchangeRate);
     };
     
-    let actualRepayMarket = fixed_point32::multiply_u64(actualRepayAmount, liqRevenueFactor);
-    let actualRepayOnBehalf = actualRepayAmount - actualRepayMarket;
-    (actualRepayOnBehalf, actualRepayMarket, actualLiqAmount)
+    let actualRepayRevenue = fixed_point32::multiply_u64(actualRepayAmount, liqRevenueFactor);
+    let actualRepayOnBehalf = actualRepayAmount - actualRepayRevenue;
+    (actualRepayOnBehalf, actualRepayRevenue, actualLiqAmount)
   }
 }

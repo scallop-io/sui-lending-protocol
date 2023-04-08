@@ -110,15 +110,15 @@ module protocol::reserve {
   public(friend) fun handle_liquidation<T>(
     self: &mut Reserve,
     balance: Balance<T>,
-    marketBalance: Balance<T>,
+    revenueBalance: Balance<T>,
   ) {
     let balanceSheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balanceSheets, get<T>());
     balanceSheet.cash = balanceSheet.cash + balance::value(&balance);
     balanceSheet.debt = balanceSheet.debt - balance::value(&balance);
     balance_bag::join(&mut self.underlyingBalances, balance);
 
-    balanceSheet.market = balanceSheet.market + balance::value(&marketBalance);
-    balance_bag::join(&mut self.underlyingBalances, marketBalance);
+    balanceSheet.revenue = balanceSheet.revenue + balance::value(&revenueBalance);
+    balance_bag::join(&mut self.underlyingBalances, revenueBalance);
   }
 
 

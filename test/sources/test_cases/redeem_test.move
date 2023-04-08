@@ -5,8 +5,9 @@ module protocol_test::redeem_test {
   use sui::coin;
   use sui::math;
   use sui::balance;
+  use sui::clock::{Self as clock_lib, Clock};
   use std::fixed_point32;
-  use protocol_test::app_test::app_init;
+  use protocol_test::app_t::app_init;
   use protocol_test::mint_t::mint_t;
   use protocol_test::deposit_collateral_t::deposit_collateral_t;
   use protocol_test::market_t::calc_growth_interest;
@@ -39,8 +40,12 @@ module protocol_test::redeem_test {
     let (market, admin_cap) = app_init(scenario, admin);
 
     let usdc_interest_params = usdc_interest_model_params();
-    let interest_initialization_time = 100;
-    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, interest_initialization_time);
+    clock_lib::create_for_testing(test_scenario::ctx(scenario));
+    test_scenario::next_tx(scenario, admin);
+    let clock = test_scenario::take_shared<Clock>(scenario);
+    
+    clock_lib::increment_for_testing(&mut clock, 100);
+    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
 
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
@@ -51,9 +56,9 @@ module protocol_test::redeem_test {
     
     test_scenario::next_tx(scenario, lender_a);
     let usdc_amount = math::pow(10, usdc_decimals + 4);
-    let mint_time = 200;
+    clock_lib::increment_for_testing(&mut clock, 100);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
-    let lender_a_market_coin_balance = mint_t(scenario, lender_a, &mut market, mint_time, usdc_coin);
+    let lender_a_market_coin_balance = mint_t(scenario, lender_a, &mut market, usdc_coin, &clock);
     let lender_a_market_coin_amount = balance::value(&lender_a_market_coin_balance);
     assert!(lender_a_market_coin_amount == usdc_amount, 0);
 
@@ -65,15 +70,17 @@ module protocol_test::redeem_test {
 
     test_scenario::next_tx(scenario, borrower);
     let borrow_time = 300;
+    clock_lib::increment_for_testing(&mut clock, 100);
     let borrow_amount = 5 * math::pow(10, usdc_decimals + 3);
-    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry_obj, borrow_time, borrow_amount);
+    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry_obj, borrow_amount, &clock);
     assert!(balance::value(&borrowed) == borrow_amount, 0);
     balance::destroy_for_testing(borrowed);
 
     test_scenario::next_tx(scenario, lender_b);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let mint_time = 400;
-    let lender_b_market_coin_balance = mint_t(scenario, lender_b, &mut market, mint_time, usdc_coin);
+    clock_lib::increment_for_testing(&mut clock, 100);
+    let lender_b_market_coin_balance = mint_t(scenario, lender_b, &mut market, usdc_coin, &clock);
 
     let growth_interest_rate = calc_growth_interest<USDC>(
       &market,
@@ -97,8 +104,9 @@ module protocol_test::redeem_test {
 
     test_scenario::next_tx(scenario, lender_a);
     let redeem_time = 500;
+    clock_lib::increment_for_testing(&mut clock, 100);
     let market_coin = coin::from_balance(lender_a_market_coin_balance, test_scenario::ctx(scenario));
-    let redeemed_coin = redeem_t(scenario, lender_a, &mut market, redeem_time, market_coin);
+    let redeemed_coin = redeem_t(scenario, lender_a, &mut market, market_coin, &clock);
 
     let current_debt = borrow_amount + increased_debt;
     let current_cash = usdc_amount + usdc_amount - borrow_amount;
@@ -123,6 +131,7 @@ module protocol_test::redeem_test {
     
     test_scenario::return_shared(coin_decimals_registry_obj);
     test_scenario::return_shared(market);
+    test_scenario::return_shared(clock);
     test_scenario::return_shared(obligation);
     test_scenario::return_to_address(admin, admin_cap);
     test_scenario::return_to_address(borrower, obligation_key);

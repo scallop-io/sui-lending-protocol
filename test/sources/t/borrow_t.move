@@ -8,6 +8,8 @@ module protocol_test::borrow_t {
   use protocol::obligation::ObligationKey;
   use sui::test_scenario;
   use sui::balance::Balance;
+  use sui::coin;
+  use sui::clock::Clock;
   
   public fun borrow_t<T>(
     scenario: &mut Scenario,
@@ -15,10 +17,10 @@ module protocol_test::borrow_t {
     obligationKey: &ObligationKey,
     market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
-    now: u64,
     borrowAmount: u64,
+    clock: &Clock,
   ): Balance<T> {
     let ctx = test_scenario::ctx(scenario);
-    borrow::borrow_t<T>(postion, obligationKey, market, coinDecimalsRegistry, now, borrowAmount, ctx)
+    coin::into_balance(borrow::borrow<T>(postion, obligationKey, market, coinDecimalsRegistry, borrowAmount, clock, ctx))
   }
 }

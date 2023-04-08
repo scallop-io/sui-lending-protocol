@@ -6,12 +6,13 @@ module protocol_test::redeem_t {
   use protocol::market::Market;
   use protocol::reserve::MarketCoin;
   use protocol::redeem;
+  use sui::clock::Clock;
   
   public fun redeem_t<T>(
-    senario: &mut Scenario, user: address, market: &mut Market, now: u64, coin: Coin<MarketCoin<T>>
+    senario: &mut Scenario, user: address, market: &mut Market, coin: Coin<MarketCoin<T>>, clock: &Clock,
   ): Coin<T> {
     test_scenario::next_tx(senario, user);
-    redeem::redeem_t(market, now, coin, test_scenario::ctx(senario));
+    redeem::redeem_entry(market, coin, clock, test_scenario::ctx(senario));
     test_scenario::next_tx(senario, user);
     test_scenario::take_from_sender<Coin<T>>(senario)
   }

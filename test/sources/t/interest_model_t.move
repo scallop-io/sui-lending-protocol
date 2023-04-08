@@ -11,6 +11,7 @@ module protocol_test::interest_model_t {
   
   public fun add_interest_model_t<T>(
     scenario: &mut Scenario,
+    outflow_limit: u64, outflow_cycle_duration: u32, outflow_segment_duration: u32,
     market: &mut Market, adminCap: &AdminCap, params: &InterestModelParams<T>, now: u64,
   ) {
     test_scenario::next_tx(scenario, @0x0);
@@ -37,5 +38,15 @@ module protocol_test::interest_model_t {
       test_scenario::ctx(scenario),
     );
     test_scenario::return_shared(interestModelChange);
+
+    app::add_limiter<T>(
+      adminCap,
+      market,
+      outflow_limit,
+      outflow_cycle_duration,
+      outflow_segment_duration,
+      test_scenario::ctx(scenario)
+    );
+    test_scenario::next_tx(scenario, @0x0);
   }
 }

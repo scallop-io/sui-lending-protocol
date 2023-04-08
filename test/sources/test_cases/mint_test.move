@@ -28,7 +28,7 @@ module protocol_test::mint_test {
 
     let usdc_interest_params = usdc_interest_model_params();
     let interest_initialization_time = 100;
-    add_interest_model_t<USDC>(scenario, &mut market, &admin_cap, &usdc_interest_params, interest_initialization_time);
+    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, interest_initialization_time);
     
     let coin_decimals_registry_obj = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry_obj, usdc_decimals);

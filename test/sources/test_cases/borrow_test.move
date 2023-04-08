@@ -31,7 +31,7 @@ module protocol_test::borrow_test {
     let (market, adminCap) = app_init(senario, admin);
     let usdcInterestParams = usdc_interest_model_params();
     let initTime = 100;
-    add_interest_model_t<USDC>(senario, &mut market, &adminCap, &usdcInterestParams, initTime);
+    add_interest_model_t<USDC>(senario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &adminCap, &usdcInterestParams, initTime);
     let ethRiskParams = eth_risk_model_params();
     add_risk_model_t<ETH>(senario, &mut market, &adminCap, &ethRiskParams);
     let coinDecimalsRegistiry = coin_decimals_registry_init(senario);

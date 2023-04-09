@@ -45,7 +45,7 @@ module protocol::liquidate {
     
     // Calc liquidation amounts for the given debt type
     let availableRepayAmount = balance::value(&availableRepayBalance);
-    let (repayOnBehalf, repayMarket, liqAmount) =
+    let (repayOnBehalf, repayRevenue, liqAmount) =
       liquidation_amounts<DebtType, CollateralType>(obligation, market, coinDecimalsRegistry, availableRepayAmount);
     assert!(liqAmount > 0, ECantBeLiquidated);
     
@@ -55,10 +55,10 @@ module protocol::liquidate {
     let debtType = get<DebtType>();
     obligation::decrease_debt(obligation, debtType, repayOnBehalf);
     
-    // Put the repay and market balance to the market
+    // Put the repay and revenue balance to the market
     let repayOnBeHalfBalance = balance::split(&mut availableRepayBalance, repayOnBehalf);
-    let marketBalance = balance::split(&mut availableRepayBalance, repayMarket);
-    market::handle_liquidation(market, repayOnBeHalfBalance, marketBalance);
+    let revenueBalance = balance::split(&mut availableRepayBalance, repayRevenue);
+    market::handle_liquidation(market, repayOnBeHalfBalance, revenueBalance);
   
     // Send the remaining balance, and collateral balance to liquidator
     (

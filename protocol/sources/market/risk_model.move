@@ -18,17 +18,17 @@ module protocol::risk_model {
     type: TypeName,
     collateralFactor: FixedPoint32,
     liquidationFactor: FixedPoint32,
-    liquidationPanelty: FixedPoint32,
+    liquidationPenalty: FixedPoint32,
     liquidationDiscount: FixedPoint32,
-    liquidationMarketFactor: FixedPoint32,
+    liquidationRevenueFactor: FixedPoint32,
     maxCollateralAmount: u64
   }
   
   public fun collateral_factor(model: &RiskModel): FixedPoint32 { model.collateralFactor }
   public fun liq_factor(model: &RiskModel): FixedPoint32 { model.liquidationFactor }
-  public fun liq_panelty(model: &RiskModel): FixedPoint32 { model.liquidationPanelty }
+  public fun liq_penalty(model: &RiskModel): FixedPoint32 { model.liquidationPenalty }
   public fun liq_discount(model: &RiskModel): FixedPoint32 { model.liquidationDiscount }
-  public fun liq_market_factor(model: &RiskModel): FixedPoint32 { model.liquidationMarketFactor }
+  public fun liq_revenue_factor(model: &RiskModel): FixedPoint32 { model.liquidationRevenueFactor }
   public fun max_collateral_Amount(model: &RiskModel): u64 { model.maxCollateralAmount }
   public fun type_name(model: &RiskModel): TypeName { model.type }
   
@@ -43,27 +43,24 @@ module protocol::risk_model {
     _: &AcTableCap<RiskModels>,
     collateralFactor: u64, // exp. 70%,
     liquidationFactor: u64, // exp. 80%,
-    liquidationPanelty: u64, // exp. 7%,
+    liquidationPenalty: u64, // exp. 7%,
     liquidationDiscount: u64, // exp. 95%,
     scale: u64,
     maxCollateralAmount: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<RiskModel> {
-    let liquidationPanelty = fixed_point32::create_from_rational(liquidationPanelty, scale);
+    let liquidationPenalty = fixed_point32::create_from_rational(liquidationPenalty, scale);
     let liquidationDiscount = fixed_point32::create_from_rational(liquidationDiscount, scale);
-    let liquidationMarketFactor = fixed_point32_empower::div(
-      fixed_point32_empower::sub(liquidationPanelty, liquidationDiscount),
-      liquidationDiscount
-    );
+    let liquidationRevenueFactor = fixed_point32_empower::sub(liquidationPenalty, liquidationDiscount);
     let collateralFactor = fixed_point32::create_from_rational(collateralFactor, scale);
     let liquidationFactor = fixed_point32::create_from_rational(liquidationFactor, scale);
     let riskModel = RiskModel {
       type: get<T>(),
       collateralFactor,
       liquidationFactor,
-      liquidationPanelty,
+      liquidationPenalty,
       liquidationDiscount,
-      liquidationMarketFactor,
+      liquidationRevenueFactor,
       maxCollateralAmount
     };
     one_time_lock_value::new(riskModel, RiskModelChangeDelay, 7, ctx)

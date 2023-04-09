@@ -31,7 +31,6 @@ module protocol::app {
       interestModelCap,
       riskModelCap
     };
-
     transfer::public_share_object(market);
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }
@@ -42,7 +41,7 @@ module protocol::app {
     lowSlope: u64,
     kink: u64,
     highSlope: u64,
-    marketFactor: u64,
+    revenueFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
     ctx: &mut TxContext,
@@ -53,7 +52,7 @@ module protocol::app {
       lowSlope,
       kink,
       highSlope,
-      marketFactor,
+      revenueFactor,
       scale,
       minBorrowAmount,
       ctx,
@@ -82,7 +81,7 @@ module protocol::app {
     adminCap: &AdminCap,
     collateralFactor: u64, // exp. 70%,
     liquidationFactor: u64, // exp. 80%,
-    liquidationPanelty: u64, // exp. 7%,
+    liquidationPenalty: u64, // exp. 7%,
     liquidationDiscount: u64, // exp. 95%,
     scale: u64,
     maxCollateralAmount: u64,
@@ -92,7 +91,7 @@ module protocol::app {
       &adminCap.riskModelCap,
       collateralFactor, // exp. 70%,
       liquidationFactor, // exp. 80%,
-      liquidationPanelty, // exp. 7%,
+      liquidationPenalty, // exp. 7%,
       liquidationDiscount, // exp. 95%,
       scale,
       maxCollateralAmount,
@@ -115,5 +114,47 @@ module protocol::app {
       ctx
     );
     market::register_collateral<T>(market);
+  }
+
+  public entry fun add_limiter<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    outflow_limit: u64,
+    outflow_cycle_duration: u32,
+    outflow_segment_duration: u32,
+    _ctx: &mut TxContext
+  ) {
+    market::add_limiter<T>(
+      market,
+      outflow_limit,
+      outflow_cycle_duration,
+      outflow_segment_duration,
+    );
+  }
+
+  public entry fun update_outflow_segment_params<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    outflow_cycle_duration: u32,
+    outflow_segment_duration: u32,
+    _ctx: &mut TxContext
+  ) {
+    market::update_outflow_segment_params<T>(
+      market,
+      outflow_cycle_duration,
+      outflow_segment_duration,
+    );
+  }
+
+  public entry fun update_outflow_limit_params<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    outflow_limit: u64,
+    _ctx: &mut TxContext
+  ) {
+    market::update_outflow_limit_params<T>(
+      market,
+      outflow_limit,
+    );
   }
 }

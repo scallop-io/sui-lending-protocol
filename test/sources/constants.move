@@ -1,12 +1,13 @@
 module protocol_test::constants {
   use sui::math;
   use test_coin::eth::ETH;
+  use test_coin::btc::BTC;
   use test_coin::usdc::USDC;
   
   struct RiskModelParams<phantom T> has copy, drop {
     collateralFactor: u64,
     liquidationFactor: u64,
-    liquidationPanelty: u64,
+    liquidationPenalty: u64,
     liquidationDiscount: u64,
     scale: u64,
     maxCollateralAmount: u64
@@ -17,14 +18,14 @@ module protocol_test::constants {
     lowSlope: u64,
     kink: u64,
     highSlope: u64,
-    marketFactor: u64,
+    revenueFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
   }
   
   public fun collateral_factor<T>(params: &RiskModelParams<T>): u64 { params.collateralFactor }
   public fun liquidation_factor<T>(params: &RiskModelParams<T>): u64 { params.liquidationFactor }
-  public fun liquidation_panelty<T>(params: &RiskModelParams<T>): u64 { params.liquidationPanelty }
+  public fun liquidation_penalty<T>(params: &RiskModelParams<T>): u64 { params.liquidationPenalty }
   public fun liquidation_discount<T>(params: &RiskModelParams<T>): u64 { params.liquidationDiscount }
   public fun risk_model_scale<T>(params: &RiskModelParams<T>): u64 { params.scale }
   public fun max_collateral_amount<T>(params: &RiskModelParams<T>): u64 { params.maxCollateralAmount }
@@ -33,7 +34,7 @@ module protocol_test::constants {
   public fun low_slope<T>(params: &InterestModelParams<T>): u64 { params.lowSlope }
   public fun kink<T>(params: &InterestModelParams<T>): u64 { params.kink }
   public fun high_slope<T>(params: &InterestModelParams<T>): u64 { params.highSlope }
-  public fun market_factor<T>(params: &InterestModelParams<T>): u64 { params.marketFactor }
+  public fun revenue_factor<T>(params: &InterestModelParams<T>): u64 { params.revenueFactor }
   public fun interest_model_scale<T>(params: &InterestModelParams<T>): u64 { params.scale }
   public fun min_borrow_amount<T>(params: &InterestModelParams<T>): u64 { params.minBorrowAmount }
   
@@ -42,7 +43,18 @@ module protocol_test::constants {
     RiskModelParams {
       collateralFactor: 70,
       liquidationFactor: 80,
-      liquidationPanelty: 8,
+      liquidationPenalty: 8,
+      liquidationDiscount: 5,
+      scale: 100,
+      maxCollateralAmount: math::pow(10, 9 + 7)
+    }
+  }
+
+  public fun btc_risk_model_params(): RiskModelParams<BTC> {
+    RiskModelParams {
+      collateralFactor: 70,
+      liquidationFactor: 80,
+      liquidationPenalty: 8,
       liquidationDiscount: 5,
       scale: 100,
       maxCollateralAmount: math::pow(10, 9 + 7)
@@ -55,7 +67,7 @@ module protocol_test::constants {
       lowSlope: 2 * math::pow(10, 16),
       kink: 80 * math::pow(10, 14),
       highSlope: 20 * math::pow(10, 16),
-      marketFactor: 2 * math::pow(10, 14),
+      revenueFactor: 2 * math::pow(10, 14),
       scale: math::pow(10, 16),
       minBorrowAmount: math::pow(10, 8),
     }

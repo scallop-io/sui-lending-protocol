@@ -29,9 +29,9 @@ module protocol::liquidation_evaluator {
     let collateralScale = math::pow(10, collateralDecimals);
     let riskModel = market::risk_model(market, collateralType);
     let liqDiscount = risk_model::liq_discount(riskModel);
-    let liqPanelty = risk_model::liq_panelty(riskModel);
+    let liqPenalty = risk_model::liq_penalty(riskModel);
     let liqFactor = risk_model::liq_factor(riskModel);
-    let liqMarketFactor = risk_model::liq_market_factor(riskModel);
+    let liqRevenueFactor = risk_model::liq_revenue_factor(riskModel);
     let debtPrice = get_price(debtType);
     let collateralPrice = get_price(collateralType);
     
@@ -41,7 +41,7 @@ module protocol::liquidation_evaluator {
    
     let maxLiqValue = fixed_point32_empower::div(
       fixed_point32_empower::sub(debtsValue, collateralsValue),
-      fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), fixed_point32_empower::add(liqPanelty, liqFactor))
+      fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), fixed_point32_empower::add(liqPenalty, liqFactor))
     );
     
     let maxLiqAmount = fixed_point32::multiply_u64(
@@ -68,8 +68,8 @@ module protocol::liquidation_evaluator {
       actualRepayAmount = fixed_point32::divide_u64(maxLiqAmount, liqExchangeRate);
     };
     
-    let actualRepayMarket = fixed_point32::multiply_u64(actualRepayAmount, liqMarketFactor);
-    let actualRepayOnBehalf = actualRepayAmount - actualRepayMarket;
-    (actualRepayOnBehalf, actualRepayMarket, actualLiqAmount)
+    let actualRepayRevenue = fixed_point32::multiply_u64(actualRepayAmount, liqRevenueFactor);
+    let actualRepayOnBehalf = actualRepayAmount - actualRepayRevenue;
+    (actualRepayOnBehalf, actualRepayRevenue, actualLiqAmount)
   }
 }

@@ -8,6 +8,8 @@ module protocol_test::withdraw_collateral_t {
   use sui::test_scenario::Scenario;
   use sui::test_scenario;
   use sui::balance::Balance;
+  use sui::coin;
+  use sui::clock::Clock;
   
   public fun withdraw_collateral_t<T>(
     senario: &mut Scenario,
@@ -17,11 +19,11 @@ module protocol_test::withdraw_collateral_t {
     market: &mut Market,
     decimalsRegistry: &CoinDecimalsRegistry,
     withdrawAmount: u64,
-    now: u64,
+    clock: &Clock,
   ): Balance<T> {
     test_scenario::next_tx(senario, user);
-    withdraw_collateral::withdraw_collateral_t<T>(
-      obligation, postionKey, market, decimalsRegistry, now, withdrawAmount, test_scenario::ctx(senario)
-    )
+    coin::into_balance(withdraw_collateral::withdraw_collateral<T>(
+      obligation, postionKey, market, decimalsRegistry, withdrawAmount, clock, test_scenario::ctx(senario)
+    ))
   }
 }

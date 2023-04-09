@@ -55,6 +55,8 @@ module protocol::borrow {
     let minBorrowAmount = interest_model::min_borrow_amount(interestModel);
     assert!(borrowAmount > minBorrowAmount, EBorrowTooLittle);
     
+    market::handle_outflow<T>(market, borrowAmount, now);
+
     // Always update market state first
     // Because interest need to be accrued first before other operations
     let borrowedBalance = market::handle_borrow<T>(market, borrowAmount, now);

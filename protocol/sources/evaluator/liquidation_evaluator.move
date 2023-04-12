@@ -6,10 +6,11 @@ module protocol::liquidation_evaluator {
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
-  use protocol::debt_value::debts_value_usd;
+  use protocol::debt_value::debts_value_usd_with_weight;
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::price::{get_price};
   use protocol::risk_model;
+  use protocol::interest_model;
   
   const ENotLiquidatable: u64 = 0;
   
@@ -27,20 +28,23 @@ module protocol::liquidation_evaluator {
     let collateralDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
     let debtScale = math::pow(10, debtDecimals);
     let collateralScale = math::pow(10, collateralDecimals);
+    let interestModel = market::interest_model(market, debtType);
+    let borrowWeight = interest_model::borrow_weight(interestModel);
     let riskModel = market::risk_model(market, collateralType);
     let liqDiscount = risk_model::liq_discount(riskModel);
     let liqPenalty = risk_model::liq_penalty(riskModel);
     let liqFactor = risk_model::liq_factor(riskModel);
     let liqRevenueFactor = risk_model::liq_revenue_factor(riskModel);
     let debtPrice = get_price(debtType);
+    let weightedPrice = fixed_point32_empower::mul(debtPrice, borrowWeight);
     let collateralPrice = get_price(collateralType);
     
     let collateralsValue = collaterals_value_usd_for_liquidation(obligation, market, coinDecimalsRegsitry);
-    let debtsValue = debts_value_usd(obligation, coinDecimalsRegsitry);
-    if (fixed_point32_empower::gt(debtsValue, collateralsValue) == false) return (0, 0, 0);
+    let weighted_debts_value = debts_value_usd_with_weight(obligation, coinDecimalsRegsitry, market);
+    if (fixed_point32_empower::gt(weighted_debts_value, collateralsValue) == false) return (0, 0, 0);
    
     let maxLiqValue = fixed_point32_empower::div(
-      fixed_point32_empower::sub(debtsValue, collateralsValue),
+      fixed_point32_empower::sub(weighted_debts_value, collateralsValue),
       fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), fixed_point32_empower::add(liqPenalty, liqFactor))
     );
     
@@ -52,7 +56,7 @@ module protocol::liquidation_evaluator {
     
     let exchangeRate = fixed_point32_empower::mul(
       fixed_point32::create_from_rational(collateralScale, debtScale),
-      fixed_point32_empower::div(debtPrice, collateralPrice),
+      fixed_point32_empower::div(weightedPrice, collateralPrice),
     );
     let liqExchangeRate = fixed_point32_empower::div(
       exchangeRate,

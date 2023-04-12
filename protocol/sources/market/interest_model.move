@@ -27,6 +27,7 @@ module protocol::interest_model {
     so that the user could borrow without interest
     *********/
     minBorrowAmount: u64,
+    borrow_weight: FixedPoint32,
   }
   public fun base_borrow_rate(model: &InterestModel): FixedPoint32 { model.baseBorrowRatePerSec }
   public fun low_slope(model: &InterestModel): FixedPoint32 { model.lowSlope }
@@ -35,6 +36,7 @@ module protocol::interest_model {
   public fun revenue_factor(model: &InterestModel): FixedPoint32 { model.revenueFactor }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.minBorrowAmount }
   public fun type_name(model: &InterestModel): TypeName { model.type }
+  public fun borrow_weight(model: &InterestModel): FixedPoint32 { model.borrow_weight }
   
   struct InterestModels has drop {}
   
@@ -54,6 +56,7 @@ module protocol::interest_model {
     revenueFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
+    borrow_weight: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
     let baseBorrowRatePerSec = fixed_point32::create_from_rational(baseRatePerSec, scale);
@@ -61,6 +64,7 @@ module protocol::interest_model {
     let kink = fixed_point32::create_from_rational(kink, scale);
     let highSlope = fixed_point32::create_from_rational(highSlope, scale);
     let revenueFactor = fixed_point32::create_from_rational(revenueFactor, scale);
+    let borrow_weight = fixed_point32::create_from_rational(borrow_weight, scale);
     let interestModel = InterestModel {
       type: get<T>(),
       baseBorrowRatePerSec,
@@ -68,7 +72,8 @@ module protocol::interest_model {
       kink,
       highSlope,
       revenueFactor,
-      minBorrowAmount
+      minBorrowAmount,
+      borrow_weight,
     };
     one_time_lock_value::new(interestModel, InterestChangeDelay, 7, ctx)
   }

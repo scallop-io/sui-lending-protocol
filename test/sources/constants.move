@@ -21,6 +21,7 @@ module protocol_test::constants {
     revenueFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
+    borrow_weight: u64,
   }
   
   public fun collateral_factor<T>(params: &RiskModelParams<T>): u64 { params.collateralFactor }
@@ -37,7 +38,7 @@ module protocol_test::constants {
   public fun revenue_factor<T>(params: &InterestModelParams<T>): u64 { params.revenueFactor }
   public fun interest_model_scale<T>(params: &InterestModelParams<T>): u64 { params.scale }
   public fun min_borrow_amount<T>(params: &InterestModelParams<T>): u64 { params.minBorrowAmount }
-  
+  public fun borrow_weight<T>(params: &InterestModelParams<T>): u64 { params.borrow_weight }
   
   public fun eth_risk_model_params(): RiskModelParams<ETH> {
     RiskModelParams {
@@ -70,6 +71,7 @@ module protocol_test::constants {
       revenueFactor: 2 * math::pow(10, 14),
       scale: math::pow(10, 16),
       minBorrowAmount: math::pow(10, 8),
+      borrow_weight: math::pow(10, 16),
     }
   }
 }

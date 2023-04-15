@@ -13,6 +13,6 @@ dotenv.config();
   const publisher = new SuiPackagePublisher();
   const signer = suiKit.getSigner();
   const gasBudget = 10**9;
-  const result = await publisher.publishPackage(packagePath, signer, { gasBudget });
+  const result = await publisher.publishPackage(packagePath, signer, { gasBudget, withUnpublishedDependencies: true, skipFetchLatestGitDeps: false });
   console.log('packageId: ' + result.packageId);
 })();

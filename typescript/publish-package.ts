@@ -12,6 +12,7 @@ dotenv.config();
   const packagePath = path.join(__dirname, '../query');
   const publisher = new SuiPackagePublisher();
   const signer = suiKit.getSigner();
-  const result = await publisher.publishPackage(packagePath, signer);
+  const gasBudget = 10**9;
+  const result = await publisher.publishPackage(packagePath, signer, { gasBudget });
   console.log('packageId: ' + result.packageId);
 })();

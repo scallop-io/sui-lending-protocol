@@ -83,6 +83,7 @@ module protocol::app_test {
     let marketFactor = 2 * math::pow(10, 14);
     let scale = math::pow(10, 16);
     let minBorrowAmount = math::pow(10, 8);
+    let borrow_weight = scale; // 1:1
     let interestModelChange = app::create_interest_model_change<USDC>(
       adminCap,
       baseRatePerSec,
@@ -92,6 +93,7 @@ module protocol::app_test {
       marketFactor,
       scale,
       minBorrowAmount,
+      borrow_weight,
       ctx,
     );
     app::add_interest_model<USDC>(market, adminCap, &mut interestModelChange, clock, ctx);

@@ -44,6 +44,7 @@ module protocol::app {
     revenueFactor: u64,
     scale: u64,
     minBorrowAmount: u64,
+    borrow_weight: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
     let interestModelChange = interest_model::create_interest_model_change<T>(
@@ -55,6 +56,7 @@ module protocol::app {
       revenueFactor,
       scale,
       minBorrowAmount,
+      borrow_weight,
       ctx,
     );
     interestModelChange

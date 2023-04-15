@@ -5,7 +5,7 @@ module protocol_test::mint_test {
   use sui::coin;
   use sui::math;
   use sui::balance;
-  use sui::clock::{Self as clock_lib, Clock};
+  use sui::clock::Self as clock_lib;
   use protocol_test::app_t::app_init;
   use protocol_test::mint_t::mint_t;
   use protocol_test::constants::usdc_interest_model_params;
@@ -28,9 +28,8 @@ module protocol_test::mint_test {
     let (market, admin_cap) = app_init(scenario, admin);
 
     let usdc_interest_params = usdc_interest_model_params();
-    clock_lib::create_for_testing(test_scenario::ctx(scenario));
+    let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
     test_scenario::next_tx(scenario, admin);
-    let clock = test_scenario::take_shared<Clock>(scenario);
     
     clock_lib::increment_for_testing(&mut clock, 100);
     add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
@@ -53,9 +52,10 @@ module protocol_test::mint_test {
     assert!(balance::value(&market_coin_balance) == usdc_amount, 0);
     balance::destroy_for_testing(market_coin_balance);
     
+    clock_lib::destroy_for_testing(clock);
+
     test_scenario::return_shared(coin_decimals_registry_obj);
     test_scenario::return_shared(market);
-    test_scenario::return_shared(clock);
     test_scenario::return_to_address(admin, admin_cap);
     test_scenario::end(scenario_value);
   }

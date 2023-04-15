@@ -13,6 +13,7 @@ module protocol::withdraw_collateral {
   use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use sui::coin::Coin;
+  use oracle::price_feed::PriceFeedHolder;
 
   const EWithdrawTooMuch: u64 = 0;
   
@@ -29,11 +30,12 @@ module protocol::withdraw_collateral {
     market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     withdrawAmount: u64,
+    price_feeds: &PriceFeedHolder,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
     let withdrawedCoin = withdraw_collateral<T>(
-      obligation, obligationKey, market, coinDecimalsRegistry, withdrawAmount, clock, ctx
+      obligation, obligationKey, market, coinDecimalsRegistry, withdrawAmount, price_feeds, clock, ctx
     );
     transfer::public_transfer(withdrawedCoin, tx_context::sender(ctx));
   }
@@ -44,6 +46,7 @@ module protocol::withdraw_collateral {
     market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     withdrawAmount: u64,
+    price_feeds: &PriceFeedHolder,
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
@@ -59,7 +62,7 @@ module protocol::withdraw_collateral {
     obligation::accrue_interests(obligation, market);
     
     // IF withdrawAmount bigger than max, then abort
-    let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coinDecimalsRegistry);
+    let maxWithdawAmount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coinDecimalsRegistry, price_feeds);
     assert!(withdrawAmount <= maxWithdawAmount, EWithdrawTooMuch);
     
     // withdraw collateral from obligation

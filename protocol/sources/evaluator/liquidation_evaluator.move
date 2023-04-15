@@ -8,9 +8,9 @@ module protocol::liquidation_evaluator {
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::debt_value::debts_value_usd_with_weight;
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
-  use protocol::price::{get_price};
   use protocol::risk_model;
   use protocol::interest_model;
+  use oracle::price_feed::{Self, PriceFeedHolder};
   
   const ENotLiquidatable: u64 = 0;
   
@@ -19,7 +19,8 @@ module protocol::liquidation_evaluator {
     obligation: &Obligation,
     market: &Market,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
-    availableRepayAmount: u64
+    availableRepayAmount: u64,
+    price_feeds: &PriceFeedHolder,
   ): (u64, u64, u64) {
     let debtType = get<DebtType>();
     let collateralType = get<CollateralType>();
@@ -35,12 +36,12 @@ module protocol::liquidation_evaluator {
     let liqPenalty = risk_model::liq_penalty(riskModel);
     let liqFactor = risk_model::liq_factor(riskModel);
     let liqRevenueFactor = risk_model::liq_revenue_factor(riskModel);
-    let debtPrice = get_price(debtType);
+    let debtPrice = price_feed::price(price_feed::price_feed(price_feeds, debtType));
     let weightedPrice = fixed_point32_empower::mul(debtPrice, borrowWeight);
-    let collateralPrice = get_price(collateralType);
+    let collateralPrice = price_feed::price(price_feed::price_feed(price_feeds, collateralType));
     
-    let collateralsValue = collaterals_value_usd_for_liquidation(obligation, market, coinDecimalsRegsitry);
-    let weighted_debts_value = debts_value_usd_with_weight(obligation, coinDecimalsRegsitry, market);
+    let collateralsValue = collaterals_value_usd_for_liquidation(obligation, market, coinDecimalsRegsitry, price_feeds);
+    let weighted_debts_value = debts_value_usd_with_weight(obligation, coinDecimalsRegsitry, market, price_feeds);
     if (fixed_point32_empower::gt(weighted_debts_value, collateralsValue) == false) return (0, 0, 0);
    
     let maxLiqValue = fixed_point32_empower::div(

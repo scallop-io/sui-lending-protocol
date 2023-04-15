@@ -15,6 +15,8 @@ module protocol::app_test {
   use protocol::borrow::{borrow_entry};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
 
+  use oracle::price_feed::PriceFeedHolder;
+
   public entry fun init_market(
     market: &mut Market,
     adminCap: &AdminCap,
@@ -34,13 +36,14 @@ module protocol::app_test {
     obligationKey: &ObligationKey,
     ethTreasury: &mut eth::Treasury,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
+    price_feeds: &PriceFeedHolder,
     clock: &Clock,
     ctx: &mut TxContext
   ) {
     let ethCoin = eth::mint(ethTreasury, ctx);
     deposit_collateral(obligation, market, ethCoin, ctx);
     let borrowAmount = math::pow(10, 10);
-    borrow_entry<USDC>(obligation, obligationKey, market, coinDecimalsRegistry, borrowAmount, clock, ctx);
+    borrow_entry<USDC>(obligation, obligationKey, market, coinDecimalsRegistry, borrowAmount, price_feeds, clock, ctx);
   }
 
   fun init_risk_models(

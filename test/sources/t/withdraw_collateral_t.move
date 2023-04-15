@@ -10,6 +10,7 @@ module protocol_test::withdraw_collateral_t {
   use sui::balance::Balance;
   use sui::coin;
   use sui::clock::Clock;
+  use oracle::price_feed::PriceFeedHolder;
   
   public fun withdraw_collateral_t<T>(
     senario: &mut Scenario,
@@ -19,11 +20,12 @@ module protocol_test::withdraw_collateral_t {
     market: &mut Market,
     decimalsRegistry: &CoinDecimalsRegistry,
     withdrawAmount: u64,
+    price_feeds: &PriceFeedHolder,
     clock: &Clock,
   ): Balance<T> {
     test_scenario::next_tx(senario, user);
     coin::into_balance(withdraw_collateral::withdraw_collateral<T>(
-      obligation, postionKey, market, decimalsRegistry, withdrawAmount, clock, test_scenario::ctx(senario)
+      obligation, postionKey, market, decimalsRegistry, withdrawAmount, price_feeds, clock, test_scenario::ctx(senario)
     ))
   }
 }

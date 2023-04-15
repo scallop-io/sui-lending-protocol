@@ -13,6 +13,7 @@ module protocol::borrow {
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::interest_model;
   use sui::coin::Coin;
+  use oracle::price_feed::PriceFeedHolder;
 
   const EBorrowTooMuch: u64 = 0;
   const EBorrowTooLittle: u64 = 0;
@@ -31,10 +32,11 @@ module protocol::borrow {
     market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     borrowAmount: u64,
+    price_feeds: &PriceFeedHolder,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let borrowedCoin = borrow<T>(obligation, obligationKey, market, coinDecimalsRegistry, borrowAmount, clock, ctx);
+    let borrowedCoin = borrow<T>(obligation, obligationKey, market, coinDecimalsRegistry, borrowAmount, price_feeds, clock, ctx);
     transfer::public_transfer(borrowedCoin, tx_context::sender(ctx));
   }
   
@@ -44,6 +46,7 @@ module protocol::borrow {
     market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     borrowAmount: u64,
+    price_feeds: &PriceFeedHolder,
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
@@ -67,7 +70,7 @@ module protocol::borrow {
     obligation::accrue_interests(obligation, market);
     // calc the maximum borrow amount
     // If borrow too much, abort
-    let maxBorrowAmount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coinDecimalsRegistry);
+    let maxBorrowAmount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coinDecimalsRegistry, price_feeds);
     assert!(borrowAmount <= maxBorrowAmount, EBorrowTooMuch);
     // increase the debt for obligation
     obligation::increase_debt(obligation, coinType, borrowAmount);

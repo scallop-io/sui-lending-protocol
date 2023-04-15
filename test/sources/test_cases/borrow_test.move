@@ -18,6 +18,7 @@ module protocol_test::borrow_test {
   use protocol_test::risk_model_t::add_risk_model_t;
   use test_coin::eth::ETH;
   use test_coin::usdc::USDC;
+  use oracle::price_feed::{Self, PriceFeedHolder, PriceFeedCap};
   
   #[test]
   public fun borrow_test() {
@@ -31,6 +32,14 @@ module protocol_test::borrow_test {
     let scenario = &mut scenario_value;
     let (market, admin_cap) = app_init(scenario, admin);
     let usdc_interest_params = usdc_interest_model_params();
+
+    price_feed::init_oracle(test_scenario::ctx(scenario));
+    test_scenario::next_tx(scenario, admin);
+    let price_feeds = test_scenario::take_shared<PriceFeedHolder>(scenario);
+    let price_feed_cap = test_scenario::take_from_address<PriceFeedCap>(scenario, admin);
+    price_feed::add_price_feed<ETH>(&price_feed_cap, &mut price_feeds, 1000, 1); // 1000 USD
+    price_feed::add_price_feed<USDC>(&price_feed_cap, &mut price_feeds, 1, 1); // 1 USD
+    test_scenario::next_tx(scenario, admin);
 
     let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
     test_scenario::next_tx(scenario, admin);
@@ -60,12 +69,14 @@ module protocol_test::borrow_test {
     test_scenario::next_tx(scenario, borrower);
     clock_lib::increment_for_testing(&mut clock, 100);
     let borrow_amount = 699 * math::pow(10, usdc_decimals);
-    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &clock);
+    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &price_feeds, &clock);
     assert!(balance::value(&borrowed) == borrow_amount, 0);
     balance::destroy_for_testing(borrowed);
     
     clock_lib::destroy_for_testing(clock);
 
+    test_scenario::return_to_address(admin, price_feed_cap);
+    test_scenario::return_shared(price_feeds);
     test_scenario::return_shared(coin_decimals_registry);
     test_scenario::return_shared(market);
     test_scenario::return_shared(obligation);

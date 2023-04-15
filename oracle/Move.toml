@@ -1,13 +1,11 @@
 [package]
-name = "Protocol"
-version = "0.0.1"
+name="Oracle"
+version="0.0.1"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "devnet" }
 Math = { local = "../math" }
 X = { local = "../x" }
-TestCoin = { local = "../test_coin" }
-Oracle = { local = "../oracle" }
 
 [addresses]
-protocol ="0x0"
+oracle="0x0"

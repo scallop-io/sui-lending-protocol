@@ -5,13 +5,14 @@ module protocol::debt_value {
   use math::fixed_point32_empower;
   use protocol::obligation::{Self, Obligation};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
-  use protocol::price::value_usd;
   use protocol::interest_model as interest_model_lib;
   use protocol::market::{Self as market_lib, Market};
+  use oracle::price_feed::{Self, PriceFeedHolder};
   
   public fun debts_value_usd(
     obligation: &Obligation,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
+    price_feeds: &PriceFeedHolder,
   ): FixedPoint32 {
     let debtTypes = obligation::debt_types(obligation);
     let totalValudInUsd = fixed_point32_empower::zero();
@@ -20,8 +21,9 @@ module protocol::debt_value {
       let debtType = *vector::borrow(&debtTypes, i);
       let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
       let (debtAmount, _) = obligation::debt(obligation, debtType);
-      let coinValueInUsd = value_usd(debtType, debtAmount, decimals);
-      totalValudInUsd = fixed_point32_empower::add(totalValudInUsd, coinValueInUsd);
+      let price_feed = price_feed::price_feed(price_feeds, debtType);
+      let coin_value_in_usd = price_feed::calculate_coin_in_usd(price_feed, debtAmount, decimals);
+      totalValudInUsd = fixed_point32_empower::add(totalValudInUsd, coin_value_in_usd);
       i = i + 1;
     };
     totalValudInUsd
@@ -31,6 +33,7 @@ module protocol::debt_value {
     obligation: &Obligation,
     coinDecimalsRegsitry: &CoinDecimalsRegistry,
     market: &Market,
+    price_feeds: &PriceFeedHolder,
   ): FixedPoint32 {
     let debtTypes = obligation::debt_types(obligation);
     let totalValueInUsd = fixed_point32_empower::zero();
@@ -41,8 +44,9 @@ module protocol::debt_value {
       let borrow_weight = interest_model_lib::borrow_weight(interest_model);
       let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
       let (debtAmount, _) = obligation::debt(obligation, debtType);
-      let coinValueInUsd = value_usd(debtType, debtAmount, decimals);
-      let weightedValueInUsd = fixed_point32_empower::mul(coinValueInUsd, borrow_weight);
+      let price_feed = price_feed::price_feed(price_feeds, debtType);
+      let coin_value_in_usd = price_feed::calculate_coin_in_usd(price_feed, debtAmount, decimals);
+      let weightedValueInUsd = fixed_point32_empower::mul(coin_value_in_usd, borrow_weight);
       totalValueInUsd = fixed_point32_empower::add(totalValueInUsd, weightedValueInUsd);
       i = i + 1;
     };

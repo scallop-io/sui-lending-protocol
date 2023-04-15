@@ -13,6 +13,7 @@ module protocol::liquidate {
   use sui::tx_context::TxContext;
   use sui::transfer;
   use sui::tx_context;
+  use oracle::price_feed::PriceFeedHolder;
 
   const ECantBeLiquidated: u64 = 0;
   
@@ -21,10 +22,11 @@ module protocol::liquidate {
     market: &mut Market,
     availableRepayBalance: Balance<DebtType>,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
+    price_feeds: &PriceFeedHolder,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let (remainCoin, collateralCoin) = liquidate<DebtType, CollateralType>(obligation, market, availableRepayBalance, coinDecimalsRegistry, clock, ctx);
+    let (remainCoin, collateralCoin) = liquidate<DebtType, CollateralType>(obligation, market, availableRepayBalance, coinDecimalsRegistry, price_feeds, clock, ctx);
     transfer::public_transfer(remainCoin, tx_context::sender(ctx));
     transfer::public_transfer(collateralCoin, tx_context::sender(ctx));
   }
@@ -34,6 +36,7 @@ module protocol::liquidate {
     market: &mut Market,
     availableRepayBalance: Balance<DebtType>,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
+    price_feeds: &PriceFeedHolder,
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Coin<DebtType>, Coin<CollateralType>) {
@@ -46,7 +49,7 @@ module protocol::liquidate {
     // Calc liquidation amounts for the given debt type
     let availableRepayAmount = balance::value(&availableRepayBalance);
     let (repayOnBehalf, repayRevenue, liqAmount) =
-      liquidation_amounts<DebtType, CollateralType>(obligation, market, coinDecimalsRegistry, availableRepayAmount);
+      liquidation_amounts<DebtType, CollateralType>(obligation, market, coinDecimalsRegistry, availableRepayAmount, price_feeds);
     assert!(liqAmount > 0, ECantBeLiquidated);
     
     // withdraw the collateral balance from obligation

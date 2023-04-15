@@ -10,6 +10,7 @@ module protocol_test::borrow_t {
   use sui::balance::Balance;
   use sui::coin;
   use sui::clock::Clock;
+  use oracle::price_feed::PriceFeedHolder;
   
   public fun borrow_t<T>(
     scenario: &mut Scenario,
@@ -18,9 +19,10 @@ module protocol_test::borrow_t {
     market: &mut Market,
     coinDecimalsRegistry: &CoinDecimalsRegistry,
     borrowAmount: u64,
+    price_feeds: &PriceFeedHolder,
     clock: &Clock,
   ): Balance<T> {
     let ctx = test_scenario::ctx(scenario);
-    coin::into_balance(borrow::borrow<T>(postion, obligationKey, market, coinDecimalsRegistry, borrowAmount, clock, ctx))
+    coin::into_balance(borrow::borrow<T>(postion, obligationKey, market, coinDecimalsRegistry, borrowAmount, price_feeds, clock, ctx))
   }
 }

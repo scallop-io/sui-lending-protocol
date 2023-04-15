@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@scallop-dao/sui-kit": "^0.30.3"
+    "@scallop-dao/sui-kit": "^0.32.6",
+    "@scallop-dao/sui-package-kit": "^0.32.0"
   },
   "devDependencies": {
     "dotenv": "^16.0.3",

@@ -21,7 +21,7 @@ module protocol::open_obligation {
   
   /// create a new obligation and obligation key object and take it
   /// this function offers flexibility by leveraging the uses of programmability on Sui
-  public fun create_and_take_obligation(ctx: &mut TxContext): (Obligation, ObligationKey, ObligationWrapper) {
+  public fun open_obligation(ctx: &mut TxContext): (Obligation, ObligationKey, ObligationWrapper) {
     let (obligation, obligation_key) = obligation::new(ctx);
     let obligation_wrapper = ObligationWrapper {
       obligation_id: object::id(&obligation),

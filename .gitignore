@@ -39,3 +39,6 @@ next-env.d.ts
 
 # logs
 *.log*
+
+# generate files
+object-ids.json

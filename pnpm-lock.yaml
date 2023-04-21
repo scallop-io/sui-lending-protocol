@@ -1,6 +1,12 @@
 lockfileVersion: '6.0'
 
 dependencies:
+  '@mysten/sui.js':
+    specifier: ^0.32.1
+    version: 0.32.1(typescript@5.0.3)
+  '@scallop-dao/scallop-sui':
+    specifier: ^0.1.0
+    version: 0.1.0(typescript@5.0.3)
   '@scallop-dao/sui-kit':
     specifier: ^0.32.10
     version: 0.32.10(@mysten/sui.js@0.32.1)
@@ -119,6 +125,20 @@ packages:
 
   /@open-draft/until@1.0.3:
     resolution: {integrity: sha512-Aq58f5HiWdyDlFffbbSjAlv596h/cOnt2DO1w3DOC7OJ5EHs0hd/nycJfiu9RJbT6Yk6F1knnRRXNSpxoIVZ9Q==}
+    dev: false
+
+  /@scallop-dao/scallop-sui@0.1.0(typescript@5.0.3):
+    resolution: {integrity: sha512-YlUBxmrUH/EDLHp34iojW1gZ7KOt/x8t0rwQQCZMob5BoNmykf/o/oFoC344FTdSwZYv4RYj9su6BKZTJIw2sg==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@mysten/sui.js': 0.32.1(typescript@5.0.3)
+      '@scallop-dao/sui-kit': 0.32.10(@mysten/sui.js@0.32.1)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - supports-color
+      - typescript
+      - utf-8-validate
     dev: false
 
   /@scallop-dao/sui-kit@0.32.10(@mysten/sui.js@0.32.1):

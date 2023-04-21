@@ -15,8 +15,8 @@ See the official documentation: [How to install SUI cli](https://docs.sui.io/dev
   ```bash
   cp .env.example .env
   ```
-  - `MNEMONICS`: The mnemonics of the account that will be used to deploy the contracts, make sure the account has enough SUI to pay for the transaction fees
-  - `SUI_NETWORK_TYPE`: The network type of the SUI network. It can be `devnet`, `testnet` or `mainnet`
+  - `SECRET_KEY`: The secret key of the account that will be used to deploy the contracts, make sure the account has enough SUI to pay for the transaction fees
+  - `SUI_NETWORK_TYPE`: The network type of the SUI network. It can be `devnet`, `testnet`, `mainnet` or `localhost`
 
 4. Publish the contracts
   ```bash

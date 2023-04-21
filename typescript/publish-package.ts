@@ -1,18 +1,18 @@
 import path from "path";
 import dotenv from "dotenv";
-import { SuiKit } from "@scallop-dao/sui-kit";
+import { SuiKit, NetworkType } from "@scallop-dao/sui-kit";
 import { SuiPackagePublisher } from "@scallop-dao/sui-package-kit";
 dotenv.config();
 
 (async() => {
-  const mnemonics = process.env.MNEMONICS;
-  const networkType = (process.env.NETWORK_TYPE || 'devnet') as 'devnet' | 'testnet' | 'mainnet';
-  const suiKit = new SuiKit({ mnemonics, networkType });
+  const secretKey = process.env.SECRET_KEY;
+  const networkType = (process.env.SUI_NETWORK_TYPE || 'devnet') as NetworkType;
+  const suiKit = new SuiKit({ secretKey, networkType });
 
   const packagePath = path.join(__dirname, '../query');
   const publisher = new SuiPackagePublisher();
   const signer = suiKit.getSigner();
-  const gasBudget = 10**9;
+  const gasBudget = 10**10;
   const result = await publisher.publishPackage(packagePath, signer, { gasBudget, withUnpublishedDependencies: true, skipFetchLatestGitDeps: false });
   console.log('packageId: ' + result.packageId);
 })();

@@ -34,7 +34,7 @@ module protocol::open_obligation {
   /// return the obligation with the obligation hot potato
   /// this function makes sure that the obligation is returned with the obligation hot potato
   /// So that the obligation is always shared in a transaction
-  public fun return_obligation(obligation: Obligation, obligation_hot_potato: ObligationHotPotato, ctx: &mut TxContext) {
+  public fun return_obligation(obligation: Obligation, obligation_hot_potato: ObligationHotPotato) {
     let ObligationHotPotato { obligation_id } = obligation_hot_potato;
     assert!(obligation_id == object::id(&obligation), EInvalidObligation);
     transfer::public_share_object(obligation);

@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@scallop-dao/sui-kit": "^0.32.10",
-    "@scallop-dao/sui-package-kit": "^0.32.1"
+    "@scallop-dao/sui-package-kit": "^0.32.4"
   },
   "devDependencies": {
     "dotenv": "^16.0.3",

@@ -11,7 +11,7 @@ module protocol::open_obligation {
     obligation_id: ID, 
   }
 
-  const EInvalidObligation: u64 = 0x10000;
+  const EInvalidObligation: u64 = 0x50001;
 
   /// Create a new obligation and share it
   /// At the same time, the obligation key is transferred to the sender

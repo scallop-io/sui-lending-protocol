@@ -180,12 +180,13 @@ module protocol::market {
     borrowedBalance
   }
   
+  /// IMPORTANT: `accrue_all_interests` is not called here!
+  /// `accrue_all_interests` can be called independently so we can expect 
+  /// how much of the current debt after the interest accrued before repaying
   public(friend) fun handle_repay<T>(
     self: &mut Market,
     balance: Balance<T>,
-    now: u64,
   ) {
-    accrue_all_interests(self, now);
     reserve::handle_repay(&mut self.vault, balance);
     update_interest_rates(self);
   }

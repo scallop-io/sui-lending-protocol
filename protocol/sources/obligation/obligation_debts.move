@@ -3,9 +3,8 @@ module protocol::obligation_debts {
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
-  use math::fr;
-  use math::mix;
-  
+  use std::fixed_point32;
+
   struct Debt has copy, store {
     amount: u64,
     borrowIndex: u64
@@ -51,7 +50,7 @@ module protocol::obligation_debts {
     newBorrowIndex: u64
   ) {
     let debt = wit_table::borrow_mut(ObligationDebts{}, debts, typeName);
-    debt.amount = mix::mul_ifrT(debt.amount, fr::fr(newBorrowIndex, debt.borrowIndex));
+    debt.amount = fixed_point32::multiply_u64(debt.amount, fixed_point32::create_from_rational(newBorrowIndex, debt.borrowIndex));
     debt.borrowIndex = newBorrowIndex;
   }
   

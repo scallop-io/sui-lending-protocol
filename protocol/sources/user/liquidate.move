@@ -15,7 +15,7 @@ module protocol::liquidate {
   use sui::tx_context;
   use oracle::price_feed::PriceFeedHolder;
 
-  const ECantBeLiquidated: u64 = 0;
+  const ECantBeLiquidated: u64 = 0x30001;
   
   public fun liquidate_entry<DebtType, CollateralType>(
     obligation: &mut Obligation,

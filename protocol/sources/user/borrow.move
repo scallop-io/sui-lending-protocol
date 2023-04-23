@@ -15,8 +15,8 @@ module protocol::borrow {
   use sui::coin::Coin;
   use oracle::price_feed::PriceFeedHolder;
 
-  const EBorrowTooMuch: u64 = 0;
-  const EBorrowTooLittle: u64 = 0;
+  const EBorrowTooMuch: u64 = 0x10001;
+  const EBorrowTooLittle: u64 = 0x10002;
   
   struct BorrowEvent has copy, drop {
     borrower: address,

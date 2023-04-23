@@ -16,6 +16,12 @@ module protocol_test::mint_test {
   
   #[test]
   public fun mint_test() {
+    // Scenario:
+    // 1. `lender A` deposit 10000 USDC
+    //    - assert that lender A get 10000 market coin of USDC
+    // 2. `lender B` deposit 10000 USDC
+    //    - assert that lender B get 10000 market coin of USDC
+
     let usdc_decimals = 9;
     
     let admin = @0xAD;

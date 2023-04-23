@@ -22,6 +22,14 @@ module protocol_test::borrow_test {
   
   #[test]
   public fun borrow_test() {
+    // Scenario:
+    // 0. the price of USDC = $1 and the price of ETH = $1000
+    // 1. `lender` deposit 10000 USDC
+    // 2. `borrower` deposit collateral 1 ETH
+    // 3. `borrower` borrow 699 USDC
+    //    - this action is success, because the collateral of the borrower is worth of 1000 USD. 
+    //      and 699 USDC borrow still satisfy 0.7 collateral factor
+
     let usdc_decimals = 9;
     let eth_decimals = 9;
     

@@ -26,6 +26,17 @@ module protocol_test::repay_test {
   
   #[test]
   public fun repay_test() {
+    // Scenario:
+    // 0. the price of USDC = $1 and the price of ETH = $1000
+    // 1. `lender` deposit 10000 USDC
+    // 2. `borrower` deposit collateral 1 ETH
+    // 3. `borrower` borrow 100 USDC
+    // 4a. 100 seconds is passed, calculated the current debt of `borrower` including the interest
+    // 4b. `borrower` repay 100 USDC + expected interest
+    // 5. `borrower` withdraw all collateral he has (1 ETH)
+    //    - if no debt left, this function should be success
+    //    - otherwise, the collateral should satisfy 70% of the debt and it will cause this withdraw function to fail
+
     let usdc_decimals = 9;
     let eth_decimals = 9;
     

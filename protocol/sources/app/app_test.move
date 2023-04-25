@@ -17,6 +17,7 @@ module protocol::app_test {
   use sui::coin::CoinMetadata;
 
   use oracle::price_feed::{Self, PriceFeedHolder, PriceFeedCap};
+  use switchboard::switchboard_admin;
 
   public entry fun init_market(
     market: &mut Market,
@@ -37,6 +38,7 @@ module protocol::app_test {
     coin_decimals_registry::register_decimals<ETH>(registry, coinMetaEth);
     let usdcCoin = usdc::mint(usdcTreasury, ctx);
     init_price_feeds(priceFeedCap, priceFeeds);
+    init_switchboard(clock, ctx);
     mint::mint_entry(market, usdcCoin, clock, ctx);
   }
 
@@ -143,5 +145,21 @@ module protocol::app_test {
   ){
     price_feed::add_price_feed<USDC>(priceFeedCap, priceFeeds, 1, 1); // $1
     price_feed::add_price_feed<ETH>(priceFeedCap, priceFeeds, 2000, 1); // $2000
+  }
+
+  fun init_switchboard(
+    clock: &Clock,
+    ctx: &mut TxContext
+  ) {
+    let (eth_price_aggr, eth_price_aggr_hp) =  switchboard_admin::new_aggregator(b"ETH/USD", ctx);
+    let (usdc_price_aggr, usdc_price_aggr_hp) =  switchboard_admin::new_aggregator(b"USDC/USD", ctx);
+
+    // Update the price of ETH to $2000
+    switchboard_admin::update_price(&mut eth_price_aggr, 2000, 1, false, clock, ctx);
+    // Update the price of USDC to $1
+    switchboard_admin::update_price(&mut usdc_price_aggr, 1, 1, false, clock, ctx);
+
+    switchboard_admin::share_aggregator(eth_price_aggr, eth_price_aggr_hp);
+    switchboard_admin::share_aggregator(usdc_price_aggr, usdc_price_aggr_hp);
   }
 }

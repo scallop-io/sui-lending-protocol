@@ -1,6 +1,7 @@
 import { PackagePublishResult } from '@scallop-dao/sui-package-kit';
+import { parseSwitchboardOracle } from './parse-object';
 
-export const dumpObjectIds = (result: PackagePublishResult) => {
+export const dumpObjectIds = async (result: PackagePublishResult) => {
   const createdObjects = result.created;
 
   const testCoinData = {
@@ -30,6 +31,11 @@ export const dumpObjectIds = (result: PackagePublishResult) => {
   const oracleData = {
     priceFeedHolderId: '',
     priceFeedCapId: '',
+  }
+
+  const switchboardRegistryData = {
+    registryId: '',
+    registryCapId: '',
   }
 
   const pkgId = result.packageId;
@@ -73,12 +79,24 @@ export const dumpObjectIds = (result: PackagePublishResult) => {
     }
   }
 
+  const fillSwitchboardRegistryData = (obj: { type: string, objectId: string }) => {
+    const switchboardRegistryType = `${pkgId}::switchboard_registry::SwitchboardRegistry`;
+    const switchboardRegistryCapType = `${pkgId}::switchboard_registry::SwitchboardRegistryCap`;
+
+    if (obj.type === switchboardRegistryType) {
+      switchboardRegistryData.registryId = obj.objectId;
+    } else if (obj.type === switchboardRegistryCapType) {
+      switchboardRegistryData.registryCapId = obj.objectId;
+    }
+  }
+
   for (const obj of createdObjects) {
     fillCoinData(obj, 'usdc');
     fillCoinData(obj, 'eth');
     fillCoinData(obj, 'btc');
     fillMarketData(obj);
     fillOracleData(obj);
+    fillSwitchboardRegistryData(obj);
   }
 
   const packageData = {
@@ -86,5 +104,5 @@ export const dumpObjectIds = (result: PackagePublishResult) => {
     upgradeCapId: result.upgradeCapId,
   }
 
-  return { testCoinData, marketData, oracleData, packageData }
+  return { testCoinData, marketData, oracleData, packageData, switchboardRegistryData }
 }

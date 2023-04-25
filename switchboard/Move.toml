@@ -1,12 +1,11 @@
 [package]
-name="Oracle"
-version="0.0.1"
+name = "SwitchboardStdLib"
+version = "0.0.1"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "devnet" }
-Math = { local = "../math" }
-X = { local = "../x" }
-SwitchboardStdLib = { local = "../switchboard" }
 
 [addresses]
-oracle="0x0"
+switchboard= "0x0"
+std = "0x1"
+sui =  "0x2"

@@ -1,12 +1,9 @@
-import { SuiKit, NetworkType } from "@scallop-dao/sui-kit";
+import { RawSigner } from "@mysten/sui.js";
 import { SuiPackagePublisher } from "@scallop-dao/sui-package-kit";
 
-export const publishPackage = async (pkgPath: string, secretKey: string, networkType: NetworkType) => {
-  const suiKit = new SuiKit({ secretKey, networkType });
-
+export const publishPackage = async (pkgPath: string, signer: RawSigner) => {
   const publisher = new SuiPackagePublisher();
-  const signer = suiKit.getSigner();
-  const gasBudget = 3 * 10 ** 9;
+  const gasBudget = 10 ** 10;
   return await publisher.publishPackage(pkgPath, signer, {
     gasBudget,
     withUnpublishedDependencies: true,

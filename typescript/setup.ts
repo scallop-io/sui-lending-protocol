@@ -1,13 +1,12 @@
 import path from "path";
-import dotenv from "dotenv";
-import { NetworkType } from "@scallop-dao/sui-kit";
 import { ScallopSui } from "@scallop-dao/scallop-sui";
+import { secretKey, networkType, suiKit } from "./sui-kit-instance";
 import { publishPackage } from "./publish-package";
 import { dumpObjectIds } from "./dump-object-ids";
 import { parseOpenObligationResponse } from "./parse-open-obligation-response";
+import { parseInitMarketTransaction } from "./parse-init-market-transaction";
+import { registerSwitchboardOracles } from "./register-switchboard-oracles";
 import { writeAsJson } from "./write-as-json";
-
-dotenv.config();
 
 const delay = (ms: number) => {
   console.log(`delay ${ms}ms...`)
@@ -15,11 +14,14 @@ const delay = (ms: number) => {
 }
 
 export const setup = async () => {
-  const secretKey = process.env.SECRET_KEY || '';
-  const networkType = (process.env.SUI_NETWORK_TYPE || 'devnet') as NetworkType;
   const packagePath = path.join(__dirname, '../query');
-  const publishResult = await publishPackage(packagePath, secretKey, networkType);
-  const objectIds = dumpObjectIds(publishResult);
+  const publishResult = await publishPackage(packagePath, suiKit.getSigner());
+  if (!publishResult.packageId) {
+    console.log(publishResult.publishTxn);
+    throw new Error('Failed to publish package');
+  }
+
+  const objectIds = await dumpObjectIds(publishResult);
 
   await delay(3000);
 
@@ -40,19 +42,37 @@ export const setup = async () => {
     objectIds.testCoinData.usdc.metadataId,
     objectIds.testCoinData.eth.metadataId
   );
-  txBuilder.suiTxBlock.txBlock.setGasBudget(3 * 10 ** 9);
+  txBuilder.suiTxBlock.txBlock.setGasBudget(6 * 10 ** 9);
+  console.log('init market...')
   const initResult = await scallopSui.submitTxn(txBuilder);
-  console.log(initResult)
+  console.log('init market result done!')
+  const initMarketResult = await parseInitMarketTransaction(initResult);
 
   await delay(3000);
 
   // open obligation and add collateral
+  console.log('open obligation and add collateral...')
   const ethCoinType = `${objectIds.packageData.packageId}::eth::ETH`;
   const res = await scallopSui.openObligationAndAddCollateral(100, ethCoinType)
   const obligationData = parseOpenObligationResponse(res);
+  console.log('open obligation and add collateral done!')
+
+  // register switchboard aggregators
+  console.log('register switchboard oracles...')
+  const registerRes = await registerSwitchboardOracles(
+    objectIds.packageData.packageId,
+    objectIds.switchboardRegistryData.registryCapId,
+    objectIds.switchboardRegistryData.registryId,
+    initMarketResult.switchboardData.ethAggregatorId,
+    initMarketResult.switchboardData.usdcAggregatorId,
+  );
+  console.log(registerRes);
+  console.log('register switchboard oracles done!');
 
   // Write the object ids to a file in json format
-  writeAsJson({...objectIds, obligationData }, 'object-ids.json');
+  console.log('write object ids to file: object-ids.json')
+  writeAsJson({...objectIds, obligationData, switchboard: initMarketResult.switchboardData }, 'object-ids.json');
+  console.log('write object ids to file done!')
 }
 
 setup();

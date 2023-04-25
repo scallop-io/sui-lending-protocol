@@ -10,68 +10,95 @@ module protocol::liquidation_evaluator {
   use protocol::debt_value::debts_value_usd_with_weight;
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::risk_model;
-  use oracle::price_feed::{Self, PriceFeedHolder};
-  
+  use oracle::switchboard_adaptor::SwitchboardBundle;
+  use oracle::multi_oracle_strategy;
+
+  const ENotLiquidatable: u64 = 0;
+
   // calculate the actual repay amount, actual liquidate amount, actual market amount
   public fun liquidation_amounts<DebtType, CollateralType>(
     obligation: &Obligation,
     market: &Market,
-    coinDecimalsRegsitry: &CoinDecimalsRegistry,
-    availableRepayAmount: u64,
-    price_feeds: &PriceFeedHolder,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    available_repay_amount: u64,
+    switchboard_bundle: &SwitchboardBundle,
   ): (u64, u64, u64) {
-    let debtType = get<DebtType>();
-    let collateralType = get<CollateralType>();
-    let totalCollateralAmount = obligation::collateral(obligation, collateralType);
-    let debtDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
-    let collateralDecimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, collateralType);
-    let debtScale = math::pow(10, debtDecimals);
-    let collateralScale = math::pow(10, collateralDecimals);
-    let interestModel = market::interest_model(market, debtType);
-    let borrowWeight = interest_model::borrow_weight(interestModel);
-    let riskModel = market::risk_model(market, collateralType);
-    let liqDiscount = risk_model::liq_discount(riskModel);
-    let liqPenalty = risk_model::liq_penalty(riskModel);
-    let liqFactor = risk_model::liq_factor(riskModel);
-    let liqRevenueFactor = risk_model::liq_revenue_factor(riskModel);
-    let debtPrice = price_feed::price(price_feed::price_feed(price_feeds, debtType));
-    let collateralPrice = price_feed::price(price_feed::price_feed(price_feeds, collateralType));
-    
-    let collateralsValue = collaterals_value_usd_for_liquidation(obligation, market, coinDecimalsRegsitry, price_feeds);
-    let weighted_debts_value = debts_value_usd_with_weight(obligation, coinDecimalsRegsitry, market, price_feeds);
-    if (fixed_point32_empower::gt(weighted_debts_value, collateralsValue) == false) return (0, 0, 0);
-   
-    let maxLiqValue = fixed_point32_empower::div(
-      fixed_point32_empower::sub(weighted_debts_value, collateralsValue),
-      fixed_point32_empower::sub(fixed_point32_empower::mul(borrowWeight, fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), liqPenalty)), liqFactor),
+
+    // get all the necessary parameters for liquidation
+    let debt_type = get<DebtType>();
+    let collateral_type = get<CollateralType>();
+    let total_collateral_amount = obligation::collateral(obligation, collateral_type);
+    let debt_decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
+    let collateral_decimals = coin_decimals_registry::decimals(coin_decimals_registry, collateral_type);
+    let debt_scale = math::pow(10, debt_decimals);
+    let collateral_scale = math::pow(10, collateral_decimals);
+    let interest_model = market::interest_model(market, debt_type);
+    let borrow_weight = interest_model::borrow_weight(interest_model);
+    let risk_model = market::risk_model(market, collateral_type);
+    let liq_discount = risk_model::liq_discount(risk_model);
+    let liq_penalty = risk_model::liq_penalty(risk_model);
+    let liq_factor = risk_model::liq_factor(risk_model);
+    let liq_revenue_factor = risk_model::liq_revenue_factor(risk_model);
+    let debt_price = multi_oracle_strategy::get_price(switchboard_bundle, debt_type);
+    let collateral_price = multi_oracle_strategy::get_price(switchboard_bundle, collateral_type);
+
+    // calculate the value of collaterals and debts for liquidation
+    let collaterals_value = collaterals_value_usd_for_liquidation(obligation, market, coin_decimals_registry, switchboard_bundle);
+    let weighted_debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, switchboard_bundle);
+
+    // when collaterals_value >= weighted_debts_value, the obligation is not liquidatable
+    if (fixed_point32_empower::gt(weighted_debts_value, collaterals_value) == false) return (0, 0, 0);
+
+    // max_liq_value = (weighted_debts_value - collaterals_value) / (borrow_weight * (1 - liq_penalty) - liq_factor)
+    let max_liq_value = fixed_point32_empower::div(
+      fixed_point32_empower::sub(weighted_debts_value, collaterals_value),
+      fixed_point32_empower::sub(
+        fixed_point32_empower::mul(
+          borrow_weight,
+          fixed_point32_empower::sub(
+            fixed_point32_empower::from_u64(1),
+            liq_penalty)
+        ),
+        liq_factor
+      ),
     );
-    
-    let maxLiqAmount = fixed_point32::multiply_u64(
-      collateralScale,
-      fixed_point32_empower::div(maxLiqValue, collateralPrice)
+
+    // max_liq_amount = max_liq_value * collateral_scale / collateral_price
+    let max_liq_amount = fixed_point32::multiply_u64(
+      collateral_scale,
+      fixed_point32_empower::div(max_liq_value, collateral_price)
     );
-    let maxLiqAmount = math::min(maxLiqAmount, totalCollateralAmount);
-    
-    let exchangeRate = fixed_point32_empower::mul(
-      fixed_point32::create_from_rational(collateralScale, debtScale),
-      fixed_point32_empower::div(debtPrice, collateralPrice),
+    // max_liq_amount = min(max_liq_amount, total_collateral_amount)
+    let max_liq_amount = math::min(max_liq_amount, total_collateral_amount);
+
+    // exchange_rate = collateral_scale / debt_scale * debt_price / collateral_price
+    let exchange_rate = fixed_point32_empower::mul(
+      fixed_point32::create_from_rational(collateral_scale, debt_scale),
+      fixed_point32_empower::div(debt_price, collateral_price),
     );
-    let liqExchangeRate = fixed_point32_empower::div(
-      exchangeRate,
-      fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), liqDiscount)
+    // liq_exchange_rate = exchange_rate / (1 - liq_discount)
+    let liq_exchange_rate = fixed_point32_empower::div(
+      exchange_rate,
+      fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), liq_discount)
     );
-    
-    let liqAmountAtBest = fixed_point32::multiply_u64(availableRepayAmount, liqExchangeRate);
-  
-    let actualRepayAmount = availableRepayAmount;
-    let actualLiqAmount = liqAmountAtBest;
-    if (actualLiqAmount > maxLiqAmount) {
-      actualLiqAmount = maxLiqAmount;
-      actualRepayAmount = fixed_point32::divide_u64(maxLiqAmount, liqExchangeRate);
+
+    // liq_amount_at_best = available_repay_amount * liq_exchange_rate
+    let liq_amount_at_best = fixed_point32::multiply_u64(available_repay_amount, liq_exchange_rate);
+
+    // actual_liq_amount = min(liq_amount_at_best, max_liq_amount)
+    // actual repay amount = min(available_repay_amount, actual liquidate amount / liq_exchange_rate)
+    let actual_repay_amount = available_repay_amount;
+    let actual_liq_amount = liq_amount_at_best;
+    if (actual_liq_amount > max_liq_amount) {
+      actual_liq_amount = max_liq_amount;
+      actual_repay_amount = fixed_point32::divide_u64(max_liq_amount, liq_exchange_rate);
     };
-    
-    let actualRepayRevenue = fixed_point32::multiply_u64(actualRepayAmount, liqRevenueFactor);
-    let actualRepayOnBehalf = actualRepayAmount - actualRepayRevenue;
-    (actualRepayOnBehalf, actualRepayRevenue, actualLiqAmount)
+
+    // actual_repay_revenue is the reserve for the protocol when liquidating
+    let actual_repay_revenue = fixed_point32::multiply_u64(actual_repay_amount, liq_revenue_factor);
+    // actual_replay_on_behalf is the amount that is repaid on behalf of the borrower, which should be deducted from the borrower's obligation
+    let actual_replay_on_behalf = actual_repay_amount - actual_repay_revenue;
+
+    (actual_replay_on_behalf, actual_repay_revenue, actual_liq_amount)
   }
 }

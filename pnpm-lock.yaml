@@ -11,8 +11,8 @@ dependencies:
     specifier: ^0.32.10
     version: 0.32.10(@mysten/sui.js@0.32.1)
   '@scallop-dao/sui-package-kit':
-    specifier: ^0.32.4
-    version: 0.32.4(typescript@5.0.3)
+    specifier: ../sui-package-kit
+    version: link:../sui-package-kit
 
 devDependencies:
   dotenv:
@@ -154,22 +154,6 @@ packages:
       superstruct: 1.0.3
       tmp: 0.2.1
       ts-retry-promise: 0.7.0
-    dev: false
-
-  /@scallop-dao/sui-package-kit@0.32.4(typescript@5.0.3):
-    resolution: {integrity: sha512-BIn6uaZ6BRrMed6acCm7SvhM1Xcvb0fWv/EHWnc9C737YyMimJ3OrSh1p3cVaW4qZjAK5e/gP4NihBNATnqmsw==}
-    engines: {node: '>=16'}
-    dependencies:
-      '@mysten/sui.js': 0.32.1(typescript@5.0.3)
-      colorts: 0.1.63
-      superstruct: 1.0.3
-      tmp: 0.2.1
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - supports-color
-      - typescript
-      - utf-8-validate
     dev: false
 
   /@scure/base@1.1.1:

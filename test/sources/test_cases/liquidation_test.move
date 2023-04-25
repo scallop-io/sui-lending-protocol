@@ -6,6 +6,8 @@ module protocol_test::liquidation_test {
   use sui::math;
   use sui::balance;
   use sui::clock::Self as clock_lib;
+  use protocol::collateral_value;
+  use protocol::debt_value;
   use protocol_test::app_t::app_init;
   use protocol_test::open_obligation_t::open_obligation_t;
   use protocol_test::mint_t::mint_t;
@@ -37,6 +39,7 @@ module protocol_test::liquidation_test {
     //    - calculated how coin used to repay the debt
     //    - convert how many amount of returned collateral in debt type coin, also deduct the discount
     //    - check if they are equal
+    // 7. assert the debt should be healthy
     
     let usdc_decimals = 9;
     let eth_decimals = 9;
@@ -122,6 +125,11 @@ module protocol_test::liquidation_test {
 
     assert!(repaid_debt_amount == discounted_collateral_in_debt_coin_amount, 1);
 
+    let collaterals_value_with_liq_factor = collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &price_feeds);
+    let weighted_debts_value = debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &price_feeds);
+
+    assert!(fixed_point32_empower::gt(weighted_debts_value, collaterals_value_with_liq_factor) == false, 2);
+
     coin::burn_for_testing(coin_debt);
     coin::burn_for_testing(coin_collateral);
 
@@ -152,6 +160,7 @@ module protocol_test::liquidation_test {
     //    - calculated how coin used to repay the debt
     //    - convert how many amount of returned collateral in debt type coin, also deduct the discount
     //    - check if they are equal
+    // 7. assert the debt should be healthy
     
     let usdc_decimals = 9;
     let eth_decimals = 9;
@@ -237,6 +246,11 @@ module protocol_test::liquidation_test {
     );
     let discounted_collateral_debt_coin_amount = fixed_point32::divide_u64(coin::value(&coin_collateral), liq_exchange_rate);
     assert!(repaid_debt_amount == discounted_collateral_debt_coin_amount, 1);
+
+    let collaterals_value_with_liq_factor = collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &price_feeds);
+    let weighted_debts_value = debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &price_feeds);
+
+    assert!(fixed_point32_empower::gt(weighted_debts_value, collaterals_value_with_liq_factor) == false, 2);
 
     coin::burn_for_testing(coin_debt);
     coin::burn_for_testing(coin_collateral);

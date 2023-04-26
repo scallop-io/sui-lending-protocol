@@ -8,7 +8,6 @@ module oracle::price_feed {
   use sui::math;
   use x::wit_table::{Self, WitTable};
   use math::fixed_point32_empower;
-  use oracle::switchboard_adaptor;
 
 
   const ECoinTypeDidntMatch: u64 = 0x10000;

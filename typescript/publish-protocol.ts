@@ -1,7 +1,18 @@
-import { PackagePublishResult } from '@scallop-dao/sui-package-kit';
-import { parseSwitchboardOracle } from './parse-object';
+import { RawSigner } from "@mysten/sui.js";
+import { SuiPackagePublisher, PackagePublishResult } from "@scallop-dao/sui-package-kit";
 
-export const dumpObjectIds = async (result: PackagePublishResult) => {
+export const publishProtocol = async (pkgPath: string, signer: RawSigner) => {
+  const publisher = new SuiPackagePublisher();
+  const gasBudget = 10 ** 10;
+  const publishResult = await publisher.publishPackage(pkgPath, signer, {
+    gasBudget,
+    withUnpublishedDependencies: true,
+    skipFetchLatestGitDeps: true
+  });
+  const protocolData = await extractProtocolData(publishResult);
+  return protocolData;
+}
+const extractProtocolData = async (result: PackagePublishResult) => {
   const createdObjects = result.created;
 
   const testCoinData = {
@@ -25,17 +36,15 @@ export const dumpObjectIds = async (result: PackagePublishResult) => {
   const marketData = {
     adminCapId: '',
     marketId: '',
-    CoinDecimalsRegistryId: '',
+    coinDecimalsRegistryId: '',
   }
 
   const oracleData = {
-    priceFeedHolderId: '',
-    priceFeedCapId: '',
-  }
-
-  const switchboardRegistryData = {
-    registryId: '',
-    registryCapId: '',
+    switchboard: {
+      registryId: '',
+      registryCapId: '',
+      bundleId: '',
+    }
   }
 
   const pkgId = result.packageId;
@@ -62,31 +71,23 @@ export const dumpObjectIds = async (result: PackagePublishResult) => {
     if (obj.type === marketType) {
       marketData.marketId = obj.objectId;
     } else if (obj.type === coinDecimalsRegistryType) {
-      marketData.CoinDecimalsRegistryId = obj.objectId;
+      marketData.coinDecimalsRegistryId = obj.objectId;
     } else if (obj.type === adminCapType) {
       marketData.adminCapId = obj.objectId;
     }
   }
 
   const fillOracleData = (obj: { type: string, objectId: string }) => {
-    const priceFeedHolderType = `${pkgId}::price_feed::PriceFeedHolder`;
-    const priceFeedCapType = `${pkgId}::price_feed::PriceFeedCap`;
-
-    if (obj.type === priceFeedHolderType) {
-      oracleData.priceFeedHolderId = obj.objectId;
-    } else if (obj.type === priceFeedCapType) {
-      oracleData.priceFeedCapId = obj.objectId;
-    }
-  }
-
-  const fillSwitchboardRegistryData = (obj: { type: string, objectId: string }) => {
     const switchboardRegistryType = `${pkgId}::switchboard_registry::SwitchboardRegistry`;
     const switchboardRegistryCapType = `${pkgId}::switchboard_registry::SwitchboardRegistryCap`;
+    const switchboardBundleType = `${pkgId}::switchboard_adaptor::SwitchboardBundle`;
 
     if (obj.type === switchboardRegistryType) {
-      switchboardRegistryData.registryId = obj.objectId;
+      oracleData.switchboard.registryId = obj.objectId;
     } else if (obj.type === switchboardRegistryCapType) {
-      switchboardRegistryData.registryCapId = obj.objectId;
+      oracleData.switchboard.registryCapId = obj.objectId;
+    } else if (obj.type === switchboardBundleType) {
+      oracleData.switchboard.bundleId = obj.objectId;
     }
   }
 
@@ -96,7 +97,6 @@ export const dumpObjectIds = async (result: PackagePublishResult) => {
     fillCoinData(obj, 'btc');
     fillMarketData(obj);
     fillOracleData(obj);
-    fillSwitchboardRegistryData(obj);
   }
 
   const packageData = {
@@ -104,5 +104,13 @@ export const dumpObjectIds = async (result: PackagePublishResult) => {
     upgradeCapId: result.upgradeCapId,
   }
 
-  return { testCoinData, marketData, oracleData, packageData, switchboardRegistryData }
+  return {
+    testCoinData,
+    marketData,
+    packageData,
+    oracleData,
+    txn: result.publishTxn,
+  }
 }
+type PromiseResolvedType<T> = T extends Promise<infer R> ? R : never;
+export type ProtocolPublishData = PromiseResolvedType<ReturnType<typeof extractProtocolData>>;

@@ -2,11 +2,33 @@ import {
   SuiTransactionBlockResponse,
   getObjectChanges,
   getObjectFields,
-  SuiObjectChange,
+  SUI_CLOCK_OBJECT_ID
 } from "@mysten/sui.js";
-import { suiKit } from "./sui-kit-instance";
+import { SuiTxBlock } from '@scallop-dao/sui-kit';
+import { suiKit } from './sui-kit-instance';
+import type { ProtocolPublishData } from './publish-protocol';
 
-export const parseInitMarketTransaction = async (suiResponse: SuiTransactionBlockResponse) => {
+export const initMarketForTest = async (data: ProtocolPublishData) => {
+
+  const target = `${data.packageData.packageId}::app_test::init_market`;
+  const suiTxBlock = new SuiTxBlock();
+  suiTxBlock.moveCall(
+    target,
+    [
+      data.marketData.marketId,
+      data.marketData.adminCapId,
+      data.testCoinData.usdc.treasuryId,
+      data.marketData.CoinDecimalsRegistryId,
+      data.testCoinData.usdc.metadataId,
+      data.testCoinData.eth.metadataId,
+      SUI_CLOCK_OBJECT_ID
+    ]);
+  suiTxBlock.txBlock.setGasBudget(6 * 10 ** 9);
+  const txResponse = await suiKit.signAndSendTxn(suiTxBlock);
+  return parseInitMarketTransaction(txResponse);
+}
+
+const parseInitMarketTransaction = async (suiResponse: SuiTransactionBlockResponse) => {
   const objectChanges = getObjectChanges(suiResponse);
   const switchboardData = {
     ethAggregatorId: '',

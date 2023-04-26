@@ -1,3 +1,4 @@
+/// TODO: add events for obligation
 module protocol::open_obligation {
 
   use sui::event::emit;

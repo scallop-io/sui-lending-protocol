@@ -13,8 +13,8 @@ module protocol::deposit_collateral {
   struct CollateralDepositEvent has copy, drop {
     provider: address,
     obligation: ID,
-    depositAsset: TypeName,
-    depositAmount: u64,
+    deposit_asset: TypeName,
+    deposit_amount: u64,
   }
   
   public entry fun deposit_collateral<T>(
@@ -23,14 +23,14 @@ module protocol::deposit_collateral {
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
-    let hasRiskModel = market::has_risk_model(market, get<T>());
-    assert!(hasRiskModel == true, EIllegalCollateralType);
+    let has_risk_model = market::has_risk_model(market, get<T>());
+    assert!(has_risk_model == true, EIllegalCollateralType);
     
     emit(CollateralDepositEvent{
       provider: tx_context::sender(ctx),
       obligation: object::id(obligation),
-      depositAsset: type_name::get<T>(),
-      depositAmount: coin::value(&coin),
+      deposit_asset: type_name::get<T>(),
+      deposit_amount: coin::value(&coin),
     });
   
     market::handle_add_collateral<T>(market, coin::value(&coin));

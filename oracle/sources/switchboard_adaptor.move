@@ -4,7 +4,7 @@ module oracle::switchboard_adaptor {
   use sui::math;
   use switchboard::aggregator::{Self, Aggregator};
   use switchboard::math as switchboard_math;
-  use oracle::switchboard_registry::{Self, assert_aggregator, SwitchboardRegistry, get_aggregator_id, register_aggregator};
+  use oracle::switchboard_registry::{assert_aggregator, SwitchboardRegistry};
   use std::fixed_point32::FixedPoint32;
   use sui::object::{UID, ID};
   use sui::table::Table;
@@ -67,7 +67,7 @@ module oracle::switchboard_adaptor {
 
     let (price, timestamp) = aggregator::latest_value(switchboard_aggregator);
     let aggregator_id = object::id(switchboard_aggregator);
-    let switchboard_data = table::borrow_mut(&mut switchboard_bundle.table, type_name);
+    let switchboard_data = table::borrow_mut(&mut switchboard_bundle.table, coin_type);
     switchboard_data.price = convert_to_fixed_point32(price);
     switchboard_data.timestamp = timestamp;
     switchboard_data.aggregator_id = aggregator_id;

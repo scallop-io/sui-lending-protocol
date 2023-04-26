@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "publish": "ts-node typescript/publish-package.ts",
+    "publish": "ts-node typescript/publish-protocol.ts",
     "setup": "ts-node typescript/setup.ts"
   },
   "keywords": [],

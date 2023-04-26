@@ -1,7 +1,7 @@
 module protocol::borrow {
   
   use std::type_name::{Self, TypeName};
-  use sui::coin;
+  use sui::coin::{Self, Coin};
   use sui::transfer;
   use sui::event::emit;
   use sui::tx_context::{Self ,TxContext};
@@ -12,8 +12,7 @@ module protocol::borrow {
   use protocol::borrow_withdraw_evaluator;
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::interest_model;
-  use sui::coin::Coin;
-  use oracle::price_feed::PriceFeedHolder;
+  use oracle::switchboard_adaptor::SwitchboardBundle;
 
   const EBorrowTooMuch: u64 = 0x10001;
   const EBorrowTooLittle: u64 = 0x10002;
@@ -28,60 +27,60 @@ module protocol::borrow {
   
   public entry fun borrow_entry<T>(
     obligation: &mut Obligation,
-    obligationKey: &ObligationKey,
+    obligation_key: &ObligationKey,
     market: &mut Market,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    borrowAmount: u64,
-    price_feeds: &PriceFeedHolder,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    borrow_amount: u64,
+    switchboard_bundle: &SwitchboardBundle,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let borrowedCoin = borrow<T>(obligation, obligationKey, market, coinDecimalsRegistry, borrowAmount, price_feeds, clock, ctx);
+    let borrowedCoin = borrow<T>(obligation, obligation_key, market, coin_decimals_registry, borrow_amount, switchboard_bundle, clock, ctx);
     transfer::public_transfer(borrowedCoin, tx_context::sender(ctx));
   }
   
   public fun borrow<T>(
     obligation: &mut Obligation,
-    obligationKey: &ObligationKey,
+    obligation_key: &ObligationKey,
     market: &mut Market,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    borrowAmount: u64,
-    price_feeds: &PriceFeedHolder,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    borrow_amount: u64,
+    switchboard_bundle: &SwitchboardBundle,
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
     let now = clock::timestamp_ms(clock);
-    obligation::assert_key_match(obligation, obligationKey);
+    obligation::assert_key_match(obligation, obligation_key);
   
-    let coinType = type_name::get<T>();
-    let interestModel = market::interest_model(market, coinType);
-    let minBorrowAmount = interest_model::min_borrow_amount(interestModel);
-    assert!(borrowAmount > minBorrowAmount, EBorrowTooLittle);
+    let coin_type = type_name::get<T>();
+    let interest_model = market::interest_model(market, coin_type);
+    let min_borrow_amount = interest_model::min_borrow_amount(interest_model);
+    assert!(borrow_amount > min_borrow_amount, EBorrowTooLittle);
     
-    market::handle_outflow<T>(market, borrowAmount, now);
+    market::handle_outflow<T>(market, borrow_amount, now);
 
     // Always update market state first
     // Because interest need to be accrued first before other operations
-    let borrowedBalance = market::handle_borrow<T>(market, borrowAmount, now);
+    let borrowed_balance = market::handle_borrow<T>(market, borrow_amount, now);
     
     // init debt if borrow for the first time
-    obligation::init_debt(obligation, market, coinType);
+    obligation::init_debt(obligation, market, coin_type);
     // accure interests for obligation
     obligation::accrue_interests(obligation, market);
     // calc the maximum borrow amount
     // If borrow too much, abort
-    let maxBorrowAmount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coinDecimalsRegistry, price_feeds);
-    assert!(borrowAmount <= maxBorrowAmount, EBorrowTooMuch);
+    let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, switchboard_bundle);
+    assert!(borrow_amount <= max_borrow_amount, EBorrowTooMuch);
     // increase the debt for obligation
-    obligation::increase_debt(obligation, coinType, borrowAmount);
+    obligation::increase_debt(obligation, coin_type, borrow_amount);
     
     emit(BorrowEvent {
       borrower: tx_context::sender(ctx),
       obligation: object::id(obligation),
-      asset: coinType,
-      amount: borrowAmount,
+      asset: coin_type,
+      amount: borrow_amount,
       time: now,
     });
-    coin::from_balance(borrowedBalance, ctx)
+    coin::from_balance(borrowed_balance, ctx)
   }
 }

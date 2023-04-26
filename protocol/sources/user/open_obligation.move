@@ -1,5 +1,6 @@
 module protocol::open_obligation {
 
+  use sui::event::emit;
   use sui::transfer;
   use sui::tx_context::{Self, TxContext};
   use sui::object::{Self, ID};
@@ -13,10 +14,23 @@ module protocol::open_obligation {
 
   const EInvalidObligation: u64 = 0x10000;
 
+  struct ObligationCreatedEvent has copy, drop {
+    sender: address,
+    obligation: ID,
+    obligation_key: ID,
+  }
+
   /// Create a new obligation and share it
   /// At the same time, the obligation key is transferred to the sender
   public entry fun open_obligation_entry(ctx: &mut TxContext) {
     let (obligation, obligation_key) = obligation::new(ctx);
+
+    emit(ObligationCreatedEvent {
+      sender: tx_context::sender(ctx),
+      obligation: object::id(&obligation),
+      obligation_key: object::id(&obligation_key),
+    });
+
     transfer::public_transfer(obligation_key, tx_context::sender(ctx));
     transfer::public_share_object(obligation);
   }
@@ -28,6 +42,13 @@ module protocol::open_obligation {
     let obligation_hot_potato = ObligationHotPotato {
       obligation_id: object::id(&obligation),
     };
+    
+    emit(ObligationCreatedEvent {
+      sender: tx_context::sender(ctx),
+      obligation: object::id(&obligation),
+      obligation_key: object::id(&obligation_key),
+    });
+
     (obligation, obligation_key, obligation_hot_potato)
   }
 

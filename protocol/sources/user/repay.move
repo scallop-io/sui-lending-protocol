@@ -6,6 +6,8 @@ module protocol::repay {
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};
   use sui::clock::{Self, Clock};
+  use sui::math;
+  use sui::transfer;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
   
@@ -20,31 +22,39 @@ module protocol::repay {
   public entry fun repay<T>(
     obligation: &mut Obligation,
     market: &mut Market,
-    coin: Coin<T>,
+    user_coin: Coin<T>,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    let coinType = type_name::get<T>();
-    let repayAmount = coin::value(&coin);
-    
-    market::handle_inflow<T>(market, repayAmount, now);
+    let coin_type = type_name::get<T>();
 
-    // update market balance sheet after repay
-    // Always update market state first
-    // Because interest need to be accrued first before other operations
-    market::handle_repay<T>(market, coin::into_balance(coin), now);
-  
-    // accure interests for obligation
+    // always accrued all the interest before doing any actions
+    market::accrue_all_interests(market, now);
     obligation::accrue_interests(obligation, market);
+
+    let (debt_amount, _) = obligation::debt(obligation, coin_type);
+    let repay_amount = math::min(debt_amount, coin::value(&user_coin));
+
+    let repay_coin = coin::split<T>(&mut user_coin, repay_amount, ctx);
+    // since handle_repay doesn't calling `accrue_all_interests`, we need to call it independently
+    market::handle_repay<T>(market, coin::into_balance(repay_coin));
+    market::handle_inflow<T>(market, repay_amount, now);
+
     // remove debt according to repay amount
-    obligation::decrease_debt(obligation, coinType, repayAmount);
+    obligation::decrease_debt(obligation, coin_type, repay_amount);
+
+    if (coin::value(&user_coin) == 0) {
+      coin::destroy_zero(user_coin);
+    } else {
+      transfer::transfer(user_coin, tx_context::sender(ctx));
+    };
     
     emit(RepayEvent {
       repayer: tx_context::sender(ctx),
       obligation: object::id(obligation),
-      asset: coinType,
-      amount: repayAmount,
+      asset: coin_type,
+      amount: repay_amount,
       time: now,
     })
   }

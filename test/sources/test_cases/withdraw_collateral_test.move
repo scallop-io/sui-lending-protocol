@@ -22,6 +22,10 @@ module protocol_test::withdraw_collateral_test {
   
     #[test]
     public fun withdraw_collateral_without_borrowing_test() {
+        // Scenario:
+        // 1. `borrower` deposit collateral 1 ETH
+        // 2. `borrower` withdraw collateral 1 ETH
+
         let eth_decimals = 9;
         
         let admin = @0xAD;
@@ -72,6 +76,14 @@ module protocol_test::withdraw_collateral_test {
     
     #[test]
     public fun withdraw_collateral_with_borrowing_test() {
+        // Scenario:
+        // 0. the price of USDC = $1 and the price of ETH = $1000
+        // 1. `lender` deposit 10000 USDC
+        // 2. `borrower` deposit collateral 1 ETH
+        // 3. `borrower` borrow 600 USDC
+        // 4. `borrower` withdraw $100 worth of ETH
+        //    - this action should be success, because still satisfy the 0.7 collateral factor
+
         let usdc_decimals = 9;
         let eth_decimals = 9;
         

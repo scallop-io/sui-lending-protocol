@@ -12,7 +12,7 @@ module protocol::open_obligation {
     obligation_id: ID, 
   }
 
-  const EInvalidObligation: u64 = 0x10000;
+  const EInvalidObligation: u64 = 0x50001;
 
   struct ObligationCreatedEvent has copy, drop {
     sender: address,

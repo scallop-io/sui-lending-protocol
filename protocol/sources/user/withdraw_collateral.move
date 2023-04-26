@@ -15,7 +15,7 @@ module protocol::withdraw_collateral {
   use sui::coin::Coin;
   use oracle::price_feed::PriceFeedHolder;
 
-  const EWithdrawTooMuch: u64 = 0;
+  const EWithdrawTooMuch: u64 = 0x80001;
   
   struct CollateralWithdrawEvent has copy, drop {
     taker: address,

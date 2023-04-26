@@ -40,6 +40,8 @@ module protocol_test::constants {
   public fun min_borrow_amount<T>(params: &InterestModelParams<T>): u64 { params.minBorrowAmount }
   public fun borrow_weight<T>(params: &InterestModelParams<T>): u64 { params.borrow_weight }
   
+  public fun set_borrow_weight<T>(params: &mut InterestModelParams<T>, borrow_weight: u64) { params.borrow_weight = borrow_weight; }
+
   public fun eth_risk_model_params(): RiskModelParams<ETH> {
     RiskModelParams {
       collateralFactor: 70,

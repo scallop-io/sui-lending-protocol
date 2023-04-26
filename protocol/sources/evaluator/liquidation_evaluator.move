@@ -4,15 +4,13 @@ module protocol::liquidation_evaluator {
   use sui::math;
   use math::fixed_point32_empower;
   use protocol::obligation::{Self, Obligation};
+  use protocol::interest_model;
   use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::debt_value::debts_value_usd_with_weight;
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::risk_model;
-  use protocol::interest_model;
   use oracle::price_feed::{Self, PriceFeedHolder};
-  
-  const ENotLiquidatable: u64 = 0;
   
   // calculate the actual repay amount, actual liquidate amount, actual market amount
   public fun liquidation_amounts<DebtType, CollateralType>(
@@ -37,7 +35,6 @@ module protocol::liquidation_evaluator {
     let liqFactor = risk_model::liq_factor(riskModel);
     let liqRevenueFactor = risk_model::liq_revenue_factor(riskModel);
     let debtPrice = price_feed::price(price_feed::price_feed(price_feeds, debtType));
-    let weightedPrice = fixed_point32_empower::mul(debtPrice, borrowWeight);
     let collateralPrice = price_feed::price(price_feed::price_feed(price_feeds, collateralType));
     
     let collateralsValue = collaterals_value_usd_for_liquidation(obligation, market, coinDecimalsRegsitry, price_feeds);
@@ -46,7 +43,7 @@ module protocol::liquidation_evaluator {
    
     let maxLiqValue = fixed_point32_empower::div(
       fixed_point32_empower::sub(weighted_debts_value, collateralsValue),
-      fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), fixed_point32_empower::add(liqPenalty, liqFactor))
+      fixed_point32_empower::sub(fixed_point32_empower::mul(borrowWeight, fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), liqPenalty)), liqFactor),
     );
     
     let maxLiqAmount = fixed_point32::multiply_u64(
@@ -57,7 +54,7 @@ module protocol::liquidation_evaluator {
     
     let exchangeRate = fixed_point32_empower::mul(
       fixed_point32::create_from_rational(collateralScale, debtScale),
-      fixed_point32_empower::div(weightedPrice, collateralPrice),
+      fixed_point32_empower::div(debtPrice, collateralPrice),
     );
     let liqExchangeRate = fixed_point32_empower::div(
       exchangeRate,

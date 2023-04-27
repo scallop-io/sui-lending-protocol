@@ -13,7 +13,7 @@ const delay = (ms: number) => {
 }
 
 export const setup = async () => {
-  const packagePath = path.join(__dirname, '../query');
+  const packagePath = path.join(__dirname, '../protocol');
   const protocolPublishResult = await publishProtocol(packagePath, suiKit.getSigner());
   if (!protocolPublishResult.packageData.packageId) {
     console.log(protocolPublishResult.txn);
@@ -30,7 +30,7 @@ export const setup = async () => {
   const scallopSui = new ScallopSui({
     packageId: protocolPublishResult.packageData.packageId,
     marketId: protocolPublishResult.marketData.marketId,
-    coinDecimalsRegistryId: protocolPublishResult.marketData.CoinDecimalsRegistryId,
+    coinDecimalsRegistryId: protocolPublishResult.marketData.coinDecimalsRegistryId,
     adminCapId: protocolPublishResult.marketData.adminCapId,
     priceFeedCapId: '',
     priceFeedsId: '',

@@ -1,4 +1,5 @@
 // TODO: remove this file when launch on mainnet
+// @skip-auditing
 module protocol::app_test {
   use sui::tx_context::TxContext;
   use sui::math;

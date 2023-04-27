@@ -7,7 +7,7 @@ export const publishProtocol = async (pkgPath: string, signer: RawSigner) => {
   const publishResult = await publisher.publishPackage(pkgPath, signer, {
     gasBudget,
     withUnpublishedDependencies: true,
-    skipFetchLatestGitDeps: true
+    skipFetchLatestGitDeps: false
   });
   const protocolData = await extractProtocolData(publishResult);
   return protocolData;

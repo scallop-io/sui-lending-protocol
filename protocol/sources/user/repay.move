@@ -47,7 +47,7 @@ module protocol::repay {
     if (coin::value(&user_coin) == 0) {
       coin::destroy_zero(user_coin);
     } else {
-      transfer::transfer(user_coin, tx_context::sender(ctx));
+      transfer::public_transfer(user_coin, tx_context::sender(ctx));
     };
     
     emit(RepayEvent {

@@ -18,7 +18,7 @@ export const initMarketForTest = async (data: ProtocolPublishData) => {
       data.marketData.marketId,
       data.marketData.adminCapId,
       data.testCoinData.usdc.treasuryId,
-      data.marketData.CoinDecimalsRegistryId,
+      data.marketData.coinDecimalsRegistryId,
       data.testCoinData.usdc.metadataId,
       data.testCoinData.eth.metadataId,
       SUI_CLOCK_OBJECT_ID

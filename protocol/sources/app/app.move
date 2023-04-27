@@ -11,8 +11,8 @@ module protocol::app {
   
   struct AdminCap has key, store {
     id: UID,
-    interestModelCap: AcTableCap<InterestModels>,
-    riskModelCap: AcTableCap<RiskModels>
+    interest_model_cap: AcTableCap<InterestModels>,
+    risk_model_cap: AcTableCap<RiskModels>
   }
   
   fun init(ctx: &mut TxContext) {
@@ -25,94 +25,94 @@ module protocol::app {
   }
   
   fun init_internal(ctx: &mut TxContext) {
-    let (market, interestModelCap, riskModelCap) = market::new(ctx);
+    let (market, interest_model_cap, risk_model_cap) = market::new(ctx);
     let adminCap = AdminCap {
       id: object::new(ctx),
-      interestModelCap,
-      riskModelCap
+      interest_model_cap,
+      risk_model_cap
     };
     transfer::public_share_object(market);
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }
   
   public fun create_interest_model_change<T>(
-    adminCap: &AdminCap,
-    baseRatePerSec: u64,
-    lowSlope: u64,
+    admin_cap: &AdminCap,
+    base_rate_per_sec: u64,
+    low_slope: u64,
     kink: u64,
-    highSlope: u64,
-    revenueFactor: u64,
+    high_slope: u64,
+    revenue_factor: u64,
     scale: u64,
-    minBorrowAmount: u64,
+    min_borrow_amount: u64,
     borrow_weight: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
-    let interestModelChange = interest_model::create_interest_model_change<T>(
-      &adminCap.interestModelCap,
-      baseRatePerSec,
-      lowSlope,
+    let interest_model_change = interest_model::create_interest_model_change<T>(
+      &admin_cap.interest_model_cap,
+      base_rate_per_sec,
+      low_slope,
       kink,
-      highSlope,
-      revenueFactor,
+      high_slope,
+      revenue_factor,
       scale,
-      minBorrowAmount,
+      min_borrow_amount,
       borrow_weight,
       ctx,
     );
-    interestModelChange
+    interest_model_change
   }
   public fun add_interest_model<T>(
     market: &mut Market,
-    adminCap: &AdminCap,
-    interestModelChange: &mut OneTimeLockValue<InterestModel>,
+    admin_cap: &AdminCap,
+    interest_model_change: &mut OneTimeLockValue<InterestModel>,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
     let now = clock::timestamp_ms(clock);
-    let interestModels = market::interest_models_mut(market);
+    let interest_models = market::interest_models_mut(market);
     interest_model::add_interest_model<T>(
-      interestModels,
-      &adminCap.interestModelCap,
-      interestModelChange,
+      interest_models,
+      &admin_cap.interest_model_cap,
+      interest_model_change,
       ctx
     );
     market::register_coin<T>(market, now);
   }
 
   public fun create_risk_model_change<T>(
-    adminCap: &AdminCap,
-    collateralFactor: u64, // exp. 70%,
-    liquidationFactor: u64, // exp. 80%,
-    liquidationPenalty: u64, // exp. 7%,
-    liquidationDiscount: u64, // exp. 95%,
+    admin_cap: &AdminCap,
+    collateral_factor: u64, // exp. 70%,
+    liquidation_factor: u64, // exp. 80%,
+    liquidation_penalty: u64, // exp. 7%,
+    liquidation_discount: u64, // exp. 5%,
     scale: u64,
-    maxCollateralAmount: u64,
+    max_collateral_amount: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<RiskModel> {
-    let riskModelChange = risk_model::create_risk_model_change<T>(
-      &adminCap.riskModelCap,
-      collateralFactor, // exp. 70%,
-      liquidationFactor, // exp. 80%,
-      liquidationPenalty, // exp. 7%,
-      liquidationDiscount, // exp. 95%,
+    let risk_model_change = risk_model::create_risk_model_change<T>(
+      &admin_cap.risk_model_cap,
+      collateral_factor, // exp. 70%,
+      liquidation_factor, // exp. 80%,
+      liquidation_penalty, // exp. 7%,
+      liquidation_discount, // exp. 5%,
       scale,
-      maxCollateralAmount,
+      max_collateral_amount,
       ctx
     );
-    riskModelChange
+    risk_model_change
   }
   
   public entry fun add_risk_model<T>(
     market: &mut Market,
-    adminCap: &AdminCap,
-    riskModelChange: &mut OneTimeLockValue<RiskModel>,
+    admin_cap: &AdminCap,
+    risk_model_change: &mut OneTimeLockValue<RiskModel>,
     ctx: &mut TxContext
   ) {
-    let riskModels = market::risk_models_mut(market);
+    let risk_models = market::risk_models_mut(market);
     risk_model::add_risk_model<T>(
-      riskModels,
-      &adminCap.riskModelCap,
-      riskModelChange,
+      risk_models,
+      &admin_cap.risk_model_cap,
+      risk_model_change,
       ctx
     );
     market::register_collateral<T>(market);

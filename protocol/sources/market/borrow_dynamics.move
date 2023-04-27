@@ -13,60 +13,62 @@ module protocol::borrow_dynamics {
   struct BorrowDynamics has drop {}
   
   struct BorrowDynamic has copy, store {
-    interestRate: FixedPoint32,
-    borrowIndex: u64,
-    lastUpdated: u64,
+    interest_rate: FixedPoint32,
+    borrow_index: u64,
+    last_updated: u64,
   }
   
-  public fun interest_rate(dynamic: &BorrowDynamic): FixedPoint32 { dynamic.interestRate }
-  public fun borrow_index(dynamic: &BorrowDynamic): u64 { dynamic.borrowIndex }
-  public fun last_updated(dynamic: &BorrowDynamic): u64 { dynamic.lastUpdated }
+  public fun interest_rate(dynamic: &BorrowDynamic): FixedPoint32 { dynamic.interest_rate }
+  public fun borrow_index(dynamic: &BorrowDynamic): u64 { dynamic.borrow_index }
+  public fun last_updated(dynamic: &BorrowDynamic): u64 { dynamic.last_updated }
   
   public(friend) fun new(ctx: &mut TxContext): WitTable<BorrowDynamics, TypeName, BorrowDynamic> {
     wit_table::new<BorrowDynamics, TypeName, BorrowDynamic>(BorrowDynamics {}, true, ctx)
   }
-  
+
+  // when adding base asset, it should be called
   public(friend) fun register_coin<T>(
     self: &mut WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
-    baseInterestRate: FixedPoint32,
+    base_interest_rate: FixedPoint32,
     now: u64,
   ) {
-    let initialBorrowIndex = math::pow(10, 9);
-    let borrowDynamic = BorrowDynamic {
-      interestRate: baseInterestRate,
-      borrowIndex: initialBorrowIndex,
-      lastUpdated: now,
+    let initial_borrow_index = math::pow(10, 9);
+    let borrow_dynamic = BorrowDynamic {
+      interest_rate: base_interest_rate,
+      borrow_index: initial_borrow_index,
+      last_updated: now,
     };
-    wit_table::add(BorrowDynamics{}, self, get<T>(), borrowDynamic)
+    wit_table::add(BorrowDynamics{}, self, get<T>(), borrow_dynamic)
   }
   
   public fun borrow_index_by_type(
     self: &WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
-    typeName: TypeName,
+    type_name: TypeName,
   ): u64 {
-    let debtDynamic = wit_table::borrow(self, typeName);
-    debtDynamic.borrowIndex
+    let debt_dynamic = wit_table::borrow(self, type_name);
+    debt_dynamic.borrow_index
   }
   
   public(friend) fun update_borrow_index(
     self: &mut WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
-    typeName: TypeName,
+    type_name: TypeName,
     now: u64
   ) {
-    let debtDynamic = wit_table::borrow_mut(BorrowDynamics {}, self, typeName);
-    let timeDelta = fixed_point32_empower::from_u64(now - debtDynamic.lastUpdated);
-    let indexDelta =
-      fixed_point32::multiply_u64(debtDynamic.borrowIndex, fixed_point32_empower::mul(timeDelta, debtDynamic.interestRate));
-    debtDynamic.borrowIndex = debtDynamic.borrowIndex + indexDelta;
-    debtDynamic.lastUpdated = now;
+    // new_borrow_index = old_borrow_index + (old_borrow_index * interest_rate * time_delta)
+    let debt_dynamic = wit_table::borrow_mut(BorrowDynamics {}, self, type_name);
+    let time_delta = fixed_point32_empower::from_u64(now - debt_dynamic.last_updated);
+    let index_delta =
+      fixed_point32::multiply_u64(debt_dynamic.borrow_index, fixed_point32_empower::mul(time_delta, debt_dynamic.interest_rate));
+    debt_dynamic.borrow_index = debt_dynamic.borrow_index + index_delta;
+    debt_dynamic.last_updated = now;
   }
   
   public(friend) fun update_interest_rate(
     self: &mut WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
-    typeName: TypeName,
-    newInterestRate: FixedPoint32,
+    type_name: TypeName,
+    new_interest_rate: FixedPoint32,
   ) {
-    let debtDynamic = wit_table::borrow_mut(BorrowDynamics {}, self, typeName);
-    debtDynamic.interestRate = newInterestRate;
+    let debt_dynamic = wit_table::borrow_mut(BorrowDynamics {}, self, type_name);
+    debt_dynamic.interest_rate = new_interest_rate;
   }
 }

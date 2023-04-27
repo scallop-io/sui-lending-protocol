@@ -46,16 +46,16 @@ module protocol::obligation {
       debts: obligation_debts::new(ctx),
       collaterals: obligation_collaterals::new(ctx),
     };
-    let obligationOwnership = ownership::create_ownership(
+    let obligation_ownership = ownership::create_ownership(
       ObligationOwnership{},
       object::id(&obligation),
       ctx
     );
-    let obligationKey = ObligationKey {
+    let obligation_key = ObligationKey {
       id: object::new(ctx),
-      ownership: obligationOwnership,
+      ownership: obligation_ownership,
     };
-    (obligation, obligationKey)
+    (obligation, obligation_key)
   }
   
   public fun assert_key_match(obligation: &Obligation, key: &ObligationKey) {
@@ -70,12 +70,12 @@ module protocol::obligation {
     obligation: &mut Obligation,
     market: &Market,
   ) {
-    let debtTypes = debt_types(obligation);
-    let (i, n) = (0, vector::length(&debtTypes));
+    let debt_types = debt_types(obligation);
+    let (i, n) = (0, vector::length(&debt_types));
     while (i < n) {
-      let type = *vector::borrow(&debtTypes, i);
-      let newBorrowIndex = market::borrow_index(market, type);
-      obligation_debts::accure_interest(&mut obligation.debts, type, newBorrowIndex);
+      let type = *vector::borrow(&debt_types, i);
+      let new_borrow_index = market::borrow_index(market, type);
+      obligation_debts::accure_interest(&mut obligation.debts, type, new_borrow_index);
       i = i + 1;
     };
   }
@@ -84,9 +84,9 @@ module protocol::obligation {
     self: &mut Obligation,
     amount: u64,
   ): Balance<T> {
-    let typeName = type_name::get<T>();
+    let type_name = type_name::get<T>();
     // reduce collateral amount
-    obligation_collaterals::decrease(&mut self.collaterals, typeName, amount);
+    obligation_collaterals::decrease(&mut self.collaterals, type_name, amount);
     // return the collateral balance
     balance_bag::split(&mut self.balances, amount)
   }
@@ -96,8 +96,8 @@ module protocol::obligation {
     balance: Balance<T>,
   ) {
     // increase collateral amount
-    let typeName = type_name::get<T>();
-    obligation_collaterals::increase(&mut self.collaterals, typeName, balance::value(&balance));
+    let type_name = type_name::get<T>();
+    obligation_collaterals::increase(&mut self.collaterals, type_name, balance::value(&balance));
     // put the collateral balance
     if (balance_bag::contains<T>(&self.balances) == false) {
       balance_bag::init_balance<T>(&mut self.balances);
@@ -108,34 +108,34 @@ module protocol::obligation {
   public(friend) fun init_debt(
     self: &mut Obligation,
     market: &Market,
-    typeName: TypeName,
+    type_name: TypeName,
   ) {
-    let borrowIndex = market::borrow_index(market, typeName);
-    obligation_debts::init_debt(&mut self.debts, typeName, borrowIndex);
+    let borrow_index = market::borrow_index(market, type_name);
+    obligation_debts::init_debt(&mut self.debts, type_name, borrow_index);
   }
   
   public(friend) fun increase_debt(
     self: &mut Obligation,
-    typeName: TypeName,
+    type_name: TypeName,
     amount: u64,
   ) {
-    obligation_debts::increase(&mut self.debts, typeName, amount);
+    obligation_debts::increase(&mut self.debts, type_name, amount);
   }
   
   public(friend) fun decrease_debt(
     self: &mut Obligation,
-    typeName: TypeName,
+    type_name: TypeName,
     amount: u64,
   ) {
-    obligation_debts::decrease(&mut self.debts, typeName, amount);
+    obligation_debts::decrease(&mut self.debts, type_name, amount);
   }
   
-  public fun debt(self: &Obligation, typeName: TypeName): (u64, u64) {
-    obligation_debts::debt(&self.debts, typeName)
+  public fun debt(self: &Obligation, type_name: TypeName): (u64, u64) {
+    obligation_debts::debt(&self.debts, type_name)
   }
   
-  public fun collateral(self: &Obligation, typeName: TypeName): u64 {
-    obligation_collaterals::collateral(&self.collaterals, typeName)
+  public fun collateral(self: &Obligation, type_name: TypeName): u64 {
+    obligation_collaterals::collateral(&self.collaterals, type_name)
   }
   
   // return the debt types

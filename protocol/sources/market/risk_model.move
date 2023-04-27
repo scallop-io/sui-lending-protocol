@@ -16,20 +16,20 @@ module protocol::risk_model {
   
   struct RiskModel has copy, store {
     type: TypeName,
-    collateralFactor: FixedPoint32,
-    liquidationFactor: FixedPoint32,
-    liquidationPenalty: FixedPoint32,
-    liquidationDiscount: FixedPoint32,
-    liquidationRevenueFactor: FixedPoint32,
-    maxCollateralAmount: u64
+    collateral_factor: FixedPoint32,
+    liquidation_factor: FixedPoint32,
+    liquidation_penalty: FixedPoint32,
+    liquidation_discount: FixedPoint32,
+    liquidation_revenue_factor: FixedPoint32,
+    max_collateral_amount: u64
   }
   
-  public fun collateral_factor(model: &RiskModel): FixedPoint32 { model.collateralFactor }
-  public fun liq_factor(model: &RiskModel): FixedPoint32 { model.liquidationFactor }
-  public fun liq_penalty(model: &RiskModel): FixedPoint32 { model.liquidationPenalty }
-  public fun liq_discount(model: &RiskModel): FixedPoint32 { model.liquidationDiscount }
-  public fun liq_revenue_factor(model: &RiskModel): FixedPoint32 { model.liquidationRevenueFactor }
-  public fun max_collateral_Amount(model: &RiskModel): u64 { model.maxCollateralAmount }
+  public fun collateral_factor(model: &RiskModel): FixedPoint32 { model.collateral_factor }
+  public fun liq_factor(model: &RiskModel): FixedPoint32 { model.liquidation_factor }
+  public fun liq_penalty(model: &RiskModel): FixedPoint32 { model.liquidation_penalty }
+  public fun liq_discount(model: &RiskModel): FixedPoint32 { model.liquidation_discount }
+  public fun liq_revenue_factor(model: &RiskModel): FixedPoint32 { model.liquidation_revenue_factor }
+  public fun max_collateral_Amount(model: &RiskModel): u64 { model.max_collateral_amount }
   public fun type_name(model: &RiskModel): TypeName { model.type }
   
   public fun new(ctx: &mut TxContext): (
@@ -41,27 +41,27 @@ module protocol::risk_model {
   
   public fun create_risk_model_change<T>(
     _: &AcTableCap<RiskModels>,
-    collateralFactor: u64, // exp. 70%,
-    liquidationFactor: u64, // exp. 80%,
-    liquidationPenalty: u64, // exp. 7%,
-    liquidationDiscount: u64, // exp. 95%,
+    collateral_factor: u64, // exp. 70%,
+    liquidation_factor: u64, // exp. 80%,
+    liquidation_penalty: u64, // exp. 7%,
+    liquidation_discount: u64, // exp. 95%,
     scale: u64,
-    maxCollateralAmount: u64,
+    max_collateral_amount: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<RiskModel> {
-    let liquidationPenalty = fixed_point32::create_from_rational(liquidationPenalty, scale);
-    let liquidationDiscount = fixed_point32::create_from_rational(liquidationDiscount, scale);
-    let liquidationRevenueFactor = fixed_point32_empower::sub(liquidationPenalty, liquidationDiscount);
-    let collateralFactor = fixed_point32::create_from_rational(collateralFactor, scale);
-    let liquidationFactor = fixed_point32::create_from_rational(liquidationFactor, scale);
+    let liquidation_penalty = fixed_point32::create_from_rational(liquidation_penalty, scale);
+    let liquidation_discount = fixed_point32::create_from_rational(liquidation_discount, scale);
+    let liquidation_revenue_factor = fixed_point32_empower::sub(liquidation_penalty, liquidation_discount);
+    let collateral_factor = fixed_point32::create_from_rational(collateral_factor, scale);
+    let liquidation_factor = fixed_point32::create_from_rational(liquidation_factor, scale);
     let riskModel = RiskModel {
       type: get<T>(),
-      collateralFactor,
-      liquidationFactor,
-      liquidationPenalty,
-      liquidationDiscount,
-      liquidationRevenueFactor,
-      maxCollateralAmount
+      collateral_factor,
+      liquidation_factor,
+      liquidation_penalty,
+      liquidation_discount,
+      liquidation_revenue_factor,
+      max_collateral_amount
     };
     one_time_lock_value::new(riskModel, RiskModelChangeDelay, 7, ctx)
   }
@@ -69,12 +69,12 @@ module protocol::risk_model {
   public fun add_risk_model<T>(
     self: &mut AcTable<RiskModels, TypeName, RiskModel>,
     cap: &AcTableCap<RiskModels>,
-    riskModelChange: &mut OneTimeLockValue<RiskModel>,
+    risk_model_change: &mut OneTimeLockValue<RiskModel>,
     ctx: &mut TxContext,
   ) {
-    let riskModel = one_time_lock_value::get_value(riskModelChange, ctx);
-    let typeName = get<T>();
-    assert!(riskModel.type == typeName, ERiskModelTypeNotMatch);
-    ac_table::add(self, cap, get<T>(), riskModel);
+    let risk_model = one_time_lock_value::get_value(risk_model_change, ctx);
+    let type_name = get<T>();
+    assert!(risk_model.type == type_name, ERiskModelTypeNotMatch);
+    ac_table::add(self, cap, get<T>(), risk_model);
   }
 }

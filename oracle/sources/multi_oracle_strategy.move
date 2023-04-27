@@ -7,11 +7,11 @@ module oracle::multi_oracle_strategy {
   /// TODO: need to add supra, pyth oracles
   public fun get_price(
     switchboard_bundle: &SwitchboardBundle,
-    typeName: TypeName,
+    type_name: TypeName,
   ): FixedPoint32 {
     switchboard_adaptor::get_switchboard_price(
       switchboard_bundle,
-      typeName,
+      type_name,
     )
   }
 }

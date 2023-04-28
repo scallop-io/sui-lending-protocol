@@ -16,36 +16,36 @@ module protocol::obligation_collaterals {
   
   public fun init_collateral_if_none(
     collaterals: &mut WitTable<ObligationCollaterals, TypeName, Collateral>,
-    typeName: TypeName,
+    type_name: TypeName,
   ) {
-    if (wit_table::contains(collaterals, typeName)) return;
-    wit_table::add(ObligationCollaterals{}, collaterals, typeName, Collateral{ amount: 0 });
+    if (wit_table::contains(collaterals, type_name)) return;
+    wit_table::add(ObligationCollaterals{}, collaterals, type_name, Collateral{ amount: 0 });
   }
   
   public fun increase(
     collaterals: &mut WitTable<ObligationCollaterals, TypeName, Collateral>,
-    typeName: TypeName,
+    type_name: TypeName,
     amount: u64,
   ) {
-    init_collateral_if_none(collaterals, typeName);
-    let collateral = wit_table::borrow_mut(ObligationCollaterals{}, collaterals, typeName);
+    init_collateral_if_none(collaterals, type_name);
+    let collateral = wit_table::borrow_mut(ObligationCollaterals{}, collaterals, type_name);
     collateral.amount = collateral.amount + amount;
   }
   
   public fun decrease(
     collaterals: &mut WitTable<ObligationCollaterals, TypeName, Collateral>,
-    typeName: TypeName,
+    type_name: TypeName,
     amount: u64,
   ) {
-    let collateral = wit_table::borrow_mut(ObligationCollaterals{}, collaterals, typeName);
+    let collateral = wit_table::borrow_mut(ObligationCollaterals{}, collaterals, type_name);
     collateral.amount = collateral.amount - amount;
   }
   
   public fun collateral(
     collaterals: &WitTable<ObligationCollaterals, TypeName, Collateral>,
-    typeName: TypeName,
+    type_name: TypeName,
   ): u64 {
-    let collateral = wit_table::borrow(collaterals, typeName);
+    let collateral = wit_table::borrow(collaterals, type_name);
     collateral.amount
   }
 }

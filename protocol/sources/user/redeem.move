@@ -12,10 +12,10 @@ module protocol::redeem {
   
   struct RedeemEvent has copy, drop {
     redeemer: address,
-    withdrawAsset: TypeName,
-    withdrawAmount: u64,
-    burnAsset: TypeName,
-    burnAmount: u64,
+    withdraw_asset: TypeName,
+    withdraw_amount: u64,
+    burn_asset: TypeName,
+    burn_amount: u64,
     time: u64,
   }
   
@@ -36,17 +36,17 @@ module protocol::redeem {
     ctx: &mut TxContext,
   ): Coin<T> {
     let now = clock::timestamp_ms(clock);
-    let marketCoinAmount = coin::value(&coin);
-    let redeemBalance = market::handle_redeem(market, coin::into_balance(coin), now);
+    let market_coin_amount = coin::value(&coin);
+    let redeem_balance = market::handle_redeem(market, coin::into_balance(coin), now);
     
     emit(RedeemEvent {
       redeemer: tx_context::sender(ctx),
-      withdrawAsset: type_name::get<T>(),
-      withdrawAmount: balance::value(&redeemBalance),
-      burnAsset: type_name::get<MarketCoin<T>>(),
-      burnAmount: marketCoinAmount,
+      withdraw_asset: type_name::get<T>(),
+      withdraw_amount: balance::value(&redeem_balance),
+      burn_asset: type_name::get<MarketCoin<T>>(),
+      burn_amount: market_coin_amount,
       time: now
     });
-    coin::from_balance(redeemBalance, ctx)
+    coin::from_balance(redeem_balance, ctx)
   }
 }

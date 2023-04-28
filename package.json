@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "publish": "ts-node typescript/publish-package.ts",
+    "publish": "ts-node typescript/publish-protocol.ts",
     "setup": "ts-node typescript/setup.ts"
   },
   "keywords": [],
@@ -14,7 +14,7 @@
     "@mysten/sui.js": "^0.32.1",
     "@scallop-dao/scallop-sui": "^0.1.0",
     "@scallop-dao/sui-kit": "^0.32.10",
-    "@scallop-dao/sui-package-kit": "^0.32.4"
+    "@scallop-dao/sui-package-kit": "../sui-package-kit"
   },
   "devDependencies": {
     "dotenv": "^16.0.3",

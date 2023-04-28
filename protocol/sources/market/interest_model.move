@@ -15,26 +15,26 @@ module protocol::interest_model {
   
   struct InterestModel has copy, store {
     type: TypeName,
-    baseBorrowRatePerSec: FixedPoint32,
-    lowSlope: FixedPoint32,
+    base_borrow_rate_per_sec: FixedPoint32,
+    low_slope: FixedPoint32,
     kink: FixedPoint32,
-    highSlope: FixedPoint32,
-    revenueFactor: FixedPoint32,
+    high_slope: FixedPoint32,
+    revenue_factor: FixedPoint32,
     /********
     when the principal and ratio of borrow indices are both small,
     the result can equal the principal, due to automatic truncation of division
     newDebt = debt * (current borrow index) / (original borrow index)
     so that the user could borrow without interest
     *********/
-    minBorrowAmount: u64,
+    min_borrow_amount: u64,
     borrow_weight: FixedPoint32,
   }
-  public fun base_borrow_rate(model: &InterestModel): FixedPoint32 { model.baseBorrowRatePerSec }
-  public fun low_slope(model: &InterestModel): FixedPoint32 { model.lowSlope }
+  public fun base_borrow_rate(model: &InterestModel): FixedPoint32 { model.base_borrow_rate_per_sec }
+  public fun low_slope(model: &InterestModel): FixedPoint32 { model.low_slope }
   public fun kink(model: &InterestModel): FixedPoint32 { model.kink }
-  public fun high_slope(model: &InterestModel): FixedPoint32 { model.highSlope }
-  public fun revenue_factor(model: &InterestModel): FixedPoint32 { model.revenueFactor }
-  public fun min_borrow_amount(model: &InterestModel): u64 { model.minBorrowAmount }
+  public fun high_slope(model: &InterestModel): FixedPoint32 { model.high_slope }
+  public fun revenue_factor(model: &InterestModel): FixedPoint32 { model.revenue_factor }
+  public fun min_borrow_amount(model: &InterestModel): u64 { model.min_borrow_amount }
   public fun type_name(model: &InterestModel): TypeName { model.type }
   public fun borrow_weight(model: &InterestModel): FixedPoint32 { model.borrow_weight }
   
@@ -49,33 +49,33 @@ module protocol::interest_model {
   
   public fun create_interest_model_change<T>(
     _: &AcTableCap<InterestModels>,
-    baseRatePerSec: u64,
-    lowSlope: u64,
+    base_rate_per_sec: u64,
+    low_slope: u64,
     kink: u64,
-    highSlope: u64,
-    revenueFactor: u64,
+    high_slope: u64,
+    revenue_factor: u64,
     scale: u64,
-    minBorrowAmount: u64,
+    min_borrow_amount: u64,
     borrow_weight: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
-    let baseBorrowRatePerSec = fixed_point32::create_from_rational(baseRatePerSec, scale);
-    let lowSlope = fixed_point32::create_from_rational(lowSlope, scale);
+    let base_borrow_rate_per_sec = fixed_point32::create_from_rational(base_rate_per_sec, scale);
+    let low_slope = fixed_point32::create_from_rational(low_slope, scale);
     let kink = fixed_point32::create_from_rational(kink, scale);
-    let highSlope = fixed_point32::create_from_rational(highSlope, scale);
-    let revenueFactor = fixed_point32::create_from_rational(revenueFactor, scale);
+    let high_slope = fixed_point32::create_from_rational(high_slope, scale);
+    let revenue_factor = fixed_point32::create_from_rational(revenue_factor, scale);
     let borrow_weight = fixed_point32::create_from_rational(borrow_weight, scale);
-    let interestModel = InterestModel {
+    let interest_model = InterestModel {
       type: get<T>(),
-      baseBorrowRatePerSec,
-      lowSlope,
+      base_borrow_rate_per_sec,
+      low_slope,
       kink,
-      highSlope,
-      revenueFactor,
-      minBorrowAmount,
+      high_slope,
+      revenue_factor,
+      min_borrow_amount,
       borrow_weight,
     };
-    one_time_lock_value::new(interestModel, InterestChangeDelay, 7, ctx)
+    one_time_lock_value::new(interest_model, InterestChangeDelay, 7, ctx)
   }
   
   public fun add_interest_model<T>(
@@ -91,13 +91,13 @@ module protocol::interest_model {
   }
   
   public fun calc_interest(
-    interestModel: &InterestModel,
-    ultiRate: FixedPoint32,
+    interest_model: &InterestModel,
+    ulti_rate: FixedPoint32,
   ): FixedPoint32 {
-    let lowSlope = interestModel.lowSlope;
-    let highSlope = interestModel.highSlope;
-    let kink = interestModel.kink;
-    let baseRate = interestModel.baseBorrowRatePerSec;
+    let low_slope = interest_model.low_slope;
+    let high_slope = interest_model.high_slope;
+    let kink = interest_model.kink;
+    let base_rate = interest_model.base_borrow_rate_per_sec;
     /*****************
     Calculate the interest rate with the given utlilization rate of the pool
     When ultiRate > kink:
@@ -105,17 +105,17 @@ module protocol::interest_model {
     When ultiRate <= kink:
       interestRate = baseRate(1 + ultiRate * lowScope)
     ******************/
-    let rateGrowth = if (fixed_point32_empower::gt(ultiRate, kink)) {
+    let rate_growth = if (fixed_point32_empower::gt(ulti_rate, kink)) {
       fixed_point32_empower::add(
-        fixed_point32_empower::mul(kink, lowSlope),
-        fixed_point32_empower::mul(fixed_point32_empower::sub(ultiRate, kink), highSlope)
+        fixed_point32_empower::mul(kink, low_slope),
+        fixed_point32_empower::mul(fixed_point32_empower::sub(ulti_rate, kink), high_slope)
       )
     } else {
-      fixed_point32_empower::mul(ultiRate, lowSlope)
+      fixed_point32_empower::mul(ulti_rate, low_slope)
     };
     fixed_point32_empower::mul(
-      baseRate,
-      fixed_point32_empower::add(fixed_point32::create_from_rational(1, 1), rateGrowth)
+      base_rate,
+      fixed_point32_empower::add(fixed_point32::create_from_rational(1, 1), rate_growth)
     )
   }
 }

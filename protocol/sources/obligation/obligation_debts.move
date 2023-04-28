@@ -7,7 +7,7 @@ module protocol::obligation_debts {
 
   struct Debt has copy, store {
     amount: u64,
-    borrowIndex: u64
+    borrow_index: u64
   }
   
   struct ObligationDebts has drop {}
@@ -18,47 +18,47 @@ module protocol::obligation_debts {
   
   public fun init_debt(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,
-    typeName: TypeName,
-    borrowIndex: u64,
+    type_name: TypeName,
+    borrow_index: u64,
   ) {
-    if (wit_table::contains(debts, typeName)) return;
-    let debt = Debt { amount: 0, borrowIndex };
-    wit_table::add(ObligationDebts{}, debts, typeName, debt);
+    if (wit_table::contains(debts, type_name)) return;
+    let debt = Debt { amount: 0, borrow_index };
+    wit_table::add(ObligationDebts{}, debts, type_name, debt);
   }
   
   public fun increase(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,
-    typeName: TypeName,
+    type_name: TypeName,
     amount: u64,
   ) {
-    let debt = wit_table::borrow_mut(ObligationDebts{}, debts, typeName);
+    let debt = wit_table::borrow_mut(ObligationDebts{}, debts, type_name);
     debt.amount = debt.amount + amount;
   }
   
   public fun decrease(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,
-    typeName: TypeName,
+    type_name: TypeName,
     amount: u64,
   ) {
-    let debt = wit_table::borrow_mut(ObligationDebts{}, debts, typeName);
+    let debt = wit_table::borrow_mut(ObligationDebts{}, debts, type_name);
     debt.amount = debt.amount - amount;
   }
   
   public fun accure_interest(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,
-    typeName: TypeName,
-    newBorrowIndex: u64
+    type_name: TypeName,
+    new_borrow_index: u64
   ) {
-    let debt = wit_table::borrow_mut(ObligationDebts{}, debts, typeName);
-    debt.amount = fixed_point32::multiply_u64(debt.amount, fixed_point32::create_from_rational(newBorrowIndex, debt.borrowIndex));
-    debt.borrowIndex = newBorrowIndex;
+    let debt = wit_table::borrow_mut(ObligationDebts{}, debts, type_name);
+    debt.amount = fixed_point32::multiply_u64(debt.amount, fixed_point32::create_from_rational(new_borrow_index, debt.borrow_index));
+    debt.borrow_index = new_borrow_index;
   }
   
   public fun debt(
     debts: &WitTable<ObligationDebts, TypeName, Debt>,
-    typeName: TypeName,
+    type_name: TypeName,
   ): (u64, u64) {
-    let debt = wit_table::borrow(debts, typeName);
-    (debt.amount, debt.borrowIndex)
+    let debt = wit_table::borrow(debts, type_name);
+    (debt.amount, debt.borrow_index)
   }
 }

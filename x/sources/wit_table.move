@@ -18,16 +18,16 @@ module x::wit_table {
     id: UID,
     table: Table<K, V>,
     keys: option::Option<VecSet<K>>,
-    withKeys: bool
+    with_keys: bool
   }
   
   /// Creates a new, empty table
   public fun new<T: drop, K: copy + drop + store, V: store>(
     _: T,
-    withKeys: bool,
+    with_keys: bool,
     ctx: &mut TxContext
   ): WitTable<T, K, V> {
-    let keys = if (withKeys) {
+    let keys = if (with_keys) {
       option::some(vec_set::empty<K>())
     }  else {
       option::none()
@@ -36,7 +36,7 @@ module x::wit_table {
       id: object::new(ctx),
       table: table::new(ctx),
       keys,
-      withKeys
+      with_keys
     }
   }
   
@@ -49,7 +49,7 @@ module x::wit_table {
     k: K, v: V
   ) {
     table::add(&mut self.table, k, v);
-    if (self.withKeys) {
+    if (self.with_keys) {
       let keys = option::borrow_mut(&mut self.keys);
       vec_set::insert(keys, k);
     }
@@ -60,7 +60,7 @@ module x::wit_table {
   public fun keys<T: drop, K: copy + drop + store, V: store>(
     self: &WitTable<T, K, V>,
   ): vector<K> {
-    if (self.withKeys) {
+    if (self.with_keys) {
       let keys = option::borrow(&self.keys);
       vec_set::into_keys(*keys)
     } else {
@@ -97,7 +97,7 @@ module x::wit_table {
     self: &mut WitTable<T, K, V>,
     k: K
   ): V {
-    if (self.withKeys) {
+    if (self.with_keys) {
       let keys = option::borrow_mut(&mut self.keys);
       vec_set::remove(keys, &k);
     };
@@ -136,7 +136,7 @@ module x::wit_table {
     _: T,
     self: WitTable<T, K, V>
   ) {
-    let WitTable { id, table, keys: _, withKeys: _ } = self;
+    let WitTable { id, table, keys: _, with_keys: _ } = self;
     table::destroy_empty(table);
     object::delete(id);
   }
@@ -148,7 +148,7 @@ module x::wit_table {
     _: T,
     self: WitTable<T, K, V>
   ) {
-    let WitTable { id, table, keys: _, withKeys: _ } = self;
+    let WitTable { id, table, keys: _, with_keys: _ } = self;
     table::drop(table);
     object::delete(id);
   }

@@ -1,13 +1,11 @@
 import path from "path";
-import dotenv from "dotenv";
-import { NetworkType } from "@scallop-dao/sui-kit";
 import { ScallopSui } from "@scallop-dao/scallop-sui";
-import { publishPackage } from "./publish-package";
-import { dumpObjectIds } from "./dump-object-ids";
+import { secretKey, networkType, suiKit } from "./sui-kit-instance";
+import { initMarketForTest } from "./init-market";
+import { publishProtocol } from "./publish-protocol";
 import { parseOpenObligationResponse } from "./parse-open-obligation-response";
+import { registerSwitchboardOracles } from "./register-switchboard-oracles";
 import { writeAsJson } from "./write-as-json";
-
-dotenv.config();
 
 const delay = (ms: number) => {
   console.log(`delay ${ms}ms...`)
@@ -15,44 +13,53 @@ const delay = (ms: number) => {
 }
 
 export const setup = async () => {
-  const secretKey = process.env.SECRET_KEY || '';
-  const networkType = (process.env.SUI_NETWORK_TYPE || 'devnet') as NetworkType;
-  const packagePath = path.join(__dirname, '../query');
-  const publishResult = await publishPackage(packagePath, secretKey, networkType);
-  const objectIds = dumpObjectIds(publishResult);
+  const packagePath = path.join(__dirname, '../protocol');
+  const protocolPublishResult = await publishProtocol(packagePath, suiKit.getSigner());
+  if (!protocolPublishResult.packageData.packageId) {
+    console.log(protocolPublishResult.txn);
+    throw new Error('Failed to publish package');
+  }
 
   await delay(3000);
-
-  const scallopSui = new ScallopSui({
-    packageId: objectIds.packageData.packageId,
-    marketId: objectIds.marketData.marketId,
-    coinDecimalsRegistryId: objectIds.marketData.CoinDecimalsRegistryId,
-    adminCapId: objectIds.marketData.adminCapId,
-    priceFeedCapId: objectIds.oracleData.priceFeedCapId,
-    priceFeedsId: objectIds.oracleData.priceFeedHolderId,
-    suiConfig: { secretKey, networkType }
-  });
-  const txBuilder = scallopSui.createTxBuilder();
 
   // init market
-  txBuilder.initMarketForTest(
-    objectIds.testCoinData.usdc.treasuryId,
-    objectIds.testCoinData.usdc.metadataId,
-    objectIds.testCoinData.eth.metadataId
-  );
-  txBuilder.suiTxBlock.txBlock.setGasBudget(3 * 10 ** 9);
-  const initResult = await scallopSui.submitTxn(txBuilder);
-  console.log(initResult)
+  console.log('init market...')
+  const initMarketResult = await initMarketForTest(protocolPublishResult);
+  console.log('init market result done!')
 
-  await delay(3000);
+  const scallopSui = new ScallopSui({
+    packageId: protocolPublishResult.packageData.packageId,
+    marketId: protocolPublishResult.marketData.marketId,
+    coinDecimalsRegistryId: protocolPublishResult.marketData.coinDecimalsRegistryId,
+    adminCapId: protocolPublishResult.marketData.adminCapId,
+    priceFeedCapId: '',
+    priceFeedsId: '',
+    suiConfig: { secretKey, networkType }
+  });
 
   // open obligation and add collateral
-  const ethCoinType = `${objectIds.packageData.packageId}::eth::ETH`;
+  console.log('open obligation and add collateral...')
+  const ethCoinType = `${protocolPublishResult.packageData.packageId}::eth::ETH`;
   const res = await scallopSui.openObligationAndAddCollateral(100, ethCoinType)
   const obligationData = parseOpenObligationResponse(res);
+  console.log('open obligation and add collateral done!')
+
+  // register switchboard aggregators
+  console.log('register switchboard oracles...')
+  const registerRes = await registerSwitchboardOracles(
+    protocolPublishResult.packageData.packageId,
+    protocolPublishResult.oracleData.switchboard.registryCapId,
+    protocolPublishResult.oracleData.switchboard.registryId,
+    initMarketResult.switchboardData.ethAggregatorId,
+    initMarketResult.switchboardData.usdcAggregatorId,
+  );
+  console.log(registerRes);
+  console.log('register switchboard oracles done!');
 
   // Write the object ids to a file in json format
-  writeAsJson({...objectIds, obligationData }, 'object-ids.json');
+  console.log('write object ids to file: object-ids.json')
+  writeAsJson({...protocolPublishResult, obligationData, switchboard: initMarketResult.switchboardData, txn: undefined }, 'object-ids.json');
+  console.log('write object ids to file done!')
 }
 
 setup();

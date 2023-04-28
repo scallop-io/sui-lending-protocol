@@ -8,6 +8,7 @@ Math = { local = "../math" }
 X = { local = "../x" }
 TestCoin = { local = "../test_coin" }
 Oracle = { local = "../oracle" }
+SwitchboardStdLib = { local = "../switchboard" }
 
 [addresses]
 protocol ="0x0"

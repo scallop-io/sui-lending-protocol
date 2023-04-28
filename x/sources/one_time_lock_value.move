@@ -18,29 +18,29 @@ module x::one_time_lock_value {
     id: UID,
     value: T,
     consumed: bool,
-    lockUntilEpoch: u64,
-    validBeforeEpoch: u64 // If expireEpoch is 0, then it will always be valid.
+    lock_until_epoch: u64,
+    valid_before_epoch: u64 // If expireEpoch is 0, then it will always be valid.
   }
   
   public fun consumed<T: store + copy>(self: &OneTimeLockValue<T>): bool {self.consumed}
-  public fun lock_until_epoch<T: store + copy>(self: &OneTimeLockValue<T>): u64 {self.lockUntilEpoch}
-  public fun valid_before_epoch<T: store + copy>(self: &OneTimeLockValue<T>): u64 {self.validBeforeEpoch}
+  public fun lock_until_epoch<T: store + copy>(self: &OneTimeLockValue<T>): u64 {self.lock_until_epoch}
+  public fun valid_before_epoch<T: store + copy>(self: &OneTimeLockValue<T>): u64 {self.valid_before_epoch}
   
   public fun new<T: store + copy>(
     value: T,
-    lockEpoches: u64, // how many epoches to lock
-    validEpoches: u64, // how long the value will be valid after lock
+    lock_epoches: u64, // how many epoches to lock
+    valid_epoches: u64, // how long the value will be valid after lock
     ctx: &mut TxContext
   ): OneTimeLockValue<T> {
-    let  curEpoch = tx_context::epoch(ctx);
-    let lockUntilEpoch = curEpoch + lockEpoches;
-    let validBeforeEpoch = if (validEpoches > 0) { lockUntilEpoch + validEpoches } else 0;
+    let  cur_epoch = tx_context::epoch(ctx);
+    let lock_until_epoch = cur_epoch + lock_epoches;
+    let valid_before_epoch = if (valid_epoches > 0) { lock_until_epoch + valid_epoches } else 0;
     OneTimeLockValue {
       id: object::new(ctx),
       value,
       consumed: false,
-      lockUntilEpoch,
-      validBeforeEpoch
+      lock_until_epoch,
+      valid_before_epoch
     }
   }
   
@@ -50,10 +50,10 @@ module x::one_time_lock_value {
   // - If 'consumed' is true, then abort
   // - After all conditions are met, return the value, and set 'consumed = true'
   public fun get_value<T: copy + store>(self: &mut OneTimeLockValue<T>, ctx: &mut TxContext): T {
-    let curEpoch = tx_context::epoch(ctx);
-    assert!(self.lockUntilEpoch <= curEpoch, EValuePending);
-    if (self.validBeforeEpoch > 0) {
-      assert!(self.validBeforeEpoch > curEpoch, EValueExpired)
+    let cur_epoch = tx_context::epoch(ctx);
+    assert!(self.lock_until_epoch <= cur_epoch, EValuePending);
+    if (self.valid_before_epoch > 0) {
+      assert!(self.valid_before_epoch > cur_epoch, EValueExpired)
     };
     assert!(self.consumed == false, EAlreadyConsumed);
     self.consumed = true;

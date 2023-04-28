@@ -18,31 +18,31 @@ module x::supply_bag {
   }
   
   public fun init_supply<T: drop>(witness: T, self: &mut SupplyBag) {
-    let typeName = type_name::get<T>();
-    bag::add(&mut self.bag, typeName, balance::create_supply(witness))
+    let type_name = type_name::get<T>();
+    bag::add(&mut self.bag, type_name, balance::create_supply(witness))
   }
   
   public fun increase_supply<T>(self: &mut SupplyBag, amount: u64): Balance<T> {
-    let typeName = type_name::get<T>();
-    let supply = bag::borrow_mut<TypeName, Supply<T>>(&mut self.bag, typeName);
+    let type_name = type_name::get<T>();
+    let supply = bag::borrow_mut<TypeName, Supply<T>>(&mut self.bag, type_name);
     balance::increase_supply(supply, amount)
   }
   
   public fun decrease_supply<T>(self: &mut SupplyBag, balance: Balance<T>): u64 {
-    let typeName = type_name::get<T>();
-    let supply = bag::borrow_mut<TypeName, Supply<T>>(&mut self.bag, typeName);
+    let type_name = type_name::get<T>();
+    let supply = bag::borrow_mut<TypeName, Supply<T>>(&mut self.bag, type_name);
     balance::decrease_supply(supply, balance)
   }
   
   public fun supply_value<T>(self: &SupplyBag): u64 {
-    let typeName = type_name::get<T>();
-    let supply = bag::borrow<TypeName, Supply<T>>(&self.bag, typeName);
+    let type_name = type_name::get<T>();
+    let supply = bag::borrow<TypeName, Supply<T>>(&self.bag, type_name);
     balance::supply_value(supply)
   }
   
   public fun contains<T>(self: &SupplyBag): bool {
-    let typeName = type_name::get<T>();
-    bag::contains(&self.bag, typeName)
+    let type_name = type_name::get<T>();
+    bag::contains(&self.bag, type_name)
   }
   
   public fun bag(self: &SupplyBag): &Bag {

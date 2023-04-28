@@ -11,10 +11,10 @@ module protocol::mint {
 
   struct MintEvent has copy, drop {
     minter: address,
-    depositAsset: TypeName,
-    depositAmount: u64,
-    mintAsset: TypeName,
-    mintAmount: u64,
+    deposit_asset: TypeName,
+    deposit_amount: u64,
+    mint_asset: TypeName,
+    mint_amount: u64,
     time: u64,
   }
   
@@ -24,8 +24,8 @@ module protocol::mint {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let mintCoin = mint(market, coin, clock, ctx);
-    transfer::public_transfer(mintCoin, tx_context::sender(ctx));
+    let mint_coin = mint(market, coin, clock, ctx);
+    transfer::public_transfer(mint_coin, tx_context::sender(ctx));
   }
   
   public fun mint<T>(
@@ -35,19 +35,19 @@ module protocol::mint {
     ctx: &mut TxContext,
   ): Coin<MarketCoin<T>> {
     let now = clock::timestamp_ms(clock);
-    let depositAmount = coin::value(&coin);
-    let mintBalance = market::handle_mint(market, coin::into_balance(coin), now);
+    let deposit_amount = coin::value(&coin);
+    let mint_balance = market::handle_mint(market, coin::into_balance(coin), now);
     
     let sender = tx_context::sender(ctx);
     
     emit(MintEvent{
       minter: sender,
-      depositAsset: type_name::get<T>(),
-      depositAmount,
-      mintAsset: type_name::get<MarketCoin<T>>(),
-      mintAmount: balance::value(&mintBalance),
+      deposit_asset: type_name::get<T>(),
+      deposit_amount,
+      mint_asset: type_name::get<MarketCoin<T>>(),
+      mint_amount: balance::value(&mint_balance),
       time: now,
     });
-    coin::from_balance(mintBalance, ctx)
+    coin::from_balance(mint_balance, ctx)
   }
 }

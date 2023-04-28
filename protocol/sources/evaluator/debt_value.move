@@ -7,49 +7,51 @@ module protocol::debt_value {
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::interest_model as interest_model_lib;
   use protocol::market::{Self as market_lib, Market};
-  use oracle::price_feed::{Self, PriceFeedHolder};
-  
+  use protocol::value_calculator::usd_value;
+  use oracle::multi_oracle_strategy;
+  use oracle::switchboard_adaptor::{SwitchboardBundle};
+
   public fun debts_value_usd(
     obligation: &Obligation,
-    coinDecimalsRegsitry: &CoinDecimalsRegistry,
-    price_feeds: &PriceFeedHolder,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    switchboard_bundle: &SwitchboardBundle,
   ): FixedPoint32 {
-    let debtTypes = obligation::debt_types(obligation);
-    let totalValudInUsd = fixed_point32_empower::zero();
-    let (i, n) = (0, vector::length(&debtTypes));
+    let debt_types = obligation::debt_types(obligation);
+    let total_value_usd = fixed_point32_empower::zero();
+    let (i, n) = (0, vector::length(&debt_types));
     while( i < n ) {
-      let debtType = *vector::borrow(&debtTypes, i);
-      let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
-      let (debtAmount, _) = obligation::debt(obligation, debtType);
-      let price_feed = price_feed::price_feed(price_feeds, debtType);
-      let coin_value_in_usd = price_feed::calculate_coin_in_usd(price_feed, debtAmount, decimals);
-      totalValudInUsd = fixed_point32_empower::add(totalValudInUsd, coin_value_in_usd);
+      let debt_type = *vector::borrow(&debt_types, i);
+      let decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
+      let (debt_amount, _) = obligation::debt(obligation, debt_type);
+      let coin_price = multi_oracle_strategy::get_price(switchboard_bundle, debt_type);
+      let coin_value_in_usd = usd_value(coin_price, debt_amount, decimals);
+      total_value_usd = fixed_point32_empower::add(total_value_usd, coin_value_in_usd);
       i = i + 1;
     };
-    totalValudInUsd
+    total_value_usd
   }
 
   public fun debts_value_usd_with_weight(
     obligation: &Obligation,
-    coinDecimalsRegsitry: &CoinDecimalsRegistry,
+    coin_decimals_registry: &CoinDecimalsRegistry,
     market: &Market,
-    price_feeds: &PriceFeedHolder,
+    switchboard_bundle: &SwitchboardBundle,
   ): FixedPoint32 {
-    let debtTypes = obligation::debt_types(obligation);
-    let totalValueInUsd = fixed_point32_empower::zero();
-    let (i, n) = (0, vector::length(&debtTypes));
+    let debt_types = obligation::debt_types(obligation);
+    let total_weighted_value_usd = fixed_point32_empower::zero();
+    let (i, n) = (0, vector::length(&debt_types));
     while( i < n ) {
-      let debtType = *vector::borrow(&debtTypes, i);
-      let interest_model = market_lib::interest_model(market, debtType);
+      let debt_type = *vector::borrow(&debt_types, i);
+      let interest_model = market_lib::interest_model(market, debt_type);
       let borrow_weight = interest_model_lib::borrow_weight(interest_model);
-      let decimals = coin_decimals_registry::decimals(coinDecimalsRegsitry, debtType);
-      let (debtAmount, _) = obligation::debt(obligation, debtType);
-      let price_feed = price_feed::price_feed(price_feeds, debtType);
-      let coin_value_in_usd = price_feed::calculate_coin_in_usd(price_feed, debtAmount, decimals);
-      let weightedValueInUsd = fixed_point32_empower::mul(coin_value_in_usd, borrow_weight);
-      totalValueInUsd = fixed_point32_empower::add(totalValueInUsd, weightedValueInUsd);
+      let decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
+      let (debt_amount, _) = obligation::debt(obligation, debt_type);
+      let coin_price = multi_oracle_strategy::get_price(switchboard_bundle, debt_type);
+      let coin_value_usd = usd_value(coin_price, debt_amount, decimals);
+      let weighted_value_usd = fixed_point32_empower::mul(coin_value_usd, borrow_weight);
+      total_weighted_value_usd = fixed_point32_empower::add(total_weighted_value_usd, weighted_value_usd);
       i = i + 1;
     };
-    totalValueInUsd
+    total_weighted_value_usd
   }
 }

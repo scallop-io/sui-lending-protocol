@@ -1,7 +1,8 @@
+/// TODO: add events for liquidation
 module protocol::liquidate {
   
   use std::type_name::get;
-  use sui::balance::{Self, Balance};
+  use sui::balance;
   use sui::clock::{Self, Clock};
   
   use protocol::obligation::{Self, Obligation};
@@ -13,33 +14,34 @@ module protocol::liquidate {
   use sui::tx_context::TxContext;
   use sui::transfer;
   use sui::tx_context;
-  use oracle::price_feed::PriceFeedHolder;
+  use oracle::switchboard_adaptor::SwitchboardBundle;
 
   const ECantBeLiquidated: u64 = 0x30001;
   
-  public fun liquidate_entry<DebtType, CollateralType>(
+  public entry fun liquidate_entry<DebtType, CollateralType>(
     obligation: &mut Obligation,
     market: &mut Market,
-    availableRepayBalance: Balance<DebtType>,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    price_feeds: &PriceFeedHolder,
+    available_repay_coin: Coin<DebtType>,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    switchboard_bundle: &SwitchboardBundle,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let (remainCoin, collateralCoin) = liquidate<DebtType, CollateralType>(obligation, market, availableRepayBalance, coinDecimalsRegistry, price_feeds, clock, ctx);
-    transfer::public_transfer(remainCoin, tx_context::sender(ctx));
-    transfer::public_transfer(collateralCoin, tx_context::sender(ctx));
+    let (remain_coin, collateral_coin) = liquidate<DebtType, CollateralType>(obligation, market, available_repay_coin, coin_decimals_registry, switchboard_bundle, clock, ctx);
+    transfer::public_transfer(remain_coin, tx_context::sender(ctx));
+    transfer::public_transfer(collateral_coin, tx_context::sender(ctx));
   }
   
   public fun liquidate<DebtType, CollateralType>(
     obligation: &mut Obligation,
     market: &mut Market,
-    availableRepayBalance: Balance<DebtType>,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    price_feeds: &PriceFeedHolder,
+    available_repay_coin: Coin<DebtType>,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    switchboard_bundle: &SwitchboardBundle,
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Coin<DebtType>, Coin<CollateralType>) {
+    let available_repay_balance = coin::into_balance(available_repay_coin);
     let now = clock::timestamp_ms(clock);
     // Accrue interests for market
     market::accrue_all_interests(market, now);
@@ -47,26 +49,26 @@ module protocol::liquidate {
     obligation::accrue_interests(obligation, market);
     
     // Calc liquidation amounts for the given debt type
-    let availableRepayAmount = balance::value(&availableRepayBalance);
-    let (repayOnBehalf, repayRevenue, liqAmount) =
-      liquidation_amounts<DebtType, CollateralType>(obligation, market, coinDecimalsRegistry, availableRepayAmount, price_feeds);
-    assert!(liqAmount > 0, ECantBeLiquidated);
+    let available_repay_amount = balance::value(&available_repay_balance);
+    let (repay_on_behalf, repay_revenue, liq_amount) =
+      liquidation_amounts<DebtType, CollateralType>(obligation, market, coin_decimals_registry, available_repay_amount, switchboard_bundle);
+    assert!(liq_amount > 0, ECantBeLiquidated);
     
     // withdraw the collateral balance from obligation
-    let collateralBalance = obligation::withdraw_collateral<CollateralType>(obligation, liqAmount);
+    let collateral_balance = obligation::withdraw_collateral<CollateralType>(obligation, liq_amount);
     // Reduce the debt for the obligation
-    let debtType = get<DebtType>();
-    obligation::decrease_debt(obligation, debtType, repayOnBehalf);
+    let debt_type = get<DebtType>();
+    obligation::decrease_debt(obligation, debt_type, repay_on_behalf);
     
     // Put the repay and revenue balance to the market
-    let repayOnBeHalfBalance = balance::split(&mut availableRepayBalance, repayOnBehalf);
-    let revenueBalance = balance::split(&mut availableRepayBalance, repayRevenue);
-    market::handle_liquidation(market, repayOnBeHalfBalance, revenueBalance);
+    let repay_on_behalf_balance = balance::split(&mut available_repay_balance, repay_on_behalf);
+    let revenue_balance = balance::split(&mut available_repay_balance, repay_revenue);
+    market::handle_liquidation(market, repay_on_behalf_balance, revenue_balance);
   
     // Send the remaining balance, and collateral balance to liquidator
     (
-      coin::from_balance(availableRepayBalance, ctx),
-      coin::from_balance(collateralBalance, ctx)
+      coin::from_balance(available_repay_balance, ctx),
+      coin::from_balance(collateral_balance, ctx)
     )
   }
 }

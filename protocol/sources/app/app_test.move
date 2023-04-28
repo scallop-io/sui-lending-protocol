@@ -1,4 +1,5 @@
 // TODO: remove this file when launch on mainnet
+// @skip-auditing
 module protocol::app_test {
   use sui::tx_context::TxContext;
   use sui::math;
@@ -6,17 +7,14 @@ module protocol::app_test {
   use protocol::market::Market;
   use protocol::app::{Self, AdminCap};
   use protocol::mint;
-  use protocol::obligation::{Obligation, ObligationKey};
 
   use test_coin::usdc::{Self, USDC};
-  use test_coin::eth::{Self, ETH};
+  use test_coin::eth::ETH;
   use sui::clock::Clock;
-  use protocol::deposit_collateral::deposit_collateral;
-  use protocol::borrow::{borrow_entry};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use sui::coin::CoinMetadata;
 
-  use oracle::price_feed::{Self, PriceFeedHolder, PriceFeedCap};
+  use switchboard::switchboard_admin;
 
   public entry fun init_market(
     market: &mut Market,
@@ -25,8 +23,6 @@ module protocol::app_test {
     registry: &mut CoinDecimalsRegistry,
     coinMetaUsdc: &CoinMetadata<USDC>,
     coinMetaEth: &CoinMetadata<ETH>,
-    priceFeedCap: &PriceFeedCap,
-    priceFeeds: &mut PriceFeedHolder,
     clock: &Clock,
     ctx: &mut TxContext
   ) {
@@ -36,24 +32,8 @@ module protocol::app_test {
     coin_decimals_registry::register_decimals<USDC>(registry, coinMetaUsdc);
     coin_decimals_registry::register_decimals<ETH>(registry, coinMetaEth);
     let usdcCoin = usdc::mint(usdcTreasury, ctx);
-    init_price_feeds(priceFeedCap, priceFeeds);
+    init_switchboard(clock, ctx);
     mint::mint_entry(market, usdcCoin, clock, ctx);
-  }
-
-  public entry fun simulate_user_actions(
-    market: &mut Market,
-    obligation: &mut Obligation,
-    obligationKey: &ObligationKey,
-    ethTreasury: &mut eth::Treasury,
-    coinDecimalsRegistry: &CoinDecimalsRegistry,
-    price_feeds: &PriceFeedHolder,
-    clock: &Clock,
-    ctx: &mut TxContext
-  ) {
-    let ethCoin = eth::mint(ethTreasury, ctx);
-    deposit_collateral(obligation, market, ethCoin, ctx);
-    let borrowAmount = math::pow(10, 10);
-    borrow_entry<USDC>(obligation, obligationKey, market, coinDecimalsRegistry, borrowAmount, price_feeds, clock, ctx);
   }
 
   fun init_risk_models(
@@ -137,11 +117,19 @@ module protocol::app_test {
     );
   }
 
-  fun init_price_feeds(
-    priceFeedCap: &PriceFeedCap,
-    priceFeeds: &mut PriceFeedHolder,
-  ){
-    price_feed::add_price_feed<USDC>(priceFeedCap, priceFeeds, 1, 1); // $1
-    price_feed::add_price_feed<ETH>(priceFeedCap, priceFeeds, 2000, 1); // $2000
+  fun init_switchboard(
+    clock: &Clock,
+    ctx: &mut TxContext
+  ) {
+    let (eth_price_aggr, eth_price_aggr_hp) =  switchboard_admin::new_aggregator(b"ETH/USD", ctx);
+    let (usdc_price_aggr, usdc_price_aggr_hp) =  switchboard_admin::new_aggregator(b"USDC/USD", ctx);
+
+    // Update the price of ETH to $2000
+    switchboard_admin::update_price(&mut eth_price_aggr, 2000, 1, false, clock, ctx);
+    // Update the price of USDC to $1
+    switchboard_admin::update_price(&mut usdc_price_aggr, 1, 1, false, clock, ctx);
+
+    switchboard_admin::share_aggregator(eth_price_aggr, eth_price_aggr_hp);
+    switchboard_admin::share_aggregator(usdc_price_aggr, usdc_price_aggr_hp);
   }
 }

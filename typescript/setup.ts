@@ -1,10 +1,9 @@
 import path from "path";
-import { ScallopSui } from "@scallop-dao/scallop-sui";
-import { secretKey, networkType, suiKit } from "./sui-kit-instance";
+import { suiKit } from "./sui-kit-instance";
 import { initMarketForTest } from "./init-market";
 import { publishProtocol } from "./publish-protocol";
-import { parseOpenObligationResponse } from "./parse-open-obligation-response";
 import { registerSwitchboardOracles } from "./register-switchboard-oracles";
+import { openObligation } from "./open-obligation";
 import { writeAsJson } from "./write-as-json";
 
 const delay = (ms: number) => {
@@ -13,7 +12,7 @@ const delay = (ms: number) => {
 }
 
 export const setup = async () => {
-  const packagePath = path.join(__dirname, '../protocol');
+  const packagePath = path.join(__dirname, '../query');
   const protocolPublishResult = await publishProtocol(packagePath, suiKit.getSigner());
   if (!protocolPublishResult.packageData.packageId) {
     console.log(protocolPublishResult.txn);
@@ -27,21 +26,12 @@ export const setup = async () => {
   const initMarketResult = await initMarketForTest(protocolPublishResult);
   console.log('init market result done!')
 
-  const scallopSui = new ScallopSui({
-    packageId: protocolPublishResult.packageData.packageId,
-    marketId: protocolPublishResult.marketData.marketId,
-    coinDecimalsRegistryId: protocolPublishResult.marketData.coinDecimalsRegistryId,
-    adminCapId: protocolPublishResult.marketData.adminCapId,
-    priceFeedCapId: '',
-    priceFeedsId: '',
-    suiConfig: { secretKey, networkType }
-  });
-
   // open obligation and add collateral
   console.log('open obligation and add collateral...')
-  const ethCoinType = `${protocolPublishResult.packageData.packageId}::eth::ETH`;
-  const res = await scallopSui.openObligationAndAddCollateral(100, ethCoinType)
-  const obligationData = parseOpenObligationResponse(res);
+  const obligationData = await openObligation(
+    protocolPublishResult.packageData.packageId,
+    protocolPublishResult.marketData.marketId
+  );
   console.log('open obligation and add collateral done!')
 
   // register switchboard aggregators

@@ -54,6 +54,11 @@ module oracle::switchboard_adaptor {
     transfer::share_object(switchboard_bundle);
   }
 
+  #[test_only]
+  public fun init_t(ctx: &mut TxContext) {
+    init(ctx);
+  }
+
   // bundle the prices from different aggregators into a SwitchboardBundle.
   // This function should be called with programmable transaction.
   // The switchboard_registry is used to verify the aggregator.
@@ -94,5 +99,28 @@ module oracle::switchboard_adaptor {
   ): FixedPoint32 {
     let switchboard_data = table::borrow(&switchboard_bundle.table, coin_type);
     switchboard_data.price
+  }
+
+  #[test_only]
+  public fun update_switchboard_price<T>(
+    switchboard_bundle: &mut SwitchboardBundle,
+    timestamp: u64,
+    price_numerator: u64, 
+    price_denominator: u64
+  ) {
+    let coin_type = type_name::get<T>();
+
+    if (!table::contains(&switchboard_bundle.table, coin_type)) {
+      let arbitrary_id = object::id(switchboard_bundle); // arbitrary  id, not necessary
+      table::add(&mut switchboard_bundle.table, coin_type, SwitchboardData {
+        price: fixed_point32::create_from_rational(price_numerator, price_denominator),
+        timestamp,
+        aggregator_id: arbitrary_id, // arbitrary  id, not necessary
+      });
+    };
+    
+    let switchboard_data = table::borrow_mut(&mut switchboard_bundle.table, coin_type);
+    switchboard_data.price = fixed_point32::create_from_rational(price_numerator, price_denominator);
+    switchboard_data.timestamp = timestamp;
   }
 }

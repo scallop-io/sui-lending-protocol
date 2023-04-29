@@ -6,8 +6,10 @@ module protocol_test::liquidation_test {
   use sui::math;
   use sui::balance;
   use sui::clock::Self as clock_lib;
+  use oracle::switchboard_adaptor;
   use protocol::collateral_value;
   use protocol::debt_value;
+  use protocol::coin_decimals_registry;
   use protocol_test::app_t::app_init;
   use protocol_test::open_obligation_t::open_obligation_t;
   use protocol_test::mint_t::mint_t;
@@ -15,13 +17,12 @@ module protocol_test::liquidation_test {
   use protocol_test::deposit_collateral_t::deposit_collateral_t;
   use protocol_test::borrow_t::borrow_t;
   use protocol_test::liquidate_t;
-  use protocol::coin_decimals_registry;
   use protocol_test::coin_decimals_registry_t::coin_decimals_registry_init;
   use protocol_test::interest_model_t::add_interest_model_t;
   use protocol_test::risk_model_t::add_risk_model_t;
+  use protocol_test::oracle_t;
   use test_coin::eth::ETH;
   use test_coin::usdc::USDC;
-  use oracle::price_feed::{Self, PriceFeedHolder, PriceFeedCap};
   use math::fixed_point32_empower;
   use std::fixed_point32::{Self, FixedPoint32};
   
@@ -54,18 +55,12 @@ module protocol_test::liquidation_test {
     let (market, admin_cap) = app_init(scenario, admin);
     let usdc_interest_params = usdc_interest_model_params();
 
-    price_feed::init_oracle(test_scenario::ctx(scenario));
-    test_scenario::next_tx(scenario, admin);
-    let price_feeds = test_scenario::take_shared<PriceFeedHolder>(scenario);
-    let price_feed_cap = test_scenario::take_from_address<PriceFeedCap>(scenario, admin);
-    price_feed::add_price_feed<ETH>(&price_feed_cap, &mut price_feeds, 1000, 1); // 1000 USD
-    price_feed::add_price_feed<USDC>(&price_feed_cap, &mut price_feeds, 1, 2); // 0.5 USD
-    test_scenario::next_tx(scenario, admin);
+    let (switchboard_bundle) = oracle_t::init_t(scenario, admin);
 
     let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
     test_scenario::next_tx(scenario, admin);
     
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, 100);
     add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
@@ -75,7 +70,7 @@ module protocol_test::liquidation_test {
     
     test_scenario::next_tx(scenario, lender);
     let usdc_amount = math::pow(10, usdc_decimals + 4);
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, 200);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let market_coin_balance = mint_t(scenario, lender, &mut market, usdc_coin, &clock);
     assert!(balance::value(&market_coin_balance) == usdc_amount, 0);
@@ -86,16 +81,18 @@ module protocol_test::liquidation_test {
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let (obligation, obligation_key) = open_obligation_t(scenario, borrower);
     deposit_collateral_t(scenario, &mut obligation, &mut market, eth_coin);
-  
+
+    clock_lib::set_for_testing(&mut clock, 300);
+    switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, 300, 1, 2); // $0.5
+    switchboard_adaptor::update_switchboard_price<ETH>(&mut switchboard_bundle, 300, 1000, 1); // $1000
+
     test_scenario::next_tx(scenario, borrower);
-    clock_lib::increment_for_testing(&mut clock, 100);
     let borrow_amount = 850 * math::pow(10, usdc_decimals);
-    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &price_feeds, &clock);
+    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &switchboard_bundle, &clock);
     assert!(balance::value(&borrowed) == borrow_amount, 0);
     balance::destroy_for_testing(borrowed);
 
-    test_scenario::next_tx(scenario, admin);    
-    price_feed::update_price<USDC>(&price_feed_cap, &mut price_feeds, 1, 1); // 1 USD
+    switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, 300, 1, 1); // $1
 
     test_scenario::next_tx(scenario, liquidator);    
     let usdc_amount = 900 * math::pow(10, usdc_decimals);
@@ -106,7 +103,7 @@ module protocol_test::liquidation_test {
         &mut market,
         &coin_decimals_registry,
         usdc_coin,
-        &price_feeds,
+        &switchboard_bundle,
         &clock,
         test_scenario::ctx(scenario),
     );
@@ -125,8 +122,8 @@ module protocol_test::liquidation_test {
 
     assert!(repaid_debt_amount == discounted_collateral_in_debt_coin_amount, 1);
 
-    let collaterals_value_with_liq_factor = collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &price_feeds);
-    let weighted_debts_value = debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &price_feeds);
+    let collaterals_value_with_liq_factor = collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &switchboard_bundle);
+    let weighted_debts_value = debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &switchboard_bundle);
 
     assert!(fixed_point32_empower::gt(weighted_debts_value, collaterals_value_with_liq_factor) == false, 2);
 
@@ -135,8 +132,7 @@ module protocol_test::liquidation_test {
 
     clock_lib::destroy_for_testing(clock);
 
-    test_scenario::return_to_address(admin, price_feed_cap);
-    test_scenario::return_shared(price_feeds);
+    test_scenario::return_shared(switchboard_bundle);
     test_scenario::return_shared(coin_decimals_registry);
     test_scenario::return_shared(market);
     test_scenario::return_shared(obligation);
@@ -177,18 +173,12 @@ module protocol_test::liquidation_test {
     let new_borrow_weight = constants::borrow_weight(&usdc_interest_params) * 2;
     constants::set_borrow_weight(&mut usdc_interest_params, new_borrow_weight);
 
-    price_feed::init_oracle(test_scenario::ctx(scenario));
-    test_scenario::next_tx(scenario, admin);
-    let price_feeds = test_scenario::take_shared<PriceFeedHolder>(scenario);
-    let price_feed_cap = test_scenario::take_from_address<PriceFeedCap>(scenario, admin);
-    price_feed::add_price_feed<ETH>(&price_feed_cap, &mut price_feeds, 1000, 1); // 1000 USD
-    price_feed::add_price_feed<USDC>(&price_feed_cap, &mut price_feeds, 1, 4); // 0.25 USD
-    test_scenario::next_tx(scenario, admin);
+    let (switchboard_bundle) = oracle_t::init_t(scenario, admin);
 
     let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
     test_scenario::next_tx(scenario, admin);
     
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, 100);
     add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
@@ -198,7 +188,7 @@ module protocol_test::liquidation_test {
     
     test_scenario::next_tx(scenario, lender);
     let usdc_amount = math::pow(10, usdc_decimals + 4);
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, 200);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let market_coin_balance = mint_t(scenario, lender, &mut market, usdc_coin, &clock);
     assert!(balance::value(&market_coin_balance) == usdc_amount, 0);
@@ -210,15 +200,17 @@ module protocol_test::liquidation_test {
     let (obligation, obligation_key) = open_obligation_t(scenario, borrower);
     deposit_collateral_t(scenario, &mut obligation, &mut market, eth_coin);
   
+    clock_lib::set_for_testing(&mut clock, 300);
+    switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, 300, 1, 4); // $0.25
+    switchboard_adaptor::update_switchboard_price<ETH>(&mut switchboard_bundle, 300, 1000, 1); // $1000
+
     test_scenario::next_tx(scenario, borrower);
-    clock_lib::increment_for_testing(&mut clock, 100);
     let borrow_amount = 850 * math::pow(10, usdc_decimals);
-    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &price_feeds, &clock);
+    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &switchboard_bundle, &clock);
     assert!(balance::value(&borrowed) == borrow_amount, 0);
     balance::destroy_for_testing(borrowed);
 
-    test_scenario::next_tx(scenario, admin);    
-    price_feed::update_price<USDC>(&price_feed_cap, &mut price_feeds, 1, 2); // 0.5 USD
+    switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, 300, 1, 2); // $0.5
 
     test_scenario::next_tx(scenario, liquidator);    
     let usdc_amount = 900 * math::pow(10, usdc_decimals);
@@ -229,7 +221,7 @@ module protocol_test::liquidation_test {
         &mut market,
         &coin_decimals_registry,
         usdc_coin,
-        &price_feeds,
+        &switchboard_bundle,
         &clock,
         test_scenario::ctx(scenario),
     );
@@ -247,8 +239,8 @@ module protocol_test::liquidation_test {
     let discounted_collateral_debt_coin_amount = fixed_point32::divide_u64(coin::value(&coin_collateral), liq_exchange_rate);
     assert!(repaid_debt_amount == discounted_collateral_debt_coin_amount, 1);
 
-    let collaterals_value_with_liq_factor = collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &price_feeds);
-    let weighted_debts_value = debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &price_feeds);
+    let collaterals_value_with_liq_factor = collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &switchboard_bundle);
+    let weighted_debts_value = debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &switchboard_bundle);
 
     assert!(fixed_point32_empower::gt(weighted_debts_value, collaterals_value_with_liq_factor) == false, 2);
 
@@ -257,8 +249,7 @@ module protocol_test::liquidation_test {
 
     clock_lib::destroy_for_testing(clock);
 
-    test_scenario::return_to_address(admin, price_feed_cap);
-    test_scenario::return_shared(price_feeds);
+    test_scenario::return_shared(switchboard_bundle);
     test_scenario::return_shared(coin_decimals_registry);
     test_scenario::return_shared(market);
     test_scenario::return_shared(obligation);

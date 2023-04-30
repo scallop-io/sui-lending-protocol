@@ -57,7 +57,7 @@ module protocol::borrow {
       error::whitelist_error()
     );
 
-    let now = clock::timestamp_ms(clock);
+    let now = clock::timestamp_ms(clock) / 1000;
     obligation::assert_key_match(obligation, obligation_key);
   
     let coin_type = type_name::get<T>();

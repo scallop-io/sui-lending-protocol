@@ -76,7 +76,7 @@ module protocol::app {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let now = clock::timestamp_ms(clock);
+    let now = clock::timestamp_ms(clock) / 1000;
     let interest_models = market::interest_models_mut(market);
     interest_model::add_interest_model<T>(
       interest_models,

@@ -50,7 +50,7 @@ module protocol::liquidate {
     );
 
     let available_repay_balance = coin::into_balance(available_repay_coin);
-    let now = clock::timestamp_ms(clock);
+    let now = clock::timestamp_ms(clock) / 1000;
     // Accrue interests for market
     market::accrue_all_interests(market, now);
     // Accrue interests for obligation

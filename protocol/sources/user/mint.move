@@ -42,7 +42,7 @@ module protocol::mint {
       error::whitelist_error()
     );
 
-    let now = clock::timestamp_ms(clock);
+    let now = clock::timestamp_ms(clock) / 1000;
     let deposit_amount = coin::value(&coin);
     let mint_balance = market::handle_mint(market, coin::into_balance(coin), now);
     

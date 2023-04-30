@@ -43,7 +43,7 @@ module protocol::redeem {
       error::whitelist_error()
     );
 
-    let now = clock::timestamp_ms(clock);
+    let now = clock::timestamp_ms(clock) / 1000;
     let market_coin_amount = coin::value(&coin);
     let redeem_balance = market::handle_redeem(market, coin::into_balance(coin), now);
     

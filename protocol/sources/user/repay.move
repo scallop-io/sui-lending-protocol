@@ -34,7 +34,7 @@ module protocol::repay {
       error::whitelist_error()
     );
 
-    let now = clock::timestamp_ms(clock);
+    let now = clock::timestamp_ms(clock) / 1000;
     let coin_type = type_name::get<T>();
 
     // always accrued all the interest before doing any actions

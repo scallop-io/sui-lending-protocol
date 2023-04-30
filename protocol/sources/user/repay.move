@@ -30,7 +30,7 @@ module protocol::repay {
   ) {
     // check if sender is in whitelist
     assert!(
-      whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx)),
+      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
       error::whitelist_error()
     );
 

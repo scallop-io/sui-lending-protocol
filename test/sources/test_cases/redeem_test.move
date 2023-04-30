@@ -7,6 +7,8 @@ module protocol_test::redeem_test {
   use sui::balance;
   use sui::clock::Self as clock_lib;
   use std::fixed_point32;
+  use oracle::switchboard_adaptor;
+  use protocol::coin_decimals_registry;
   use protocol_test::app_t::app_init;
   use protocol_test::mint_t::mint_t;
   use protocol_test::deposit_collateral_t::deposit_collateral_t;
@@ -16,14 +18,13 @@ module protocol_test::redeem_test {
   use protocol_test::borrow_t::borrow_t;
   use protocol_test::open_obligation_t::open_obligation_t;
   use protocol_test::constants::{usdc_interest_model_params, eth_risk_model_params};
-  use protocol::coin_decimals_registry;
   use protocol_test::coin_decimals_registry_t::coin_decimals_registry_init;
   use protocol_test::interest_model_t::add_interest_model_t;
+  use protocol_test::oracle_t;
   use protocol_test::risk_model_t::add_risk_model_t;
   use protocol_test::redeem_t::redeem_t;
   use test_coin::usdc::USDC;
   use test_coin::eth::ETH;
-  use oracle::price_feed::{Self, PriceFeedHolder, PriceFeedCap};
 
   #[test]
   public fun redeem_test() {
@@ -40,19 +41,15 @@ module protocol_test::redeem_test {
 
     let (market, admin_cap) = app_init(scenario, admin);
 
-    price_feed::init_oracle(test_scenario::ctx(scenario));
     test_scenario::next_tx(scenario, admin);
-    let price_feeds = test_scenario::take_shared<PriceFeedHolder>(scenario);
-    let price_feed_cap = test_scenario::take_from_address<PriceFeedCap>(scenario, admin);
-    price_feed::add_price_feed<ETH>(&price_feed_cap, &mut price_feeds, 1000, 1); // 1000 USD
-    price_feed::add_price_feed<USDC>(&price_feed_cap, &mut price_feeds, 1, 1); // 1 USD
-    test_scenario::next_tx(scenario, admin);
+
+    let (switchboard_bundle) = oracle_t::init_t(scenario, admin);
 
     let usdc_interest_params = usdc_interest_model_params();
     let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
     test_scenario::next_tx(scenario, admin);
     
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, 100);
     add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
 
     let eth_risk_params = eth_risk_model_params();
@@ -64,7 +61,7 @@ module protocol_test::redeem_test {
     
     test_scenario::next_tx(scenario, lender_a);
     let usdc_amount = math::pow(10, usdc_decimals + 4);
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, 200);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let lender_a_market_coin_balance = mint_t(scenario, lender_a, &mut market, usdc_coin, &clock);
     let lender_a_market_coin_amount = balance::value(&lender_a_market_coin_balance);
@@ -76,18 +73,21 @@ module protocol_test::redeem_test {
     let (obligation, obligation_key) = open_obligation_t(scenario, borrower);
     deposit_collateral_t(scenario, &mut obligation, &mut market, eth_coin);
 
-    test_scenario::next_tx(scenario, borrower);
     let borrow_time = 300;
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, borrow_time);
+    switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, borrow_time, 1, 1); // $1
+    switchboard_adaptor::update_switchboard_price<ETH>(&mut switchboard_bundle, borrow_time, 1000, 1); // $1000
+
+    test_scenario::next_tx(scenario, borrower);
     let borrow_amount = 5 * math::pow(10, usdc_decimals + 3);
-    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry_obj, borrow_amount, &price_feeds, &clock);
+    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry_obj, borrow_amount, &switchboard_bundle, &clock);
     assert!(balance::value(&borrowed) == borrow_amount, 0);
     balance::destroy_for_testing(borrowed);
 
     test_scenario::next_tx(scenario, lender_b);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let mint_time = 400;
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, 400);
     let lender_b_market_coin_balance = mint_t(scenario, lender_b, &mut market, usdc_coin, &clock);
 
     let growth_interest_rate = calc_growth_interest<USDC>(
@@ -112,7 +112,7 @@ module protocol_test::redeem_test {
 
     test_scenario::next_tx(scenario, lender_a);
     let redeem_time = 500;
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, 500);
     let market_coin = coin::from_balance(lender_a_market_coin_balance, test_scenario::ctx(scenario));
     let redeemed_coin = redeem_t(scenario, lender_a, &mut market, market_coin, &clock);
 
@@ -139,8 +139,7 @@ module protocol_test::redeem_test {
 
     clock_lib::destroy_for_testing(clock);
     
-    test_scenario::return_to_address(admin, price_feed_cap);
-    test_scenario::return_shared(price_feeds);
+    test_scenario::return_shared(switchboard_bundle);
     test_scenario::return_shared(coin_decimals_registry_obj);
     test_scenario::return_shared(market);
     test_scenario::return_shared(obligation);

@@ -72,10 +72,19 @@ module oracle::switchboard_adaptor {
 
     let (price, timestamp) = aggregator::latest_value(switchboard_aggregator);
     let aggregator_id = object::id(switchboard_aggregator);
-    let switchboard_data = table::borrow_mut(&mut switchboard_bundle.table, coin_type);
-    switchboard_data.price = convert_to_fixed_point32(price);
-    switchboard_data.timestamp = timestamp;
-    switchboard_data.aggregator_id = aggregator_id;
+
+    if (!table::contains(&switchboard_bundle.table, coin_type)) {
+      table::add(&mut switchboard_bundle.table, coin_type, SwitchboardData {
+        price: convert_to_fixed_point32(price),
+        timestamp,
+        aggregator_id: aggregator_id,
+      });
+    } else {
+      let switchboard_data = table::borrow_mut(&mut switchboard_bundle.table, coin_type);
+      switchboard_data.price = convert_to_fixed_point32(price);
+      switchboard_data.timestamp = timestamp;
+      switchboard_data.aggregator_id = aggregator_id;
+    };
   }
 
   fun convert_to_fixed_point32(price: SwitchboardDecimal): FixedPoint32 {

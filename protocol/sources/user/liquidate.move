@@ -16,6 +16,7 @@ module protocol::liquidate {
   use sui::tx_context;
   use oracle::switchboard_adaptor::SwitchboardBundle;
   use whitelist::whitelist;
+  use protocol::error;
 
   const ECantBeLiquidated: u64 = 0x30001;
   
@@ -43,7 +44,10 @@ module protocol::liquidate {
     ctx: &mut TxContext,
   ): (Coin<DebtType>, Coin<CollateralType>) {
     // check if sender is in whitelist
-    whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx));
+    assert!(
+      whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx)),
+      error::whitelist_error()
+    );
 
     let available_repay_balance = coin::into_balance(available_repay_coin);
     let now = clock::timestamp_ms(clock);

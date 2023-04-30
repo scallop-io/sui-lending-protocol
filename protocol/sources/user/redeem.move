@@ -10,6 +10,7 @@ module protocol::redeem {
   use protocol::market::{Self, Market};
   use protocol::reserve::MarketCoin;
   use whitelist::whitelist;
+  use protocol::error;
 
   struct RedeemEvent has copy, drop {
     redeemer: address,
@@ -37,7 +38,10 @@ module protocol::redeem {
     ctx: &mut TxContext,
   ): Coin<T> {
     // check if sender is in whitelist
-    whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx));
+    assert!(
+      whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx)),
+      error::whitelist_error()
+    );
 
     let now = clock::timestamp_ms(clock);
     let market_coin_amount = coin::value(&coin);

@@ -8,6 +8,7 @@ module protocol::deposit_collateral {
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
   use whitelist::whitelist;
+  use protocol::error;
 
   const EIllegalCollateralType: u64 = 0x20001;
   
@@ -25,7 +26,10 @@ module protocol::deposit_collateral {
     ctx: &mut TxContext,
   ) {
     // check if sender is in whitelist
-    whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx));
+    assert!(
+      whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx)),
+      error::whitelist_error()
+    );
 
     let has_risk_model = market::has_risk_model(market, get<T>());
     assert!(has_risk_model == true, EIllegalCollateralType);

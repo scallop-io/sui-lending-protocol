@@ -79,9 +79,9 @@ module whitelist::whitelist {
   /// Check if an address is allowed.
   public fun is_address_allowed(uid: &UID, address: address): bool {
     if (is_reject_all(uid)) {
-      true
-    } else if (is_allow_all(uid)) {
       false
+    } else if (is_allow_all(uid)) {
+      true
     } else {
       in_whitelist(uid, address)
     }

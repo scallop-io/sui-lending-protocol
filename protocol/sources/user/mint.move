@@ -8,6 +8,7 @@ module protocol::mint {
   use protocol::market::{Self, Market};
   use protocol::reserve::MarketCoin;
   use sui::transfer;
+  use whitelist::whitelist;
 
   struct MintEvent has copy, drop {
     minter: address,
@@ -34,6 +35,9 @@ module protocol::mint {
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<MarketCoin<T>> {
+    // check if sender is in whitelist
+    whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx));
+
     let now = clock::timestamp_ms(clock);
     let deposit_amount = coin::value(&coin);
     let mint_balance = market::handle_mint(market, coin::into_balance(coin), now);

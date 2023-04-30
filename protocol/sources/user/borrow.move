@@ -13,6 +13,7 @@ module protocol::borrow {
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::interest_model;
   use oracle::switchboard_adaptor::SwitchboardBundle;
+  use whitelist::whitelist;
 
   const EBorrowTooMuch: u64 = 0x10001;
   const EBorrowTooLittle: u64 = 0x10002;
@@ -49,6 +50,9 @@ module protocol::borrow {
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
+    // check if sender is in whitelist
+    whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx));
+
     let now = clock::timestamp_ms(clock);
     obligation::assert_key_match(obligation, obligation_key);
   

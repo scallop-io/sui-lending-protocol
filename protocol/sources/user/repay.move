@@ -10,7 +10,8 @@ module protocol::repay {
   use sui::transfer;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
-  
+  use whitelist::whitelist;
+
   struct RepayEvent has copy, drop {
     repayer: address,
     obligation: ID,
@@ -26,6 +27,9 @@ module protocol::repay {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
+    // check if sender is in whitelist
+    whitelist::in_whitelist(market::uid(market), tx_context::sender(ctx));
+
     let now = clock::timestamp_ms(clock);
     let coin_type = type_name::get<T>();
 

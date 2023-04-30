@@ -40,7 +40,10 @@ module protocol::market {
     limiters: WitTable<Limiters, TypeName, Limiter>,
     vault: Reserve
   }
-  
+
+  public fun uid(market: &Market): &UID { &market.id }
+  public(friend) fun uid_mut(market: &mut Market): &mut UID { &mut market.id }
+
   public fun borrow_dynamics(market: &Market): &WitTable<BorrowDynamics, TypeName, BorrowDynamic> { &market.borrow_dynamics }
   public fun interest_models(market: &Market): &AcTable<InterestModels, TypeName, InterestModel> { &market.interest_models }
   public fun vault(market: &Market): &Reserve { &market.vault }

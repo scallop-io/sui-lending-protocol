@@ -34,6 +34,14 @@ module protocol::app {
     transfer::public_share_object(market);
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }
+
+  /// For extension of the protocol
+  public fun market_uid_mut(
+    _: &AdminCap,
+    market: &mut Market,
+  ): &mut UID {
+    market::uid_mut(market)
+  }
   
   public fun create_interest_model_change<T>(
     admin_cap: &AdminCap,

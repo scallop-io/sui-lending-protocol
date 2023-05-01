@@ -40,7 +40,7 @@ module protocol_test::withdraw_collateral_test {
         let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
         test_scenario::next_tx(scenario, admin);
         
-        clock_lib::set_for_testing(&mut clock, 100);
+        clock_lib::set_for_testing(&mut clock, 100 * 1000);
         let eth_risk_params = eth_risk_model_params();
         add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
         let coin_decimals_registry = coin_decimals_registry_init(scenario);
@@ -52,7 +52,7 @@ module protocol_test::withdraw_collateral_test {
         let (obligation, obligation_key) = open_obligation_t(scenario, borrower);
         deposit_collateral_t(scenario, &mut obligation, &mut market, eth_coin);
         
-        clock_lib::set_for_testing(&mut clock, 200);
+        clock_lib::set_for_testing(&mut clock, 200 * 1000);
         switchboard_adaptor::update_switchboard_price<ETH>(&mut switchboard_bundle, 200, 1000, 1); // $1000
 
         test_scenario::next_tx(scenario, borrower);
@@ -97,7 +97,7 @@ module protocol_test::withdraw_collateral_test {
         let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
         test_scenario::next_tx(scenario, admin);
         
-        clock_lib::set_for_testing(&mut clock, 100);
+        clock_lib::set_for_testing(&mut clock, 100 * 1000);
         add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
         let eth_risk_params = eth_risk_model_params();
         add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
@@ -107,7 +107,7 @@ module protocol_test::withdraw_collateral_test {
         
         test_scenario::next_tx(scenario, lender);
         let usdc_amount = math::pow(10, usdc_decimals + 4);
-        clock_lib::set_for_testing(&mut clock, 200);
+        clock_lib::set_for_testing(&mut clock, 200 * 1000);
         let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
         let market_coin_balance = mint_t(scenario, lender, &mut market, usdc_coin, &clock);
         assert!(balance::value(&market_coin_balance) == usdc_amount, 0);
@@ -120,7 +120,7 @@ module protocol_test::withdraw_collateral_test {
         let (obligation, obligation_key) = open_obligation_t(scenario, borrower);
         deposit_collateral_t(scenario, &mut obligation, &mut market, eth_coin);
 
-        clock_lib::set_for_testing(&mut clock, 300);
+        clock_lib::set_for_testing(&mut clock, 300 * 1000);
         switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, 300, 1, 1); // $1
         switchboard_adaptor::update_switchboard_price<ETH>(&mut switchboard_bundle, 300, 1000, 1); // $1000
 
@@ -131,7 +131,7 @@ module protocol_test::withdraw_collateral_test {
         assert!(balance::value(&borrowed) == borrow_amount, 0);
         balance::destroy_for_testing(borrowed);
         
-        clock_lib::set_for_testing(&mut clock, 400);
+        clock_lib::set_for_testing(&mut clock, 400 * 1000);
         switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, 400, 1, 1); // $1
         switchboard_adaptor::update_switchboard_price<ETH>(&mut switchboard_bundle, 400, 1000, 1); // $1000
 

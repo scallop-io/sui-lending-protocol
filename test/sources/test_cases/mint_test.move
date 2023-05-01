@@ -37,7 +37,7 @@ module protocol_test::mint_test {
     let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
     test_scenario::next_tx(scenario, admin);
     
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::increment_for_testing(&mut clock, 100 * 1000);
     add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     
     let coin_decimals_registry_obj = coin_decimals_registry_init(scenario);
@@ -46,14 +46,14 @@ module protocol_test::mint_test {
     test_scenario::next_tx(scenario, lender_a);
     let usdc_amount = math::pow(10, usdc_decimals + 4);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::increment_for_testing(&mut clock, 100 * 1000);
     let market_coin_balance = mint_t(scenario, lender_a, &mut market, usdc_coin, &clock);
     assert!(balance::value(&market_coin_balance) == usdc_amount, 0);
     balance::destroy_for_testing(market_coin_balance);
 
     test_scenario::next_tx(scenario, lender_b);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
-    clock_lib::increment_for_testing(&mut clock, 100);
+    clock_lib::increment_for_testing(&mut clock, 100 * 1000);
     let market_coin_balance = mint_t(scenario, lender_b, &mut market, usdc_coin, &clock);
     assert!(balance::value(&market_coin_balance) == usdc_amount, 0);
     balance::destroy_for_testing(market_coin_balance);

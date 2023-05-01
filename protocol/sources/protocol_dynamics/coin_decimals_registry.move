@@ -4,6 +4,7 @@ module protocol::coin_decimals_registry {
   use sui::table::{Self, Table};
   use sui::object::{Self, UID};
   use sui::coin::{Self, CoinMetadata};
+  use sui::sui::SUI;
   use sui::tx_context::TxContext;
   use sui::transfer;
   
@@ -18,6 +19,9 @@ module protocol::coin_decimals_registry {
       id: object::new(ctx),
       table: table::new(ctx)
     };
+    // currently SUI metadata is hardcoded
+    // reference: https://discord.com/channels/916379725201563759/955861929346355290/1068845540068048959
+    table::add(&mut registry.table, type_name::get<SUI>(), 9);
     transfer::public_share_object(registry);
   }
   

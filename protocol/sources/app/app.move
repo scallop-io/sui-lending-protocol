@@ -3,34 +3,39 @@ module protocol::app {
   use sui::object::{Self, UID};
   use sui::clock::{Self, Clock};
   use sui::transfer;
+  use sui::package;
   use x::ac_table::AcTableCap;
   use x::one_time_lock_value::OneTimeLockValue;
   use protocol::market::{Self, Market};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
-  
+
+  /// OTW
+  struct APP has drop {}
+
   struct AdminCap has key, store {
     id: UID,
     interest_model_cap: AcTableCap<InterestModels>,
     risk_model_cap: AcTableCap<RiskModels>
   }
   
-  fun init(ctx: &mut TxContext) {
-    init_internal(ctx)
+  fun init(otw: APP, ctx: &mut TxContext) {
+    init_internal(otw, ctx)
   }
   
   #[test_only]
-  public fun init_t(ctx: &mut TxContext) {
-    init_internal(ctx)
+  public fun init_t(otw: APP, ctx: &mut TxContext) {
+    init_internal(otw, ctx)
   }
   
-  fun init_internal(ctx: &mut TxContext) {
+  fun init_internal(otw: APP, ctx: &mut TxContext) {
     let (market, interest_model_cap, risk_model_cap) = market::new(ctx);
     let adminCap = AdminCap {
       id: object::new(ctx),
       interest_model_cap,
       risk_model_cap
     };
+    package::claim_and_keep(otw, ctx);
     transfer::public_share_object(market);
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }

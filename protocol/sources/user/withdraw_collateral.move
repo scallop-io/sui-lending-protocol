@@ -14,6 +14,8 @@ module protocol::withdraw_collateral {
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use sui::coin::Coin;
   use oracle::switchboard_adaptor::SwitchboardBundle;
+  use whitelist::whitelist;
+  use protocol::error;
 
   const EWithdrawTooMuch: u64 = 0x80001;
   
@@ -50,7 +52,13 @@ module protocol::withdraw_collateral {
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
-    let now = clock::timestamp_ms(clock);
+    // check if sender is in whitelist
+    assert!(
+      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
+      error::whitelist_error()
+    );
+
+    let now = clock::timestamp_ms(clock) / 1000;
 
     obligation::assert_key_match(obligation, obligation_key);
     // accrue interests for markets

@@ -1,20 +1,21 @@
 // TODO: remove this file when launch on mainnet
 // @skip-auditing
 module protocol::app_test {
-  use sui::tx_context::TxContext;
+  use sui::tx_context::{Self, TxContext};
   use sui::math;
   use sui::transfer;
+  use sui::clock::Clock;
+  use sui::coin::CoinMetadata;
   use protocol::market::Market;
   use protocol::app::{Self, AdminCap};
   use protocol::mint;
 
   use test_coin::usdc::{Self, USDC};
   use test_coin::eth::ETH;
-  use sui::clock::Clock;
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
-  use sui::coin::CoinMetadata;
 
   use switchboard::switchboard_admin;
+  use whitelist::whitelist;
 
   public entry fun init_market(
     market: &mut Market,
@@ -26,6 +27,11 @@ module protocol::app_test {
     clock: &Clock,
     ctx: &mut TxContext
   ) {
+    whitelist::add_whitelist_address(
+      app::market_uid_mut(adminCap, market),
+      tx_context::sender(ctx),
+    );
+
     init_risk_models(market, adminCap, ctx);
     init_intrest_models(market, adminCap, clock, ctx);
     init_limiters(market, adminCap, ctx);

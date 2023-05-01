@@ -41,6 +41,7 @@ dependencies = [
   { name = "Sui" },
   { name = "SwitchboardStdLib" },
   { name = "TestCoin" },
+  { name = "Whitelist" },
   { name = "X" },
 ]
 
@@ -63,6 +64,14 @@ dependencies = [
 [[move.package]]
 name = "TestCoin"
 source = { local = "../test_coin" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "Whitelist"
+source = { local = "../whitelist" }
 
 dependencies = [
   { name = "Sui" },

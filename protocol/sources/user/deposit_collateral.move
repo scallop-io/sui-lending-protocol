@@ -7,7 +7,9 @@ module protocol::deposit_collateral {
   use sui::event::emit;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
-  
+  use whitelist::whitelist;
+  use protocol::error;
+
   const EIllegalCollateralType: u64 = 0x20001;
   
   struct CollateralDepositEvent has copy, drop {
@@ -23,6 +25,12 @@ module protocol::deposit_collateral {
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
+    // check if sender is in whitelist
+    assert!(
+      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
+      error::whitelist_error()
+    );
+
     let has_risk_model = market::has_risk_model(market, get<T>());
     assert!(has_risk_model == true, EIllegalCollateralType);
     

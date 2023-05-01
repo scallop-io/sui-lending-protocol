@@ -8,6 +8,7 @@ Math = { local = "../math" }
 X = { local = "../x" }
 TestCoin = { local = "../test_coin" }
 Oracle = { local = "../oracle" }
+Whitelist = { local = "../whitelist" }
 SwitchboardStdLib = { local = "../switchboard" }
 
 [addresses]

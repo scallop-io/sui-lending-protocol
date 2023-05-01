@@ -9,7 +9,9 @@ module protocol::redeem {
   use sui::balance;
   use protocol::market::{Self, Market};
   use protocol::reserve::MarketCoin;
-  
+  use whitelist::whitelist;
+  use protocol::error;
+
   struct RedeemEvent has copy, drop {
     redeemer: address,
     withdraw_asset: TypeName,
@@ -35,7 +37,13 @@ module protocol::redeem {
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
-    let now = clock::timestamp_ms(clock);
+    // check if sender is in whitelist
+    assert!(
+      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
+      error::whitelist_error()
+    );
+
+    let now = clock::timestamp_ms(clock) / 1000;
     let market_coin_amount = coin::value(&coin);
     let redeem_balance = market::handle_redeem(market, coin::into_balance(coin), now);
     

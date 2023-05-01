@@ -42,6 +42,9 @@ export const setup = async () => {
     protocolPublishResult.oracleData.switchboard.registryId,
     initMarketResult.switchboardData.ethAggregatorId,
     initMarketResult.switchboardData.usdcAggregatorId,
+    initMarketResult.switchboardData.usdtAggregatorId,
+    initMarketResult.switchboardData.btcAggregatorId,
+    initMarketResult.switchboardData.suiAggregatorId,
   );
   console.log(registerRes);
   console.log('register switchboard oracles done!');

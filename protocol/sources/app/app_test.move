@@ -17,7 +17,6 @@ module protocol::app_test {
   use test_coin::usdt::USDT;
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
 
-  use switchboard::switchboard_admin;
   use whitelist::whitelist;
 
   public entry fun init_market(
@@ -45,7 +44,6 @@ module protocol::app_test {
     coin_decimals_registry::register_decimals<USDT>(registry, coinMetaUsdt);
     coin_decimals_registry::register_decimals<BTC>(registry, coinMetaBtc);
     let usdcCoin = usdc::mint(usdcTreasury, ctx);
-    init_switchboard(clock, ctx);
     mint::mint_entry(market, usdcCoin, clock, ctx);
   }
 
@@ -273,33 +271,5 @@ module protocol::app_test {
       60 * 30, // 30 minutes
       ctx
     );
-  }
-
-  fun init_switchboard(
-    clock: &Clock,
-    ctx: &mut TxContext
-  ) {
-    let (eth_price_aggr, eth_price_aggr_hp) =  switchboard_admin::new_aggregator(b"ETH/USD", ctx);
-    let (usdc_price_aggr, usdc_price_aggr_hp) =  switchboard_admin::new_aggregator(b"USDC/USD", ctx);
-    let (usdt_price_aggr, usdt_price_aggr_hp) =  switchboard_admin::new_aggregator(b"USDT/USD", ctx);
-    let (btc_price_aggr, btc_price_aggr_hp) =  switchboard_admin::new_aggregator(b"BTC/USD", ctx);
-    let (sui_price_aggr, sui_price_aggr_hp) =  switchboard_admin::new_aggregator(b"SUI/USD", ctx);
-
-    // Update the price of ETH to $2000
-    switchboard_admin::update_price(&mut eth_price_aggr, 2000, 0, false, clock, ctx);
-    // Update the price of USDC to $1
-    switchboard_admin::update_price(&mut usdc_price_aggr, 1, 0, false, clock, ctx);
-    // Update the price of USDT to $1
-    switchboard_admin::update_price(&mut usdt_price_aggr, 1, 0, false, clock, ctx);
-    // Update the price of BTC to $20,000
-    switchboard_admin::update_price(&mut btc_price_aggr, 20000, 0, false, clock, ctx);
-    // Update the price of SUI to $5
-    switchboard_admin::update_price(&mut sui_price_aggr, 5, 0, false, clock, ctx);
-
-    switchboard_admin::share_aggregator(eth_price_aggr, eth_price_aggr_hp);
-    switchboard_admin::share_aggregator(usdc_price_aggr, usdc_price_aggr_hp);
-    switchboard_admin::share_aggregator(usdt_price_aggr, usdt_price_aggr_hp);
-    switchboard_admin::share_aggregator(btc_price_aggr, btc_price_aggr_hp);
-    switchboard_admin::share_aggregator(sui_price_aggr, sui_price_aggr_hp);
   }
 }

@@ -49,7 +49,7 @@ module protocol_test::redeem_test {
     let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
     test_scenario::next_tx(scenario, admin);
     
-    clock_lib::set_for_testing(&mut clock, 100);
+    clock_lib::set_for_testing(&mut clock, 100 * 1000);
     add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
 
     let eth_risk_params = eth_risk_model_params();
@@ -61,7 +61,7 @@ module protocol_test::redeem_test {
     
     test_scenario::next_tx(scenario, lender_a);
     let usdc_amount = math::pow(10, usdc_decimals + 4);
-    clock_lib::set_for_testing(&mut clock, 200);
+    clock_lib::set_for_testing(&mut clock, 200 * 1000);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let lender_a_market_coin_balance = mint_t(scenario, lender_a, &mut market, usdc_coin, &clock);
     let lender_a_market_coin_amount = balance::value(&lender_a_market_coin_balance);
@@ -74,7 +74,7 @@ module protocol_test::redeem_test {
     deposit_collateral_t(scenario, &mut obligation, &mut market, eth_coin);
 
     let borrow_time = 300;
-    clock_lib::set_for_testing(&mut clock, borrow_time);
+    clock_lib::set_for_testing(&mut clock, borrow_time * 1000);
     switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, borrow_time, 1, 1); // $1
     switchboard_adaptor::update_switchboard_price<ETH>(&mut switchboard_bundle, borrow_time, 1000, 1); // $1000
 
@@ -87,7 +87,7 @@ module protocol_test::redeem_test {
     test_scenario::next_tx(scenario, lender_b);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let mint_time = 400;
-    clock_lib::set_for_testing(&mut clock, 400);
+    clock_lib::set_for_testing(&mut clock, 400 * 1000);
     let lender_b_market_coin_balance = mint_t(scenario, lender_b, &mut market, usdc_coin, &clock);
 
     let growth_interest_rate = calc_growth_interest<USDC>(
@@ -112,7 +112,7 @@ module protocol_test::redeem_test {
 
     test_scenario::next_tx(scenario, lender_a);
     let redeem_time = 500;
-    clock_lib::set_for_testing(&mut clock, 500);
+    clock_lib::set_for_testing(&mut clock, 500 * 1000);
     let market_coin = coin::from_balance(lender_a_market_coin_balance, test_scenario::ctx(scenario));
     let redeemed_coin = redeem_t(scenario, lender_a, &mut market, market_coin, &clock);
 

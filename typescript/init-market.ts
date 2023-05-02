@@ -21,6 +21,8 @@ export const initMarketForTest = async (data: ProtocolPublishData) => {
       data.marketData.coinDecimalsRegistryId,
       data.testCoinData.usdc.metadataId,
       data.testCoinData.eth.metadataId,
+      data.testCoinData.usdt.metadataId,
+      data.testCoinData.btc.metadataId,
       SUI_CLOCK_OBJECT_ID
     ]);
   suiTxBlock.txBlock.setGasBudget(6 * 10 ** 9);
@@ -33,6 +35,9 @@ const parseInitMarketTransaction = async (suiResponse: SuiTransactionBlockRespon
   const switchboardData = {
     ethAggregatorId: '',
     usdcAggregatorId: '',
+    usdtAggregatorId: '',
+    btcAggregatorId: '',
+    suiAggregatorId: '',
   };
 
   if (objectChanges) {
@@ -43,6 +48,12 @@ const parseInitMarketTransaction = async (suiResponse: SuiTransactionBlockRespon
           switchboardData.ethAggregatorId = change.objectId;
         } else if (oracle.name === 'USDC/USD') {
           switchboardData.usdcAggregatorId = change.objectId;
+        } else if (oracle.name === 'BTC/USD') {
+          switchboardData.btcAggregatorId = change.objectId;
+        } else if (oracle.name === 'SUI/USD') {
+          switchboardData.suiAggregatorId = change.objectId;
+        } else if (oracle.name === 'USDT/USD') {
+          switchboardData.usdtAggregatorId = change.objectId;
         }
       }
     }

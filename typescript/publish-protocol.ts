@@ -30,6 +30,16 @@ const extractProtocolData = async (result: PackagePublishResult) => {
       coinId: '',
       metadataId: '',
       treasuryId: '',
+    },
+    usdt: {
+      coinId: '',
+      metadataId: '',
+      treasuryId: '',
+    },
+    sui: {
+      coinId: '',
+      metadataId: '',
+      treasuryId: '',
     }
   }
 
@@ -95,6 +105,8 @@ const extractProtocolData = async (result: PackagePublishResult) => {
     fillCoinData(obj, 'usdc');
     fillCoinData(obj, 'eth');
     fillCoinData(obj, 'btc');
+    fillCoinData(obj, 'usdt');
+    fillCoinData(obj, 'sui');
     fillMarketData(obj);
     fillOracleData(obj);
   }

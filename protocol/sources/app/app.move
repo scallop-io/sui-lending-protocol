@@ -24,8 +24,8 @@ module protocol::app {
   }
   
   #[test_only]
-  public fun init_t(otw: APP, ctx: &mut TxContext) {
-    init_internal(otw, ctx)
+  public fun init_t(ctx: &mut TxContext) {
+    init_internal(APP {}, ctx)
   }
   
   fun init_internal(otw: APP, ctx: &mut TxContext) {

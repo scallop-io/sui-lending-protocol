@@ -13,9 +13,13 @@
   "dependencies": {
     "@mysten/sui.js": "^0.32.2",
     "@scallop-dao/sui-kit": "^0.32.11",
-    "@scallop-dao/sui-package-kit": "^0.32.5"
+    "@scallop-dao/sui-package-kit": "^0.32.5",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7",
+    "@iarna/toml": "^2.2.5"
   },
   "devDependencies": {
+    "@types/node": "^18.16.3",
     "dotenv": "^16.0.3",
     "ts-node": "^10.9.1"
   }

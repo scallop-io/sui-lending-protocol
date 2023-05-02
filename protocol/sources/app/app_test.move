@@ -14,7 +14,6 @@ module protocol::app_test {
   use test_coin::eth::ETH;
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
 
-  use switchboard::switchboard_admin;
   use whitelist::whitelist;
 
   public entry fun init_market(
@@ -38,7 +37,6 @@ module protocol::app_test {
     coin_decimals_registry::register_decimals<USDC>(registry, coinMetaUsdc);
     coin_decimals_registry::register_decimals<ETH>(registry, coinMetaEth);
     let usdcCoin = usdc::mint(usdcTreasury, ctx);
-    init_switchboard(clock, ctx);
     mint::mint_entry(market, usdcCoin, clock, ctx);
   }
 
@@ -121,21 +119,5 @@ module protocol::app_test {
       60 * 30, // 30 minutes
       ctx
     );
-  }
-
-  fun init_switchboard(
-    clock: &Clock,
-    ctx: &mut TxContext
-  ) {
-    let (eth_price_aggr, eth_price_aggr_hp) =  switchboard_admin::new_aggregator(b"ETH/USD", ctx);
-    let (usdc_price_aggr, usdc_price_aggr_hp) =  switchboard_admin::new_aggregator(b"USDC/USD", ctx);
-
-    // Update the price of ETH to $2000
-    switchboard_admin::update_price(&mut eth_price_aggr, 2000, 0, false, clock, ctx);
-    // Update the price of USDC to $1
-    switchboard_admin::update_price(&mut usdc_price_aggr, 1, 0, false, clock, ctx);
-
-    switchboard_admin::share_aggregator(eth_price_aggr, eth_price_aggr_hp);
-    switchboard_admin::share_aggregator(usdc_price_aggr, usdc_price_aggr_hp);
   }
 }

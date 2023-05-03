@@ -2,7 +2,7 @@
 name = "SwitchboardStdLib"
 version = "0.0.1"
 testnet-published-at = "0x524c15a935d4c34474cdf2604ee42a6c47591d13c6ffb6b678f6b7eaffba12fe"
-devnet-published-at = "0x85965931923823870d95a8e46877784485a198d06de684e06dd5a382efaa59e8"
+devnet-published-at = "0xc6bff70ac3167534687477d815cd2bd1e3a22ae9e969bb0fb4a6cb12412e70bf"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -21,4 +21,4 @@ switchboard = "0x524c15a935d4c34474cdf2604ee42a6c47591d13c6ffb6b678f6b7eaffba12f
 switchboard = "0x0"
 
 [devnet-addresses]
-switchboard = "0x85965931923823870d95a8e46877784485a198d06de684e06dd5a382efaa59e8"
+switchboard = "0xc6bff70ac3167534687477d815cd2bd1e3a22ae9e969bb0fb4a6cb12412e70bf"

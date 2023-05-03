@@ -19,7 +19,7 @@ const protocolPackageList = [
   { pkgPath: mathPkgPath },
   { pkgPath: xPkgPath },
   { pkgPath: whitelistPkgPath },
-  { pkgPath: switchboardPkgPath, placeholderNames: ['switchboard'] },
+  { pkgPath: switchboardPkgPath, placeholderNames: ['switchboard'], enableCache: true },
   { pkgPath: testCoinPkgPath, placeholderNames: ['test_coin'] },
   { pkgPath: testSwitchboardAggregatorPkgPath, placeholderNames: ['test_switchboard_aggregator'] },
   { pkgPath: oraclePkgPath },
@@ -35,14 +35,17 @@ export const publishProtocol = async (
 // publish packages for the protocol
 // the latter package could depend on the former one in the list, so the order matters
 export const _publishProtocol = async (
-  packagePathList: { pkgPath: string, placeholderNames?: string[] }[],
+  packagePathList: { pkgPath: string, placeholderNames?: string[], enableCache?: boolean }[],
   signer: RawSigner
 ) => {
   const publishResults: { publishResult: PackagePublishResult, packageName: string }[] = [];
   for (const pkg of packagePathList) {
     const pkgPath = pkg.pkgPath;
     const placeholderNames = pkg.placeholderNames || [];
-    const res = await publishPackageEnforce(pkgPath, placeholderNames, signer, networkType);
+    const enableCache = pkg.enableCache ? pkg.enableCache : false;
+    const res = enableCache
+      ? await publishPackageWithCache(pkgPath, placeholderNames, signer, networkType)
+      : await publishPackageEnforce(pkgPath, placeholderNames, signer, networkType)
     res && publishResults.push(res);
   }
   const ids = extractObjects(publishResults);

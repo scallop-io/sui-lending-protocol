@@ -1,8 +1,7 @@
-import path from "path";
 import { suiKit, networkType } from "./sui-kit-instance";
 import { publishProtocol } from "./package-publish/publish-protocol";
 import { initMarketForTest } from "./protocol-interaction/init-market";
-import { registerSwitchboardOracles } from "./protocol-interaction/register-switchboard-oracles";
+import { handleSwitchboard } from "./protocol-interaction/register-switchboard-oracles";
 import { openObligation } from "./protocol-interaction/open-obligation";
 import { supplyBaseAsset } from "./protocol-interaction/supply-base-asset";
 import { writeAsJson } from "./write-as-json";
@@ -24,8 +23,12 @@ export const setup = async () => {
 
   // register switchboard aggregators
   console.log('Create and register switchboard oracles...')
-  const { testSwitchboardAggregators } = await registerSwitchboardOracles(protocolPublishResult);
-  console.log('Create and register switchboard oracles done!');
+  const switchboardRes = await handleSwitchboard(protocolPublishResult);
+  if (switchboardRes.ok) {
+    console.log('Create and register switchboard oracles done!');
+  } else {
+    throw new Error('Create and register switchboard oracles failed!');
+  }
 
   // open obligation and add collateral
   console.log('open obligation and add collateral...')
@@ -39,7 +42,7 @@ export const setup = async () => {
 
   // Write the object ids to a file in json format
   console.log('write object ids to file: object-ids.json')
-  writeAsJson({...protocolPublishResult, obligationData, testSwitchboardAggregators }, `object-ids.${networkType}.json`);
+  writeAsJson({...protocolPublishResult, obligationData, switchboardAggregators: switchboardRes.aggregators }, `object-ids.${networkType}.json`);
   console.log('write object ids to file done!')
 }
 

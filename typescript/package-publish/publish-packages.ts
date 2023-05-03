@@ -41,6 +41,8 @@ export const publishPackageEnforce = async (
   }
   moveToml[`${networkType}-addresses`] = addresses;
   writeMoveToml(moveToml, tomlPath);
+
+  return { publishResult, packageName: moveToml.package.name };
 }
 
 // If the package has been published under the networkType, we just update the Move.toml file, and do not publish the package again
@@ -62,7 +64,7 @@ export const publishPackageWithCache = async (
     moveToml.package["published-at"] = moveToml.package[`${networkType}-published-at`];
     writeMoveToml(moveToml, tomlPath);
   } else {
-    await publishPackageEnforce(pkgPath, placeholderNames, signer, networkType);
+    return await publishPackageEnforce(pkgPath, placeholderNames, signer, networkType);
   }
 }
 

@@ -1,0 +1,15 @@
+[package]
+name = "TestSwitchboardAggregator"
+version = "0.0.1"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "testnet"
+
+[dependencies.SwitchboardStdLib]
+local = "../switchboard"
+
+[addresses]
+test_switchboard_aggreator = "0x0"
+test_switchboard_aggregator = "0x0"

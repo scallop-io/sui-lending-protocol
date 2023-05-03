@@ -26,9 +26,6 @@ module protocol::market {
   friend protocol::withdraw_collateral;
   friend protocol::deposit_collateral;
 
-  // TODO: remove this when launch on mainnet
-  friend protocol::app_test;
-  
   const EMaxCollateralReached: u64 = 0;
   
   struct Market has key, store {

@@ -1,30 +1,21 @@
 import { SuiTransactionBlockResponse, getObjectChanges } from "@mysten/sui.js";
 import { SuiTxBlock } from '@scallop-dao/sui-kit';
-import { suiKit } from './sui-kit-instance';
+import { ProtocolTxBuilder } from './txbuilders/protocol-txbuilder';
+import type { ProtocolPublishData } from '../package-publish/extract-objects-from-publish-results';
+import { suiKit } from '../sui-kit-instance';
 
-export const openObligation = async (
-  packageId: string,
-  marketId: string,
-) => {
+export const openObligation = async (data: ProtocolPublishData) => {
   const tx = new SuiTxBlock();
-  const ethCoinType = `${packageId}::eth::ETH`;
-  const [obligation, obligationKey, hotPotato] = tx.moveCall(
-    `${packageId}::open_obligation::open_obligation`,
-    []
+  const ethCoinType = `${data.packageIds.TestCoin}::eth::ETH`;
+
+  const protocolTxBuilder = new ProtocolTxBuilder(
+    data.packageIds.Protocol,
+    data.marketData.adminCapId,
+    data.marketData.marketId,
   );
-  const coins = await suiKit.selectCoinsWithAmount(100, ethCoinType);
-  const [sendCoin, leftCoin] = tx.takeAmountFromCoins(coins, 100);
-  tx.moveCall(
-    `${packageId}::deposit_collateral::deposit_collateral`,
-    [obligation, marketId, sendCoin],
-    [ethCoinType]
-  );
-  tx.moveCall(
-    `${packageId}::open_obligation::return_obligation`,
-    [obligation, hotPotato],
-  );
-  tx.transferObjects([leftCoin], suiKit.currentAddress());
-  tx.transferObjects([obligationKey], suiKit.currentAddress());
+
+  await protocolTxBuilder.openObligationAndAddCollateral(tx, 10 ** 10, ethCoinType);
+
   const res = await  suiKit.signAndSendTxn(tx);
   return parseOpenObligationResponse(res)
 }

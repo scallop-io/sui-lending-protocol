@@ -9,6 +9,7 @@ module protocol::app {
   use protocol::market::{Self, Market};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
+  use whitelist::whitelist;
 
   /// OTW
   struct APP has drop {}
@@ -41,11 +42,23 @@ module protocol::app {
   }
 
   /// For extension of the protocol
-  public fun market_uid_mut(
+  public fun ext(
     _: &AdminCap,
     market: &mut Market,
   ): &mut UID {
     market::uid_mut(market)
+  }
+
+  /// Add a whitelist address
+  public fun add_whitelist_address(
+    _: &AdminCap,
+    market: &mut Market,
+    address: address,
+  ) {
+    whitelist::add_whitelist_address(
+      market::uid_mut(market),
+      address,
+    );
   }
   
   public fun create_interest_model_change<T>(

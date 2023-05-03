@@ -2,7 +2,6 @@ module test_coin::btc {
   
   use sui::tx_context::TxContext;
   use sui::coin::{Self, TreasuryCap, Coin};
-  use sui::url;
   use std::option;
   use sui::tx_context;
   use sui::math::pow;
@@ -22,10 +21,7 @@ module test_coin::btc {
     let symbol = b"BTC";
     let name = b"BTC";
     let description = b"Test Bitcoin";
-    let icon_url = url::new_unsafe_from_bytes(
-      b"https://mobius-fe.vercel.app/icons/tokens/btc.svg"
-    );
-    let icon_url_option = option::some(icon_url);
+    let icon_url_option = option::none();
     let (treasuryCap, coinMeta) = coin::create_currency(
       wtiness,
       decimals,
@@ -38,7 +34,7 @@ module test_coin::btc {
     let sender = tx_context::sender(ctx);
     coin::mint_and_transfer(
       &mut treasuryCap,
-      pow(10, decimals + 8),
+      pow(10, decimals),
       sender,
       ctx
     );
@@ -48,8 +44,7 @@ module test_coin::btc {
     transfer::public_freeze_object(coinMeta)
   }
   
-  public fun mint(treasury: &mut Treasury, ctx: &mut TxContext): Coin<BTC> {
-    let amount = pow(10, 9);
+  public fun mint(treasury: &mut Treasury, amount: u64, ctx: &mut TxContext): Coin<BTC> {
     coin::mint(
       &mut treasury.cap,
       amount,

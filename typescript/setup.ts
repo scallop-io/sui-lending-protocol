@@ -1,5 +1,5 @@
 import path from "path";
-import { suiKit } from "./sui-kit-instance";
+import { suiKit, networkType } from "./sui-kit-instance";
 import { publishProtocol } from "./package-publish/publish-protocol";
 import { initMarketForTest } from "./protocol-interaction/init-market";
 import { registerSwitchboardOracles } from "./protocol-interaction/register-switchboard-oracles";
@@ -40,7 +40,7 @@ export const setup = async () => {
 
   // Write the object ids to a file in json format
   console.log('write object ids to file: object-ids.json')
-  writeAsJson({...protocolPublishResult, obligationData, testSwitchboardAggregators }, 'object-ids.json');
+  writeAsJson({...protocolPublishResult, obligationData, testSwitchboardAggregators }, `object-ids.${networkType}.json`);
   console.log('write object ids to file done!')
 }
 

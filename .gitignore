@@ -42,3 +42,4 @@ next-env.d.ts
 
 # generate files
 object-ids.json
+object-ids.*.json

@@ -1,9 +1,11 @@
 /// TODO: add events for liquidation
 module protocol::liquidate {
   
-  use std::type_name::get;
+  use std::type_name::{Self, TypeName};
   use sui::balance;
   use sui::clock::{Self, Clock};
+  use sui::object::{Self, ID};
+  use sui::event::emit;
   
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
@@ -19,6 +21,16 @@ module protocol::liquidate {
   use protocol::error;
 
   const ECantBeLiquidated: u64 = 0x30001;
+
+  struct LiquidateEvent has copy, drop {
+    liquidator: address,
+    obligation: ID,
+    debt_type: TypeName,
+    collateral_type: TypeName,
+    repay_on_behalf: u64,
+    repay_revenue: u64,
+    liq_amount: u64,
+  }
   
   public entry fun liquidate_entry<DebtType, CollateralType>(
     obligation: &mut Obligation,
@@ -65,14 +77,24 @@ module protocol::liquidate {
     // withdraw the collateral balance from obligation
     let collateral_balance = obligation::withdraw_collateral<CollateralType>(obligation, liq_amount);
     // Reduce the debt for the obligation
-    let debt_type = get<DebtType>();
+    let debt_type = type_name::get<DebtType>();
     obligation::decrease_debt(obligation, debt_type, repay_on_behalf);
     
     // Put the repay and revenue balance to the market
     let repay_on_behalf_balance = balance::split(&mut available_repay_balance, repay_on_behalf);
     let revenue_balance = balance::split(&mut available_repay_balance, repay_revenue);
     market::handle_liquidation(market, repay_on_behalf_balance, revenue_balance);
-  
+
+    emit(LiquidateEvent {
+      liquidator: tx_context::sender(ctx),
+      obligation: object::id(obligation),
+      debt_type: type_name::get<DebtType>(),
+      collateral_type: type_name::get<CollateralType>(),
+      repay_on_behalf: repay_on_behalf,
+      repay_revenue: repay_revenue,
+      liq_amount: liq_amount,
+    });
+
     // Send the remaining balance, and collateral balance to liquidator
     (
       coin::from_balance(available_repay_balance, ctx),

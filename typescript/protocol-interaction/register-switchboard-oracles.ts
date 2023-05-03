@@ -34,14 +34,15 @@ export const registerSwitchboardOracles = async ( data: ProtocolPublishData ) =>
     data.packageIds.Oracle,
     data.oracleData.switchboard.registryId,
     data.oracleData.switchboard.registryCapId,
+    data.oracleData.switchboard.bundleId,
   );
   const registerAggregatorTxnBlock = new SuiTxBlock();
   const switchboardPairs = [
     { aggregatorId: testSwitchboardAggregators.eth_usd, type: `${data.packageIds.TestCoin}::eth::ETH` },
     { aggregatorId: testSwitchboardAggregators.btc_usd, type: `${data.packageIds.TestCoin}::btc::BTC` },
-    { aggregatorId: testSwitchboardAggregators.sui_usd, type: `${data.packageIds.TestCoin}::sui::SUI` },
     { aggregatorId: testSwitchboardAggregators.usdc_usd, type: `${data.packageIds.TestCoin}::usdc::USDC` },
     { aggregatorId: testSwitchboardAggregators.usdt_usd, type: `${data.packageIds.TestCoin}::usdt::USDT` },
+    { aggregatorId: testSwitchboardAggregators.sui_usd, type: `0x2::sui::SUI` },
   ];
   for (const pair of switchboardPairs) {
     oracleTxBuilder.registrySwitchboardAggregator(
@@ -50,6 +51,8 @@ export const registerSwitchboardOracles = async ( data: ProtocolPublishData ) =>
       pair.type,
     );
   }
+  registerAggregatorTxnBlock.txBlock.setGasBudget(10 ** 9);
+  const registerAggregatorTxn = await suiKit.signAndSendTxn(registerAggregatorTxnBlock);
   return { testSwitchboardAggregators }
 }
 const parseCreateAggregatorsTransaction = async (suiResponse: SuiTransactionBlockResponse) => {

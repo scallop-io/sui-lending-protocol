@@ -35,7 +35,6 @@ export const setup = async () => {
   // supply base asset
   console.log('supply base assets...')
   const supplyRes = await supplyBaseAsset(protocolPublishResult);
-  console.log(supplyRes);
   console.log('supply base assets done!')
 
   // Write the object ids to a file in json format

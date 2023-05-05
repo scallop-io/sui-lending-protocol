@@ -1,4 +1,3 @@
-/// TODO: add events for liquidation
 module protocol::liquidate {
   
   use std::type_name::{Self, TypeName};

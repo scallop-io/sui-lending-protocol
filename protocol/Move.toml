@@ -22,7 +22,7 @@ local = "../test_coin"
 local = "../whitelist"
 
 [dependencies.XOracle]
-local = "../../sui-x-oracle/x_oracle"
+local = "../sui_x_oracle/x_oracle"
 
 [addresses]
 protocol = "0x4abdcd6741e97687ce5386d4bfcf68929bf8925e3295c655b23754b9806a9c20"

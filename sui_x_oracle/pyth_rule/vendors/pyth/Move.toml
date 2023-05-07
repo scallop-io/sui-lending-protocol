@@ -1,0 +1,16 @@
+[package]
+name = "Pyth"
+version = "0.0.1"
+published-at = "0x4eb4b9b5f3ca3293d3b92898ebb54f4a8705cc6c1fb2a0d2b7ec69388c7f14e4"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "09b2081498366df936abae26eea4b2d5cafb2788"
+
+[dependencies.Wormhole]
+local = "../wormhole"
+
+[addresses]
+pyth = "0x4eb4b9b5f3ca3293d3b92898ebb54f4a8705cc6c1fb2a0d2b7ec69388c7f14e4"
+wormhole = "0x80c60bff35fe5026e319cf3d66ae671f2b4e12923c92c45df75eaf4de79e3ce7"

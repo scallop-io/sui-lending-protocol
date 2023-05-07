@@ -5,14 +5,14 @@ dependencies:
     specifier: ^2.2.5
     version: 2.2.5
   '@mysten/sui.js':
-    specifier: ^0.32.2
-    version: 0.32.2
-  '@scallop-dao/sui-kit':
-    specifier: ^0.32.11
-    version: 0.32.11(@mysten/sui.js@0.32.2)
-  '@scallop-dao/sui-package-kit':
-    specifier: ^0.32.5
-    version: 0.32.5
+    specifier: ^0.33
+    version: 0.33.0
+  '@scallop-io/sui-kit':
+    specifier: ^0.33.1
+    version: 0.33.1(@mysten/sui.js@0.33.0)
+  '@scallop-io/sui-package-kit':
+    specifier: ^0.33.0
+    version: 0.33.0
   fs:
     specifier: 0.0.1-security
     version: 0.0.1-security
@@ -73,8 +73,8 @@ packages:
       bs58: 5.0.0
     dev: false
 
-  /@mysten/sui.js@0.32.2:
-    resolution: {integrity: sha512-/Hm4xkGolJhqj8FvQr7QSHDTlxIvL52mtbOao9f75YjrBh7y1Uh9kbJSY7xiTF1NY9sv6p5hUVlYRJuM0Hvn9A==}
+  /@mysten/sui.js@0.33.0:
+    resolution: {integrity: sha512-vPswzowPoxYmexN+jKrSQ5uKWv8AoX30c11t8VAODCCXeCziq7Y27TEcYFsQmWJBIMU/hYw75kGj9oorJyXyKw==}
     engines: {node: '>=16'}
     dependencies:
       '@mysten/bcs': 0.7.1
@@ -102,13 +102,13 @@ packages:
     resolution: {integrity: sha512-ilHEACi9DwqJB0pw7kv+Apvh50jiiSyR/cQ3y4W7lOR5mhvn/50FLUfsnfJz0BDZtl/RR16kXvptiv6q1msYZg==}
     dev: false
 
-  /@scallop-dao/sui-kit@0.32.11(@mysten/sui.js@0.32.2):
-    resolution: {integrity: sha512-+WAKrhMtdtqD2f9mYtxsveUH7FHmG4sdgWxLRfN7yvSzLEypXAzx8EoOSJ0p6FGq++heArg/V6yfI0Fk04aNxg==}
-    engines: {node: '>=16'}
+  /@scallop-io/sui-kit@0.33.1(@mysten/sui.js@0.33.0):
+    resolution: {integrity: sha512-hHQH2TjO3ENBzlLPltyOa0AnRVe2q2d9Wuhn/Pb4/XL94zO8kzzakK+HhsjvXiTFiCqYCPrzJC9nhHekdCPpvw==}
+    engines: {node: '>=18'}
     peerDependencies:
-      '@mysten/sui.js': ^0.32.2
+      '@mysten/sui.js': ^0.33.0
     dependencies:
-      '@mysten/sui.js': 0.32.2
+      '@mysten/sui.js': 0.33.0
       '@scure/bip39': 1.2.0
       assert: 2.0.0
       colorts: 0.1.63
@@ -117,11 +117,11 @@ packages:
       ts-retry-promise: 0.7.0
     dev: false
 
-  /@scallop-dao/sui-package-kit@0.32.5:
-    resolution: {integrity: sha512-hdBoBKtjIdj8ATAiIlMjsJCledgIK4r0A2qGBUDa5FhsqoRpwjPPZcf1P4VZTWtchHxQGpRw9VK1uWVIIaGF5w==}
+  /@scallop-io/sui-package-kit@0.33.0:
+    resolution: {integrity: sha512-E17TbfB2i3V5np9JUhiOefg74ey2djCdbzt3rx682S8MUxuEfuPi67qjMTL9oKLWhojkOqoBrSpphXcHMQyEHg==}
     engines: {node: '>=16'}
     dependencies:
-      '@mysten/sui.js': 0.32.2
+      '@mysten/sui.js': 0.33.0
       colorts: 0.1.63
       superstruct: 1.0.3
       tmp: 0.2.1

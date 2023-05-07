@@ -10,8 +10,8 @@ module protocol::liquidation_evaluator {
   use protocol::debt_value::debts_value_usd_with_weight;
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::risk_model;
-  use oracle::switchboard_adaptor::SwitchboardBundle;
-  use oracle::multi_oracle_strategy;
+  use protocol::price::get_price;
+  use x_oracle::x_oracle::XOracle;
 
   const ENotLiquidatable: u64 = 0;
 
@@ -21,7 +21,7 @@ module protocol::liquidation_evaluator {
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     available_repay_amount: u64,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
   ): (u64, u64, u64) {
 
     // get all the necessary parameters for liquidation
@@ -39,12 +39,12 @@ module protocol::liquidation_evaluator {
     let liq_penalty = risk_model::liq_penalty(risk_model);
     let liq_factor = risk_model::liq_factor(risk_model);
     let liq_revenue_factor = risk_model::liq_revenue_factor(risk_model);
-    let debt_price = multi_oracle_strategy::get_price(switchboard_bundle, debt_type);
-    let collateral_price = multi_oracle_strategy::get_price(switchboard_bundle, collateral_type);
+    let debt_price = get_price(x_oracle, debt_type);
+    let collateral_price = get_price(x_oracle, collateral_type);
 
     // calculate the value of collaterals and debts for liquidation
-    let collaterals_value = collaterals_value_usd_for_liquidation(obligation, market, coin_decimals_registry, switchboard_bundle);
-    let weighted_debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, switchboard_bundle);
+    let collaterals_value = collaterals_value_usd_for_liquidation(obligation, market, coin_decimals_registry, x_oracle);
+    let weighted_debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle);
 
     // when collaterals_value >= weighted_debts_value, the obligation is not liquidatable
     if (fixed_point32_empower::gt(weighted_debts_value, collaterals_value) == false) return (0, 0, 0);

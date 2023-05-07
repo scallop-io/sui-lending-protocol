@@ -1,6 +1,8 @@
 [package]
 name = "Protocol"
 version = "0.0.1"
+published-at = "0x4abdcd6741e97687ce5386d4bfcf68929bf8925e3295c655b23754b9806a9c20"
+testnet-published-at = "0x4abdcd6741e97687ce5386d4bfcf68929bf8925e3295c655b23754b9806a9c20"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -8,22 +10,22 @@ subdir = "crates/sui-framework/packages/sui-framework"
 rev = "testnet"
 
 [dependencies.Math]
-local = "../math"
+local = "../libs/math"
 
 [dependencies.X]
-local = "../x"
+local = "../libs/x"
+
+[dependencies.Whitelist]
+local = "../libs/whitelist"
 
 [dependencies.TestCoin]
 local = "../test_coin"
 
-[dependencies.Oracle]
-local = "../oracle"
-
-[dependencies.Whitelist]
-local = "../whitelist"
-
-[dependencies.SwitchboardStdLib]
-local = "../switchboard"
+[dependencies.XOracle]
+local = "../sui_x_oracle/x_oracle"
 
 [addresses]
-protocol = "0x0"
+protocol = "0x4abdcd6741e97687ce5386d4bfcf68929bf8925e3295c655b23754b9806a9c20"
+
+[testnet-addresses]
+protocol = "0x4abdcd6741e97687ce5386d4bfcf68929bf8925e3295c655b23754b9806a9c20"

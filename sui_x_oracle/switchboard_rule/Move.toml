@@ -1,0 +1,25 @@
+[package]
+name = "SwitchboardRule"
+version = "0.0.1"
+published-at = "0x5033218a87c0e604dc23f0d728d07438f18553fa6789661f50a2239978678914"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "mainnet"
+override = true
+
+[dependencies.MoveStdlib]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/move-stdlib"
+rev = "mainnet"
+override = true
+
+[dependencies.SwitchboardStdLib]
+local = "./vendors/switchboard_std"
+
+[dependencies.XOracle]
+local = "../x_oracle"
+
+[addresses]
+switchboard_rule = "0x5033218a87c0e604dc23f0d728d07438f18553fa6789661f50a2239978678914"

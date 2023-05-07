@@ -8,13 +8,13 @@ module protocol::debt_value {
   use protocol::interest_model as interest_model_lib;
   use protocol::market::{Self as market_lib, Market};
   use protocol::value_calculator::usd_value;
-  use oracle::multi_oracle_strategy;
-  use oracle::switchboard_adaptor::{SwitchboardBundle};
+  use protocol::price::get_price;
+  use x_oracle::x_oracle::XOracle;
 
   public fun debts_value_usd(
     obligation: &Obligation,
     coin_decimals_registry: &CoinDecimalsRegistry,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
   ): FixedPoint32 {
     let debt_types = obligation::debt_types(obligation);
     let total_value_usd = fixed_point32_empower::zero();
@@ -23,7 +23,7 @@ module protocol::debt_value {
       let debt_type = *vector::borrow(&debt_types, i);
       let decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
       let (debt_amount, _) = obligation::debt(obligation, debt_type);
-      let coin_price = multi_oracle_strategy::get_price(switchboard_bundle, debt_type);
+      let coin_price = get_price(x_oracle, debt_type);
       let coin_value_in_usd = usd_value(coin_price, debt_amount, decimals);
       total_value_usd = fixed_point32_empower::add(total_value_usd, coin_value_in_usd);
       i = i + 1;
@@ -35,7 +35,7 @@ module protocol::debt_value {
     obligation: &Obligation,
     coin_decimals_registry: &CoinDecimalsRegistry,
     market: &Market,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
   ): FixedPoint32 {
     let debt_types = obligation::debt_types(obligation);
     let total_weighted_value_usd = fixed_point32_empower::zero();
@@ -46,7 +46,7 @@ module protocol::debt_value {
       let borrow_weight = interest_model_lib::borrow_weight(interest_model);
       let decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
       let (debt_amount, _) = obligation::debt(obligation, debt_type);
-      let coin_price = multi_oracle_strategy::get_price(switchboard_bundle, debt_type);
+      let coin_price = get_price(x_oracle, debt_type);
       let coin_value_usd = usd_value(coin_price, debt_amount, decimals);
       let weighted_value_usd = fixed_point32_empower::mul(coin_value_usd, borrow_weight);
       total_weighted_value_usd = fixed_point32_empower::add(total_weighted_value_usd, weighted_value_usd);

@@ -6,9 +6,9 @@ module protocol::collateral_value {
   use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::risk_model;
+  use protocol::price::get_price;
   use protocol::value_calculator::usd_value;
-  use oracle::multi_oracle_strategy;
-  use oracle::switchboard_adaptor::{SwitchboardBundle};
+  use x_oracle::x_oracle::XOracle;
 
   // sum of every collateral usd value for borrow
   // value = price x amount x collateralFactor
@@ -16,7 +16,7 @@ module protocol::collateral_value {
     obligation: &Obligation,
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
   ): FixedPoint32 {
     let collateral_types = obligation::collateral_types(obligation);
     let total_value_usd = fixed_point32_empower::zero();
@@ -27,7 +27,7 @@ module protocol::collateral_value {
       let collateral_amount = obligation::collateral(obligation, collateral_type);
       let risk_model = market::risk_model(market, collateral_type);
       let collateral_factor = risk_model::collateral_factor(risk_model);
-      let coin_price = multi_oracle_strategy::get_price(switchboard_bundle, collateral_type);
+      let coin_price = get_price(x_oracle, collateral_type);
       let collateral_value_usd = fixed_point32_empower::mul(
         usd_value(coin_price, collateral_amount, decimals),
         collateral_factor,
@@ -44,7 +44,7 @@ module protocol::collateral_value {
     obligation: &Obligation,
     market: &Market,
     coin_decimals_regsitry: &CoinDecimalsRegistry,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
   ): FixedPoint32 {
     let collateral_types = obligation::collateral_types(obligation);
     let total_value_usd = fixed_point32_empower::zero();
@@ -55,7 +55,7 @@ module protocol::collateral_value {
       let collateral_amount = obligation::collateral(obligation, collateral_type);
       let risk_model = market::risk_model(market, collateral_type);
       let liq_factor = risk_model::liq_factor(risk_model);
-      let coin_price = multi_oracle_strategy::get_price(switchboard_bundle, collateral_type);
+      let coin_price = get_price(x_oracle, collateral_type);
       let collateral_value_usd = fixed_point32_empower::mul(
         usd_value(coin_price, collateral_amount, decimals),
         liq_factor,

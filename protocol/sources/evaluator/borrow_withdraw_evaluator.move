@@ -14,17 +14,18 @@ module protocol::borrow_withdraw_evaluator {
   use protocol::debt_value::debts_value_usd_with_weight;
   use protocol::risk_model;
   use protocol::interest_model;
-  use oracle::multi_oracle_strategy;
-  use oracle::switchboard_adaptor::{SwitchboardBundle};
+  use protocol::price::get_price;
+
+  use x_oracle::x_oracle::XOracle;
 
   public fun available_borrow_amount_in_usd(
     obligation: &Obligation,
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
   ): FixedPoint32 {
-    let collaterals_value = collaterals_value_usd_for_borrow(obligation, market, coin_decimals_registry, switchboard_bundle);
-    let debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, switchboard_bundle);
+    let collaterals_value = collaterals_value_usd_for_borrow(obligation, market, coin_decimals_registry, x_oracle);
+    let debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle);
     if (fixed_point32_empower::gt(collaterals_value, debts_value)) {
       fixed_point32_empower::sub(collaterals_value, debts_value)
     } else {
@@ -38,15 +39,15 @@ module protocol::borrow_withdraw_evaluator {
     obligation: &Obligation,
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
   ): u64 {
-    let available_borrow_amount = available_borrow_amount_in_usd(obligation, market, coin_decimals_registry, switchboard_bundle);
+    let available_borrow_amount = available_borrow_amount_in_usd(obligation, market, coin_decimals_registry, x_oracle);
     if (fixed_point32_empower::gt(available_borrow_amount, fixed_point32_empower::zero())) {
       let coin_type = get<T>();
       let interest_model = market::interest_model(market, coin_type);
       let borrow_weight = interest_model::borrow_weight(interest_model);
       let coin_decimals = coin_decimals_registry::decimals(coin_decimals_registry, coin_type);
-      let coin_price = multi_oracle_strategy::get_price(switchboard_bundle, coin_type);
+      let coin_price = get_price(x_oracle, coin_type);
       let weighted_coin_price = fixed_point32_empower::mul(coin_price, borrow_weight);
       fixed_point32::multiply_u64(
         math::pow(10, coin_decimals),
@@ -65,19 +66,19 @@ module protocol::borrow_withdraw_evaluator {
     obligation: &Obligation,
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
   ): u64 {
     let coin_type = get<T>();
     let collateral_amount = obligation::collateral(obligation, coin_type);
 
-    let debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, switchboard_bundle);
+    let debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle);
     if (fixed_point32::is_zero(debts_value)) {
       return collateral_amount
     };
 
-    let available_borrow_amount = available_borrow_amount_in_usd(obligation, market, coin_decimals_registry, switchboard_bundle);
+    let available_borrow_amount = available_borrow_amount_in_usd(obligation, market, coin_decimals_registry, x_oracle);
     
-    let coin_price = multi_oracle_strategy::get_price(switchboard_bundle, coin_type);
+    let coin_price = get_price(x_oracle, coin_type);
 
     let coin_decimals = coin_decimals_registry::decimals(coin_decimals_registry, coin_type);
 

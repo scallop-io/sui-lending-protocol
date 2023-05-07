@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "publish": "ts-node typescript/publish-protocol.ts",
-    "setup": "ts-node typescript/setup.ts"
+    "publish": "ts-node scripts/publish-protocol.ts",
+    "setup": "ts-node scripts/setup.ts"
   },
   "keywords": [],
   "author": "",

@@ -10,16 +10,16 @@ subdir = "crates/sui-framework/packages/sui-framework"
 rev = "testnet"
 
 [dependencies.Math]
-local = "../math"
+local = "../libs/math"
 
 [dependencies.X]
-local = "../x"
+local = "../libs/x"
+
+[dependencies.Whitelist]
+local = "../libs/whitelist"
 
 [dependencies.TestCoin]
 local = "../test_coin"
-
-[dependencies.Whitelist]
-local = "../whitelist"
 
 [dependencies.XOracle]
 local = "../sui_x_oracle/x_oracle"

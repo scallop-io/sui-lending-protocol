@@ -4,9 +4,9 @@ import { PackagePublishResult } from "@scallop-io/sui-package-kit";
 import { publishPackageWithCache } from "./publish-packages";
 import { suiKit, networkType } from "../sui-kit-instance";
 
-const mathPkgPath = path.join(__dirname, "../../math");
-const xPkgPath = path.join(__dirname, "../../x");
-const whitelistPkgPath = path.join(__dirname, "../../whitelist");
+const mathPkgPath = path.join(__dirname, "../../libs/math");
+const xPkgPath = path.join(__dirname, "../../libs/x");
+const whitelistPkgPath = path.join(__dirname, "../../libs/whitelist");
 const testCoinPkgPath = path.join(__dirname, "../../test_coin");
 const protocolPkgPath = path.join(__dirname, "../../protocol");
 const protocolQueryPkgPath = path.join(__dirname, "../../query");

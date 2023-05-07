@@ -1,8 +1,6 @@
 [package]
 name = "X"
 version = "0.0.1"
-testnet-published-at = "0xb265c9a07cf5b59d24e23c0ba440f33abb70d50194e572a40d36ce33d07f807b"
-devnet-published-at = "0xf4a99d7e369902ed0ceceaa38d552edbc364aa5f4a6f9d9ad523ffc4d290f2b6"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -11,9 +9,3 @@ rev = "testnet"
 
 [addresses]
 x = "0x0"
-
-[testnet-addresses]
-x = "0xb265c9a07cf5b59d24e23c0ba440f33abb70d50194e572a40d36ce33d07f807b"
-
-[devnet-addresses]
-x = "0xf4a99d7e369902ed0ceceaa38d552edbc364aa5f4a6f9d9ad523ffc4d290f2b6"

@@ -16,8 +16,8 @@ const protocolPackageList = [
   { pkgPath: xPkgPath },
   { pkgPath: whitelistPkgPath },
   { pkgPath: testCoinPkgPath },
-  // { pkgPath: protocolPkgPath },
-  // { pkgPath: protocolQueryPkgPath }
+  { pkgPath: protocolPkgPath },
+  { pkgPath: protocolQueryPkgPath }
 ];
 export const publishProtocol = async (
   signer: RawSigner,

@@ -21,28 +21,16 @@ name = "MoveStdlib"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
-name = "Oracle"
-source = { local = "../oracle" }
-
-dependencies = [
-  { name = "Math" },
-  { name = "Sui" },
-  { name = "SwitchboardStdLib" },
-  { name = "X" },
-]
-
-[[move.package]]
 name = "Protocol"
 source = { local = "../protocol" }
 
 dependencies = [
   { name = "Math" },
-  { name = "Oracle" },
   { name = "Sui" },
-  { name = "SwitchboardStdLib" },
   { name = "TestCoin" },
   { name = "Whitelist" },
   { name = "X" },
+  { name = "XOracle" },
 ]
 
 [[move.package]]
@@ -51,15 +39,6 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet", subdi
 
 dependencies = [
   { name = "MoveStdlib" },
-]
-
-[[move.package]]
-name = "SwitchboardStdLib"
-source = { local = "../switchboard" }
-
-dependencies = [
-  { name = "MoveStdlib" },
-  { name = "Sui" },
 ]
 
 [[move.package]]
@@ -81,6 +60,14 @@ dependencies = [
 [[move.package]]
 name = "X"
 source = { local = "../x" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "XOracle"
+source = { local = "../../sui-x-oracle/x_oracle" }
 
 dependencies = [
   { name = "Sui" },

@@ -1,6 +1,8 @@
 [package]
 name = "ProtocolQuery"
 version = "0.0.1"
+published-at = "0x7115b0f6dd64163cffeac2405c6128a50e9371e79e62ee51d23219c95dc70acf"
+testnet-published-at = "0x7115b0f6dd64163cffeac2405c6128a50e9371e79e62ee51d23219c95dc70acf"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -11,4 +13,7 @@ rev = "testnet"
 local = "../protocol"
 
 [addresses]
-protocol_query = "0x0"
+protocol_query = "0x7115b0f6dd64163cffeac2405c6128a50e9371e79e62ee51d23219c95dc70acf"
+
+[testnet-addresses]
+protocol_query = "0x7115b0f6dd64163cffeac2405c6128a50e9371e79e62ee51d23219c95dc70acf"

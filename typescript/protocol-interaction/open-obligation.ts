@@ -1,5 +1,5 @@
 import { SuiTransactionBlockResponse, getObjectChanges } from "@mysten/sui.js";
-import { SuiTxBlock } from '@scallop-dao/sui-kit';
+import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { ProtocolTxBuilder } from './txbuilders/protocol-txbuilder';
 import type { ProtocolPublishData } from '../package-publish/extract-objects-from-publish-results';
 import { suiKit } from '../sui-kit-instance';

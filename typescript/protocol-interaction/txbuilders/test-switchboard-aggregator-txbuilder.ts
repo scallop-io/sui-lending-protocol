@@ -1,5 +1,5 @@
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js";
-import { SuiTxBlock } from "@scallop-dao/sui-kit";
+import { SuiTxBlock } from "@scallop-io/sui-kit";
 
 export class TestSwitchboardAggregatorTxBuilder {
   constructor(

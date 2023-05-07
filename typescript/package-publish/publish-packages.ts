@@ -1,7 +1,7 @@
 import * as path from "path";
 import { RawSigner } from "@mysten/sui.js";
-import type { NetworkType } from "@scallop-dao/sui-kit";
-import { SuiPackagePublisher } from "@scallop-dao/sui-package-kit";
+import type { NetworkType } from "@scallop-io/sui-kit";
+import { SuiPackagePublisher } from "@scallop-io/sui-package-kit";
 import { parseMoveToml, writeMoveToml } from "./toml";
 
 const publishPackage = async (pkgPath: string, signer: RawSigner) => {

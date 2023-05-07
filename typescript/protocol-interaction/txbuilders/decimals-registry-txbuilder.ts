@@ -1,4 +1,4 @@
-import { SuiTxBlock } from "@scallop-dao/sui-kit";
+import { SuiTxBlock } from "@scallop-io/sui-kit";
 
 export class DecimalsRegistryTxBuilder {
   constructor(

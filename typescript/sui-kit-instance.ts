@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { NetworkType, SuiKit } from "@scallop-dao/sui-kit";
+import { NetworkType, SuiKit } from "@scallop-io/sui-kit";
 
 dotenv.config();
 

@@ -1,4 +1,4 @@
-import { SuiTxBlock } from '@scallop-dao/sui-kit';
+import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { suiKit } from '../sui-kit-instance';
 import { DecimalsRegistryTxBuilder } from './txbuilders/decimals-registry-txbuilder';
 import { ProtocolTxBuilder, RiskModel, InterestModel, OutflowLimiterModel } from './txbuilders/protocol-txbuilder';

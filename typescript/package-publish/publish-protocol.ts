@@ -1,6 +1,6 @@
 import * as path from "path";
 import { RawSigner } from "@mysten/sui.js";
-import { PackagePublishResult } from "@scallop-dao/sui-package-kit";
+import { PackagePublishResult } from "@scallop-io/sui-package-kit";
 import { publishPackageWithCache } from "./publish-packages";
 import { suiKit, networkType } from "../sui-kit-instance";
 

@@ -1,5 +1,5 @@
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js";
-import { SuiTxBlock, SuiTxArg } from "@scallop-dao/sui-kit";
+import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
 import { suiKit } from '../../sui-kit-instance'
 
 

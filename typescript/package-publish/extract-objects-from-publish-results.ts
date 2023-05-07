@@ -1,4 +1,4 @@
-import { PackagePublishResult } from "@scallop-dao/sui-package-kit";
+import { PackagePublishResult } from "@scallop-io/sui-package-kit";
 
 export const extractObjects = (
   results: { publishResult: PackagePublishResult, packageName: string }[],

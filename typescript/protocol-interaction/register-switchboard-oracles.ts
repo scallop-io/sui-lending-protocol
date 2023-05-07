@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { SuiTransactionBlockResponse, getObjectChanges, getObjectFields, getExecutionStatusType } from '@mysten/sui.js';
-import { SuiTxBlock } from '@scallop-dao/sui-kit';
+import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { suiKit, networkType } from '../sui-kit-instance';
 import { OracleTxBuilder } from './txbuilders/oracle-txbuilder';
 import { TestSwitchboardAggregatorTxBuilder } from './txbuilders/test-switchboard-aggregator-txbuilder';

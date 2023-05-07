@@ -1,4 +1,4 @@
-import { SuiTxBlock } from '@scallop-dao/sui-kit';
+import { SuiTxBlock } from '@scallop-io/sui-kit';
 
 type TestCoin = 'eth' | 'usdc' | 'usdt' | 'btc';
 export class TestCoinTxBuilder {

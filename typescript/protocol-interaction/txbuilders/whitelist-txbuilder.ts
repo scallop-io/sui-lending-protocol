@@ -1,4 +1,4 @@
-import { SuiTxBlock, SuiTxArg } from "@scallop-dao/sui-kit";
+import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
 
 export class WhitelistTxBuilder {
   constructor(

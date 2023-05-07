@@ -1,7 +1,7 @@
 module protocol::withdraw_collateral {
   
   use std::type_name::{Self, TypeName};
-  use sui::coin;
+  use sui::coin::{Self, Coin};
   use sui::transfer;
   use sui::event::emit;
   use sui::balance;
@@ -12,10 +12,9 @@ module protocol::withdraw_collateral {
   use protocol::borrow_withdraw_evaluator;
   use protocol::market::{Self, Market};
   use protocol::coin_decimals_registry::CoinDecimalsRegistry;
-  use sui::coin::Coin;
-  use oracle::switchboard_adaptor::SwitchboardBundle;
-  use whitelist::whitelist;
   use protocol::error;
+  use x_oracle::x_oracle::XOracle;
+  use whitelist::whitelist;
 
   const EWithdrawTooMuch: u64 = 0x80001;
   
@@ -32,12 +31,12 @@ module protocol::withdraw_collateral {
     market: &mut Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     withdraw_amount: u64,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
     let withdrawedCoin = withdraw_collateral<T>(
-      obligation, obligation_key, market, coin_decimals_registry, withdraw_amount, switchboard_bundle, clock, ctx
+      obligation, obligation_key, market, coin_decimals_registry, withdraw_amount, x_oracle, clock, ctx
     );
     transfer::public_transfer(withdrawedCoin, tx_context::sender(ctx));
   }
@@ -48,7 +47,7 @@ module protocol::withdraw_collateral {
     market: &mut Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     withdraw_amount: u64,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
@@ -70,7 +69,7 @@ module protocol::withdraw_collateral {
     obligation::accrue_interests(obligation, market);
     
     // IF withdraw_amount bigger than max, then abort
-    let max_withdaw_amount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coin_decimals_registry, switchboard_bundle);
+    let max_withdaw_amount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coin_decimals_registry, x_oracle);
     assert!(withdraw_amount <= max_withdaw_amount, EWithdrawTooMuch);
     
     // withdraw collateral from obligation

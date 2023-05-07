@@ -14,7 +14,7 @@ module protocol::liquidate {
   use sui::tx_context::TxContext;
   use sui::transfer;
   use sui::tx_context;
-  use oracle::switchboard_adaptor::SwitchboardBundle;
+  use x_oracle::x_oracle::XOracle;
   use whitelist::whitelist;
   use protocol::error;
 
@@ -25,11 +25,11 @@ module protocol::liquidate {
     market: &mut Market,
     available_repay_coin: Coin<DebtType>,
     coin_decimals_registry: &CoinDecimalsRegistry,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let (remain_coin, collateral_coin) = liquidate<DebtType, CollateralType>(obligation, market, available_repay_coin, coin_decimals_registry, switchboard_bundle, clock, ctx);
+    let (remain_coin, collateral_coin) = liquidate<DebtType, CollateralType>(obligation, market, available_repay_coin, coin_decimals_registry, x_oracle, clock, ctx);
     transfer::public_transfer(remain_coin, tx_context::sender(ctx));
     transfer::public_transfer(collateral_coin, tx_context::sender(ctx));
   }
@@ -39,7 +39,7 @@ module protocol::liquidate {
     market: &mut Market,
     available_repay_coin: Coin<DebtType>,
     coin_decimals_registry: &CoinDecimalsRegistry,
-    switchboard_bundle: &SwitchboardBundle,
+    x_oracle: &XOracle,
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Coin<DebtType>, Coin<CollateralType>) {
@@ -59,7 +59,7 @@ module protocol::liquidate {
     // Calc liquidation amounts for the given debt type
     let available_repay_amount = balance::value(&available_repay_balance);
     let (repay_on_behalf, repay_revenue, liq_amount) =
-      liquidation_amounts<DebtType, CollateralType>(obligation, market, coin_decimals_registry, available_repay_amount, switchboard_bundle);
+      liquidation_amounts<DebtType, CollateralType>(obligation, market, coin_decimals_registry, available_repay_amount, x_oracle);
     assert!(liq_amount > 0, ECantBeLiquidated);
     
     // withdraw the collateral balance from obligation

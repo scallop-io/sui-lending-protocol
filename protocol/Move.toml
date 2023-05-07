@@ -22,8 +22,8 @@ local = "../oracle"
 [dependencies.Whitelist]
 local = "../whitelist"
 
-[dependencies.SwitchboardStdLib]
-local = "../switchboard"
+[dependencies.XOracle]
+local = "../../sui-x-oracle/x_oracle"
 
 [addresses]
 protocol = "0x0"

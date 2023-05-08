@@ -4,11 +4,16 @@ module x_oracle::x_oracle {
   use sui::object::{Self, UID};
   use sui::table::{Self, Table};
   use sui::tx_context::TxContext;
+  use sui::transfer;
+  use sui::package;
 
   use x_oracle::price_update_policy::{Self, PriceUpdatePolicy, PriceUpdateRequest, PriceUpdatePolicyCap};
   use x_oracle::price_feed::{Self, PriceFeed};
+  use sui::tx_context;
 
   const PRIMARY_PRICE_NOT_QUALIFIED: u64 = 0;
+
+  struct X_ORACLE has drop {}
 
   struct XOracle has key {
     id: UID,
@@ -35,7 +40,14 @@ module x_oracle::x_oracle {
 
   // === init ===
 
-  public fun new(ctx: &mut TxContext): (XOracle, XOraclePolicyCap) {
+  fun init(otw: X_ORACLE, ctx: &mut TxContext) {
+    let (x_oracle, x_oracle_policy_cap) = new(ctx);
+    transfer::share_object(x_oracle);
+    transfer::transfer(x_oracle_policy_cap, tx_context::sender(ctx));
+    package::claim_and_keep(otw, ctx);
+  }
+
+  fun new(ctx: &mut TxContext): (XOracle, XOraclePolicyCap) {
     let (primary_price_update_policy, primary_price_update_policy_cap ) = price_update_policy::new(ctx);
     let (secondary_price_update_policy, secondary_price_update_policy_cap ) = price_update_policy::new(ctx);
     let x_oracle = XOracle {

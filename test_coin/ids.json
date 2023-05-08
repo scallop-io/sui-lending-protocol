@@ -1,0 +1,22 @@
+{
+  "usdc": {
+    "coinId": "0x1da4255ae3c38d75843f33ada06abdd82bbc24f1c19604ecd436aeebac4702ca",
+    "metadtaId": "0x477d1c20572ec683bf5ba2da207db19e6ac4d4399978c230b18a6a01acdf3920",
+    "treasuryId": "0xd0a03d2ab97596e65ce3d478d7dd6f8342915d1b1e2e15fb20b0805d704f7713"
+  },
+  "btc": {
+    "coinId": "0x0a6f01d668b13f4b11855f4b45c9445078a0fedeee34316a4b6a8b197667024b",
+    "metadtaId": "0xb0fe128a8b447faee638d8f814ea4edfb97a7c5f74aa1970817df88a03848166",
+    "treasuryId": "0x91d9253453ce5b56f477d9925a97853869c2c6d162bb4ebeee9c0164cc925583"
+  },
+  "eth": {
+    "coinId": "0x81bc5c39fc2a46c682bc4a8d014b67466efad6befe9d7975492010853d42faed",
+    "metadataId": "0xb9259d2c41d8e358459e926b4e574dc3b4da9169d4fbc8bce07ff9c7a94cc326",
+    "treasuryId": "0xead16883bc7018ed4fc8b99a16b637b16269cec4d21c5d6dece6f456cbd28ade"
+  },
+  "usdt": {
+    "coinId": "0x75140cf9166f1131a8eb0f4cf6f629c033b6efaf5fda5e31b07a0723b59beb16",
+    "metadataId": "0x22e41d5d76d90d3376f2068753cf7028f70f914f6ab49eab1cbdeeaa7949d00b",
+    "treasuryId": "0xd124bf2ad1d3307beacf2e22f8775e7293d4fb7904c82fc0babf014500f96cac"
+  }
+}

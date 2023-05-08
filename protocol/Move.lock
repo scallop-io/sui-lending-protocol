@@ -4,6 +4,7 @@
 version = 0
 
 dependencies = [
+  { name = "CoinDecimalsRegistry" },
   { name = "Math" },
   { name = "Sui" },
   { name = "TestCoin" },
@@ -13,8 +14,16 @@ dependencies = [
 ]
 
 [[move.package]]
+name = "CoinDecimalsRegistry"
+source = { local = "../libs/coin_decimals_registry" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
 name = "Math"
-source = { local = "../math" }
+source = { local = "../libs/math" }
 
 dependencies = [
   { name = "Sui" },
@@ -42,7 +51,7 @@ dependencies = [
 
 [[move.package]]
 name = "Whitelist"
-source = { local = "../whitelist" }
+source = { local = "../libs/whitelist" }
 
 dependencies = [
   { name = "Sui" },
@@ -50,7 +59,7 @@ dependencies = [
 
 [[move.package]]
 name = "X"
-source = { local = "../x" }
+source = { local = "../libs/x" }
 
 dependencies = [
   { name = "Sui" },
@@ -58,7 +67,7 @@ dependencies = [
 
 [[move.package]]
 name = "XOracle"
-source = { local = "../../sui-x-oracle/x_oracle" }
+source = { local = "../sui_x_oracle/x_oracle" }
 
 dependencies = [
   { name = "Sui" },

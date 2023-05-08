@@ -10,11 +10,11 @@ module protocol::borrow {
   use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::market::{Self, Market};
   use protocol::borrow_withdraw_evaluator;
-  use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::interest_model;
   use protocol::error;
   use x_oracle::x_oracle::XOracle;
   use whitelist::whitelist;
+  use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
 
   const EBorrowTooMuch: u64 = 0x10001;
   const EBorrowTooLittle: u64 = 0x10002;

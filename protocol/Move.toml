@@ -1,8 +1,8 @@
 [package]
 name = "Protocol"
 version = "0.0.1"
-published-at = "0x4abdcd6741e97687ce5386d4bfcf68929bf8925e3295c655b23754b9806a9c20"
-testnet-published-at = "0x4abdcd6741e97687ce5386d4bfcf68929bf8925e3295c655b23754b9806a9c20"
+published-at = "0x9682b1cd3f487d60a5d89eab82e81a6f78d6138759cae6e2ca43030752c3f7b5"
+testnet-published-at = "0x9682b1cd3f487d60a5d89eab82e81a6f78d6138759cae6e2ca43030752c3f7b5"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -18,6 +18,9 @@ local = "../libs/x"
 [dependencies.Whitelist]
 local = "../libs/whitelist"
 
+[dependencies.CoinDecimalsRegistry]
+local = "../libs/coin_decimals_registry"
+
 [dependencies.TestCoin]
 local = "../test_coin"
 
@@ -25,7 +28,7 @@ local = "../test_coin"
 local = "../sui_x_oracle/x_oracle"
 
 [addresses]
-protocol = "0x4abdcd6741e97687ce5386d4bfcf68929bf8925e3295c655b23754b9806a9c20"
+protocol = "0x9682b1cd3f487d60a5d89eab82e81a6f78d6138759cae6e2ca43030752c3f7b5"
 
 [testnet-addresses]
-protocol = "0x4abdcd6741e97687ce5386d4bfcf68929bf8925e3295c655b23754b9806a9c20"
+protocol = "0x9682b1cd3f487d60a5d89eab82e81a6f78d6138759cae6e2ca43030752c3f7b5"

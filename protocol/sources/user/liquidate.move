@@ -1,23 +1,21 @@
 module protocol::liquidate {
   
   use std::type_name::{Self, TypeName};
-  use sui::balance;
   use sui::clock::{Self, Clock};
   use sui::object::{Self, ID};
+  use sui::coin::{Self, Coin};
+  use sui::tx_context::{Self, TxContext};
+  use sui::balance;
+  use sui::transfer;
   use sui::event::emit;
   
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
-  use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::liquidation_evaluator::liquidation_amounts;
-  use sui::coin::Coin;
-  use sui::coin;
-  use sui::tx_context::TxContext;
-  use sui::transfer;
-  use sui::tx_context;
+  use protocol::error;
   use x_oracle::x_oracle::XOracle;
   use whitelist::whitelist;
-  use protocol::error;
+  use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
 
   const ECantBeLiquidated: u64 = 0x30001;
 

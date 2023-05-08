@@ -1,5 +1,3 @@
-/// TODO: intergrate real oracle
-/// use multiple oracles to aggregate the prices to prevent price manipulation
 module protocol::value_calculator {
   
   use sui::math;

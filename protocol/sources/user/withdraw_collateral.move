@@ -11,10 +11,10 @@ module protocol::withdraw_collateral {
   use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::borrow_withdraw_evaluator;
   use protocol::market::{Self, Market};
-  use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::error;
   use x_oracle::x_oracle::XOracle;
   use whitelist::whitelist;
+  use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
 
   const EWithdrawTooMuch: u64 = 0x80001;
   

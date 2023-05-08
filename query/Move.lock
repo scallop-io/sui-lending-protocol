@@ -9,6 +9,14 @@ dependencies = [
 ]
 
 [[move.package]]
+name = "CoinDecimalsRegistry"
+source = { local = "../libs/coin_decimals_registry" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
 name = "Math"
 source = { local = "../libs/math" }
 
@@ -25,6 +33,7 @@ name = "Protocol"
 source = { local = "../protocol" }
 
 dependencies = [
+  { name = "CoinDecimalsRegistry" },
   { name = "Math" },
   { name = "Sui" },
   { name = "TestCoin" },

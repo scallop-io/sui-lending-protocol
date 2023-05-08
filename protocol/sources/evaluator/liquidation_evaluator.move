@@ -6,12 +6,12 @@ module protocol::liquidation_evaluator {
   use protocol::obligation::{Self, Obligation};
   use protocol::interest_model;
   use protocol::market::{Self, Market};
-  use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::debt_value::debts_value_usd_with_weight;
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::risk_model;
   use protocol::price::get_price;
   use x_oracle::x_oracle::XOracle;
+  use coin_decimals_registry::coin_decimals_registry::{Self, CoinDecimalsRegistry};
 
   const ENotLiquidatable: u64 = 0;
 

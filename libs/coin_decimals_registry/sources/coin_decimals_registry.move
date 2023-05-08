@@ -1,4 +1,4 @@
-module protocol::coin_decimals_registry {
+module coin_decimals_registry::coin_decimals_registry {
   
   use std::type_name::{Self, TypeName};
   use sui::table::{Self, Table};
@@ -7,8 +7,7 @@ module protocol::coin_decimals_registry {
   use sui::sui::SUI;
   use sui::tx_context::TxContext;
   use sui::transfer;
-  
-  
+
   struct CoinDecimalsRegistry has key, store {
     id: UID,
     table: Table<TypeName, u8>

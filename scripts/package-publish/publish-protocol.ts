@@ -7,6 +7,7 @@ import { suiKit, networkType } from "../sui-kit-instance";
 const mathPkgPath = path.join(__dirname, "../../libs/math");
 const xPkgPath = path.join(__dirname, "../../libs/x");
 const whitelistPkgPath = path.join(__dirname, "../../libs/whitelist");
+const coinDecimalsRegistryPath = path.join(__dirname, "../../libs/coin_decimals_registry");
 const testCoinPkgPath = path.join(__dirname, "../../test_coin");
 const protocolPkgPath = path.join(__dirname, "../../protocol");
 const protocolQueryPkgPath = path.join(__dirname, "../../query");
@@ -15,6 +16,7 @@ const protocolPackageList = [
   { pkgPath: mathPkgPath },
   { pkgPath: xPkgPath },
   { pkgPath: whitelistPkgPath },
+  { pkgPath: coinDecimalsRegistryPath },
   { pkgPath: testCoinPkgPath },
   { pkgPath: protocolPkgPath },
   { pkgPath: protocolQueryPkgPath }

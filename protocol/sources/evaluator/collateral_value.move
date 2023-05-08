@@ -4,11 +4,11 @@ module protocol::collateral_value {
   use math::fixed_point32_empower;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
-  use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::risk_model;
   use protocol::price::get_price;
   use protocol::value_calculator::usd_value;
   use x_oracle::x_oracle::XOracle;
+  use coin_decimals_registry::coin_decimals_registry::{Self, CoinDecimalsRegistry};
 
   // sum of every collateral usd value for borrow
   // value = price x amount x collateralFactor

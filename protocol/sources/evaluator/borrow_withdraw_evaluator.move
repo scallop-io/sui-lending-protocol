@@ -9,7 +9,6 @@ module protocol::borrow_withdraw_evaluator {
   use math::fixed_point32_empower;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
-  use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::collateral_value::collaterals_value_usd_for_borrow;
   use protocol::debt_value::debts_value_usd_with_weight;
   use protocol::risk_model;
@@ -17,6 +16,7 @@ module protocol::borrow_withdraw_evaluator {
   use protocol::price::get_price;
 
   use x_oracle::x_oracle::XOracle;
+  use coin_decimals_registry::coin_decimals_registry::{Self, CoinDecimalsRegistry};
 
   public fun available_borrow_amount_in_usd(
     obligation: &Obligation,

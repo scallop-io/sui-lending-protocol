@@ -1,7 +1,8 @@
 [package]
 name = "PythRule"
 version = "0.0.1"
-published-at = "0x2a96b2c44cb45880e0771e45ec1eb55481179ee572ef525f44e2670dcd94111a"
+published-at = "0x68eaf1b1e7c48d079e6cf8cbcb3d241886839b315778a124115aebeee92592d6"
+testnet-published-at = "0x68eaf1b1e7c48d079e6cf8cbcb3d241886839b315778a124115aebeee92592d6"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -22,4 +23,7 @@ local = "./vendors/pyth"
 local = "../x_oracle"
 
 [addresses]
-pyth_rule = "0x2a96b2c44cb45880e0771e45ec1eb55481179ee572ef525f44e2670dcd94111a"
+pyth_rule = "0x68eaf1b1e7c48d079e6cf8cbcb3d241886839b315778a124115aebeee92592d6"
+
+[testnet-addresses]
+pyth_rule = "0x68eaf1b1e7c48d079e6cf8cbcb3d241886839b315778a124115aebeee92592d6"

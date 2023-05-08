@@ -4,12 +4,12 @@ module protocol::debt_value {
   use std::fixed_point32::FixedPoint32;
   use math::fixed_point32_empower;
   use protocol::obligation::{Self, Obligation};
-  use protocol::coin_decimals_registry::{Self, CoinDecimalsRegistry};
   use protocol::interest_model as interest_model_lib;
   use protocol::market::{Self as market_lib, Market};
   use protocol::value_calculator::usd_value;
   use protocol::price::get_price;
   use x_oracle::x_oracle::XOracle;
+  use coin_decimals_registry::coin_decimals_registry::{Self, CoinDecimalsRegistry};
 
   public fun debts_value_usd(
     obligation: &Obligation,

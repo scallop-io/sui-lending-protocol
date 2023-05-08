@@ -1,11 +1,11 @@
 import { SuiTxBlock } from "@scallop-io/sui-kit";
+import _ids from "./ids.json"
 
 export class DecimalsRegistryTxBuilder {
   constructor(
     public packageId: string,
     public registryId: string,
   ) {}
-
   registerDecimals(
     suiTxBlock: SuiTxBlock,
     coinMetadataId: string,
@@ -19,3 +19,6 @@ export class DecimalsRegistryTxBuilder {
     );
   }
 }
+
+export const decimalsRegistryTxBuilder = new DecimalsRegistryTxBuilder(_ids.packageId, _ids.coinDecimalsRegistryId);
+export const ids = _ids;

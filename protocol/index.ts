@@ -1,7 +1,6 @@
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js";
 import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
-import { suiKit } from '../../sui-kit-instance'
-
+import _ids from "./ids.json"
 
 export type RiskModel = {
   collateralFactor: number,
@@ -60,7 +59,6 @@ export class ProtocolTxBuilder {
       [this.marketId, this.adminCapId, riskModelChange],
       [coinType],
     );
-    suiTxBlock.transferObjects([riskModelChange], suiKit.currentAddress());
   }
 
   addInterestModel(
@@ -90,7 +88,6 @@ export class ProtocolTxBuilder {
       [this.marketId, this.adminCapId, interestModelChange, SUI_CLOCK_OBJECT_ID],
       [coinType],
     );
-    suiTxBlock.transferObjects([interestModelChange], suiKit.currentAddress());
   }
 
   addLimiter(
@@ -123,30 +120,6 @@ export class ProtocolTxBuilder {
     );
   }
 
-  async openObligationAndAddCollateral(
-    suiTxBlock: SuiTxBlock,
-    amount: number,
-    collateralType: string,
-  ) {
-    const [obligation, obligationKey, hotPotato] = suiTxBlock.moveCall(
-      `${this.packageId}::open_obligation::open_obligation`,
-      []
-    );
-    const coins = await suiKit.selectCoinsWithAmount(amount, collateralType);
-    const [sendCoin, leftCoin] = suiTxBlock.takeAmountFromCoins(coins, 100);
-    suiTxBlock.moveCall(
-      `${this.packageId}::deposit_collateral::deposit_collateral`,
-      [obligation, this.marketId, sendCoin],
-      [collateralType]
-    );
-    suiTxBlock.moveCall(
-      `${this.packageId}::open_obligation::return_obligation`,
-      [obligation, hotPotato],
-    );
-    suiTxBlock.transferObjects([leftCoin], suiKit.currentAddress());
-    suiTxBlock.transferObjects([obligationKey], suiKit.currentAddress());
-  }
-
   supplyBaseAsset(
     suiTxBlock: SuiTxBlock,
     coinId: SuiTxArg,
@@ -159,3 +132,6 @@ export class ProtocolTxBuilder {
     );
   }
 }
+
+export const ids = _ids;
+export const protocolTxBuilder = new ProtocolTxBuilder(ids.packageId, ids.adminCapId, ids.marketId);

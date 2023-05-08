@@ -14,7 +14,7 @@ module protocol::risk_model {
   
   struct RiskModels has drop {}
   
-  struct RiskModel has copy, store {
+  struct RiskModel has copy, store, drop {
     type: TypeName,
     collateral_factor: FixedPoint32,
     liquidation_factor: FixedPoint32,
@@ -69,7 +69,7 @@ module protocol::risk_model {
   public fun add_risk_model<T>(
     self: &mut AcTable<RiskModels, TypeName, RiskModel>,
     cap: &AcTableCap<RiskModels>,
-    risk_model_change: &mut OneTimeLockValue<RiskModel>,
+    risk_model_change: OneTimeLockValue<RiskModel>,
     ctx: &mut TxContext,
   ) {
     let risk_model = one_time_lock_value::get_value(risk_model_change, ctx);

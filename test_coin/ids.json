@@ -1,12 +1,13 @@
 {
+  "packageId": "0x49d2786e0b3ae6f72494aa139dea444c6950605801f9b59935749bc92d784206",
   "usdc": {
     "coinId": "0x1da4255ae3c38d75843f33ada06abdd82bbc24f1c19604ecd436aeebac4702ca",
-    "metadtaId": "0x477d1c20572ec683bf5ba2da207db19e6ac4d4399978c230b18a6a01acdf3920",
+    "metadataId": "0x477d1c20572ec683bf5ba2da207db19e6ac4d4399978c230b18a6a01acdf3920",
     "treasuryId": "0xd0a03d2ab97596e65ce3d478d7dd6f8342915d1b1e2e15fb20b0805d704f7713"
   },
   "btc": {
     "coinId": "0x0a6f01d668b13f4b11855f4b45c9445078a0fedeee34316a4b6a8b197667024b",
-    "metadtaId": "0xb0fe128a8b447faee638d8f814ea4edfb97a7c5f74aa1970817df88a03848166",
+    "metadataId": "0xb0fe128a8b447faee638d8f814ea4edfb97a7c5f74aa1970817df88a03848166",
     "treasuryId": "0x91d9253453ce5b56f477d9925a97853869c2c6d162bb4ebeee9c0164cc925583"
   },
   "eth": {

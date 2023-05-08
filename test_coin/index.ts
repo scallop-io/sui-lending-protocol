@@ -1,4 +1,5 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
+import _ids from './ids.json';
 
 type TestCoin = 'eth' | 'usdc' | 'usdt' | 'btc';
 export class TestCoinTxBuilder {
@@ -19,3 +20,13 @@ export class TestCoinTxBuilder {
     );
   }
 }
+
+export const ids = _ids;
+
+const treasuryIds = {
+  eth: ids.eth.treasuryId,
+  usdc: ids.usdc.treasuryId,
+  usdt: ids.usdt.treasuryId,
+  btc: ids.btc.treasuryId,
+}
+export const testCoinTxBuilder = new TestCoinTxBuilder(ids.packageId, treasuryIds);

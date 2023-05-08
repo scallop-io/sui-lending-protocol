@@ -1,4 +1,5 @@
 import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
+import _ids from "./ids.json";
 
 export class WhitelistTxBuilder {
   constructor(
@@ -51,3 +52,6 @@ export class WhitelistTxBuilder {
     );
   }
 }
+
+export const whitelistTxBuilder = new WhitelistTxBuilder(_ids.packageId);
+export const ids = _ids;

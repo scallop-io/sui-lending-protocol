@@ -1,14 +1,13 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { suiKit } from '../sui-kit-instance';
-import { DecimalsRegistryTxBuilder } from './txbuilders/decimals-registry-txbuilder';
-import { ProtocolTxBuilder, RiskModel, InterestModel, OutflowLimiterModel } from './txbuilders/protocol-txbuilder';
-import type { ProtocolPublishData } from '../package-publish/extract-objects-from-publish-results';
+import { suiKit } from './sui-kit-instance';
+import testCoinIds from '../test_coin/ids.json';
+import { decimalsRegistryTxBuilder } from '../libs/coin_decimals_registry';
+import { protocolTxBuilder, RiskModel, InterestModel, OutflowLimiterModel } from '../protocol';
 
-
-export const initMarketForTest = async (data: ProtocolPublishData) => {
+export const initMarketForTest = async () => {
   const riskModelPairs: { type: string, riskModel: RiskModel }[] = [
     {
-      type: `${data.packageIds.TestCoin}::eth::ETH`,
+      type: `${testCoinIds.packageId}::eth::ETH`,
       riskModel: {
         collateralFactor: 80,
         liquidationFactor: 90,
@@ -19,7 +18,7 @@ export const initMarketForTest = async (data: ProtocolPublishData) => {
       }
     },
     {
-      type: `${data.packageIds.TestCoin}::btc::BTC`,
+      type: `${testCoinIds.packageId}::btc::BTC`,
       riskModel: {
         collateralFactor: 70,
         liquidationFactor: 80,
@@ -44,7 +43,7 @@ export const initMarketForTest = async (data: ProtocolPublishData) => {
 
   const interestModelPairs: { type: string, interestModel: InterestModel }[] = [
     {
-      type: `${data.packageIds.TestCoin}::usdc::USDC`,
+      type: `${testCoinIds.packageId}::usdc::USDC`,
       interestModel: {
         baseRatePerSec: 6341958,
         lowSlope: 2 * 10 ** 16, // 2
@@ -57,7 +56,7 @@ export const initMarketForTest = async (data: ProtocolPublishData) => {
       }
     },
     {
-      type: `${data.packageIds.TestCoin}::usdt::USDT`,
+      type: `${testCoinIds.packageId}::usdt::USDT`,
       interestModel: {
         baseRatePerSec: 6341958,
         lowSlope: 2 * 10 ** 16, // 2
@@ -73,7 +72,7 @@ export const initMarketForTest = async (data: ProtocolPublishData) => {
 
   const outflowLimitPairs: { type: string, outflowLimit: OutflowLimiterModel }[] = [
     {
-      type: `${data.packageIds.TestCoin}::usdc::USDC`,
+      type: `${testCoinIds.packageId}::usdc::USDC`,
       outflowLimit: {
         outflowLimit: 10 ** (6 + 9),
         outflowCycleDuration: 60 * 60 * 24,
@@ -81,7 +80,7 @@ export const initMarketForTest = async (data: ProtocolPublishData) => {
       }
     },
     {
-      type: `${data.packageIds.TestCoin}::usdt::USDT`,
+      type: `${testCoinIds.packageId}::usdt::USDT`,
       outflowLimit: {
         outflowLimit: 10 ** (6 + 9),
         outflowCycleDuration: 60 * 60 * 24,
@@ -91,22 +90,11 @@ export const initMarketForTest = async (data: ProtocolPublishData) => {
   ]
 
   const decimalsPairs: { type: string, metadataId: string }[] = [
-    { type: `${data.packageIds.TestCoin}::eth::ETH`, metadataId: data.testCoinData.eth.metadataId },
-    { type: `${data.packageIds.TestCoin}::btc::BTC`, metadataId: data.testCoinData.btc.metadataId },
-    { type: `${data.packageIds.TestCoin}::usdt::USDT`, metadataId: data.testCoinData.usdt.metadataId },
-    { type: `${data.packageIds.TestCoin}::usdc::USDC`, metadataId: data.testCoinData.usdc.metadataId },
+    { type: `${testCoinIds.packageId}::eth::ETH`, metadataId: testCoinIds.eth.metadataId },
+    { type: `${testCoinIds.packageId}::btc::BTC`, metadataId: testCoinIds.btc.metadataId },
+    { type: `${testCoinIds.packageId}::usdt::USDT`, metadataId: testCoinIds.usdt.metadataId },
+    { type: `${testCoinIds.packageId}::usdc::USDC`, metadataId: testCoinIds.usdc.metadataId },
   ]
-
-  const decimalsRegistryTxBuilder = new DecimalsRegistryTxBuilder(
-    data.packageIds.Protocol,
-    data.marketData.coinDecimalsRegistryId,
-  );
-
-  const protocolTxBuilder = new ProtocolTxBuilder(
-    data.packageIds.Protocol,
-    data.marketData.adminCapId,
-    data.marketData.marketId,
-  );
 
   const suiTxBlock = new SuiTxBlock();
 

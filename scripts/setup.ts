@@ -2,9 +2,7 @@ import { suiKit, networkType } from "./sui-kit-instance";
 import { publishProtocol } from "./package-publish/publish-protocol";
 import { initMarketForTest } from "./protocol-interaction/init-market";
 import { handleSwitchboard } from "./protocol-interaction/register-switchboard-oracles";
-import { openObligation } from "./protocol-interaction/open-obligation";
 import { supplyBaseAsset } from "./protocol-interaction/supply-base-asset";
-import { writeAsJson } from "./write-as-json";
 
 const delay = (ms: number) => {
   console.log(`delay ${ms}ms...`)
@@ -18,7 +16,7 @@ export const setup = async () => {
 
   // init market
   console.log('init market...')
-  const initMarketResult = await initMarketForTest(protocolPublishResult);
+  const initMarketResult = await initMarketForTest();
   console.log('init market result done!')
 
   // register switchboard aggregators
@@ -30,20 +28,10 @@ export const setup = async () => {
     throw new Error('Create and register switchboard oracles failed!');
   }
 
-  // open obligation and add collateral
-  console.log('open obligation and add collateral...')
-  const obligationData = await openObligation(protocolPublishResult);
-  console.log('open obligation and add collateral done!')
-
   // supply base asset
   console.log('supply base assets...')
   const supplyRes = await supplyBaseAsset(protocolPublishResult);
   console.log('supply base assets done!')
-
-  // Write the object ids to a file in json format
-  console.log('write object ids to file: object-ids.json')
-  writeAsJson({...protocolPublishResult, obligationData, switchboardAggregators: switchboardRes.aggregators }, `object-ids.${networkType}.json`);
-  console.log('write object ids to file done!')
 }
 
 setup();

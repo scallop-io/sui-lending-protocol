@@ -13,7 +13,7 @@ module protocol::interest_model {
   const ERevenueFactorTooLarge: u64 = 0;
   const EInterestModelTypeNotMatch: u64 = 1;
   
-  struct InterestModel has copy, store {
+  struct InterestModel has copy, store, drop {
     type: TypeName,
     base_borrow_rate_per_sec: FixedPoint32,
     low_slope: FixedPoint32,
@@ -81,7 +81,7 @@ module protocol::interest_model {
   public fun add_interest_model<T>(
     interestModelTable: &mut AcTable<InterestModels, TypeName, InterestModel>,
     cap: &AcTableCap<InterestModels>,
-    interestModelChange: &mut OneTimeLockValue<InterestModel>,
+    interestModelChange: OneTimeLockValue<InterestModel>,
     ctx: &mut TxContext,
   ) {
     let interestModel = one_time_lock_value::get_value(interestModelChange, ctx);

@@ -82,7 +82,7 @@ module wormhole::state {
         upgrade_cap: UpgradeCap
     }
 
-    /// Create new `State`. This is only executed using the `setup` module.
+    /// Create new `State`. This is only executed using the `setupForTest` module.
     public(friend) fun new(
         upgrade_cap: UpgradeCap,
         governance_chain: u16,

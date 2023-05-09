@@ -20,7 +20,7 @@ See the official documentation: [How to install SUI cli](https://docs.sui.io/dev
 
 4. Deploy the contracts & prepare test data
   ```bash
-  npm run setup
+  npm run setupForTest
   ```
 This will deploy the contracts and prepare test data for the contracts.
 Also, it will create a file named `object-ids.json` which contains all the necessary object ids for the contracts.

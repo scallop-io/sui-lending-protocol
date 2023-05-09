@@ -5,18 +5,19 @@
   "main": "index.js",
   "scripts": {
     "publish": "ts-node scripts/publish-protocol.ts",
-    "setup": "ts-node scripts/setup.ts"
+    "setup": "ts-node scripts/setup-for-test.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@iarna/toml": "^2.2.5",
     "@mysten/sui.js": "^0.33",
+    "@pythnetwork/price-service-client": "^1.4.1",
     "@scallop-io/sui-kit": "^0.33.1",
     "@scallop-io/sui-package-kit": "^0.33.0",
     "fs": "0.0.1-security",
-    "path": "^0.12.7",
-    "@iarna/toml": "^2.2.5"
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "@types/node": "^18.16.3",

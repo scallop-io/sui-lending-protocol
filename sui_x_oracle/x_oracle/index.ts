@@ -10,7 +10,7 @@ export class XOracleTxBuilder {
 
   addPrimaryPriceUpdateRule(tx: SuiTxBlock, ruleType: string) {
     tx.moveCall(
-      `$${this.packageId}::x_oracle::add_primary_price_update_rule`,
+      `${this.packageId}::x_oracle::add_primary_price_update_rule`,
       [this.xOracleId, this.xOracleCapId],
       [ruleType]
     );
@@ -19,6 +19,7 @@ export class XOracleTxBuilder {
     tx.moveCall(
       `${this.packageId}::x_oracle::add_secondary_price_update_rule`,
       [this.xOracleId, this.xOracleCapId],
+      [ruleType]
     );
   }
 

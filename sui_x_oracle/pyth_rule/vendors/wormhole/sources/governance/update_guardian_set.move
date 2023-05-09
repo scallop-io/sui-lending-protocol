@@ -255,7 +255,7 @@ module wormhole::update_guardian_set_tests {
             (state::guardian_set_seconds_to_live(&worm_state) as u64) * 1000;
         clock::increment_for_testing(&mut the_clock, tick_ms + 1);
 
-        // Now the old guardian set should be expired (because in the test setup
+        // Now the old guardian set should be expired (because in the test setupForTest
         // time to live is set to 2 epochs).
         assert!(!guardian_set::is_active(old_guardian_set, &the_clock), 0);
 

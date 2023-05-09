@@ -90,7 +90,7 @@ module protocol::app {
   public fun add_interest_model<T>(
     market: &mut Market,
     admin_cap: &AdminCap,
-    interest_model_change: &mut OneTimeLockValue<InterestModel>,
+    interest_model_change: OneTimeLockValue<InterestModel>,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
@@ -131,7 +131,7 @@ module protocol::app {
   public entry fun add_risk_model<T>(
     market: &mut Market,
     admin_cap: &AdminCap,
-    risk_model_change: &mut OneTimeLockValue<RiskModel>,
+    risk_model_change: OneTimeLockValue<RiskModel>,
     ctx: &mut TxContext
   ) {
     let risk_models = market::risk_models_mut(market);

@@ -30,3 +30,5 @@ const treasuryIds = {
   btc: ids.btc.treasuryId,
 }
 export const testCoinTxBuilder = new TestCoinTxBuilder(ids.packageId, treasuryIds);
+
+export * from './move-types';

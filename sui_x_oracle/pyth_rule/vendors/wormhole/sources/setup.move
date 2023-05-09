@@ -22,7 +22,7 @@ module wormhole::setup {
     /// Called automatically when module is first published. Transfers
     /// `DeployerCap` to sender.
     ///
-    /// Only `setup::init_and_share_state` requires `DeployerCap`.
+    /// Only `setupForTest::init_and_share_state` requires `DeployerCap`.
     fun init(ctx: &mut TxContext) {
         let deployer = DeployerCap { id: object::new(ctx) };
         transfer::transfer(deployer, tx_context::sender(ctx));

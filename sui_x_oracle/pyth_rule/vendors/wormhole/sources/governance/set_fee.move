@@ -122,7 +122,7 @@ module wormhole::set_fee_tests {
         let worm_state = take_state(scenario);
         let the_clock = take_clock(scenario);
 
-        // Double-check current fee (from setup).
+        // Double-check current fee (from setupForTest).
         assert!(state::message_fee(&worm_state) == wormhole_fee, 0);
 
         let verified_vaa =
@@ -185,7 +185,7 @@ module wormhole::set_fee_tests {
         let worm_state = take_state(scenario);
         let the_clock = take_clock(scenario);
 
-        // Double-check current fee (from setup).
+        // Double-check current fee (from setupForTest).
         assert!(state::message_fee(&worm_state) == wormhole_fee, 0);
 
         let verified_vaa =

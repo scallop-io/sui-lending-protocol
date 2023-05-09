@@ -1,6 +1,9 @@
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js"
 import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit"
 import _ids from "./ids.json"
+import _pythOraceTestnetIds from "./pyth-oracle.testnet.json"
+
+export const pythTestnetIds = _pythOraceTestnetIds;
 
 export class PythRuleTxBuilder {
   constructor(
@@ -21,8 +24,6 @@ export class PythRuleTxBuilder {
   setPrice(
     tx: SuiTxBlock,
     request: SuiTxArg,
-    wormholeState: SuiTxArg,
-    pythState: SuiTxArg,
     pythPriceInfoObject: SuiTxArg,
     vaaBuf: SuiTxArg,
     coinType: string,
@@ -32,8 +33,8 @@ export class PythRuleTxBuilder {
       `${this.packageId}::rule::set_price`,
       [
         request,
-        wormholeState,
-        pythState,
+        pythTestnetIds.wormholeStateId,
+        pythTestnetIds.pythStateId,
         pythPriceInfoObject,
         this.pythRegistryId,
         vaaBuf,
@@ -47,3 +48,5 @@ export class PythRuleTxBuilder {
 
 export const ids = _ids;
 export const pythRuleTxBuilder = new PythRuleTxBuilder(ids.packageId, ids.pythRegistryId, ids.pythRegistryCapId);
+
+export * from "./move-types";

@@ -52,6 +52,6 @@ module pyth_rule::rule {
     };
     assert!(price_value > 0, PYTH_PRICE_DECIMALS_TOO_LARGE);
     let price_feed = price_feed::new(price_value_with_formatted_decimals, updated_time);
-    x_oracle::set_secondary_price(Rule {}, request, price_feed);
+    x_oracle::set_primary_price(Rule {}, request, price_feed);
   }
 }

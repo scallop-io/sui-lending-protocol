@@ -5,7 +5,7 @@
 /// way to deallocate it is by calling the `destroy_empty` method, which will
 /// fail if the whole input hasn't been consumed.
 ///
-/// This setup statically guarantees that the parsing methods consume the full
+/// This setupForTest statically guarantees that the parsing methods consume the full
 /// input.
 module wormhole::cursor {
     use std::vector::{Self};

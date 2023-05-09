@@ -1,5 +1,6 @@
 import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit"
 import _ids from "./ids.json"
+import _switchboardOracleTestnetIds from "./switchboard-oracle.testnet.json"
 
 export class SwitchboardRuleTxBuilder {
   constructor(
@@ -33,3 +34,7 @@ export class SwitchboardRuleTxBuilder {
 
 export const ids = _ids;
 export const switchboardRuleTxBuilder = new SwitchboardRuleTxBuilder(ids.packageId, ids.switchboardRegistry, ids.switchboardRegistryCapId);
+
+export const switchboardTestnetIds = _switchboardOracleTestnetIds;
+
+export * from "./move-types";

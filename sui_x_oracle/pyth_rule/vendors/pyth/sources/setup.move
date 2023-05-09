@@ -9,7 +9,7 @@ module pyth::setup {
 
     /// `UpgradeCap` is not as expected when initializing `State`.
     const E_INVALID_UPGRADE_CAP: u64 = 0;
-    /// Build version for setup must only be `1`.
+    /// Build version for setupForTest must only be `1`.
     const E_INVALID_BUILD_VERSION: u64 = 1;
 
     friend pyth::pyth;

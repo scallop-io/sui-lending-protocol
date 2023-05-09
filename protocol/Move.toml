@@ -1,8 +1,8 @@
 [package]
 name = "Protocol"
 version = "0.0.1"
-published-at = "0x9682b1cd3f487d60a5d89eab82e81a6f78d6138759cae6e2ca43030752c3f7b5"
-testnet-published-at = "0x9682b1cd3f487d60a5d89eab82e81a6f78d6138759cae6e2ca43030752c3f7b5"
+published-at = "0x8d6757d606ecbb9d06ea81625d3b7f821ca02db0673a64803168f8ff5f330c33"
+testnet-published-at = "0x8d6757d606ecbb9d06ea81625d3b7f821ca02db0673a64803168f8ff5f330c33"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -28,7 +28,7 @@ local = "../test_coin"
 local = "../sui_x_oracle/x_oracle"
 
 [addresses]
-protocol = "0x9682b1cd3f487d60a5d89eab82e81a6f78d6138759cae6e2ca43030752c3f7b5"
+protocol = "0x8d6757d606ecbb9d06ea81625d3b7f821ca02db0673a64803168f8ff5f330c33"
 
 [testnet-addresses]
-protocol = "0x9682b1cd3f487d60a5d89eab82e81a6f78d6138759cae6e2ca43030752c3f7b5"
+protocol = "0x8d6757d606ecbb9d06ea81625d3b7f821ca02db0673a64803168f8ff5f330c33"

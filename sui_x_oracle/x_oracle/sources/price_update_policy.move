@@ -56,6 +56,14 @@ module x_oracle::price_update_policy {
     vec_set::insert(&mut policy.rules, type_name::get<Rule>());
   }
 
+  public fun remove_rule<Rule>(
+    policy: &mut PriceUpdatePolicy,
+    cap: &PriceUpdatePolicyCap,
+  ) {
+    assert!(object::id(policy) == cap.for, WRONG_POLICY_CAP);
+    vec_set::remove<TypeName>(&mut policy.rules, &type_name::get<Rule>());
+  }
+
   public fun add_price_feed<CoinType, Rule: drop>(
     _rule: Rule,
     request: &mut PriceUpdateRequest<CoinType>,

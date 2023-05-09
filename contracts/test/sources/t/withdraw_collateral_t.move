@@ -4,28 +4,28 @@ module protocol_test::withdraw_collateral_t {
   use protocol::withdraw_collateral;
   use protocol::obligation::{Obligation, ObligationKey};
   use protocol::market::Market;
-  use protocol::coin_decimals_registry::CoinDecimalsRegistry;
   use sui::test_scenario::Scenario;
   use sui::test_scenario;
   use sui::balance::Balance;
   use sui::coin;
   use sui::clock::Clock;
-  use oracle::switchboard_adaptor::SwitchboardBundle;
+  use x_oracle::x_oracle::XOracle;
+  use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
   
   public fun withdraw_collateral_t<T>(
-    senario: &mut Scenario,
+    scenario: &mut Scenario,
     user: address,
     obligation: &mut Obligation,
-    postionKey: &ObligationKey,
+    position_key: &ObligationKey,
     market: &mut Market,
-    decimalsRegistry: &CoinDecimalsRegistry,
-    withdrawAmount: u64,
-    switchboard_bundle: &SwitchboardBundle,
+    decimals_registry: &CoinDecimalsRegistry,
+    withdraw_amount: u64,
+    x_oracle: &XOracle,
     clock: &Clock,
   ): Balance<T> {
-    test_scenario::next_tx(senario, user);
+    test_scenario::next_tx(scenario, user);
     coin::into_balance(withdraw_collateral::withdraw_collateral<T>(
-      obligation, postionKey, market, decimalsRegistry, withdrawAmount, switchboard_bundle, clock, test_scenario::ctx(senario)
+      obligation, position_key, market, decimals_registry, withdraw_amount, x_oracle, clock, test_scenario::ctx(scenario)
     ))
   }
 }

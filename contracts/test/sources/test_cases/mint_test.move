@@ -9,9 +9,9 @@ module protocol_test::mint_test {
   use protocol_test::app_t::app_init;
   use protocol_test::mint_t::mint_t;
   use protocol_test::constants::usdc_interest_model_params;
-  use protocol::coin_decimals_registry;
   use protocol_test::coin_decimals_registry_t::coin_decimals_registry_init;
   use protocol_test::interest_model_t::add_interest_model_t;
+  use coin_decimals_registry::coin_decimals_registry;
   use test_coin::usdc::USDC;
   
   #[test]

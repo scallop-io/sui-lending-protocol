@@ -1,12 +1,19 @@
 #[test_only]
 module protocol_test::oracle_t {
-    use oracle::switchboard_adaptor::{Self, SwitchboardBundle};
+    use sui::math;
     use sui::test_scenario::{Self, Scenario};
+    use x_oracle::x_oracle::{Self, XOracle, XOraclePolicyCap};
 
-    public fun init_t(scenario: &mut Scenario, admin: address): (SwitchboardBundle) {
-        switchboard_adaptor::init_t(test_scenario::ctx(scenario));
+    public fun init_t(scenario: &mut Scenario, admin: address): (XOracle, XOraclePolicyCap) {
+        x_oracle::init_t(test_scenario::ctx(scenario));
         test_scenario::next_tx(scenario, admin);
 
-        (test_scenario::take_shared<SwitchboardBundle>(scenario))
+        (test_scenario::take_shared<XOracle>(scenario), test_scenario::take_from_address<XOraclePolicyCap>(scenario, admin))
+    }
+
+    public fun calc_scaled_price(scaled_price: u64, decimals: u8): u64 {
+        assert!(decimals <= 9, 1);
+        // the oracle price_feed need a scaled price with 9 decimals
+        scaled_price * math::pow(10, 9 - decimals)
     }
 }

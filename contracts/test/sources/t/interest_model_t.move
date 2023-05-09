@@ -1,7 +1,6 @@
 #[test_only]
 module protocol_test::interest_model_t {
   
-  use sui::transfer;
   use sui::clock::Clock;
   use sui::test_scenario::{Self, Scenario};
   use protocol::market::Market;
@@ -30,11 +29,10 @@ module protocol_test::interest_model_t {
     app::add_interest_model<T>(
       market,
       adminCap,
-      &mut interest_model,
+      interest_model,
       clock,
       test_scenario::ctx(scenario),
     );
-    transfer::public_freeze_object(interest_model);
     
     transaction_utils_t::skip_epoch(scenario, 11);
     

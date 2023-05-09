@@ -208,4 +208,22 @@ module x_oracle::x_oracle {
     let res = determine_price(primary_feeds, secondary_feeds);
     assert!(res == feed1, 0);
   }
+
+  #[test_only]
+  use sui::clock::{Self, Clock};
+
+  #[test_only]
+  public fun init_t(ctx: &mut TxContext) {
+    init(X_ORACLE {}, ctx);
+  }
+
+  #[test_only]
+  public fun update_price<T>(self: &mut XOracle, clock: &Clock, value: u64) {
+    let coin_type = get<T>();
+    if (!table::contains(&self.prices, coin_type)) {
+      table::add(&mut self.prices, coin_type, price_feed::new(0,0));
+    };
+    let price_feed = table::borrow_mut(&mut self.prices, coin_type);
+    price_feed::update_price_feed(price_feed, value, clock::timestamp_ms(clock) / 1000);
+  }
 }

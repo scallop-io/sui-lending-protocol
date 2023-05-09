@@ -7,9 +7,9 @@ module protocol_test::repay_test {
   use sui::math;
   use sui::balance;
   use sui::clock::Self as clock_lib;
-  use oracle::switchboard_adaptor;
+  use x_oracle::x_oracle;
+  use coin_decimals_registry::coin_decimals_registry;
   use protocol::repay::repay;
-  use protocol::coin_decimals_registry;
   use protocol_test::app_t::app_init;
   use protocol_test::open_obligation_t::open_obligation_t;
   use protocol_test::mint_t::mint_t;
@@ -49,7 +49,7 @@ module protocol_test::repay_test {
     let (market, admin_cap) = app_init(scenario, admin);
     let usdc_interest_params = usdc_interest_model_params();
 
-    let (switchboard_bundle) = oracle_t::init_t(scenario, admin);
+    let (x_oracle, x_oracle_policy_cap) = oracle_t::init_t(scenario, admin);
 
     let clock = clock_lib::create_for_testing(test_scenario::ctx(scenario));
     test_scenario::next_tx(scenario, admin);
@@ -77,12 +77,12 @@ module protocol_test::repay_test {
     deposit_collateral_t(scenario, &mut obligation, &mut market, eth_coin);
   
     clock_lib::set_for_testing(&mut clock, 300 * 1000);
-    switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, 300, 1, 1); // $1
-    switchboard_adaptor::update_switchboard_price<ETH>(&mut switchboard_bundle, 300, 1000, 1); // $1000
+    x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
     test_scenario::next_tx(scenario, borrower);
     let borrow_amount = 100 * math::pow(10, usdc_decimals);
-    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &switchboard_bundle, &clock);
+    let borrowed = borrow_t<USDC>(scenario, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock);
     assert!(balance::value(&borrowed) == borrow_amount, 0);
     balance::destroy_for_testing(borrowed);
 
@@ -102,23 +102,26 @@ module protocol_test::repay_test {
     repay<USDC>(&mut obligation, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
 
     clock_lib::set_for_testing(&mut clock, 500 * 1000);
-    switchboard_adaptor::update_switchboard_price<USDC>(&mut switchboard_bundle, 500, 1, 1); // $1
-    switchboard_adaptor::update_switchboard_price<ETH>(&mut switchboard_bundle, 500, 1000, 1); // $1000
+    x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
     test_scenario::next_tx(scenario, borrower);
     // withdraw all of the collateral coin
-    let withdrawed_collateral = withdraw_collateral_t<ETH>(scenario, borrower, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, eth_amount, &switchboard_bundle, &clock);
+    let withdrawed_collateral = withdraw_collateral_t<ETH>(scenario, borrower, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, eth_amount, &x_oracle, &clock);
     assert!(balance::value(&withdrawed_collateral) == eth_amount, 0);
     balance::destroy_for_testing(withdrawed_collateral);
     
     clock_lib::destroy_for_testing(clock);
 
-    test_scenario::return_shared(switchboard_bundle);
+    test_scenario::return_shared(x_oracle);
     test_scenario::return_shared(coin_decimals_registry);
     test_scenario::return_shared(market);
     test_scenario::return_shared(obligation);
     test_scenario::return_to_address(admin, admin_cap);
+    test_scenario::return_to_address(admin, x_oracle_policy_cap);
     test_scenario::return_to_address(borrower, obligation_key);
     test_scenario::end(scenario_value);
   }
+
+  // @TODO: check debt increment dan coba repay all debt (donnie's problem a while ago)
 }

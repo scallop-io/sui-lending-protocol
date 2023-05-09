@@ -1,7 +1,6 @@
 #[test_only]
 module protocol_test::risk_model_t {
   
-  use sui::transfer;
   use sui::test_scenario::{Self, Scenario};
   use protocol::market::Market;
   use protocol::app::{Self, AdminCap};
@@ -26,12 +25,11 @@ module protocol_test::risk_model_t {
     app::add_risk_model<T>(
       market,
       adminCap,
-      &mut risk_model,
+      risk_model,
       test_scenario::ctx(senario),
     );
     
     transaction_utils_t::skip_epoch(senario, 11);
     
-    transfer::public_freeze_object(risk_model);
   }
 }

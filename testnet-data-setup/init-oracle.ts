@@ -7,10 +7,10 @@ import {
   switchboardRuleTxBuilder,
   switchboardRuleType,
   switchboardTestnetIds
-} from '../sui_x_oracle'
+} from '../contracts/sui_x_oracle'
 import {
   testCoinTypes
-} from '../test_coin'
+} from '../contracts/test_coin'
 
 export const initXOracleForTest = (tx: SuiTxBlock) => {
   addRulesForXOracle(tx);

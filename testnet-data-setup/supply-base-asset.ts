@@ -1,6 +1,6 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { testCoinTxBuilder, testCoinTypes } from '../test_coin';
-import { protocolTxBuilder } from '../protocol'
+import { testCoinTxBuilder, testCoinTypes } from '../contracts/test_coin';
+import { protocolTxBuilder } from '../contracts/protocol'
 
 export const supplyBaseAsset = (tx: SuiTxBlock) => {
 

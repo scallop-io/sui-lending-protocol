@@ -1,16 +1,16 @@
 import * as path from "path";
 import { RawSigner } from "@mysten/sui.js";
 import { PackagePublishResult } from "@scallop-io/sui-package-kit";
-import { publishPackageWithCache } from "./package-publish";
-import { networkType, suiKit } from "./sui-kit-instance";
+import { publishPackageWithCache } from "./publish-packages";
+import { networkType, suiKit } from "../sui-elements";
 
-const mathPkgPath = path.join(__dirname, "../libs/math");
-const xPkgPath = path.join(__dirname, "../libs/x");
-const whitelistPkgPath = path.join(__dirname, "../libs/whitelist");
-const coinDecimalsRegistryPath = path.join(__dirname, "../libs/coin_decimals_registry");
-const testCoinPkgPath = path.join(__dirname, "../test_coin");
-const protocolPkgPath = path.join(__dirname, "../protocol");
-const protocolQueryPkgPath = path.join(__dirname, "../query");
+const mathPkgPath = path.join(__dirname, "../contracts/libs/math");
+const xPkgPath = path.join(__dirname, "../contracts/libs/x");
+const whitelistPkgPath = path.join(__dirname, "../contracts/libs/whitelist");
+const coinDecimalsRegistryPath = path.join(__dirname, "../contracts/libs/coin_decimals_registry");
+const testCoinPkgPath = path.join(__dirname, "../contracts/test_coin");
+const protocolPkgPath = path.join(__dirname, "../contracts/protocol");
+const protocolQueryPkgPath = path.join(__dirname, "../contracts/query");
 
 const protocolPackageList = [
   { pkgPath: mathPkgPath },

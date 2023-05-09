@@ -1,7 +1,7 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { suiKit } from './sui-kit-instance';
-import { testCoinTypes, ids as testCoinIds  } from '../test_coin';
-import { protocolTxBuilder, RiskModel, InterestModel, OutflowLimiterModel } from '../protocol';
+import { suiKit } from '../sui-elements';
+import { testCoinTypes } from '../contracts/test_coin';
+import { protocolTxBuilder, RiskModel, InterestModel, OutflowLimiterModel } from '../contracts/protocol';
 
 export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
   const riskModelPairs: { type: string, riskModel: RiskModel }[] = [

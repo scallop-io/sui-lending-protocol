@@ -1,12 +1,12 @@
 import * as path from "path";
 import { RawSigner } from "@mysten/sui.js";
 import { PackagePublishResult } from "@scallop-io/sui-package-kit";
-import { publishPackageWithCache } from "./package-publish";
-import { networkType, suiKit } from "./sui-kit-instance";
+import { publishPackageWithCache } from "./publish-packages";
+import { networkType, suiKit } from "../sui-elements";
 
-const xOraclePath = path.join(__dirname, "../sui_x_oracle/x_oracle");
-const pythRulePath = path.join(__dirname, "../sui_x_oracle/pyth_rule");
-const switchboardRulePath = path.join(__dirname, "../sui_x_oracle/switchboard_rule");
+const xOraclePath = path.join(__dirname, "../contracts/sui_x_oracle/x_oracle");
+const pythRulePath = path.join(__dirname, "../contracts/sui_x_oracle/pyth_rule");
+const switchboardRulePath = path.join(__dirname, "../contracts/sui_x_oracle/switchboard_rule");
 
 const xOraclePackageList = [
   { pkgPath: xOraclePath },

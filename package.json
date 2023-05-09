@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "publish": "ts-node scripts/publish-protocol.ts",
-    "setup": "ts-node scripts/setup-for-test.ts"
+    "publish": "ts-node testnet-data-setup/publish-protocol.ts",
+    "publish-testcoin": "ts-node contracts/test_coin/publish.ts",
+    "setup": "ts-node testnet-data-setup/setup-for-test.ts"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@types/node": "^18.16.3",
     "dotenv": "^16.0.3",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0"
   }
 }

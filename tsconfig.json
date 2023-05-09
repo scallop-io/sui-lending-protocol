@@ -1,4 +1,9 @@
 {
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register"
+    ]
+  },
   "compilerOptions": {
     "target": "es2020",
     "lib": [
@@ -8,7 +13,7 @@
     ],
     "allowJs": true,
     "baseUrl": ".",
-    // output .d.ts declaration files for consumers
+    // output .d.testnet-data-setup declaration files for consumers
     "declaration": true,
     "emitDeclarationOnly": true,
     // output .js.map sourcemap files for consumers

@@ -1,5 +1,6 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import _ids from './ids.json';
+import { networkType } from "../../sui-elements";
+export const ids = require(`./ids.${networkType}.json`);
 
 type TestCoin = 'eth' | 'usdc' | 'usdt' | 'btc';
 export class TestCoinTxBuilder {
@@ -21,8 +22,6 @@ export class TestCoinTxBuilder {
   }
 }
 
-export const ids = _ids;
-
 const treasuryIds = {
   eth: ids.eth.treasuryId,
   usdc: ids.usdc.treasuryId,
@@ -31,4 +30,9 @@ const treasuryIds = {
 }
 export const testCoinTxBuilder = new TestCoinTxBuilder(ids.packageId, treasuryIds);
 
-export * from './move-types';
+export const testCoinTypes = {
+  btc: `${ids.packageId}::btc::BTC`,
+  eth: `${ids.packageId}::eth::ETH`,
+  usdt: `${ids.packageId}::usdt::USDT`,
+  usdc: `${ids.packageId}::usdc::USDC`
+}

@@ -1,8 +1,6 @@
 [package]
 name = "X"
 version = "0.0.1"
-published-at = "0x35a7fdcee9408385be38b1becd03eddd1b7f137a0022fe10bf7dc7aa9086d2ec"
-testnet-published-at = "0x35a7fdcee9408385be38b1becd03eddd1b7f137a0022fe10bf7dc7aa9086d2ec"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -10,7 +8,4 @@ subdir = "crates/sui-framework/packages/sui-framework"
 rev = "testnet"
 
 [addresses]
-x = "0x35a7fdcee9408385be38b1becd03eddd1b7f137a0022fe10bf7dc7aa9086d2ec"
-
-[testnet-addresses]
-x = "0x35a7fdcee9408385be38b1becd03eddd1b7f137a0022fe10bf7dc7aa9086d2ec"
+x = "0x0"

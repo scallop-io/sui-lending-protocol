@@ -1,8 +1,6 @@
 [package]
 name = "SwitchboardRule"
 version = "0.0.1"
-published-at = "0xda656938886f695445c5e691761d70bd90471cff9a7e7e6d8e20fbbc490f3023"
-testnet-published-at = "0xda656938886f695445c5e691761d70bd90471cff9a7e7e6d8e20fbbc490f3023"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -17,13 +15,10 @@ rev = "mainnet"
 override = true
 
 [dependencies.SwitchboardStdLib]
-local = "./vendors/switchboard_std"
+local = "./vendors/switchboard_std_test"
 
 [dependencies.XOracle]
 local = "../x_oracle"
 
 [addresses]
-switchboard_rule = "0xda656938886f695445c5e691761d70bd90471cff9a7e7e6d8e20fbbc490f3023"
-
-[testnet-addresses]
-switchboard_rule = "0xda656938886f695445c5e691761d70bd90471cff9a7e7e6d8e20fbbc490f3023"
+switchboard_rule = "0x0"

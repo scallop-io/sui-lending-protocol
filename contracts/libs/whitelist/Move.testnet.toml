@@ -1,0 +1,12 @@
+[package]
+name = "Whitelist"
+version = "0.0.1"
+published-at = "0x9bad3512db164661beb0ba21f7786f0f17cdcd777c2a0d58e16032e05981d25c"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "testnet"
+
+[addresses]
+whitelist = "0x9bad3512db164661beb0ba21f7786f0f17cdcd777c2a0d58e16032e05981d25c"

@@ -1,6 +1,6 @@
 import { PublishResultParser } from "@scallop-io/sui-package-kit"
 
-export const publishResultParser: PublishResultParser = async (res) => {
+export const publishResultParser: PublishResultParser = (res) => {
   const packageId = res.packageId;
   const output: Record<string, { metadataId: string, treasuryId: string }> = {};
   // a regex for pattern: `0x2::coin::CoinMetadata<${pkgId}::${coinName}::${coinName.toUpperCase()}>`

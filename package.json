@@ -6,7 +6,7 @@
   "scripts": {
     "publish": "ts-node testnet-data-setup/publish-protocol.ts",
     "publish-testcoin": "ts-node contracts/test_coin/publish.ts",
-    "setup": "ts-node testnet-data-setup/setup-for-test.ts"
+    "setup": "ts-node testnet-data-setup/init-for-test.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +16,7 @@
     "@mysten/sui.js": "^0.33.0",
     "@pythnetwork/price-service-client": "^1.4.1",
     "@scallop-io/sui-kit": "^0.33.1",
-    "@scallop-io/sui-package-kit": "^0.33.5",
+    "@scallop-io/sui-package-kit": "../sui-package-kit",
     "fs": "0.0.1-security",
     "path": "^0.12.7"
   },

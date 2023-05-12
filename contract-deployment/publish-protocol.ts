@@ -1,7 +1,10 @@
 import * as path from "path";
 import { RawSigner } from "@mysten/sui.js";
 import { PackageBatch } from "@scallop-io/sui-package-kit";
-import { packagePublisher } from "sui-elements";
+import { packagePublisher, suiKit } from "sui-elements";
+import { publishResultParser as testCoinParser } from "contracts/test_coin/typescript/publish-result-parser";
+import { publishResultParser as decimalsRegistryParser } from "contracts/libs/coin_decimals_registry/typescript/publish-result-parser";
+import { publishResultParser as protocolParser } from "contracts/protocol/typescript/publish-result-parser";
 
 const mathPkgPath = path.join(__dirname, "../contracts/libs/math");
 const xPkgPath = path.join(__dirname, "../contracts/libs/x");
@@ -15,9 +18,9 @@ export const protocolPackageList: PackageBatch = [
   { packagePath: mathPkgPath },
   { packagePath: xPkgPath },
   { packagePath: whitelistPkgPath },
-  { packagePath: coinDecimalsRegistryPath },
-  { packagePath: testCoinPkgPath },
-  { packagePath: protocolPkgPath },
+  { packagePath: coinDecimalsRegistryPath, option: { publishResultParser: decimalsRegistryParser } },
+  { packagePath: testCoinPkgPath, option: { publishResultParser: testCoinParser } },
+  { packagePath: protocolPkgPath, option: { publishResultParser: protocolParser } },
   { packagePath: protocolQueryPkgPath }
 ];
 export const publishProtocol = async (
@@ -25,3 +28,5 @@ export const publishProtocol = async (
 ) => {
   return packagePublisher.publishPackageBatch(protocolPackageList, signer);
 }
+
+publishProtocol(suiKit.getSigner()).then(console.log).catch(console.error).finally(() => process.exit(0));

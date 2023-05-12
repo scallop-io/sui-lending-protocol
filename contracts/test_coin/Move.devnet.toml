@@ -1,0 +1,12 @@
+[package]
+name = "TestCoin"
+version = "0.0.1"
+published-at = "0x24df5edc8d444865f62e983ecbbbab18e28609dd4a6017cba6dbd1c8a422eb29"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "testnet"
+
+[addresses]
+test_coin = "0x24df5edc8d444865f62e983ecbbbab18e28609dd4a6017cba6dbd1c8a422eb29"

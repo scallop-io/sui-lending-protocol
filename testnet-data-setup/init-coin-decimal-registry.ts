@@ -1,5 +1,5 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { testCoinTypes, ids as testCoinIds  } from '../contracts/test_coin';
+import { testCoinTypes, publishResult as testCoinIds  } from '../contracts/test_coin';
 import { decimalsRegistryTxBuilder } from '../contracts/libs/coin_decimals_registry';
 
 export const initCoinDecimalRegistry = (suiTxBlock: SuiTxBlock) => {

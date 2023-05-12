@@ -5,7 +5,7 @@ dependencies:
     specifier: ^2.2.5
     version: 2.2.5
   '@mysten/sui.js':
-    specifier: ^0.33
+    specifier: ^0.33.0
     version: 0.33.0
   '@pythnetwork/price-service-client':
     specifier: ^1.4.1
@@ -14,8 +14,8 @@ dependencies:
     specifier: ^0.33.1
     version: 0.33.1(@mysten/sui.js@0.33.0)
   '@scallop-io/sui-package-kit':
-    specifier: ^0.33.0
-    version: 0.33.0
+    specifier: ^0.33.5
+    version: 0.33.5
   fs:
     specifier: 0.0.1-security
     version: 0.0.1-security
@@ -143,10 +143,11 @@ packages:
       ts-retry-promise: 0.7.0
     dev: false
 
-  /@scallop-io/sui-package-kit@0.33.0:
-    resolution: {integrity: sha512-E17TbfB2i3V5np9JUhiOefg74ey2djCdbzt3rx682S8MUxuEfuPi67qjMTL9oKLWhojkOqoBrSpphXcHMQyEHg==}
+  /@scallop-io/sui-package-kit@0.33.5:
+    resolution: {integrity: sha512-tISWqJ84gVSRtn3npNXg3SbXKrBg05BQ62FMeKX64tsFgdy2nVSw0ZSvHOos5B/iD3XHG+AEUgALMr0UsLHWug==}
     engines: {node: '>=16'}
     dependencies:
+      '@iarna/toml': 2.2.5
       '@mysten/sui.js': 0.33.0
       colorts: 0.1.63
       superstruct: 1.0.3

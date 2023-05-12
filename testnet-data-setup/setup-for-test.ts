@@ -1,19 +1,28 @@
-import { SuiTxBlock } from "@scallop-io/sui-kit";
-import { suiKit } from "../sui-elements";
-import { initMarketForTest } from "./init-market";
-import { initCoinDecimalRegistry } from './init-coin-decimal-registry';
-import { initXOracleForTest } from "./init-oracle";
-import { supplyBaseAsset } from "./supply-base-asset";
+import * as path from "path";
+import { PackageBatch } from "@scallop-io/sui-package-kit";
+import { suiKit, packagePublisher } from "sui-elements";
+import {
+  publishResultParser as testCoinResultParser,
+} from  "contracts/test_coin/typescript/publish-result-parser";
+
+import {
+  publishResultParser as decimalsRegistryResultParser,
+} from "contracts/libs/coin_decimals_registry/typescript/publish-result-parser";
+
 
 export const setupForTestnet = async () => {
-  const tx = new SuiTxBlock();
-  initMarketForTest(tx);
-  initCoinDecimalRegistry(tx);
-  initXOracleForTest(tx);
-  supplyBaseAsset(tx);
-  tx.txBlock.setGasBudget(10 ** 9);
-  const res = await suiKit.signAndSendTxn(tx);
-  console.log(res);
+  // Publish the packages
+  const packageBatch: PackageBatch = [
+    {
+      packagePath: path.join(__dirname, "../contracts/test_coin"),
+      option: { publishResultParser: testCoinResultParser }
+    },
+    {
+      packagePath: path.join(__dirname, "../contracts/libs/coin_decimals_registry"),
+      option: { publishResultParser: decimalsRegistryResultParser }
+    },
+  ];
+  await packagePublisher.publishPackageBatch(packageBatch, suiKit.getSigner());
 }
 
 setupForTestnet();

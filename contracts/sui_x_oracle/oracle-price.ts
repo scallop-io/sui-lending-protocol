@@ -1,13 +1,13 @@
 import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit"
-import { testCoinTypes } from "../contracts/test_coin"
+import { testCoinTypes } from "contracts/test_coin"
 import {
   xOracleTxBuilder,
   pythRuleTxBuilder,
   pythTestnetIds,
   switchboardRuleTxBuilder,
   switchboardTestnetIds,
-} from "../contracts/sui_x_oracle"
-import { getVaas } from "./pyth/get-vaas"
+} from "./index"
+import { getVaas } from "./get-vaas"
 
 export const updatePythPriceForRequest = async (tx: SuiTxBlock, updateRequest: SuiTxArg, coinType: string) => {
   const priceFeed = getPythPriceFeed(coinType);

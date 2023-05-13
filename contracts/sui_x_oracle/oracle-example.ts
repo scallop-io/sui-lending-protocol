@@ -1,7 +1,7 @@
 import { SuiTxBlock } from "@scallop-io/sui-kit"
+import { suiKit } from "sui-elements"
 import { updatePrice } from "./oracle-price"
-import { testCoinTypes } from "../contracts/test_coin"
-import { suiKit } from "../sui-elements"
+import { testCoinTypes } from "contracts/test_coin"
 
 const main = async () => {
   const tx = new SuiTxBlock();

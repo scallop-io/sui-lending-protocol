@@ -54,14 +54,14 @@ import { publishPackageWithCache, writeAsJson } from "contract-deployment"
 /**
  * 
  * If there's no `Move.${networkType}.toml` file in the package folder, it will
- * 1. publish the package with the default `Move.toml` file
+ * 1. publish the package with the default `Move.testnet.toml` file
  * 2. Write the object ids to the `ids.${networkType}.json` file
- * 3. And then, generate the `Move.${networkType}.toml` file based on the `Move.toml` file
- * 4. Make a backup of the `Move.toml` file as `Move.toml.bak`
- * 5. Replace the `Move.toml` file with the `Move.${networkType}.toml` file
+ * 3. And then, generate the `Move.${networkType}.toml` file based on the `Move.testnet.toml` file
+ * 4. Make a backup of the `Move.testnet.toml` file as `Move.testnet.toml.bak`
+ * 5. Replace the `Move.testnet.toml` file with the `Move.${networkType}.toml` file
 
  * Otherwise, it will:
- * 1. Replace the `Move.toml` file with the `Move.${networkType}.toml` file
+ * 1. Replace the `Move.testnet.toml` file with the `Move.${networkType}.toml` file
  */
 export const publishPackage = async () => {
   const pkgPath = path.join(__dirname, "../");

@@ -50,7 +50,7 @@ module pyth_rule::rule {
       // This should rarely happen, since formatted_decimals is 9 and price_decimals is usually smaller than 8
       price_value / math::pow(10, price_decimals - formatted_decimals)
     };
-    assert!(price_value > 0, PYTH_PRICE_DECIMALS_TOO_LARGE);
+    assert!(price_value_with_formatted_decimals > 0, PYTH_PRICE_DECIMALS_TOO_LARGE);
     let price_feed = price_feed::new(price_value_with_formatted_decimals, updated_time);
     x_oracle::set_primary_price(Rule {}, request, price_feed);
   }

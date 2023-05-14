@@ -1,5 +1,5 @@
 [package]
-name = "PythRule"
+name = "SupraRule"
 version = "0.0.1"
 
 [dependencies.Sui]
@@ -15,10 +15,10 @@ rev = "mainnet"
 override = true
 
 [dependencies.Pyth]
-local = "./vendors/pyth"
+local = "./vendors/supra_oracle"
 
 [dependencies.XOracle]
 local = "../x_oracle"
 
 [addresses]
-pyth_rule = "0x0"
+supra_rule = "0x0"

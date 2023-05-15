@@ -16,7 +16,7 @@
     "@mysten/sui.js": "^0.33.0",
     "@pythnetwork/price-service-client": "^1.4.1",
     "@scallop-io/sui-kit": "^0.33.1",
-    "@scallop-io/sui-package-kit": "../sui-package-kit",
+    "@scallop-io/sui-package-kit": "^0.33.5",
     "fs": "0.0.1-security",
     "path": "^0.12.7"
   },

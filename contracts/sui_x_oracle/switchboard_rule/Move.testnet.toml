@@ -1,7 +1,7 @@
 [package]
 name = "SwitchboardRule"
 version = "0.0.1"
-published-at = "0xc5e3d08d0c65ba6fe12e822a3186b30ea22dd0efd19f95b21eeba00f60cfcff6"
+published-at = "0xe4065905209cab89ae15dcbd944ece33562dbcbbe1b2b8b1d0938b03a4339c6f"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -22,4 +22,4 @@ local = "./vendors/switchboard_std_test"
 local = "../x_oracle"
 
 [addresses]
-switchboard_rule = "0xc5e3d08d0c65ba6fe12e822a3186b30ea22dd0efd19f95b21eeba00f60cfcff6"
+switchboard_rule = "0xe4065905209cab89ae15dcbd944ece33562dbcbbe1b2b8b1d0938b03a4339c6f"

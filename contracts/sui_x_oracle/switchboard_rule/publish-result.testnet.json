@@ -1,6 +1,6 @@
 {
-  "packageId": "0xc5e3d08d0c65ba6fe12e822a3186b30ea22dd0efd19f95b21eeba00f60cfcff6",
-  "upgradeCapId": "0x91b755d94170f48e61ee814ab106ea4ab759c35af0f738facdd1b5e153b319d9",
-  "switchboardRegistryId": "0x92ab1100382144473cd1efae456eab1f4c9e3e04f83dcfb327c58f11bc61998f",
-  "switchboardRegistryCapId": "0xfa72ea81a9a0a986e77caee899af4326f7c0dc96bbb5b2b9bf9d1a2a5345a07a"
+  "packageId": "0xe4065905209cab89ae15dcbd944ece33562dbcbbe1b2b8b1d0938b03a4339c6f",
+  "upgradeCapId": "0xd1f422a2cac788a76fb67f41da2e7889a1d569331796f44e7cb1fd195f541367",
+  "switchboardRegistryId": "0xbddf96e5d0a7c9935e3b8350cbebb38c8c2bc4222cecfef43c191eec5203e089",
+  "switchboardRegistryCapId": "0x2ed7e973d878e3ed744062e98a09f063117cc3e30eeb9d656ff6f255ac619e24"
 }

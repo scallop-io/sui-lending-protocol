@@ -30,7 +30,7 @@ export const updateSwitchboardPriceForRequest = (tx: SuiTxBlock, updateRequest: 
   );
 }
 
-export const updatePrice = async (tx: SuiTxBlock, coinType: string) => {
+export const updatePrice = (tx: SuiTxBlock, coinType: string) => {
   const request = xOracleTxBuilder.priceUpdateRequest(tx, coinType);
   updateSwitchboardPriceForRequest(tx, request, coinType);
   xOracleTxBuilder.confirmPriceUpdateRequest(tx, request, coinType);

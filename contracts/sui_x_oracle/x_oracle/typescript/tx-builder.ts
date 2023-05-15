@@ -13,9 +13,26 @@ export class XOracleTxBuilder {
       [ruleType]
     );
   }
+
+  removePrimaryPriceUpdateRule(tx: SuiTxBlock, ruleType: string) {
+    tx.moveCall(
+      `${this.packageId}::x_oracle::remove_primary_price_update_rule`,
+      [this.xOracleId, this.xOracleCapId],
+      [ruleType]
+    );
+  }
+
   addSecondaryPriceUpdateRule(tx: SuiTxBlock, ruleType: string) {
     tx.moveCall(
       `${this.packageId}::x_oracle::add_secondary_price_update_rule`,
+      [this.xOracleId, this.xOracleCapId],
+      [ruleType]
+    );
+  }
+
+  removeSecondaryPriceUpdateRule(tx: SuiTxBlock, ruleType: string) {
+    tx.moveCall(
+      `${this.packageId}::x_oracle::remove_secondary_price_update_rule`,
       [this.xOracleId, this.xOracleCapId],
       [ruleType]
     );

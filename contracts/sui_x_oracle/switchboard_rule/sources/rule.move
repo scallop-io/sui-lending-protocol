@@ -34,6 +34,6 @@ module switchboard_rule::rule {
     assert!(price_value_formatted > 0 && price_value_formatted < U64_MAX, ERR_BAD_SWITCHBOARD_PRICE);
     let price_value_formatted = (price_value_formatted as u64);
     let price_feed = price_feed::new(price_value_formatted, updated_time);
-    x_oracle::set_secondary_price(Rule {}, request, price_feed);
+    x_oracle::set_primary_price(Rule {}, request, price_feed);
   }
 }

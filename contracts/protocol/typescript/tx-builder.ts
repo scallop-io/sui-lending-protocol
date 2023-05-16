@@ -130,4 +130,84 @@ export class ProtocolTxBuilder {
       [coinType]
     );
   }
+
+  openObligation(suiTxBlock: SuiTxBlock) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::open_obligation::open_obligation`,
+      [],
+    );
+  }
+
+  returnObligation(
+    suiTxBlock: SuiTxBlock,
+    obligation: SuiTxArg,
+    obligationHotPotato: SuiTxArg,
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::open_obligation::return_obligation`,
+      [obligation, obligationHotPotato],
+    );
+  }
+
+  addCollateral(
+    suiTxBlock: SuiTxBlock,
+    obligation: SuiTxArg,
+    coin: SuiTxArg,
+    coinType: string,
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::deposit_collateral::deposit_collateral`,
+      [obligation, this.marketId, coin],
+      [coinType]
+    );
+  }
+
+  removeCollateral(
+    suiTxBlock: SuiTxBlock,
+    obligation: SuiTxArg,
+    obligationKey: SuiTxArg,
+    decimalsRegistry: SuiTxArg,
+    withdrawAmount: number,
+    xOracle: SuiTxArg,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::withdraw_collateral::withdraw_collateral`,
+      [
+        obligation,
+        obligationKey,
+        this.marketId,
+        decimalsRegistry,
+        withdrawAmount,
+        xOracle,
+        SUI_CLOCK_OBJECT_ID
+      ],
+      [coinType]
+    );
+  }
+
+
+  borrowBaseAsset(
+    suiTxBlock: SuiTxBlock,
+    obligation: SuiTxArg,
+    obligationKey: SuiTxArg,
+    decimalsRegistry: SuiTxArg,
+    brrowAmount: number,
+    xOracle: SuiTxArg,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::borrow::borrow`,
+      [
+        obligation,
+        obligationKey,
+        this.marketId,
+        decimalsRegistry,
+        brrowAmount,
+        xOracle,
+        SUI_CLOCK_OBJECT_ID
+      ],
+      [coinType]
+    );
+  }
 }

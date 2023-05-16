@@ -13,3 +13,5 @@ export const switchboardRuleTxBuilder = new SwitchboardRuleTxBuilder(
 );
 
 export const switchboardRuleStructType =  `${publishResult.packageId}::rule::Rule`;
+
+export const switchboardOracleData = require(path.join(__dirname, `./switchboard-oracle.${networkType}.json`))

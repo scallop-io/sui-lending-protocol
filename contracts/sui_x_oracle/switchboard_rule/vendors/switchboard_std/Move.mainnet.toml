@@ -1,0 +1,11 @@
+[package]
+name = "SwitchboardStdLib"
+version = "0.0.1"
+published-at = "0x08d79f4d920b03d88faca1e421af023a87fbb1e4a6fd200248e6e9998d09e470"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "testnet" }
+MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "testnet" }
+
+[addresses]
+switchboard_std = "0x08d79f4d920b03d88faca1e421af023a87fbb1e4a6fd200248e6e9998d09e470"

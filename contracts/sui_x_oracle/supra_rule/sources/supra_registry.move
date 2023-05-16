@@ -49,7 +49,7 @@ module supra_rule::supra_registry {
     supra_registry: &SupraRegistry,
   ): u32 {
     let coin_type = type_name::get<CoinType>();
-    let pair_id = table::borrow<TypeName, u32>(&mut supra_registry.table, coin_type);
+    let pair_id = table::borrow<TypeName, u32>(&supra_registry.table, coin_type);
     *pair_id
   }
 

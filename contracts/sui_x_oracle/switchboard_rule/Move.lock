@@ -24,7 +24,7 @@ dependencies = [
 
 [[move.package]]
 name = "SwitchboardStdLib"
-source = { local = "vendors/switchboard_std_test" }
+source = { local = "vendors/switchboard_std" }
 
 dependencies = [
   { name = "MoveStdlib" },

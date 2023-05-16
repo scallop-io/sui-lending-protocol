@@ -17,6 +17,9 @@ override = true
 [dependencies.Pyth]
 local = "./vendors/pyth"
 
+[dependencies.Wormhole]
+local = "./vendors/wormhole"
+
 [dependencies.XOracle]
 local = "../x_oracle"
 

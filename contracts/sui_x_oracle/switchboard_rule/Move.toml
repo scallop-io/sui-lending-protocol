@@ -15,7 +15,7 @@ rev = "mainnet"
 override = true
 
 [dependencies.SwitchboardStdLib]
-local = "./vendors/switchboard_std_test"
+local = "./vendors/switchboard_std"
 
 [dependencies.XOracle]
 local = "../x_oracle"

@@ -8,9 +8,9 @@ import { supplyBaseAsset } from "./supply-base-asset";
 export const setupForTestnet = async () => {
   const tx = new SuiTxBlock();
   initXOracleForTest(tx);
-  initCoinDecimalRegistry(tx);
-  initMarketForTest(tx);
-  supplyBaseAsset(tx);
+  // initCoinDecimalRegistry(tx);
+  // initMarketForTest(tx);
+  // supplyBaseAsset(tx);
   return suiKit.signAndSendTxn(tx);
 }
 

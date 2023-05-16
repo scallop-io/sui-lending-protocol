@@ -9,11 +9,10 @@ subdir = "crates/sui-framework/packages/sui-framework"
 rev = "09b2081498366df936abae26eea4b2d5cafb2788"
 
 [dependencies.Wormhole]
-local = "../../../../wormhole/sui/wormhole"
+local = "../wormhole"
 
 [addresses]
-pyth = "0x0"
-wormhole = "0x975e063f398f720af4f33ec06a927f14ea76ca24f7f8dd544aa62ab9d5d15f44"
+pyth = "0x975e063f398f720af4f33ec06a927f14ea76ca24f7f8dd544aa62ab9d5d15f44"
 
 [dev-addresses]
 pyth = "0x100"

@@ -14,7 +14,7 @@ subdir = "crates/sui-framework/packages/move-stdlib"
 rev = "mainnet"
 override = true
 
-[dependencies.Pyth]
+[dependencies.SupraOracle]
 local = "./vendors/supra_oracle"
 
 [dependencies.XOracle]

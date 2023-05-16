@@ -5,7 +5,8 @@ export class SupraRuleTxBuilder {
   constructor(
     public packageId: string,
     public registryId: string,
-    public registryCapId: string
+    public registryCapId: string,
+    public supraOracleId: string
   ) { }
 
   registerSupraPairId(tx: SuiTxBlock, pairId: number, coinType: string) {
@@ -19,12 +20,11 @@ export class SupraRuleTxBuilder {
   setPrice(
     tx: SuiTxBlock,
     request: SuiTxArg,
-    supraOracleId: SuiTxArg,
     coinType: string,
   ) {
     tx.moveCall(
       `${this.packageId}::rule::set_price`,
-      [request, supraOracleId, this.registryId, SUI_CLOCK_OBJECT_ID],
+      [request, this.supraOracleId, this.registryId, SUI_CLOCK_OBJECT_ID],
       [coinType]
     );
   }

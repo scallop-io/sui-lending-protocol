@@ -1,7 +1,6 @@
 [package]
 name = "Wormhole"
-version = "0.2.0"
-published-at = "0x80c60bff35fe5026e319cf3d66ae671f2b4e12923c92c45df75eaf4de79e3ce7"
+version = "0.1.2"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -9,4 +8,4 @@ subdir = "crates/sui-framework/packages/sui-framework"
 rev = "09b2081498366df936abae26eea4b2d5cafb2788"
 
 [addresses]
-wormhole = "0x80c60bff35fe5026e319cf3d66ae671f2b4e12923c92c45df75eaf4de79e3ce7"
+wormhole = "0x0"

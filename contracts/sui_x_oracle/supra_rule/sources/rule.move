@@ -48,6 +48,6 @@ module supra_rule::rule {
     let timestamp= (timestamp as u64);
 
     let price_feed = price_feed::new(price_value_with_formatted_decimals, timestamp);
-    x_oracle::set_primary_price(Rule {}, request, price_feed);
+    x_oracle::set_secondary_price(Rule {}, request, price_feed);
   }
 }

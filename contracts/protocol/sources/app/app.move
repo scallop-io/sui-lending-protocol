@@ -17,7 +17,9 @@ module protocol::app {
   struct AdminCap has key, store {
     id: UID,
     interest_model_cap: AcTableCap<InterestModels>,
-    risk_model_cap: AcTableCap<RiskModels>
+    interest_model_change_delay: u64,
+    risk_model_cap: AcTableCap<RiskModels>,
+    risk_model_change_delay: u64,
   }
   
   fun init(otw: APP, ctx: &mut TxContext) {
@@ -34,11 +36,32 @@ module protocol::app {
     let adminCap = AdminCap {
       id: object::new(ctx),
       interest_model_cap,
-      risk_model_cap
+      interest_model_change_delay: 0,
+      risk_model_cap,
+      risk_model_change_delay: 0,
     };
     package::claim_and_keep(otw, ctx);
     transfer::public_share_object(market);
     transfer::transfer(adminCap, tx_context::sender(ctx));
+  }
+
+  // ===== AdminCap =====
+  public fun extend_interest_model_change_delay(
+    admin_cap: &AdminCap,
+    delay: u64,
+  ) {
+    let new_delay = admin_cap.interest_model_change_delay + delay;
+    assert!(new_delay > admin_cap.interest_model_change_delay);
+    admin_cap.interest_model_change_delay = new_delay;
+  }
+
+  public fun extend_risk_model_change_delay(
+    admin_cap: &AdminCap,
+    delay: u64,
+  ) {
+    let new_delay = admin_cap.risk_model_change_delay + delay;
+    assert!(new_delay > admin_cap.risk_model_change_delay);
+    admin_cap.risk_model_change_delay = new_delay;
   }
 
   /// For extension of the protocol
@@ -83,6 +106,7 @@ module protocol::app {
       scale,
       min_borrow_amount,
       borrow_weight,
+      admin_cap.interest_model_change_delay,
       ctx,
     );
     interest_model_change
@@ -123,6 +147,7 @@ module protocol::app {
       liquidation_discount, // exp. 5%,
       scale,
       max_collateral_amount,
+      admin_cap.risk_model_change_delay,
       ctx
     );
     risk_model_change

@@ -6,10 +6,12 @@ module protocol::risk_model {
   use x::one_time_lock_value::{Self, OneTimeLockValue};
   use math::fixed_point32_empower;
 
-  // TODO: change it to a bgger value when launch on mainnet
-  const RiskModelChangeDelay: u64 = 0;
+  friend protocol::app;
+
+  const RiskModelChangeEffectiveEpoches: u64 = 7;
   
   const ECollateralFactoryTooBig: u64 = 0;
+
   const ERiskModelTypeNotMatch: u64 = 1;
   
   struct RiskModels has drop {}
@@ -32,21 +34,22 @@ module protocol::risk_model {
   public fun max_collateral_Amount(model: &RiskModel): u64 { model.max_collateral_amount }
   public fun type_name(model: &RiskModel): TypeName { model.type }
   
-  public fun new(ctx: &mut TxContext): (
+  public(friend) fun new(ctx: &mut TxContext): (
     AcTable<RiskModels, TypeName, RiskModel>,
     AcTableCap<RiskModels>
   )  {
     ac_table::new(RiskModels {}, true, ctx)
   }
   
-  public fun create_risk_model_change<T>(
+  public(friend) fun create_risk_model_change<T>(
     _: &AcTableCap<RiskModels>,
     collateral_factor: u64, // exp. 70%,
     liquidation_factor: u64, // exp. 80%,
     liquidation_penalty: u64, // exp. 7%,
-    liquidation_discount: u64, // exp. 95%,
+    liquidation_discount: u64, // exp. 5%,
     scale: u64,
     max_collateral_amount: u64,
+    change_delay: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<RiskModel> {
     let liquidation_penalty = fixed_point32::create_from_rational(liquidation_penalty, scale);
@@ -63,10 +66,10 @@ module protocol::risk_model {
       liquidation_revenue_factor,
       max_collateral_amount
     };
-    one_time_lock_value::new(riskModel, RiskModelChangeDelay, 7, ctx)
+    one_time_lock_value::new(riskModel, change_delay, RiskModelChangeEffectiveEpoches, ctx)
   }
   
-  public fun add_risk_model<T>(
+  public(friend) fun add_risk_model<T>(
     self: &mut AcTable<RiskModels, TypeName, RiskModel>,
     cap: &AcTableCap<RiskModels>,
     risk_model_change: OneTimeLockValue<RiskModel>,
@@ -75,6 +78,13 @@ module protocol::risk_model {
     let risk_model = one_time_lock_value::get_value(risk_model_change, ctx);
     let type_name = get<T>();
     assert!(risk_model.type == type_name, ERiskModelTypeNotMatch);
+
+    // Check if the risk model already exists, if so, remove it first
+    if (ac_table::contains(self, type_name)) {
+      ac_table::remove(self, cap, type_name);
+    };
+
+    // Add the new risk model
     ac_table::add(self, cap, get<T>(), risk_model);
   }
 }

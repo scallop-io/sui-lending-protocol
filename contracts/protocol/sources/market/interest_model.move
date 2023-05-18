@@ -7,8 +7,9 @@ module protocol::interest_model {
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
 
-  // TODO: change it to a bgger value when launch on mainnet
-  const InterestChangeDelay: u64 = 0;
+  friend protocol::app;
+
+  const InterestModelChangeEffectiveEpoches: u64 = 7;
   
   const ERevenueFactorTooLarge: u64 = 0;
   const EInterestModelTypeNotMatch: u64 = 1;
@@ -40,14 +41,14 @@ module protocol::interest_model {
   
   struct InterestModels has drop {}
   
-  public fun new(ctx: &mut TxContext): (
+  public(friend) fun new(ctx: &mut TxContext): (
     AcTable<InterestModels, TypeName, InterestModel>,
     AcTableCap<InterestModels>,
   ) {
     ac_table::new<InterestModels, TypeName, InterestModel>(InterestModels{}, true, ctx)
   }
   
-  public fun create_interest_model_change<T>(
+  public(friend) fun create_interest_model_change<T>(
     _: &AcTableCap<InterestModels>,
     base_rate_per_sec: u64,
     low_slope: u64,
@@ -57,6 +58,7 @@ module protocol::interest_model {
     scale: u64,
     min_borrow_amount: u64,
     borrow_weight: u64,
+    change_delay: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
     let base_borrow_rate_per_sec = fixed_point32::create_from_rational(base_rate_per_sec, scale);
@@ -75,18 +77,25 @@ module protocol::interest_model {
       min_borrow_amount,
       borrow_weight,
     };
-    one_time_lock_value::new(interest_model, InterestChangeDelay, 7, ctx)
+    one_time_lock_value::new(interest_model, change_delay, InterestModelChangeEffectiveEpoches, ctx)
   }
   
-  public fun add_interest_model<T>(
+  public(friend) fun add_interest_model<T>(
     interestModelTable: &mut AcTable<InterestModels, TypeName, InterestModel>,
     cap: &AcTableCap<InterestModels>,
     interestModelChange: OneTimeLockValue<InterestModel>,
     ctx: &mut TxContext,
   ) {
     let interestModel = one_time_lock_value::get_value(interestModelChange, ctx);
+
     let typeName = get<T>();
     assert!(interestModel.type == typeName, EInterestModelTypeNotMatch);
+
+    // Remove the old interest model if exists
+    if (ac_table::contains(interestModelTable, typeName)) {
+      ac_table::remove(interestModelTable, cap, typeName);
+    };
+    // Add the new interest model
     ac_table::add(interestModelTable, cap, typeName, interestModel)
   }
   

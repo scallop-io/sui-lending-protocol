@@ -8,6 +8,7 @@ module protocol::interest_model {
   use x::one_time_lock_value::{Self, OneTimeLockValue};
 
   friend protocol::app;
+  friend protocol::market;
 
   const InterestModelChangeEffectiveEpoches: u64 = 7;
   

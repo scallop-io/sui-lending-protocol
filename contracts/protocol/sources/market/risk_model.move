@@ -7,6 +7,7 @@ module protocol::risk_model {
   use math::fixed_point32_empower;
 
   friend protocol::app;
+  friend protocol::market;
 
   const RiskModelChangeEffectiveEpoches: u64 = 7;
   

@@ -69,7 +69,7 @@ module protocol::withdraw_collateral {
     obligation::accrue_interests(obligation, market);
     
     // IF withdraw_amount bigger than max, then abort
-    let max_withdaw_amount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coin_decimals_registry, x_oracle);
+    let max_withdaw_amount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);
     assert!(withdraw_amount <= max_withdaw_amount, EWithdrawTooMuch);
     
     // withdraw collateral from obligation

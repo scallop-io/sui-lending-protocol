@@ -44,10 +44,11 @@ module supra_rule::rule {
     };
     assert!(price_value_with_formatted_decimals > 0, PRICE_DECIMALS_TOO_LARGE);
 
-    assert!(timestamp <= U64_MAX, TIMESTAMP_TOO_LARGE);
-    let timestamp= (timestamp as u64);
+    // Supra timestamp is in milliseconds, but XOracle timestamp is in seconds
+    let now= timestamp / 1000;
+    assert!(now <= U64_MAX, TIMESTAMP_TOO_LARGE);
 
-    let price_feed = price_feed::new(price_value_with_formatted_decimals, timestamp);
+    let price_feed = price_feed::new(price_value_with_formatted_decimals, (now as u64));
     x_oracle::set_secondary_price(Rule {}, request, price_feed);
   }
 }

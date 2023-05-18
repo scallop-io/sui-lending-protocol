@@ -3,13 +3,13 @@ module x_oracle::x_oracle {
   use std::type_name::{TypeName, get};
   use sui::object::{Self, UID};
   use sui::table::{Self, Table};
-  use sui::tx_context::TxContext;
+  use sui::tx_context::{Self, TxContext};
+  use sui::clock::{Self, Clock};
   use sui::transfer;
   use sui::package;
 
   use x_oracle::price_update_policy::{Self, PriceUpdatePolicy, PriceUpdateRequest, PriceUpdatePolicyCap};
   use x_oracle::price_feed::{Self, PriceFeed};
-  use sui::tx_context;
 
   const PRIMARY_PRICE_NOT_QUALIFIED: u64 = 0;
 
@@ -97,12 +97,12 @@ module x_oracle::x_oracle {
     );
   }
 
-  public fun remove_second_price_update_rule<Rule: drop>(
+  public fun remove_secondary_price_update_rule<Rule: drop>(
     self: &mut XOracle,
     cap: &XOraclePolicyCap,
   ) {
     price_update_policy::remove_rule<Rule>(
-      &mut self.primary_price_update_policy,
+      &mut self.secondary_price_update_policy,
       &cap.primary_price_update_policy_cap
     );
   }
@@ -138,7 +138,8 @@ module x_oracle::x_oracle {
 
   public fun confirm_price_update_request<T>(
     self: &mut XOracle,
-    request: XOraclePriceUpdateRequest<T>
+    request: XOraclePriceUpdateRequest<T>,
+    clock: &Clock,
   ) {
     let XOraclePriceUpdateRequest { primary_price_update_request, secondary_price_update_request  } = request;
     let primary_price_feeds = price_update_policy::confirm_request(
@@ -153,9 +154,16 @@ module x_oracle::x_oracle {
     if (!table::contains(&self.prices, coin_type)) {
       table::add(&mut self.prices, coin_type, price_feed::new(0,0));
     };
-    let current_price_feed = table::borrow_mut(&mut self.prices, get<T>());
     let price_feed = determine_price(primary_price_feeds, secondary_price_feeds);
-    *current_price_feed = price_feed;
+
+    let current_price_feed = table::borrow_mut(&mut self.prices, get<T>());
+
+    let now = clock::timestamp_ms(clock) / 1000;
+    let new_price_feed = price_feed::new(
+      price_feed::value(&price_feed),
+      now
+    );
+    *current_price_feed = new_price_feed;
   }
 
   fun determine_price(

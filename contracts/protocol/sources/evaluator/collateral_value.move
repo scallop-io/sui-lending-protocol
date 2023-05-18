@@ -1,6 +1,7 @@
 module protocol::collateral_value {
   use std::vector;
   use std::fixed_point32::FixedPoint32;
+  use sui::clock::Clock;
   use math::fixed_point32_empower;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
@@ -17,6 +18,7 @@ module protocol::collateral_value {
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     x_oracle: &XOracle,
+    clock: &Clock,
   ): FixedPoint32 {
     let collateral_types = obligation::collateral_types(obligation);
     let total_value_usd = fixed_point32_empower::zero();
@@ -27,7 +29,7 @@ module protocol::collateral_value {
       let collateral_amount = obligation::collateral(obligation, collateral_type);
       let risk_model = market::risk_model(market, collateral_type);
       let collateral_factor = risk_model::collateral_factor(risk_model);
-      let coin_price = get_price(x_oracle, collateral_type);
+      let coin_price = get_price(x_oracle, collateral_type, clock);
       let collateral_value_usd = fixed_point32_empower::mul(
         usd_value(coin_price, collateral_amount, decimals),
         collateral_factor,
@@ -45,6 +47,7 @@ module protocol::collateral_value {
     market: &Market,
     coin_decimals_regsitry: &CoinDecimalsRegistry,
     x_oracle: &XOracle,
+    clock: &Clock,
   ): FixedPoint32 {
     let collateral_types = obligation::collateral_types(obligation);
     let total_value_usd = fixed_point32_empower::zero();
@@ -55,7 +58,7 @@ module protocol::collateral_value {
       let collateral_amount = obligation::collateral(obligation, collateral_type);
       let risk_model = market::risk_model(market, collateral_type);
       let liq_factor = risk_model::liq_factor(risk_model);
-      let coin_price = get_price(x_oracle, collateral_type);
+      let coin_price = get_price(x_oracle, collateral_type, clock);
       let collateral_value_usd = fixed_point32_empower::mul(
         usd_value(coin_price, collateral_amount, decimals),
         liq_factor,

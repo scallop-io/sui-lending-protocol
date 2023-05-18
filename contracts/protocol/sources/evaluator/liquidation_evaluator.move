@@ -2,6 +2,7 @@ module protocol::liquidation_evaluator {
   use std::type_name::get;
   use std::fixed_point32;
   use sui::math;
+  use sui::clock::Clock;
   use math::fixed_point32_empower;
   use protocol::obligation::{Self, Obligation};
   use protocol::interest_model;
@@ -22,6 +23,7 @@ module protocol::liquidation_evaluator {
     coin_decimals_registry: &CoinDecimalsRegistry,
     available_repay_amount: u64,
     x_oracle: &XOracle,
+    clock: &Clock,
   ): (u64, u64, u64) {
 
     // get all the necessary parameters for liquidation
@@ -39,12 +41,12 @@ module protocol::liquidation_evaluator {
     let liq_penalty = risk_model::liq_penalty(risk_model);
     let liq_factor = risk_model::liq_factor(risk_model);
     let liq_revenue_factor = risk_model::liq_revenue_factor(risk_model);
-    let debt_price = get_price(x_oracle, debt_type);
-    let collateral_price = get_price(x_oracle, collateral_type);
+    let debt_price = get_price(x_oracle, debt_type, clock);
+    let collateral_price = get_price(x_oracle, collateral_type, clock);
 
     // calculate the value of collaterals and debts for liquidation
-    let collaterals_value = collaterals_value_usd_for_liquidation(obligation, market, coin_decimals_registry, x_oracle);
-    let weighted_debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle);
+    let collaterals_value = collaterals_value_usd_for_liquidation(obligation, market, coin_decimals_registry, x_oracle, clock);
+    let weighted_debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle, clock);
 
     // when collaterals_value >= weighted_debts_value, the obligation is not liquidatable
     if (fixed_point32_empower::gt(weighted_debts_value, collaterals_value) == false) return (0, 0, 0);

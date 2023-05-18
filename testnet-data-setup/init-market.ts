@@ -28,6 +28,28 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
       }
     },
     {
+      type: testCoinTypes.usdc,
+      riskModel: {
+        collateralFactor: 90,
+        liquidationFactor: 95,
+        liquidationPanelty: 3,
+        liquidationDiscount: 2,
+        scale: 100,
+        maxCollateralAmount: 10 ** 17,
+      }
+    },
+    {
+      type: testCoinTypes.usdt,
+      riskModel: {
+        collateralFactor: 90,
+        liquidationFactor: 95,
+        liquidationPanelty: 3,
+        liquidationDiscount: 2,
+        scale: 100,
+        maxCollateralAmount: 10 ** 17,
+      }
+    },
+    {
       type: '0x2::sui::SUI',
       riskModel: {
         collateralFactor: 60,
@@ -65,7 +87,46 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         scale: 10 ** 16,
         minBorrowAmount: 10 ** 8,
         borrow_weight: 10 ** 16, // 1
-      }
+      },
+    },
+    {
+      type: testCoinTypes.btc,
+      interestModel: {
+        baseRatePerSec: 6341958,
+        lowSlope: 2 * 10 ** 16, // 2
+        kink: 8 * 10 ** 15, // 0.8
+        highSlope: 2 * 10 ** 17, // 20
+        marketFactor: 2 * 10 ** 14, // 2%
+        scale: 10 ** 16,
+        minBorrowAmount: 10 ** 8,
+        borrow_weight: 10 ** 16, // 1
+      },
+    },
+    {
+      type: testCoinTypes.eth,
+      interestModel: {
+        baseRatePerSec: 6341958,
+        lowSlope: 2 * 10 ** 16, // 2
+        kink: 8 * 10 ** 15, // 0.8
+        highSlope: 2 * 10 ** 17, // 20
+        marketFactor: 2 * 10 ** 14, // 2%
+        scale: 10 ** 16,
+        minBorrowAmount: 10 ** 8,
+        borrow_weight: 10 ** 16, // 1
+      },
+    },
+    {
+      type: '0x2::sui::SUI',
+      interestModel: {
+        baseRatePerSec: 6341958,
+        lowSlope: 2 * 10 ** 16, // 2
+        kink: 8 * 10 ** 15, // 0.8
+        highSlope: 2 * 10 ** 17, // 20
+        marketFactor: 2 * 10 ** 14, // 2%
+        scale: 10 ** 16,
+        minBorrowAmount: 10 ** 8,
+        borrow_weight: 10 ** 16, // 1
+      },
     },
   ];
 
@@ -80,6 +141,30 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
     },
     {
       type: testCoinTypes.usdt,
+      outflowLimit: {
+        outflowLimit: 10 ** (6 + 9),
+        outflowCycleDuration: 60 * 60 * 24,
+        outflowSegmentDuration: 60 * 30,
+      }
+    },
+    {
+      type: testCoinTypes.btc,
+      outflowLimit: {
+        outflowLimit: 10 ** (2 + 9),
+        outflowCycleDuration: 60 * 60 * 24,
+        outflowSegmentDuration: 60 * 30,
+      }
+    },
+    {
+      type: testCoinTypes.eth,
+      outflowLimit: {
+        outflowLimit: 10 ** (3 + 9),
+        outflowCycleDuration: 60 * 60 * 24,
+        outflowSegmentDuration: 60 * 30,
+      }
+    },
+    {
+      type: '0x2::sui::SUI',
       outflowLimit: {
         outflowLimit: 10 ** (6 + 9),
         outflowCycleDuration: 60 * 60 * 24,

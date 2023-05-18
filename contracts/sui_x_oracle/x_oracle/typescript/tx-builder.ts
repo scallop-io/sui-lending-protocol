@@ -1,3 +1,4 @@
+import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js";
 import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
 export class XOracleTxBuilder {
   constructor(
@@ -49,7 +50,7 @@ export class XOracleTxBuilder {
   confirmPriceUpdateRequest(tx: SuiTxBlock, request: SuiTxArg, coinType: string) {
     tx.moveCall(
       `${this.packageId}::x_oracle::confirm_price_update_request`,
-      [this.xOracleId, request],
+      [this.xOracleId, request, SUI_CLOCK_OBJECT_ID],
       [coinType]
     );
   }

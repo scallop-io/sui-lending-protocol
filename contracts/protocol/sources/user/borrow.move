@@ -77,7 +77,7 @@ module protocol::borrow {
     obligation::accrue_interests(obligation, market);
     // calc the maximum borrow amount
     // If borrow too much, abort
-    let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, x_oracle);
+    let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);
     assert!(borrow_amount <= max_borrow_amount, EBorrowTooMuch);
     // increase the debt for obligation
     obligation::increase_debt(obligation, coin_type, borrow_amount);

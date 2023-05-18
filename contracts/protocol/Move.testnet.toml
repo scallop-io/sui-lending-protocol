@@ -1,7 +1,7 @@
 [package]
 name = "Protocol"
 version = "0.0.1"
-published-at = "0x8941cb2209639cf158059855e5b395d5b05da4385ac21668c8422e9268b9e39b"
+published-at = "0x8510b02f7003f7a8bc8a484cd323949eb479f27f4c2b6784be03a4647d116add"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -27,4 +27,4 @@ local = "../test_coin"
 local = "../sui_x_oracle/x_oracle"
 
 [addresses]
-protocol = "0x8941cb2209639cf158059855e5b395d5b05da4385ac21668c8422e9268b9e39b"
+protocol = "0x8510b02f7003f7a8bc8a484cd323949eb479f27f4c2b6784be03a4647d116add"

@@ -2,6 +2,7 @@ module protocol::debt_value {
   
   use std::vector;
   use std::fixed_point32::FixedPoint32;
+  use sui::clock::Clock;
   use math::fixed_point32_empower;
   use protocol::obligation::{Self, Obligation};
   use protocol::interest_model as interest_model_lib;
@@ -15,6 +16,7 @@ module protocol::debt_value {
     obligation: &Obligation,
     coin_decimals_registry: &CoinDecimalsRegistry,
     x_oracle: &XOracle,
+    clock: &Clock,
   ): FixedPoint32 {
     let debt_types = obligation::debt_types(obligation);
     let total_value_usd = fixed_point32_empower::zero();
@@ -23,7 +25,7 @@ module protocol::debt_value {
       let debt_type = *vector::borrow(&debt_types, i);
       let decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
       let (debt_amount, _) = obligation::debt(obligation, debt_type);
-      let coin_price = get_price(x_oracle, debt_type);
+      let coin_price = get_price(x_oracle, debt_type, clock);
       let coin_value_in_usd = usd_value(coin_price, debt_amount, decimals);
       total_value_usd = fixed_point32_empower::add(total_value_usd, coin_value_in_usd);
       i = i + 1;
@@ -36,6 +38,7 @@ module protocol::debt_value {
     coin_decimals_registry: &CoinDecimalsRegistry,
     market: &Market,
     x_oracle: &XOracle,
+    clock: &Clock,
   ): FixedPoint32 {
     let debt_types = obligation::debt_types(obligation);
     let total_weighted_value_usd = fixed_point32_empower::zero();
@@ -46,7 +49,7 @@ module protocol::debt_value {
       let borrow_weight = interest_model_lib::borrow_weight(interest_model);
       let decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
       let (debt_amount, _) = obligation::debt(obligation, debt_type);
-      let coin_price = get_price(x_oracle, debt_type);
+      let coin_price = get_price(x_oracle, debt_type, clock);
       let coin_value_usd = usd_value(coin_price, debt_amount, decimals);
       let weighted_value_usd = fixed_point32_empower::mul(coin_value_usd, borrow_weight);
       total_weighted_value_usd = fixed_point32_empower::add(total_weighted_value_usd, weighted_value_usd);

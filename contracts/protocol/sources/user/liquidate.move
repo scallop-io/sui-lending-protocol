@@ -68,7 +68,7 @@ module protocol::liquidate {
     // Calc liquidation amounts for the given debt type
     let available_repay_amount = balance::value(&available_repay_balance);
     let (repay_on_behalf, repay_revenue, liq_amount) =
-      liquidation_amounts<DebtType, CollateralType>(obligation, market, coin_decimals_registry, available_repay_amount, x_oracle);
+      liquidation_amounts<DebtType, CollateralType>(obligation, market, coin_decimals_registry, available_repay_amount, x_oracle, clock);
     assert!(liq_amount > 0, ECantBeLiquidated);
     
     // withdraw the collateral balance from obligation
@@ -87,9 +87,9 @@ module protocol::liquidate {
       obligation: object::id(obligation),
       debt_type: type_name::get<DebtType>(),
       collateral_type: type_name::get<CollateralType>(),
-      repay_on_behalf: repay_on_behalf,
-      repay_revenue: repay_revenue,
-      liq_amount: liq_amount,
+      repay_on_behalf,
+      repay_revenue,
+      liq_amount,
     });
 
     // Send the remaining balance, and collateral balance to liquidator

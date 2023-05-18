@@ -6,6 +6,7 @@ module protocol::borrow_withdraw_evaluator {
   use std::type_name::get;
   use std::fixed_point32::{Self, FixedPoint32};
   use sui::math;
+  use sui::clock::Clock;
   use math::fixed_point32_empower;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
@@ -23,9 +24,10 @@ module protocol::borrow_withdraw_evaluator {
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     x_oracle: &XOracle,
+    clock: &Clock,
   ): FixedPoint32 {
-    let collaterals_value = collaterals_value_usd_for_borrow(obligation, market, coin_decimals_registry, x_oracle);
-    let debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle);
+    let collaterals_value = collaterals_value_usd_for_borrow(obligation, market, coin_decimals_registry, x_oracle, clock);
+    let debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle, clock);
     if (fixed_point32_empower::gt(collaterals_value, debts_value)) {
       fixed_point32_empower::sub(collaterals_value, debts_value)
     } else {
@@ -40,14 +42,15 @@ module protocol::borrow_withdraw_evaluator {
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     x_oracle: &XOracle,
+    clock: &Clock,
   ): u64 {
-    let available_borrow_amount = available_borrow_amount_in_usd(obligation, market, coin_decimals_registry, x_oracle);
+    let available_borrow_amount = available_borrow_amount_in_usd(obligation, market, coin_decimals_registry, x_oracle, clock);
     if (fixed_point32_empower::gt(available_borrow_amount, fixed_point32_empower::zero())) {
       let coin_type = get<T>();
       let interest_model = market::interest_model(market, coin_type);
       let borrow_weight = interest_model::borrow_weight(interest_model);
       let coin_decimals = coin_decimals_registry::decimals(coin_decimals_registry, coin_type);
-      let coin_price = get_price(x_oracle, coin_type);
+      let coin_price = get_price(x_oracle, coin_type, clock);
       let weighted_coin_price = fixed_point32_empower::mul(coin_price, borrow_weight);
       fixed_point32::multiply_u64(
         math::pow(10, coin_decimals),
@@ -67,18 +70,19 @@ module protocol::borrow_withdraw_evaluator {
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     x_oracle: &XOracle,
+    clock: &Clock,
   ): u64 {
     let coin_type = get<T>();
     let collateral_amount = obligation::collateral(obligation, coin_type);
 
-    let debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle);
+    let debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle, clock);
     if (fixed_point32::is_zero(debts_value)) {
       return collateral_amount
     };
 
-    let available_borrow_amount = available_borrow_amount_in_usd(obligation, market, coin_decimals_registry, x_oracle);
+    let available_borrow_amount = available_borrow_amount_in_usd(obligation, market, coin_decimals_registry, x_oracle, clock);
     
-    let coin_price = get_price(x_oracle, coin_type);
+    let coin_price = get_price(x_oracle, coin_type, clock);
 
     let coin_decimals = coin_decimals_registry::decimals(coin_decimals_registry, coin_type);
 

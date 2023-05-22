@@ -9,6 +9,7 @@ module protocol::borrow {
   use sui::clock::{Self, Clock};
   use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::market::{Self, Market};
+  use protocol::version::{Self, Version};
   use protocol::borrow_withdraw_evaluator;
   use protocol::interest_model;
   use protocol::error;
@@ -28,6 +29,7 @@ module protocol::borrow {
   }
   
   public entry fun borrow_entry<T>(
+    version: &Version,
     obligation: &mut Obligation,
     obligation_key: &ObligationKey,
     market: &mut Market,
@@ -37,11 +39,12 @@ module protocol::borrow {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let borrowedCoin = borrow<T>(obligation, obligation_key, market, coin_decimals_registry, borrow_amount, x_oracle, clock, ctx);
+    let borrowedCoin = borrow<T>(version, obligation, obligation_key, market, coin_decimals_registry, borrow_amount, x_oracle, clock, ctx);
     transfer::public_transfer(borrowedCoin, tx_context::sender(ctx));
   }
   
   public fun borrow<T>(
+    version: &Version,
     obligation: &mut Obligation,
     obligation_key: &ObligationKey,
     market: &mut Market,
@@ -51,6 +54,9 @@ module protocol::borrow {
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
+    // check if version is supported
+    version::assert_current_version(version);
+
     // check if sender is in whitelist
     assert!(
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),

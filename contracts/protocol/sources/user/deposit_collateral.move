@@ -7,6 +7,7 @@ module protocol::deposit_collateral {
   use sui::event::emit;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
+  use protocol::version::{Self, Version};
   use whitelist::whitelist;
   use protocol::error;
 
@@ -20,11 +21,14 @@ module protocol::deposit_collateral {
   }
   
   public entry fun deposit_collateral<T>(
+    version: &Version,
     obligation: &mut Obligation,
     market: &mut Market,
     coin: Coin<T>,
     ctx: &mut TxContext,
   ) {
+    // check version
+    version::assert_current_version(version);
     // check if sender is in whitelist
     assert!(
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),

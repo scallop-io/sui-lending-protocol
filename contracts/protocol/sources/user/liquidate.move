@@ -11,6 +11,7 @@ module protocol::liquidate {
   
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
+  use protocol::version::{Self, Version};
   use protocol::liquidation_evaluator::liquidation_amounts;
   use protocol::error;
   use x_oracle::x_oracle::XOracle;
@@ -30,6 +31,7 @@ module protocol::liquidate {
   }
   
   public entry fun liquidate_entry<DebtType, CollateralType>(
+    version: &Version,
     obligation: &mut Obligation,
     market: &mut Market,
     available_repay_coin: Coin<DebtType>,
@@ -38,12 +40,13 @@ module protocol::liquidate {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let (remain_coin, collateral_coin) = liquidate<DebtType, CollateralType>(obligation, market, available_repay_coin, coin_decimals_registry, x_oracle, clock, ctx);
+    let (remain_coin, collateral_coin) = liquidate<DebtType, CollateralType>(version, obligation, market, available_repay_coin, coin_decimals_registry, x_oracle, clock, ctx);
     transfer::public_transfer(remain_coin, tx_context::sender(ctx));
     transfer::public_transfer(collateral_coin, tx_context::sender(ctx));
   }
   
   public fun liquidate<DebtType, CollateralType>(
+    version: &Version,
     obligation: &mut Obligation,
     market: &mut Market,
     available_repay_coin: Coin<DebtType>,
@@ -52,6 +55,9 @@ module protocol::liquidate {
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Coin<DebtType>, Coin<CollateralType>) {
+    // Check the version
+    version::assert_current_version(version);
+
     // check if sender is in whitelist
     assert!(
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),

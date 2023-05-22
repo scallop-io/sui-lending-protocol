@@ -5,6 +5,7 @@ module protocol::open_obligation {
   use sui::tx_context::{Self, TxContext};
   use sui::object::{Self, ID};
   use protocol::obligation::{Self, ObligationKey, Obligation};
+  use protocol::version::{Self, Version};
 
   /// A hot potato is a temporary object that is passed around between parties
   /// It is used to ensure that obligations are always shared in a transaction
@@ -22,7 +23,9 @@ module protocol::open_obligation {
 
   /// Create a new obligation and share it
   /// At the same time, the obligation key is transferred to the sender
-  public entry fun open_obligation_entry(ctx: &mut TxContext) {
+  public entry fun open_obligation_entry(version: &Version, ctx: &mut TxContext) {
+    // Check version
+    version::assert_current_version(version);
     let (obligation, obligation_key) = obligation::new(ctx);
 
     emit(ObligationCreatedEvent {
@@ -37,7 +40,9 @@ module protocol::open_obligation {
   
   /// create a new obligation and obligation key object and take it
   /// this function offers flexibility by leveraging the uses of programmability on Sui
-  public fun open_obligation(ctx: &mut TxContext): (Obligation, ObligationKey, ObligationHotPotato) {
+  public fun open_obligation(version: &Version, ctx: &mut TxContext): (Obligation, ObligationKey, ObligationHotPotato) {
+    // Check version
+    version::assert_current_version(version);
     let (obligation, obligation_key) = obligation::new(ctx);
     let obligation_hot_potato = ObligationHotPotato {
       obligation_id: object::id(&obligation),
@@ -55,7 +60,9 @@ module protocol::open_obligation {
   /// return the obligation with the obligation hot potato
   /// this function makes sure that the obligation is returned with the obligation hot potato
   /// So that the obligation is always shared in a transaction
-  public fun return_obligation(obligation: Obligation, obligation_hot_potato: ObligationHotPotato) {
+  public fun return_obligation(version: &Version, obligation: Obligation, obligation_hot_potato: ObligationHotPotato) {
+    // Check version
+    version::assert_current_version(version);
     let ObligationHotPotato { obligation_id } = obligation_hot_potato;
     assert!(obligation_id == object::id(&obligation), EInvalidObligation);
     transfer::public_share_object(obligation);

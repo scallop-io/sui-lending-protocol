@@ -6,6 +6,7 @@ module protocol::mint {
   use sui::event::emit;
   use sui::balance;
   use protocol::market::{Self, Market};
+  use protocol::version::{Self, Version};
   use protocol::reserve::MarketCoin;
   use sui::transfer;
   use whitelist::whitelist;
@@ -21,21 +22,26 @@ module protocol::mint {
   }
   
   public fun mint_entry<T>(
+    version: &Version,
     market: &mut Market,
     coin: Coin<T>,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let mint_coin = mint(market, coin, clock, ctx);
+    let mint_coin = mint(version, market, coin, clock, ctx);
     transfer::public_transfer(mint_coin, tx_context::sender(ctx));
   }
   
   public fun mint<T>(
+    version: &Version,
     market: &mut Market,
     coin: Coin<T>,
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<MarketCoin<T>> {
+    // check if version is supported
+    version::assert_current_version(version);
+
     // check if sender is in whitelist
     assert!(
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),

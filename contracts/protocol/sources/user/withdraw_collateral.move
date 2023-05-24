@@ -11,6 +11,7 @@ module protocol::withdraw_collateral {
   use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::borrow_withdraw_evaluator;
   use protocol::market::{Self, Market};
+  use protocol::version::{Self, Version};
   use protocol::error;
   use x_oracle::x_oracle::XOracle;
   use whitelist::whitelist;
@@ -26,6 +27,7 @@ module protocol::withdraw_collateral {
   }
   
   public entry fun withdraw_collateral_entry<T>(
+    version: &Version,
     obligation: &mut Obligation,
     obligation_key: &ObligationKey,
     market: &mut Market,
@@ -36,12 +38,13 @@ module protocol::withdraw_collateral {
     ctx: &mut TxContext,
   ) {
     let withdrawedCoin = withdraw_collateral<T>(
-      obligation, obligation_key, market, coin_decimals_registry, withdraw_amount, x_oracle, clock, ctx
+      version, obligation, obligation_key, market, coin_decimals_registry, withdraw_amount, x_oracle, clock, ctx
     );
     transfer::public_transfer(withdrawedCoin, tx_context::sender(ctx));
   }
   
   public fun withdraw_collateral<T>(
+    version: &Version,
     obligation: &mut Obligation,
     obligation_key: &ObligationKey,
     market: &mut Market,
@@ -51,6 +54,9 @@ module protocol::withdraw_collateral {
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
+    // check version
+    version::assert_current_version(version);
+
     // check if sender is in whitelist
     assert!(
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),

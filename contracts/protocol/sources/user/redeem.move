@@ -8,9 +8,10 @@ module protocol::redeem {
   use sui::event::emit;
   use sui::balance;
   use protocol::market::{Self, Market};
+  use protocol::version::{Self, Version};
   use protocol::reserve::MarketCoin;
-  use whitelist::whitelist;
   use protocol::error;
+  use whitelist::whitelist;
 
   struct RedeemEvent has copy, drop {
     redeemer: address,
@@ -22,21 +23,26 @@ module protocol::redeem {
   }
   
   public fun redeem_entry<T>(
+    version: &Version,
     market: &mut Market,
     coin: Coin<MarketCoin<T>>,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let coin = redeem(market, coin, clock, ctx);
+    let coin = redeem(version, market, coin, clock, ctx);
     transfer::public_transfer(coin, tx_context::sender(ctx));
   }
   
   public fun redeem<T>(
+    version: &Version,
     market: &mut Market,
     coin: Coin<MarketCoin<T>>,
     clock: &Clock,
     ctx: &mut TxContext,
   ): Coin<T> {
+    // check version
+    version::assert_current_version(version);
+
     // check if sender is in whitelist
     assert!(
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),

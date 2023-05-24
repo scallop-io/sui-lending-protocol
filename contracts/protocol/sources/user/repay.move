@@ -10,8 +10,9 @@ module protocol::repay {
   use sui::transfer;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
-  use whitelist::whitelist;
+  use protocol::version::{Self, Version};
   use protocol::error;
+  use whitelist::whitelist;
 
   struct RepayEvent has copy, drop {
     repayer: address,
@@ -22,12 +23,16 @@ module protocol::repay {
   }
   
   public entry fun repay<T>(
+    version: &Version,
     obligation: &mut Obligation,
     market: &mut Market,
     user_coin: Coin<T>,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
+    // Check version
+    version::assert_current_version(version);
+
     // check if sender is in whitelist
     assert!(
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),

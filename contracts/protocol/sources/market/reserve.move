@@ -154,7 +154,7 @@ module protocol::reserve {
     balance_bag::split<T>(&mut self.underlying_balances, redeem_amount)
   }
   
-  public fun borrow_flash_loan<T>(
+  public(friend) fun borrow_flash_loan<T>(
     self: &mut Reserve,
     amount: u64
   ): (Balance<T>, FlashLoan<T>) {
@@ -164,7 +164,7 @@ module protocol::reserve {
   }
 
   // TODO: charge fee for flash loan
-  public fun return_flash_loan<T>(
+  public(friend) fun return_flash_loan<T>(
     self: &mut Reserve,
     balance: Balance<T>,
     flash_loan: FlashLoan<T>,

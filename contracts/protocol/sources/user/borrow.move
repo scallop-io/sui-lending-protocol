@@ -1,0 +1,100 @@
+module protocol::borrow {
+  
+  use std::type_name::{Self, TypeName};
+  use sui::coin::{Self, Coin};
+  use sui::transfer;
+  use sui::event::emit;
+  use sui::tx_context::{Self ,TxContext};
+  use sui::object::{Self, ID};
+  use sui::clock::{Self, Clock};
+  use protocol::obligation::{Self, Obligation, ObligationKey};
+  use protocol::market::{Self, Market};
+  use protocol::version::{Self, Version};
+  use protocol::borrow_withdraw_evaluator;
+  use protocol::interest_model;
+  use protocol::error;
+  use x_oracle::x_oracle::XOracle;
+  use whitelist::whitelist;
+  use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
+
+  const EBorrowTooMuch: u64 = 0x10001;
+  const EBorrowTooLittle: u64 = 0x10002;
+  
+  struct BorrowEvent has copy, drop {
+    borrower: address,
+    obligation: ID,
+    asset: TypeName,
+    amount: u64,
+    time: u64,
+  }
+  
+  public entry fun borrow_entry<T>(
+    version: &Version,
+    obligation: &mut Obligation,
+    obligation_key: &ObligationKey,
+    market: &mut Market,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    borrow_amount: u64,
+    x_oracle: &XOracle,
+    clock: &Clock,
+    ctx: &mut TxContext,
+  ) {
+    let borrowedCoin = borrow<T>(version, obligation, obligation_key, market, coin_decimals_registry, borrow_amount, x_oracle, clock, ctx);
+    transfer::public_transfer(borrowedCoin, tx_context::sender(ctx));
+  }
+  
+  public fun borrow<T>(
+    version: &Version,
+    obligation: &mut Obligation,
+    obligation_key: &ObligationKey,
+    market: &mut Market,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    borrow_amount: u64,
+    x_oracle: &XOracle,
+    clock: &Clock,
+    ctx: &mut TxContext,
+  ): Coin<T> {
+    // check if version is supported
+    version::assert_current_version(version);
+
+    // check if sender is in whitelist
+    assert!(
+      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
+      error::whitelist_error()
+    );
+
+    let now = clock::timestamp_ms(clock) / 1000;
+    obligation::assert_key_match(obligation, obligation_key);
+  
+    let coin_type = type_name::get<T>();
+    let interest_model = market::interest_model(market, coin_type);
+    let min_borrow_amount = interest_model::min_borrow_amount(interest_model);
+    assert!(borrow_amount > min_borrow_amount, EBorrowTooLittle);
+    
+    market::handle_outflow<T>(market, borrow_amount, now);
+
+    // Always update market state first
+    // Because interest need to be accrued first before other operations
+    let borrowed_balance = market::handle_borrow<T>(market, borrow_amount, now);
+    
+    // init debt if borrow for the first time
+    obligation::init_debt(obligation, market, coin_type);
+    // accure interests for obligation
+    obligation::accrue_interests(obligation, market);
+    // calc the maximum borrow amount
+    // If borrow too much, abort
+    let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);
+    assert!(borrow_amount <= max_borrow_amount, EBorrowTooMuch);
+    // increase the debt for obligation
+    obligation::increase_debt(obligation, coin_type, borrow_amount);
+    
+    emit(BorrowEvent {
+      borrower: tx_context::sender(ctx),
+      obligation: object::id(obligation),
+      asset: coin_type,
+      amount: borrow_amount,
+      time: now,
+    });
+    coin::from_balance(borrowed_balance, ctx)
+  }
+}

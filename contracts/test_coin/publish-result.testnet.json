@@ -1,0 +1,20 @@
+{
+  "packageId": "0xfacbeda4e0bef2ba45f295d27b4eaaed116f5ff5b5c61dbf6eccaae044b7c70e",
+  "upgradeCapId": "0xf398e3790631ee5b4ebca74e99492f793e584181dd15543cd6f8919d0e2a0e73",
+  "usdc": {
+    "treasuryId": "0x22a565eeb61ce67318f2cb8c6bbdc34fc1ea47988b19e764d76e141139fc9115",
+    "metadataId": "0x737b9b467ebb5a9b9d4347c0ee464b651fbc0fa4e6d4d53e3ce057565f4aaac5"
+  },
+  "btc": {
+    "treasuryId": "0x244919114447f71b5e6e1dddda34c0face5125065143b04e7998bef9e288e53e",
+    "metadataId": "0x9d149b094b976a25a3c8a8f191a5aa267677a21024a9587c6c6d3f63a4010f36"
+  },
+  "usdt": {
+    "metadataId": "0x93413c5c3e65c8b17b453d7798123633547888da9e2d64036e261919a1342c99",
+    "treasuryId": "0xcc838e634ea74b248b17ae6dac03283b496417ecef8b4d7302f4bbb37ff71929"
+  },
+  "eth": {
+    "metadataId": "0xafbe15d0aeb4bf11cbbde5b9017cae9a69bf3ed04b7dc0dad91ba4e96bea2ea5",
+    "treasuryId": "0xcb2329f09ce150e7880e0caeb5e44610341f8353a8ecc8f9341fd8ec2b4781cd"
+  }
+}

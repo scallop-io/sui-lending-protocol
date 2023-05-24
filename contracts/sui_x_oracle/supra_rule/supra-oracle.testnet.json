@@ -1,0 +1,10 @@
+{
+  "oracleHolderId": "0x7d85a7b9dfa0afb78704ea3f96e92684a21526f632fff9a322cacce0589234bd",
+  "priceIds": {
+    "btc_usd": 18,
+    "eth_usd": 19,
+    "usdt_usd": 48,
+    "usdc_usd": 89,
+    "sui_usd": 90
+  }
+}

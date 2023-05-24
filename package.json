@@ -4,20 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "publish": "ts-node typescript/publish-protocol.ts",
-    "setup": "ts-node typescript/setup.ts"
+    "publish": "ts-node testnet-data-setup/publish-protocol.ts",
+    "publish-testcoin": "ts-node contracts/test_coin/publish.ts",
+    "setup": "ts-node testnet-data-setup/init-for-test.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@mysten/sui.js": "^0.32.1",
-    "@scallop-dao/scallop-sui": "^0.1.0",
-    "@scallop-dao/sui-kit": "^0.32.10",
-    "@scallop-dao/sui-package-kit": "../sui-package-kit"
+    "@iarna/toml": "^2.2.5",
+    "@mysten/sui.js": "^0.33.0",
+    "@pythnetwork/price-service-client": "^1.4.1",
+    "@scallop-io/sui-kit": "^0.33.1",
+    "@scallop-io/sui-package-kit": "^0.33.6",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7"
   },
   "devDependencies": {
+    "@types/node": "^18.16.3",
     "dotenv": "^16.0.3",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0"
   }
 }

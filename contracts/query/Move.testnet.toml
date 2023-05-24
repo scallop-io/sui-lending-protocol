@@ -1,0 +1,15 @@
+[package]
+name = "ProtocolQuery"
+version = "0.0.1"
+published-at = "0x2165cdbef6d742a88198de87d8c29af0696b71143ccfae98257fc16cdd448c03"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "testnet"
+
+[dependencies.Protocol]
+local = "../protocol"
+
+[addresses]
+protocol_query = "0x2165cdbef6d742a88198de87d8c29af0696b71143ccfae98257fc16cdd448c03"

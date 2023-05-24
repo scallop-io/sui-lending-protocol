@@ -1,0 +1,14 @@
+[package]
+name="ProtocolTest"
+version="0.0.1"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "testnet"
+
+[dependencies.Protocol]
+local = "../protocol"
+
+[addresses]
+protocol_test="0x0"

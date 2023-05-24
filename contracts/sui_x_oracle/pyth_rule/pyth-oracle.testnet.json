@@ -1,0 +1,28 @@
+{
+  "pythPackageId": "0x975e063f398f720af4f33ec06a927f14ea76ca24f7f8dd544aa62ab9d5d15f44",
+  "pythStateId": "0xd8afde3a48b4ff7212bd6829a150f43f59043221200d63504d981f62bff2e27a",
+  "wormholePackageId": "0xcc029e2810f17f9f43f52262f40026a71fbdca40ed3803ad2884994361910b7e",
+  "wormholeStateId": "0xebba4cc4d614f7a7cdbe883acc76d1cc767922bc96778e7b68be0d15fce27c02",
+  "priceFeeds": {
+    "btc_usd": {
+      "priceFeedId": "f9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b",
+      "priceFeedObjectId": "0x878b118488aeb5763b5f191675c3739a844ce132cb98150a465d9407d7971e7c"
+    },
+    "eth_usd": {
+      "priceFeedId": "ca80ba6dc32e08d06f1aa886011eed1d77c77be9eb761cc10d72b7d0a2fd57a6",
+      "priceFeedObjectId": "0x8deeebad0a8fb86d97e6ad396cc84639da5a52ae4bbc91c78eb7abbf3e641ed6"
+    },
+    "usdc_usd": {
+      "priceFeedId": "41f3625971ca2ed2263e78573fe5ce23e13d2558ed3f2e47ab0f84fb9e7ae722",
+      "priceFeedObjectId": "0xa3d3e81bd7e890ac189b3f581b511f89333b94f445c914c983057e1ac09ff296"
+    },
+    "usdt_usd": {
+      "priceFeedId": "1fc18861232290221461220bd4e2acd1dcdfbc89c84092c93c18bdc7756c1588",
+      "priceFeedObjectId": "0x83f74b8a33b540cbf1edd24e219eac1215d1668a711ca2be3aa5d703763f91db"
+    },
+    "sui_usd": {
+      "priceFeedId": "50c67b3fd225db8912a424dd4baed60ffdde625ed2feaaf283724f9608fea266",
+      "priceFeedObjectId": "0xe38dbe2ff3322f1500fff45d0046101f371eebce47c067c5e9233248c4878c28"
+    }
+  }
+}

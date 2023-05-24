@@ -1,0 +1,12 @@
+[package]
+name = "Math"
+version = "0.0.1"
+published-at = "0x7da0351a2e90a80230f0b6d4d6b14d00d93203481a6deca21789af3f0e861c92"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "testnet"
+
+[addresses]
+math = "0x7da0351a2e90a80230f0b6d4d6b14d00d93203481a6deca21789af3f0e861c92"

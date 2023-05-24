@@ -49,7 +49,7 @@ module protocol::app {
   // ===== AdminCap =====
   public fun extend_interest_model_change_delay(
     version: &Version,
-    admin_cap: &AdminCap,
+    admin_cap: &mut AdminCap,
     delay: u64,
   ) {
     // check version
@@ -61,7 +61,7 @@ module protocol::app {
 
   public fun extend_risk_model_change_delay(
     version: &Version,
-    admin_cap: &AdminCap,
+    admin_cap: &mut AdminCap,
     delay: u64,
   ) {
     // check version

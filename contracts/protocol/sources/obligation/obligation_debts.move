@@ -5,6 +5,8 @@ module protocol::obligation_debts {
   use x::wit_table::{Self, WitTable};
   use std::fixed_point32;
 
+  friend protocol::obligation;
+
   struct Debt has copy, store {
     amount: u64,
     borrow_index: u64
@@ -12,11 +14,11 @@ module protocol::obligation_debts {
   
   struct ObligationDebts has drop {}
   
-  public fun new(ctx: &mut TxContext): WitTable<ObligationDebts, TypeName, Debt> {
+  public(friend) fun new(ctx: &mut TxContext): WitTable<ObligationDebts, TypeName, Debt> {
     wit_table::new(ObligationDebts{}, true, ctx)
   }
   
-  public fun init_debt(
+  public(friend) fun init_debt(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,
     type_name: TypeName,
     borrow_index: u64,
@@ -26,7 +28,7 @@ module protocol::obligation_debts {
     wit_table::add(ObligationDebts{}, debts, type_name, debt);
   }
   
-  public fun increase(
+  public(friend) fun increase(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,
     type_name: TypeName,
     amount: u64,
@@ -35,7 +37,7 @@ module protocol::obligation_debts {
     debt.amount = debt.amount + amount;
   }
   
-  public fun decrease(
+  public(friend) fun decrease(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,
     type_name: TypeName,
     amount: u64,
@@ -44,7 +46,7 @@ module protocol::obligation_debts {
     debt.amount = debt.amount - amount;
   }
   
-  public fun accure_interest(
+  public(friend) fun accure_interest(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,
     type_name: TypeName,
     new_borrow_index: u64

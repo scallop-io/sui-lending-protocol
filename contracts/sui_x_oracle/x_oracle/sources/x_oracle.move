@@ -218,9 +218,6 @@ module x_oracle::x_oracle {
   }
 
   #[test_only]
-  use sui::clock::{Self, Clock};
-
-  #[test_only]
   public fun init_t(ctx: &mut TxContext) {
     init(X_ORACLE {}, ctx);
   }

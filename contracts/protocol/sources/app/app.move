@@ -55,7 +55,6 @@ module protocol::app {
     // check version
     version::assert_current_version(version);
     let new_delay = admin_cap.interest_model_change_delay + delay;
-    assert!(new_delay > admin_cap.interest_model_change_delay);
     admin_cap.interest_model_change_delay = new_delay;
   }
 
@@ -67,7 +66,6 @@ module protocol::app {
     // check version
     version::assert_current_version(version);
     let new_delay = admin_cap.risk_model_change_delay + delay;
-    assert!(new_delay > admin_cap.risk_model_change_delay);
     admin_cap.risk_model_change_delay = new_delay;
   }
 

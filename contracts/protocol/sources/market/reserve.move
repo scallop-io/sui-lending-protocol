@@ -5,15 +5,14 @@ module protocol::reserve {
   use sui::tx_context::TxContext;
   use sui::balance::{Self, Balance};
   use sui::object::{Self, UID};
+  use protocol::error;
   use x::supply_bag::{Self, SupplyBag};
   use x::balance_bag::{Self, BalanceBag};
   use x::wit_table::{Self, WitTable};
   use math::u64;
   
   friend protocol::market;
-  
-  const EFlashLoanNotPaidEnough: u64 = 0;
-  
+    
   struct BalanceSheets has drop {}
   
   struct BalanceSheet has copy, store {
@@ -170,7 +169,7 @@ module protocol::reserve {
     flash_loan: FlashLoan<T>,
   ) {
     let FlashLoan { amount } = flash_loan;
-    assert!(balance::value(&balance) >= amount, EFlashLoanNotPaidEnough);
+    assert!(balance::value(&balance) >= amount, error::flash_loan_repay_not_enough_error());
     balance_bag::join(&mut self.underlying_balances, balance);
   }
 }

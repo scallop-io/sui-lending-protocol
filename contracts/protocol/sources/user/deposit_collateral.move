@@ -10,8 +10,6 @@ module protocol::deposit_collateral {
   use protocol::version::{Self, Version};
   use whitelist::whitelist;
   use protocol::error;
-
-  const EIllegalCollateralType: u64 = 0x20001;
   
   struct CollateralDepositEvent has copy, drop {
     provider: address,
@@ -36,7 +34,7 @@ module protocol::deposit_collateral {
     );
 
     let has_risk_model = market::has_risk_model(market, get<T>());
-    assert!(has_risk_model == true, EIllegalCollateralType);
+    assert!(has_risk_model == true, error::invalid_collateral_type_error());
     
     emit(CollateralDepositEvent{
       provider: tx_context::sender(ctx),

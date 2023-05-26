@@ -16,8 +16,6 @@ module protocol::withdraw_collateral {
   use x_oracle::x_oracle::XOracle;
   use whitelist::whitelist;
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
-
-  const EWithdrawTooMuch: u64 = 0x80001;
   
   struct CollateralWithdrawEvent has copy, drop {
     taker: address,
@@ -76,7 +74,7 @@ module protocol::withdraw_collateral {
     
     // IF withdraw_amount bigger than max, then abort
     let max_withdaw_amount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);
-    assert!(withdraw_amount <= max_withdaw_amount, EWithdrawTooMuch);
+    assert!(withdraw_amount <= max_withdaw_amount, error::withdraw_collateral_too_much_error());
     
     // withdraw collateral from obligation
     let withdrawed_balance = obligation::withdraw_collateral<T>(obligation, withdraw_amount);

@@ -18,8 +18,6 @@ module protocol::liquidate {
   use whitelist::whitelist;
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
 
-  const ECantBeLiquidated: u64 = 0x30001;
-
   struct LiquidateEvent has copy, drop {
     liquidator: address,
     obligation: ID,
@@ -75,7 +73,7 @@ module protocol::liquidate {
     let available_repay_amount = balance::value(&available_repay_balance);
     let (repay_on_behalf, repay_revenue, liq_amount) =
       liquidation_amounts<DebtType, CollateralType>(obligation, market, coin_decimals_registry, available_repay_amount, x_oracle, clock);
-    assert!(liq_amount > 0, ECantBeLiquidated);
+    assert!(liq_amount > 0, error::unable_to_liquidate_error());
     
     // withdraw the collateral balance from obligation
     let collateral_balance = obligation::withdraw_collateral<CollateralType>(obligation, liq_amount);

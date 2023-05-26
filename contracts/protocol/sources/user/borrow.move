@@ -16,9 +16,6 @@ module protocol::borrow {
   use x_oracle::x_oracle::XOracle;
   use whitelist::whitelist;
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
-
-  const EBorrowTooMuch: u64 = 0x10001;
-  const EBorrowTooLittle: u64 = 0x10002;
   
   struct BorrowEvent has copy, drop {
     borrower: address,
@@ -69,7 +66,7 @@ module protocol::borrow {
     let coin_type = type_name::get<T>();
     let interest_model = market::interest_model(market, coin_type);
     let min_borrow_amount = interest_model::min_borrow_amount(interest_model);
-    assert!(borrow_amount > min_borrow_amount, EBorrowTooLittle);
+    assert!(borrow_amount > min_borrow_amount, error::borrow_too_small_error());
     
     market::handle_outflow<T>(market, borrow_amount, now);
 
@@ -84,7 +81,7 @@ module protocol::borrow {
     // calc the maximum borrow amount
     // If borrow too much, abort
     let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);
-    assert!(borrow_amount <= max_borrow_amount, EBorrowTooMuch);
+    assert!(borrow_amount <= max_borrow_amount, error::borrow_too_much_error());
     // increase the debt for obligation
     obligation::increase_debt(obligation, coin_type, borrow_amount);
     

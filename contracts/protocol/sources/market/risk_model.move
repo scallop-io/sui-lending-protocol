@@ -2,6 +2,7 @@ module protocol::risk_model {
   use std::type_name::{TypeName, get};
   use std::fixed_point32::{Self, FixedPoint32};
   use sui::tx_context::TxContext;
+  use protocol::error;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
   use math::fixed_point32_empower;
@@ -10,10 +11,6 @@ module protocol::risk_model {
   friend protocol::market;
 
   const RiskModelChangeEffectiveEpoches: u64 = 7;
-  
-  const ECollateralFactoryTooBig: u64 = 0;
-
-  const ERiskModelTypeNotMatch: u64 = 1;
   
   struct RiskModels has drop {}
   
@@ -78,7 +75,7 @@ module protocol::risk_model {
   ) {
     let risk_model = one_time_lock_value::get_value(risk_model_change, ctx);
     let type_name = get<T>();
-    assert!(risk_model.type == type_name, ERiskModelTypeNotMatch);
+    assert!(risk_model.type == type_name, error::risk_model_type_not_match_error());
 
     // Check if the risk model already exists, if so, remove it first
     if (ac_table::contains(self, type_name)) {

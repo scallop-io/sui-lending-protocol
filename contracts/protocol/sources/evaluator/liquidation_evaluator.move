@@ -10,11 +10,10 @@ module protocol::liquidation_evaluator {
   use protocol::debt_value::debts_value_usd_with_weight;
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::risk_model;
+  use protocol::error;
   use protocol::price::get_price;
   use x_oracle::x_oracle::XOracle;
   use coin_decimals_registry::coin_decimals_registry::{Self, CoinDecimalsRegistry};
-
-  const ENotLiquidatable: u64 = 0;
 
   // calculate the actual repay amount, actual liquidate amount, actual market amount
   public fun liquidation_amounts<DebtType, CollateralType>(
@@ -49,7 +48,7 @@ module protocol::liquidation_evaluator {
     let weighted_debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle, clock);
 
     // when collaterals_value >= weighted_debts_value, the obligation is not liquidatable
-    if (fixed_point32_empower::gt(weighted_debts_value, collaterals_value) == false) return (0, 0, 0);
+    assert!(fixed_point32_empower::gt(weighted_debts_value, collaterals_value), error::unable_to_liquidate_error());
 
     // max_liq_value = (weighted_debts_value - collaterals_value) / (borrow_weight * (1 - liq_penalty) - liq_factor)
     let max_liq_value = fixed_point32_empower::div(

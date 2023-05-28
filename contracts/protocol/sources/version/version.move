@@ -4,7 +4,7 @@ module protocol::version {
   use sui::tx_context::{Self, TxContext};
   use sui::transfer;
 
-  use protocol::currrent_version::current_version;
+  use protocol::current_version::current_version;
   use protocol::error;
 
   struct Version has key, store {

@@ -1,4 +1,4 @@
-module protocol::currrent_version {
+module protocol::current_version {
 
   // Increment this each time the protocol upgrades.
   const CURRENT_VERSION: u64 = 0;

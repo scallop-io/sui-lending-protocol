@@ -39,4 +39,18 @@ module protocol::version {
   public fun assert_current_version(v: &Version) {
     assert!(is_current_version(v), error::version_mismatch_error());
   }
+
+  #[test_only]
+  public fun create_for_testing(ctx: &mut TxContext): Version {
+    Version {
+      id: object::new(ctx),
+      value: current_version(),
+    }
+  }
+
+  #[test_only]
+  public fun destroy_for_testing(version: Version) {
+    let Version { id, value: _ } = version;
+    object::delete(id);
+  }
 }

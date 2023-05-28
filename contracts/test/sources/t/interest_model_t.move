@@ -4,6 +4,7 @@ module protocol_test::interest_model_t {
   use sui::clock::Clock;
   use sui::test_scenario::{Self, Scenario};
   use protocol::market::Market;
+  use protocol::version::Version;
   use protocol::app::{Self, AdminCap};
   use protocol_test::constants::{Self, InterestModelParams};
   use protocol_test::transaction_utils_t;
@@ -11,11 +12,12 @@ module protocol_test::interest_model_t {
   public fun add_interest_model_t<T>(
     scenario: &mut Scenario,
     outflow_limit: u64, outflow_cycle_duration: u32, outflow_segment_duration: u32,
-    market: &mut Market, adminCap: &AdminCap, params: &InterestModelParams<T>, clock: &Clock,
+    market: &mut Market, version: &Version, admin_cap: &AdminCap, params: &InterestModelParams<T>, clock: &Clock,
   ) {
     test_scenario::next_tx(scenario, @0x0);
     let interest_model = app::create_interest_model_change<T>(
-      adminCap,
+      version,
+      admin_cap,
       constants::base_rate_per_sec(params),
       constants::low_slope(params),
       constants::kink(params),
@@ -27,8 +29,9 @@ module protocol_test::interest_model_t {
       test_scenario::ctx(scenario)
     );
     app::add_interest_model<T>(
+      version,
       market,
-      adminCap,
+      admin_cap,
       interest_model,
       clock,
       test_scenario::ctx(scenario),
@@ -37,7 +40,8 @@ module protocol_test::interest_model_t {
     transaction_utils_t::skip_epoch(scenario, 11);
     
     app::add_limiter<T>(
-      adminCap,
+      version,
+      admin_cap,
       market,
       outflow_limit,
       outflow_cycle_duration,

@@ -1,0 +1,2 @@
+export const wormholeUsdcCoinMetadataId = '0x4fbf84f3029bd0c0b77164b587963be957f853eccf834a67bb9ecba6ec80f189';
+export const wormholeUsdcType = '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN';

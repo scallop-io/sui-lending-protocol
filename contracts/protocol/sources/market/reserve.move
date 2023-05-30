@@ -10,9 +10,10 @@ module protocol::reserve {
   use x::balance_bag::{Self, BalanceBag};
   use x::wit_table::{Self, WitTable};
   use math::u64;
+  use protocol::error;
   
   friend protocol::market;
-    
+
   struct BalanceSheets has drop {}
   
   struct BalanceSheet has copy, store {
@@ -163,7 +164,7 @@ module protocol::reserve {
   }
 
   // TODO: charge fee for flash loan
-  public(friend) fun return_flash_loan<T>(
+  public(friend) fun repay_flash_loan<T>(
     self: &mut Reserve,
     balance: Balance<T>,
     flash_loan: FlashLoan<T>,

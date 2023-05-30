@@ -6,18 +6,19 @@ module protocol::market {
   use sui::tx_context::TxContext;
   use sui::balance::Balance;
   use sui::object::{Self, UID};
+  use sui::coin::{Self, Coin};
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::limiter::{Self, Limiters, Limiter};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
-  use protocol::reserve::{Self, Reserve, MarketCoin};
+  use protocol::reserve::{Self, Reserve, MarketCoin, FlashLoan};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
   use protocol::collateral_stats::{CollateralStats, CollateralStat};
   use protocol::collateral_stats;
   use protocol::error;
   use math::fixed_point32_empower;
-  
+
   friend protocol::app;
   friend protocol::borrow;
   friend protocol::repay;
@@ -26,6 +27,8 @@ module protocol::market {
   friend protocol::redeem;
   friend protocol::withdraw_collateral;
   friend protocol::deposit_collateral;
+  friend protocol::flash_loan;
+
   
   struct Market has key, store {
     id: UID,
@@ -242,6 +245,25 @@ module protocol::market {
     let mint_balance = reserve::mint_market_coin(&mut self.vault, balance);
     update_interest_rates(self);
     mint_balance
+  }
+
+  public(friend) fun borrow_flash_loan<T>(
+    self: &mut Market,
+    amount: u64,
+    ctx: &mut TxContext,
+  ): (Coin<T>, FlashLoan<T>) {
+    let (balance, loan) = reserve::borrow_flash_loan<T>(&mut self.vault, amount);
+    let coin = coin::from_balance(balance, ctx);
+    (coin, loan)
+  }
+
+  public(friend) fun repay_flash_loan<T>(
+    self: &mut Market,
+    coin: Coin<T>,
+    loan: FlashLoan<T>,
+  ) {
+    let balance = coin::into_balance(coin);
+    reserve::repay_flash_loan(&mut self.vault, balance, loan)
   }
   
   public(friend) fun compound_interests(

@@ -7,7 +7,6 @@ dependencies = [
   { name = "CoinDecimalsRegistry" },
   { name = "Math" },
   { name = "Sui" },
-  { name = "TestCoin" },
   { name = "Whitelist" },
   { name = "X" },
   { name = "XOracle" },
@@ -39,14 +38,6 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet", subdi
 
 dependencies = [
   { name = "MoveStdlib" },
-]
-
-[[move.package]]
-name = "TestCoin"
-source = { local = "../test_coin" }
-
-dependencies = [
-  { name = "Sui" },
 ]
 
 [[move.package]]

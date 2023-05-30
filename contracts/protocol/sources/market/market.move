@@ -162,6 +162,12 @@ module protocol::market {
   public(friend) fun register_collateral<T>(self: &mut Market) {
     collateral_stats::init_collateral_if_none(&mut self.collateral_stats, get<T>());
   }
+
+  // the final fee rate is "fee/10000"
+  // When fee is 10, the final fee rate is 0.1%
+  public(friend) fun set_flash_loan_fee<T>(self: &mut Market, fee: u64) {
+    reserve::set_flash_loan_fee<T>(&mut self.vault, fee)
+  }
   
   public(friend) fun risk_models_mut(self: &mut Market): &mut AcTable<RiskModels, TypeName, RiskModel> {
     &mut self.risk_models

@@ -208,4 +208,14 @@ module protocol::app {
       outflow_limit,
     );
   }
+
+  // the final fee rate is "fee/10000"
+  // When fee is 10, the final fee rate is 0.1%
+  public entry fun set_flash_loan_fee<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    fee: u64
+  ) {
+    market::set_flash_loan_fee<T>(market, fee);
+  }
 }

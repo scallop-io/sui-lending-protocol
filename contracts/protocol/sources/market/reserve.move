@@ -5,14 +5,15 @@ module protocol::reserve {
   use sui::tx_context::TxContext;
   use sui::balance::{Self, Balance};
   use sui::object::{Self, UID};
-  use protocol::error;
   use x::supply_bag::{Self, SupplyBag};
   use x::balance_bag::{Self, BalanceBag};
   use x::wit_table::{Self, WitTable};
   use math::u64;
   use protocol::error;
-  
+
   friend protocol::market;
+
+  const FlashloanFeeScale: u64 = 10000;
 
   struct BalanceSheets has drop {}
   
@@ -22,6 +23,8 @@ module protocol::reserve {
     revenue: u64,
     market_coin_supply: u64,
   }
+
+  struct FlashLoanFees has drop {}
   
   struct FlashLoan<phantom T> {
     amount: u64
@@ -34,6 +37,7 @@ module protocol::reserve {
     market_coin_supplies: SupplyBag,
     underlying_balances: BalanceBag,
     balance_sheets: WitTable<BalanceSheets, TypeName, BalanceSheet>,
+    flash_loan_fees: WitTable<FlashLoanFees, TypeName, u64>,
   }
   
   public fun market_coin_supplies(vault: &Reserve): &SupplyBag { &vault.market_coin_supplies }
@@ -51,6 +55,7 @@ module protocol::reserve {
       market_coin_supplies: supply_bag::new(ctx),
       underlying_balances: balance_bag::new(ctx),
       balance_sheets: wit_table::new(BalanceSheets{}, true, ctx),
+      flash_loan_fees: wit_table::new(FlashLoanFees{}, true, ctx)
     }
   }
   
@@ -59,6 +64,7 @@ module protocol::reserve {
     balance_bag::init_balance<T>(&mut self.underlying_balances);
     let balance_sheet = BalanceSheet { cash: 0, debt: 0, revenue: 0, market_coin_supply: 0 };
     wit_table::add(BalanceSheets{}, &mut self.balance_sheets, get<T>(), balance_sheet);
+    wit_table::add(FlashLoanFees{}, &mut self.flash_loan_fees, get<T>(), 0);
   }
   
   public fun ulti_rate(self: &Reserve, type_name: TypeName): FixedPoint32 {
@@ -153,17 +159,26 @@ module protocol::reserve {
     supply_bag::decrease_supply(&mut self.market_coin_supplies, market_coin_balance);
     balance_bag::split<T>(&mut self.underlying_balances, redeem_amount)
   }
+
+  public(friend) fun set_flash_loan_fee<T>(
+    self: &mut Reserve,
+    fee: u64, // 0 - 10000
+  ) {
+    let current_fee = wit_table::borrow_mut(FlashLoanFees{}, &mut self.flash_loan_fees, get<T>());
+    *current_fee = fee;
+  }
   
   public(friend) fun borrow_flash_loan<T>(
     self: &mut Reserve,
     amount: u64
   ): (Balance<T>, FlashLoan<T>) {
     let balance = balance_bag::split<T>(&mut self.underlying_balances, amount);
-    let flashLoan = FlashLoan<T> { amount };
+    let fee = *wit_table::borrow(&self.flash_loan_fees, get<T>());
+    let loan_amount = amount + amount * fee / FlashloanFeeScale;
+    let flashLoan = FlashLoan<T> { amount: loan_amount };
     (balance, flashLoan)
   }
 
-  // TODO: charge fee for flash loan
   public(friend) fun repay_flash_loan<T>(
     self: &mut Reserve,
     balance: Balance<T>,

@@ -3,8 +3,7 @@ module protocol::limiter {
   use x::wit_table::{Self, WitTable};
   use sui::tx_context::TxContext;
   use std::type_name::TypeName;
-
-  const EOutflowReachedLimit: u64 = 0x10000;
+  use protocol::error;
 
   friend protocol::market;
 
@@ -113,7 +112,7 @@ module protocol::limiter {
   ) {
     let curr_outflow = count_current_outflow(table, key, now);
     let limiter = wit_table::borrow_mut(Limiters {}, table, key);
-    assert!(curr_outflow + value <= limiter.outflow_limit, EOutflowReachedLimit);
+    assert!(curr_outflow + value <= limiter.outflow_limit, error::outflow_reach_limit_error());
 
     let timestamp_index = now / (limiter.outflow_segment_duration as u64);
     let curr_index = timestamp_index % vector::length(&limiter.outflow_segments);
@@ -267,7 +266,8 @@ module protocol::limiter {
     test_scenario::end(scenario_value);
   }
 
-  #[test, expected_failure(abort_code = EOutflowReachedLimit)]
+  // Error Outflow Reach Limit = 0x0000901 = 2305
+  #[test, expected_failure(abort_code=2305, location=protocol::limiter)]
   fun outflow_limit_test_failed_reached_limit() {
     let segment_duration: u64 = 60 * 30;
     let cycle_duration: u64 = 60 * 60 * 24;

@@ -4,6 +4,7 @@ module protocol::interest_model {
   use std::fixed_point32::{Self, FixedPoint32};
   use sui::tx_context::TxContext;
   use math::fixed_point32_empower;
+  use protocol::error;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
 
@@ -11,9 +12,6 @@ module protocol::interest_model {
   friend protocol::market;
 
   const InterestModelChangeEffectiveEpoches: u64 = 7;
-  
-  const ERevenueFactorTooLarge: u64 = 0;
-  const EInterestModelTypeNotMatch: u64 = 1;
   
   struct InterestModel has copy, store, drop {
     type: TypeName,
@@ -90,7 +88,7 @@ module protocol::interest_model {
     let interestModel = one_time_lock_value::get_value(interestModelChange, ctx);
 
     let typeName = get<T>();
-    assert!(interestModel.type == typeName, EInterestModelTypeNotMatch);
+    assert!(interestModel.type == typeName, error::interest_model_type_not_match_error());
 
     // Remove the old interest model if exists
     if (ac_table::contains(interestModelTable, typeName)) {

@@ -4,10 +4,8 @@ module protocol::version {
   use sui::tx_context::{Self, TxContext};
   use sui::transfer;
 
-  use protocol::currrent_version::current_version;
-
-  const EMaxCollateralReached: u64 = 0;
-  const EVersionMisMatch: u64 = 1;
+  use protocol::current_version::current_version;
+  use protocol::error;
 
   struct Version has key, store {
     id: UID,
@@ -39,6 +37,20 @@ module protocol::version {
     v.value == current_version()
   }
   public fun assert_current_version(v: &Version) {
-    assert!(is_current_version(v), EVersionMisMatch)
+    assert!(is_current_version(v), error::version_mismatch_error());
+  }
+
+  #[test_only]
+  public fun create_for_testing(ctx: &mut TxContext): Version {
+    Version {
+      id: object::new(ctx),
+      value: current_version(),
+    }
+  }
+
+  #[test_only]
+  public fun destroy_for_testing(version: Version) {
+    let Version { id, value: _ } = version;
+    object::delete(id);
   }
 }

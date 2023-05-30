@@ -3,6 +3,8 @@ module protocol::obligation_collaterals {
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
+
+  friend protocol::obligation;
   
   struct Collateral has copy, store {
     amount: u64
@@ -10,11 +12,11 @@ module protocol::obligation_collaterals {
   
   struct ObligationCollaterals has drop {}
   
-  public fun new(ctx: &mut TxContext): WitTable<ObligationCollaterals, TypeName, Collateral>  {
+  public(friend) fun new(ctx: &mut TxContext): WitTable<ObligationCollaterals, TypeName, Collateral>  {
     wit_table::new(ObligationCollaterals{}, true, ctx)
   }
   
-  public fun init_collateral_if_none(
+  public(friend) fun init_collateral_if_none(
     collaterals: &mut WitTable<ObligationCollaterals, TypeName, Collateral>,
     type_name: TypeName,
   ) {
@@ -22,7 +24,7 @@ module protocol::obligation_collaterals {
     wit_table::add(ObligationCollaterals{}, collaterals, type_name, Collateral{ amount: 0 });
   }
   
-  public fun increase(
+  public(friend) fun increase(
     collaterals: &mut WitTable<ObligationCollaterals, TypeName, Collateral>,
     type_name: TypeName,
     amount: u64,
@@ -32,7 +34,7 @@ module protocol::obligation_collaterals {
     collateral.amount = collateral.amount + amount;
   }
   
-  public fun decrease(
+  public(friend) fun decrease(
     collaterals: &mut WitTable<ObligationCollaterals, TypeName, Collateral>,
     type_name: TypeName,
     amount: u64,

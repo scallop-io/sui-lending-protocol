@@ -6,14 +6,13 @@ module protocol::open_obligation {
   use sui::object::{Self, ID};
   use protocol::obligation::{Self, ObligationKey, Obligation};
   use protocol::version::{Self, Version};
+  use protocol::error;
 
   /// A hot potato is a temporary object that is passed around between parties
   /// It is used to ensure that obligations are always shared in a transaction
   struct ObligationHotPotato {
     obligation_id: ID, 
   }
-
-  const EInvalidObligation: u64 = 0x50001;
 
   struct ObligationCreatedEvent has copy, drop {
     sender: address,
@@ -64,7 +63,7 @@ module protocol::open_obligation {
     // Check version
     version::assert_current_version(version);
     let ObligationHotPotato { obligation_id } = obligation_hot_potato;
-    assert!(obligation_id == object::id(&obligation), EInvalidObligation);
+    assert!(obligation_id == object::id(&obligation), error::invalid_obligation_error());
     transfer::public_share_object(obligation);
   }
 }

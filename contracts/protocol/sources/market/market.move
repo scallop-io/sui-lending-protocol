@@ -16,6 +16,7 @@ module protocol::market {
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
   use protocol::collateral_stats::{CollateralStats, CollateralStat};
   use protocol::collateral_stats;
+  use protocol::error;
   use math::fixed_point32_empower;
 
   friend protocol::app;
@@ -28,7 +29,6 @@ module protocol::market {
   friend protocol::deposit_collateral;
   friend protocol::flash_loan;
 
-  const EMaxCollateralReached: u64 = 0;
   
   struct Market has key, store {
     id: UID,
@@ -202,7 +202,7 @@ module protocol::market {
     collateral_stats::increase(&mut self.collateral_stats, type, collateral_amount);
     let total_collateral_amount = collateral_stats::collateral_amount(&self.collateral_stats, type);
     let max_collateral_amount = risk_model::max_collateral_Amount(risk_model);
-    assert!(total_collateral_amount <= max_collateral_amount, EMaxCollateralReached);
+    assert!(total_collateral_amount <= max_collateral_amount, error::max_collateral_reached_error());
   }
   
   public(friend) fun handle_withdraw_collateral<T>(

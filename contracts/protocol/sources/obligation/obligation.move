@@ -22,9 +22,6 @@ module protocol::obligation {
   friend protocol::liquidate;
   friend protocol::open_obligation;
   
-  const EWithdrawTooMuch: u64 = 0;
-  const EBorrowTooMuch: u64 = 1;
-  
   struct Obligation has key, store {
     id: UID,
     balances: BalanceBag,

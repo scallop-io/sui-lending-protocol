@@ -4,11 +4,12 @@ module protocol_test::oracle_t {
     use sui::test_scenario::{Self, Scenario};
     use x_oracle::x_oracle::{Self, XOracle, XOraclePolicyCap};
 
-    public fun init_t(scenario: &mut Scenario, admin: address): (XOracle, XOraclePolicyCap) {
+    public fun init_t(scenario: &mut Scenario): (XOracle, XOraclePolicyCap) {
         x_oracle::init_t(test_scenario::ctx(scenario));
-        test_scenario::next_tx(scenario, admin);
+        let sender = test_scenario::sender(scenario);
+        test_scenario::next_tx(scenario, sender);
 
-        (test_scenario::take_shared<XOracle>(scenario), test_scenario::take_from_address<XOraclePolicyCap>(scenario, admin))
+        (test_scenario::take_shared<XOracle>(scenario), test_scenario::take_from_address<XOraclePolicyCap>(scenario, sender))
     }
 
     public fun calc_scaled_price(scaled_price: u64, decimals: u8): u64 {

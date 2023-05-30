@@ -51,7 +51,6 @@ module protocol::app {
     delay: u64,
   ) {
     let new_delay = admin_cap.interest_model_change_delay + delay;
-    assert!(new_delay > admin_cap.interest_model_change_delay, 0);
     admin_cap.interest_model_change_delay = new_delay;
   }
 
@@ -60,7 +59,6 @@ module protocol::app {
     delay: u64,
   ) {
     let new_delay = admin_cap.risk_model_change_delay + delay;
-    assert!(new_delay > admin_cap.risk_model_change_delay, 0);
     admin_cap.risk_model_change_delay = new_delay;
   }
 

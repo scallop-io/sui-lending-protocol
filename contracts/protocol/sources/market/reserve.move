@@ -9,10 +9,9 @@ module protocol::reserve {
   use x::balance_bag::{Self, BalanceBag};
   use x::wit_table::{Self, WitTable};
   use math::u64;
+  use protocol::error;
   
   friend protocol::market;
-  
-  const EFlashLoanNotPaidEnough: u64 = 0;
   
   struct BalanceSheets has drop {}
   
@@ -164,13 +163,13 @@ module protocol::reserve {
   }
 
   // TODO: charge fee for flash loan
-  public(friend) fun return_flash_loan<T>(
+  public(friend) fun repay_flash_loan<T>(
     self: &mut Reserve,
     balance: Balance<T>,
     flash_loan: FlashLoan<T>,
   ) {
     let FlashLoan { amount } = flash_loan;
-    assert!(balance::value(&balance) >= amount, EFlashLoanNotPaidEnough);
+    assert!(balance::value(&balance) >= amount, error::flash_loan_not_paid_enough());
     balance_bag::join(&mut self.underlying_balances, balance);
   }
 }

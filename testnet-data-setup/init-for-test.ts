@@ -3,14 +3,16 @@ import { suiKit } from "sui-elements";
 import { initXOracleForTest } from "./init-oracle";
 import { initCoinDecimalRegistry } from "./init-coin-decimal-registry";
 import { initMarketForTest } from "./init-market";
+import { addWhitelistForTest } from "./add-whitelist";
 import { supplyBaseAsset } from "./supply-base-asset";
 
 export const setupForTestnet = async () => {
   const tx = new SuiTxBlock();
-  initXOracleForTest(tx);
+  // initXOracleForTest(tx);
   // initCoinDecimalRegistry(tx);
   // initMarketForTest(tx);
-  // supplyBaseAsset(tx);
+  // addWhitelistForTest(tx);
+  supplyBaseAsset(tx);
   return suiKit.signAndSendTxn(tx);
 }
 

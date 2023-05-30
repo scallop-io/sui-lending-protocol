@@ -9,4 +9,5 @@ export const supplyBaseAsset = (tx: SuiTxBlock) => {
 
   protocolTxBuilder.supplyBaseAsset(tx, usdcCoin, testCoinTypes.usdc);
   protocolTxBuilder.supplyBaseAsset(tx, usdtCoin, testCoinTypes.usdt);
+  return tx;
 }

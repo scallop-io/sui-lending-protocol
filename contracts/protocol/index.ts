@@ -9,5 +9,6 @@ export const publishResult = require(path.join(__dirname, `./publish-result.${ne
 export const protocolTxBuilder = new ProtocolTxBuilder(
   publishResult.packageId,
   publishResult.adminCapId,
-  publishResult.marketId
+  publishResult.marketId,
+  publishResult.versionId,
 );

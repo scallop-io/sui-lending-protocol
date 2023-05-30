@@ -31,6 +31,7 @@ export class ProtocolTxBuilder {
     public packageId: string,
     public adminCapId: string,
     public marketId: string,
+    public versionId: string,
   ) { }
 
   addRiskModel(
@@ -115,7 +116,11 @@ export class ProtocolTxBuilder {
     const marketUidMutTarget = `${this.packageId}::app::add_whitelist_address`;
     return suiTxBlock.moveCall(
       marketUidMutTarget,
-      [this.adminCapId, this.marketId, address],
+      [
+        this.adminCapId,
+        this.marketId,
+        suiTxBlock.pure(address),
+      ],
     );
   }
 
@@ -126,7 +131,7 @@ export class ProtocolTxBuilder {
   ) {
     suiTxBlock.moveCall(
       `${this.packageId}::mint::mint_entry`,
-      [this.marketId, coinId, SUI_CLOCK_OBJECT_ID],
+      [this.versionId, this.marketId, coinId, SUI_CLOCK_OBJECT_ID],
       [coinType]
     );
   }
@@ -134,7 +139,7 @@ export class ProtocolTxBuilder {
   openObligation(suiTxBlock: SuiTxBlock) {
     return suiTxBlock.moveCall(
       `${this.packageId}::open_obligation::open_obligation`,
-      [],
+      [this.versionId],
     );
   }
 
@@ -145,7 +150,7 @@ export class ProtocolTxBuilder {
   ) {
     suiTxBlock.moveCall(
       `${this.packageId}::open_obligation::return_obligation`,
-      [obligation, obligationHotPotato],
+      [this.versionId, obligation, obligationHotPotato],
     );
   }
 
@@ -157,7 +162,7 @@ export class ProtocolTxBuilder {
   ) {
     suiTxBlock.moveCall(
       `${this.packageId}::deposit_collateral::deposit_collateral`,
-      [obligation, this.marketId, coin],
+      [this.versionId, obligation, this.marketId, coin],
       [coinType]
     );
   }
@@ -174,6 +179,7 @@ export class ProtocolTxBuilder {
     return suiTxBlock.moveCall(
       `${this.packageId}::withdraw_collateral::withdraw_collateral`,
       [
+        this.versionId,
         obligation,
         obligationKey,
         this.marketId,
@@ -199,6 +205,7 @@ export class ProtocolTxBuilder {
     return suiTxBlock.moveCall(
       `${this.packageId}::borrow::borrow`,
       [
+        this.versionId,
         obligation,
         obligationKey,
         this.marketId,

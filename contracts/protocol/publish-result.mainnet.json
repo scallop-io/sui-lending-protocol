@@ -1,6 +1,8 @@
 {
-  "packageId": "0x2dd06d613df41798ba7c02d839c9d1c47e8bab30873f913d92398859476cb6d4",
-  "upgradeCapId": "0x11db8b1b7988f53996f5f9b66897906b07ea2a141cb19faeaf39c3dd47c3e4bf",
-  "marketId": "0x6ee9470194526ca5e0d40c83ec46c72c5eb53a0b294ce2bfb37c00d65139e548",
-  "adminCapId": "0x5665bc92ae62e232f1e29b550853399b848349bbb848b5569e6de7a3c47c7a4d"
+  "packageId": "0x0edc00c6e65eb3d4fa369b3b1de6ccbcd11185e027ebb5cc49c8c66c7ce903bd",
+  "upgradeCapId": "0xfdb1ad1ff99138b7750e12ba0993100e49ac6297721ec9d0c55c9af9baa6a28a",
+  "marketId": "0x4448d9ae766de43b1644f6ad0a7c39c1bdd12cd1eb0f90b9f8c2b708562ab7ec",
+  "adminCapId": "0x4ab6ba9e26e5d1719a3c4ee7e52cfcac1f1da588ec3d9a3ea91093a3cf0a784f",
+  "versionId": "0x38cdda116d6cdaaabf234aa5c1bf7d6038a179164a6270d72a4cabdc38139ce9",
+  "versionCapId": "0x485a5453d0aafa489ef56965f3b48fa87e2f3a2e9eff2b56c05e4079af18c13c"
 }

@@ -19,7 +19,7 @@ export const protocolPackageList: PackageBatch = [
   { packagePath: xPkgPath },
   { packagePath: whitelistPkgPath },
   { packagePath: coinDecimalsRegistryPath, option: { publishResultParser: decimalsRegistryParser } },
-  { packagePath: protocolPkgPath, option: { publishResultParser: protocolParser } },
+  { packagePath: protocolPkgPath, option: { publishResultParser: protocolParser, enforce: true } },
   { packagePath: protocolQueryPkgPath, option: { enforce: true } }
 ];
 export const publishProtocol = async (

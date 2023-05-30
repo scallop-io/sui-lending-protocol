@@ -10,12 +10,12 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
     {
       type: SUI_TYPE_ARG,
       riskModel: {
-        collateralFactor: 70,
+        collateralFactor: 60,
         liquidationFactor: 80,
-        liquidationPanelty: 10,
-        liquidationDiscount: 6,
+        liquidationPanelty: 5,
+        liquidationDiscount: 4,
         scale: 100,
-        maxCollateralAmount: 10 ** 16,
+        maxCollateralAmount: 10 ** 15, // 1 million SUI
       }
     },
     {
@@ -23,10 +23,10 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
       riskModel: {
         collateralFactor: 80,
         liquidationFactor: 90,
-        liquidationPanelty: 8,
-        liquidationDiscount: 5,
+        liquidationPanelty: 5,
+        liquidationDiscount: 4,
         scale: 100,
-        maxCollateralAmount: 10 ** 13,
+        maxCollateralAmount: 10 ** 12, // 1 million USDC
       }
     },
   ];
@@ -35,24 +35,24 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
     {
       type: SUI_TYPE_ARG,
       interestModel: {
-        baseRatePerSec: 6341958,
-        lowSlope: 2 * 10 ** 16, // 2
+        baseRatePerSec: 15854986, // 5 * (10 ** 16) / (365 * 24 * 3600) / 100
+        lowSlope: 167 * 10 ** 14, // 1.67
         kink: 8 * 10 ** 15, // 0.8
-        highSlope: 2 * 10 ** 17, // 20
-        marketFactor: 2 * 10 ** 14, // 2%
+        highSlope: 95 * 10 ** 16, // 95
+        marketFactor: 5 * 10 ** 14, // 5%
         scale: 10 ** 16,
-        minBorrowAmount: 10 ** 8,
-        borrow_weight: 10 ** 16, // 1
+        minBorrowAmount: 10 ** 10, // 10SUI
+        borrow_weight: 125 * 10 ** 14, // 1.25
       }
     },
     {
       type: wormholeUsdcType,
       interestModel: {
-        baseRatePerSec: 6341958,
-        lowSlope: 2 * 10 ** 16, // 2
+        baseRatePerSec: 9512937, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100
+        lowSlope: 278 * 10 ** 14, // 2.78
         kink: 8 * 10 ** 15, // 0.8
-        highSlope: 2 * 10 ** 17, // 20
-        marketFactor: 2 * 10 ** 14, // 2%
+        highSlope: 7667 * 10 ** 14, // 76.67
+        marketFactor: 5 * 10 ** 14, // 5%
         scale: 10 ** 16,
         minBorrowAmount: 10 ** 8,
         borrow_weight: 10 ** 16, // 1
@@ -64,7 +64,7 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
     {
       type: SUI_TYPE_ARG,
       outflowLimit: {
-        outflowLimit: 10 ** (6 + 9),
+        outflowLimit: 10 ** (6 + 9), // 1 million SUI per day
         outflowCycleDuration: 60 * 60 * 24,
         outflowSegmentDuration: 60 * 30,
       }
@@ -72,7 +72,7 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
     {
       type: wormholeUsdcType,
       outflowLimit: {
-        outflowLimit: 10 ** (6 + 9),
+        outflowLimit: 10 ** (6 + 6), // 1 million USDC per day
         outflowCycleDuration: 60 * 60 * 24,
         outflowSegmentDuration: 60 * 30,
       }

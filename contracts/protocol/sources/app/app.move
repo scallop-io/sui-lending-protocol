@@ -116,7 +116,17 @@ module protocol::app {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
+    update_interest_model<T>(market, admin_cap, interest_model_change, ctx);
     let now = clock::timestamp_ms(clock) / 1000;
+    market::register_coin<T>(market, now);
+  }
+  
+  public fun update_interest_model<T>(
+    market: &mut Market,
+    admin_cap: &AdminCap,
+    interest_model_change: OneTimeLockValue<InterestModel>,
+    ctx: &mut TxContext,
+  ) {
     let interest_models = market::interest_models_mut(market);
     interest_model::add_interest_model<T>(
       interest_models,
@@ -124,7 +134,6 @@ module protocol::app {
       interest_model_change,
       ctx
     );
-    market::register_coin<T>(market, now);
   }
 
   public fun create_risk_model_change<T>(
@@ -157,6 +166,16 @@ module protocol::app {
     risk_model_change: OneTimeLockValue<RiskModel>,
     ctx: &mut TxContext
   ) {
+    update_risk_model<T>(market, admin_cap, risk_model_change, ctx);
+    market::register_collateral<T>(market);
+  }
+  
+  public entry fun update_risk_model<T>(
+    market: &mut Market,
+    admin_cap: &AdminCap,
+    risk_model_change: OneTimeLockValue<RiskModel>,
+    ctx: &mut TxContext
+  ) {
     let risk_models = market::risk_models_mut(market);
     risk_model::add_risk_model<T>(
       risk_models,
@@ -164,7 +183,6 @@ module protocol::app {
       risk_model_change,
       ctx
     );
-    market::register_collateral<T>(market);
   }
 
   public entry fun add_limiter<T>(

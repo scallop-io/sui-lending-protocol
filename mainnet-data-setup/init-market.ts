@@ -79,18 +79,18 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
     },
   ]
 
-  // protocolTxBuilder.addWhitelistAddress(
-  //   suiTxBlock,
-  //   suiKit.currentAddress(),
-  // );
+  protocolTxBuilder.addWhitelistAddress(
+    suiTxBlock,
+    suiKit.currentAddress(),
+  );
 
-  // riskModelPairs.forEach(pair => {
-  //   protocolTxBuilder.addRiskModel(
-  //     suiTxBlock,
-  //     pair.riskModel,
-  //     pair.type,
-  //   );
-  // });
+  riskModelPairs.forEach(pair => {
+    protocolTxBuilder.addRiskModel(
+      suiTxBlock,
+      pair.riskModel,
+      pair.type,
+    );
+  });
   interestModelPairs.forEach(pair => {
     protocolTxBuilder.addInterestModel(
       suiTxBlock,
@@ -98,11 +98,11 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
       pair.type,
     );
   });
-  // outflowLimitPairs.forEach(pair => {
-  //   protocolTxBuilder.addLimiter(
-  //     suiTxBlock,
-  //     pair.outflowLimit,
-  //     pair.type,
-  //   );
-  // });
+  outflowLimitPairs.forEach(pair => {
+    protocolTxBuilder.addLimiter(
+      suiTxBlock,
+      pair.outflowLimit,
+      pair.type,
+    );
+  });
 }

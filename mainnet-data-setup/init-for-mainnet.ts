@@ -10,7 +10,7 @@ export const setupForMainnet = async () => {
   // initXOracle(tx);
   // initCoinDecimalRegistry(tx);
   initMarket(tx);
-  // addWhitelist(tx);
+  addWhitelist(tx);
   return suiKit.signAndSendTxn(tx);
 }
 

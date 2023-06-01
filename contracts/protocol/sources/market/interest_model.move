@@ -13,6 +13,8 @@ module protocol::interest_model {
 
   const InterestModelChangeEffectiveEpoches: u64 = 7;
   
+  const BaseBorrowRatePerSecScale: u64 = 1000;
+  
   struct InterestModel has copy, store, drop {
     type: TypeName,
     base_borrow_rate_per_sec: FixedPoint32,
@@ -30,6 +32,7 @@ module protocol::interest_model {
     borrow_weight: FixedPoint32,
   }
   public fun base_borrow_rate(model: &InterestModel): FixedPoint32 { model.base_borrow_rate_per_sec }
+  public fun base_borrow_rate_scale(): u64 { BaseBorrowRatePerSecScale }
   public fun low_slope(model: &InterestModel): FixedPoint32 { model.low_slope }
   public fun kink(model: &InterestModel): FixedPoint32 { model.kink }
   public fun high_slope(model: &InterestModel): FixedPoint32 { model.high_slope }

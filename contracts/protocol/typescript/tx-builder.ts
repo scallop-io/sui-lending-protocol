@@ -89,6 +89,35 @@ export class ProtocolTxBuilder {
       [coinType],
     );
   }
+  
+  updateInterestModel(
+    suiTxBlock: SuiTxBlock,
+    interestModel: InterestModel,
+    coinType: string,
+  ) {
+    const createInterestModelChangeTarget = `${this.packageId}::app::create_interest_model_change`;
+    let interestModelChange= suiTxBlock.moveCall(
+      createInterestModelChangeTarget,
+      [
+        this.adminCapId,
+        interestModel.baseRatePerSec,
+        interestModel.lowSlope,
+        interestModel.kink,
+        interestModel.highSlope,
+        interestModel.marketFactor,
+        interestModel.scale,
+        interestModel.minBorrowAmount,
+        interestModel.borrow_weight,
+      ],
+      [coinType],
+    );
+    const addInterestModelTarget = `${this.packageId}::app::update_interest_model`;
+    suiTxBlock.moveCall(
+      addInterestModelTarget,
+      [this.marketId, this.adminCapId, interestModelChange],
+      [coinType],
+    );
+  }
 
   addLimiter(
     suiTxBlock: SuiTxBlock,

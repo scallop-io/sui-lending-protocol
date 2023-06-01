@@ -7,6 +7,7 @@ module protocol::borrow_dynamics {
   use sui::math;
   use x::wit_table::{Self, WitTable};
   use math::fixed_point32_empower;
+  use protocol::interest_model;
   
   friend protocol::market;
   
@@ -59,6 +60,7 @@ module protocol::borrow_dynamics {
     let time_delta = fixed_point32_empower::from_u64(now - debt_dynamic.last_updated);
     let index_delta =
       fixed_point32::multiply_u64(debt_dynamic.borrow_index, fixed_point32_empower::mul(time_delta, debt_dynamic.interest_rate));
+    let index_delta = index_delta / interest_model::base_borrow_rate_scale();
     debt_dynamic.borrow_index = debt_dynamic.borrow_index + index_delta;
     debt_dynamic.last_updated = now;
   }

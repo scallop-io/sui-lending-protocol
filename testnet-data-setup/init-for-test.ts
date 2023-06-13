@@ -10,7 +10,7 @@ export const setupForTestnet = async () => {
   const tx = new SuiTxBlock();
   // initXOracleForTest(tx);
   // initCoinDecimalRegistry(tx);
-  // initMarketForTest(tx);
+  initMarketForTest(tx);
   // addWhitelistForTest(tx);
   supplyBaseAsset(tx);
   return suiKit.signAndSendTxn(tx);

@@ -1,3 +1,4 @@
+import { SUI_TYPE_ARG } from "@mysten/sui.js";
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { suiKit } from '../sui-elements';
 import { testCoinTypes } from '../contracts/test_coin';
@@ -64,26 +65,39 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
 
   const interestModelPairs: { type: string, interestModel: InterestModel }[] = [
     {
+      type: SUI_TYPE_ARG,
+      interestModel: {
+        baseRatePerSec: 15854986000, // 5 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        lowSlope: 167 * 10 ** 14, // 1.67
+        kink: 8 * 10 ** 15, // 0.8
+        highSlope: 95 * 10 ** 16, // 95
+        marketFactor: 5 * 10 ** 14, // 5%
+        scale: 10 ** 16,
+        minBorrowAmount: 10 ** 10, // 10SUI
+        borrow_weight: 125 * 10 ** 14, // 1.25
+      }
+    },
+    {
       type: testCoinTypes.usdc,
       interestModel: {
-        baseRatePerSec: 6341958,
-        lowSlope: 2 * 10 ** 16, // 2
+        baseRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        lowSlope: 278 * 10 ** 14, // 2.78
         kink: 8 * 10 ** 15, // 0.8
-        highSlope: 2 * 10 ** 17, // 20
-        marketFactor: 2 * 10 ** 14, // 2%
+        highSlope: 7667 * 10 ** 14, // 76.67
+        marketFactor: 5 * 10 ** 14, // 5%
         scale: 10 ** 16,
         minBorrowAmount: 10 ** 8,
         borrow_weight: 10 ** 16, // 1
-      }
+      },
     },
     {
       type: testCoinTypes.usdt,
       interestModel: {
-        baseRatePerSec: 6341958,
-        lowSlope: 2 * 10 ** 16, // 2
+        baseRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        lowSlope: 278 * 10 ** 14, // 2.78
         kink: 8 * 10 ** 15, // 0.8
-        highSlope: 2 * 10 ** 17, // 20
-        marketFactor: 2 * 10 ** 14, // 2%
+        highSlope: 7667 * 10 ** 14, // 76.67
+        marketFactor: 5 * 10 ** 14, // 5%
         scale: 10 ** 16,
         minBorrowAmount: 10 ** 8,
         borrow_weight: 10 ** 16, // 1
@@ -92,11 +106,11 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
     {
       type: testCoinTypes.btc,
       interestModel: {
-        baseRatePerSec: 6341958,
-        lowSlope: 2 * 10 ** 16, // 2
+        baseRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        lowSlope: 278 * 10 ** 14, // 2.78
         kink: 8 * 10 ** 15, // 0.8
-        highSlope: 2 * 10 ** 17, // 20
-        marketFactor: 2 * 10 ** 14, // 2%
+        highSlope: 7667 * 10 ** 14, // 76.67
+        marketFactor: 5 * 10 ** 14, // 5%
         scale: 10 ** 16,
         minBorrowAmount: 10 ** 8,
         borrow_weight: 10 ** 16, // 1
@@ -105,24 +119,11 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
     {
       type: testCoinTypes.eth,
       interestModel: {
-        baseRatePerSec: 6341958,
-        lowSlope: 2 * 10 ** 16, // 2
+        baseRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        lowSlope: 278 * 10 ** 14, // 2.78
         kink: 8 * 10 ** 15, // 0.8
-        highSlope: 2 * 10 ** 17, // 20
-        marketFactor: 2 * 10 ** 14, // 2%
-        scale: 10 ** 16,
-        minBorrowAmount: 10 ** 8,
-        borrow_weight: 10 ** 16, // 1
-      },
-    },
-    {
-      type: '0x2::sui::SUI',
-      interestModel: {
-        baseRatePerSec: 6341958,
-        lowSlope: 2 * 10 ** 16, // 2
-        kink: 8 * 10 ** 15, // 0.8
-        highSlope: 2 * 10 ** 17, // 20
-        marketFactor: 2 * 10 ** 14, // 2%
+        highSlope: 7667 * 10 ** 14, // 76.67
+        marketFactor: 5 * 10 ** 14, // 5%
         scale: 10 ** 16,
         minBorrowAmount: 10 ** 8,
         borrow_weight: 10 ** 16, // 1

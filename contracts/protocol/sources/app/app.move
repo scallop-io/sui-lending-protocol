@@ -96,6 +96,7 @@ module protocol::app {
   public fun create_interest_model_change<T>(
     admin_cap: &AdminCap,
     base_rate_per_sec: u64,
+    interest_rate_scale: u64,
     low_slope: u64,
     kink: u64,
     high_slope: u64,
@@ -108,6 +109,7 @@ module protocol::app {
     let interest_model_change = interest_model::create_interest_model_change<T>(
       &admin_cap.interest_model_cap,
       base_rate_per_sec,
+      interest_rate_scale,
       low_slope,
       kink,
       high_slope,

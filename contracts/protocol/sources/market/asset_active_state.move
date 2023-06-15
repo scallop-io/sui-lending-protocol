@@ -48,7 +48,7 @@ module protocol::asset_active_state {
     is_active: bool,
   ) {
     if (wit_table::contains(&states.base, type_name)) {
-      wit_table::remove(BaseAssetActiveStates, &mut states.base, type_name);
+      wit_table::remove(BaseAssetActiveStates{}, &mut states.base, type_name);
     };
     wit_table::add(BaseAssetActiveStates{}, &mut states.base, type_name, is_active);
   }
@@ -59,8 +59,8 @@ module protocol::asset_active_state {
     is_active: bool,
   ) {
     if (wit_table::contains(&states.collateral, type_name)) {
-      wit_table::remove(CollateralActiveStates, &mut states.collateral, type_name);
+      wit_table::remove(CollateralActiveStates {}, &mut states.collateral, type_name);
     };
-    wit_table::add(CollateralActiveStates, &mut states.collateral, type_name, is_active);
+    wit_table::add(CollateralActiveStates {}, &mut states.collateral, type_name, is_active);
   }
 }

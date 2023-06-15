@@ -1,6 +1,6 @@
 module protocol::deposit_collateral {
   
-  use std::type_name::{Self, TypeName, get};
+  use std::type_name::{Self, TypeName};
   use sui::object::{Self, ID};
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};
@@ -33,7 +33,7 @@ module protocol::deposit_collateral {
       error::whitelist_error()
     );
 
-    let coin_type = get<T>();
+    let coin_type = type_name::get<T>();
     // check if collateral state is active
     assert!(
       market::is_collateral_active(market, coin_type),

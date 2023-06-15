@@ -10,5 +10,8 @@ rev = "testnet"
 [dependencies.Protocol]
 local = "../protocol"
 
+[dependencies.TestCoin]
+local = "../test_coin"
+
 [addresses]
 protocol_test="0x0"

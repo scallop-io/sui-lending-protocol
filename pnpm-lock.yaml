@@ -11,11 +11,11 @@ dependencies:
     specifier: ^1.4.1
     version: 1.4.1
   '@scallop-io/sui-kit':
+    specifier: ^0.35.3
+    version: 0.35.3(@mysten/sui.js@0.35.1)
+  '@scallop-io/sui-package-kit':
     specifier: ^0.35.2
     version: 0.35.2(@mysten/sui.js@0.35.1)
-  '@scallop-io/sui-package-kit':
-    specifier: ^0.35.1
-    version: 0.35.1(@mysten/sui.js@0.35.1)
   fs:
     specifier: 0.0.1-security
     version: 0.0.1-security
@@ -141,8 +141,8 @@ packages:
     resolution: {integrity: sha512-h4HcUwBPFEZwa5nLMTz9YnwdLE5m+Bfctzqbj09vpSJo2DyPHCyEXScFUuizWBbfofxB/pF+OnZXjU3pJxtm/w==}
     dev: false
 
-  /@scallop-io/sui-kit@0.35.2(@mysten/sui.js@0.35.1):
-    resolution: {integrity: sha512-gu0I8PcBhotzZb9otnA4V/WudRu10UASBy67AgvjQaSyz0Fr0rFJUwhVlXzmrYDEz3j2/VmJXJkGgkL2D2NJuA==}
+  /@scallop-io/sui-kit@0.35.3(@mysten/sui.js@0.35.1):
+    resolution: {integrity: sha512-3y0MtNoOQKeKu/GzsMiwBqvJmRGsfbVSZu8N+ZSH+2Qt+gxD/WxFWgJ4wC7bJNIAvr4naUOYg5aT6lFRT3WkQw==}
     engines: {node: '>=18'}
     peerDependencies:
       '@mysten/sui.js': ^0.35.1
@@ -156,8 +156,8 @@ packages:
       ts-retry-promise: 0.7.0
     dev: false
 
-  /@scallop-io/sui-package-kit@0.35.1(@mysten/sui.js@0.35.1):
-    resolution: {integrity: sha512-9Zf+bgS0dQffJgdflHE/Eowr1RMMPxfxsfW4EVj8AQldrV3yYNLdBW2Z+VcwQzs/xlMnn+OZVwdNAwSTD4QhcQ==}
+  /@scallop-io/sui-package-kit@0.35.2(@mysten/sui.js@0.35.1):
+    resolution: {integrity: sha512-lZw4aU780uIvf5eS951CVmxdxgqPBclFAcyrGimlcVHmrIyswChTgNmKxL5GSJN+hgXe46pO8tFJePGytky36A==}
     engines: {node: '>=16'}
     peerDependencies:
       '@mysten/sui.js': ^0.35.1

@@ -15,6 +15,7 @@ module protocol_test::constants {
   
   struct InterestModelParams<phantom T> has copy, drop {
     baseRatePerSec: u64,
+    interestRateScale: u64,
     lowSlope: u64,
     kink: u64,
     highSlope: u64,
@@ -32,6 +33,7 @@ module protocol_test::constants {
   public fun max_collateral_amount<T>(params: &RiskModelParams<T>): u64 { params.maxCollateralAmount }
   
   public fun base_rate_per_sec<T>(params: &InterestModelParams<T>): u64 { params.baseRatePerSec }
+  public fun interest_rate_scale<T>(params: &InterestModelParams<T>): u64 { params.interestRateScale }
   public fun low_slope<T>(params: &InterestModelParams<T>): u64 { params.lowSlope }
   public fun kink<T>(params: &InterestModelParams<T>): u64 { params.kink }
   public fun high_slope<T>(params: &InterestModelParams<T>): u64 { params.highSlope }
@@ -66,7 +68,8 @@ module protocol_test::constants {
   
   public fun usdc_interest_model_params(): InterestModelParams<USDC> {
     InterestModelParams {
-      baseRatePerSec: 6341958,
+      baseRatePerSec: 15854986000,
+      interestRateScale: 1000,
       lowSlope: 2 * math::pow(10, 16),
       kink: 80 * math::pow(10, 14),
       highSlope: 20 * math::pow(10, 16),

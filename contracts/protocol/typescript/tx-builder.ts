@@ -12,6 +12,7 @@ export type RiskModel = {
 
 export type InterestModel = {
   baseRatePerSec: number,
+  interestRateScale: number,
   lowSlope: number,
   kink: number,
   highSlope: number,
@@ -72,6 +73,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         interestModel.baseRatePerSec,
+        interestModel.interestRateScale,
         interestModel.lowSlope,
         interestModel.kink,
         interestModel.highSlope,

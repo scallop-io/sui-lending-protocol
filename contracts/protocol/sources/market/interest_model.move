@@ -13,11 +13,10 @@ module protocol::interest_model {
 
   const InterestModelChangeEffectiveEpoches: u64 = 7;
   
-  const BaseBorrowRatePerSecScale: u64 = 1000;
-  
   struct InterestModel has copy, store, drop {
     type: TypeName,
     base_borrow_rate_per_sec: FixedPoint32,
+    interest_rate_scale: u64,
     low_slope: FixedPoint32,
     kink: FixedPoint32,
     high_slope: FixedPoint32,
@@ -32,7 +31,7 @@ module protocol::interest_model {
     borrow_weight: FixedPoint32,
   }
   public fun base_borrow_rate(model: &InterestModel): FixedPoint32 { model.base_borrow_rate_per_sec }
-  public fun base_borrow_rate_scale(): u64 { BaseBorrowRatePerSecScale }
+  public fun interest_rate_scale(model: &InterestModel): u64 { model.interest_rate_scale }
   public fun low_slope(model: &InterestModel): FixedPoint32 { model.low_slope }
   public fun kink(model: &InterestModel): FixedPoint32 { model.kink }
   public fun high_slope(model: &InterestModel): FixedPoint32 { model.high_slope }
@@ -53,6 +52,7 @@ module protocol::interest_model {
   public(friend) fun create_interest_model_change<T>(
     _: &AcTableCap<InterestModels>,
     base_rate_per_sec: u64,
+    interest_rate_scale: u64,
     low_slope: u64,
     kink: u64,
     high_slope: u64,
@@ -72,6 +72,7 @@ module protocol::interest_model {
     let interest_model = InterestModel {
       type: get<T>(),
       base_borrow_rate_per_sec,
+      interest_rate_scale,
       low_slope,
       kink,
       high_slope,
@@ -100,11 +101,14 @@ module protocol::interest_model {
     // Add the new interest model
     ac_table::add(interestModelTable, cap, typeName, interestModel)
   }
-  
+
+  // Return the interest rate under the given utilization rate
+  // Notice: the interest rate is scaled by a factor, because it's too small to be used directly
   public fun calc_interest(
     interest_model: &InterestModel,
     ulti_rate: FixedPoint32,
-  ): FixedPoint32 {
+  ): (FixedPoint32, u64) {
+    let interest_rate_scale = interest_model.interest_rate_scale;
     let low_slope = interest_model.low_slope;
     let high_slope = interest_model.high_slope;
     let kink = interest_model.kink;
@@ -124,9 +128,12 @@ module protocol::interest_model {
     } else {
       fixed_point32_empower::mul(ulti_rate, low_slope)
     };
-    fixed_point32_empower::mul(
-      base_rate,
-      fixed_point32_empower::add(fixed_point32::create_from_rational(1, 1), rate_growth)
+    (
+      fixed_point32_empower::mul(
+        base_rate,
+        fixed_point32_empower::add(fixed_point32::create_from_rational(1, 1), rate_growth)
+      ),
+      interest_rate_scale,
     )
   }
 }

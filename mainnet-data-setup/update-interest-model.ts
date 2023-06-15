@@ -12,6 +12,7 @@ export const updateInterestModel = (suiTxBlock: SuiTxBlock) => {
       type: SUI_TYPE_ARG,
       interestModel: {
         baseRatePerSec: 15854986000, // 5 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        interestRateScale: 1000,
         lowSlope: 167 * 10 ** 14, // 1.67
         kink: 6 * 10 ** 15, // 0.6
         highSlope: 95 * 10 ** 16, // 95
@@ -25,6 +26,7 @@ export const updateInterestModel = (suiTxBlock: SuiTxBlock) => {
       type: wormholeUsdcType,
       interestModel: {
         baseRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        interestRateScale: 1000,
         lowSlope: 278 * 10 ** 14, // 2.78
         kink: 6 * 10 ** 15, // 0.6
         highSlope: 7667 * 10 ** 14, // 76.67

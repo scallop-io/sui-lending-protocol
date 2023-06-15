@@ -68,6 +68,7 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
       type: SUI_TYPE_ARG,
       interestModel: {
         baseRatePerSec: 15854986000, // 5 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        interestRateScale: 1000,
         lowSlope: 167 * 10 ** 14, // 1.67
         kink: 8 * 10 ** 15, // 0.8
         highSlope: 95 * 10 ** 16, // 95
@@ -81,6 +82,7 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
       type: testCoinTypes.usdc,
       interestModel: {
         baseRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        interestRateScale: 1000,
         lowSlope: 278 * 10 ** 14, // 2.78
         kink: 8 * 10 ** 15, // 0.8
         highSlope: 7667 * 10 ** 14, // 76.67
@@ -94,6 +96,7 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
       type: testCoinTypes.usdt,
       interestModel: {
         baseRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        interestRateScale: 1000,
         lowSlope: 278 * 10 ** 14, // 2.78
         kink: 8 * 10 ** 15, // 0.8
         highSlope: 7667 * 10 ** 14, // 76.67
@@ -107,6 +110,7 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
       type: testCoinTypes.btc,
       interestModel: {
         baseRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        interestRateScale: 1000,
         lowSlope: 278 * 10 ** 14, // 2.78
         kink: 8 * 10 ** 15, // 0.8
         highSlope: 7667 * 10 ** 14, // 76.67
@@ -120,6 +124,7 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
       type: testCoinTypes.eth,
       interestModel: {
         baseRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
+        interestRateScale: 1000,
         lowSlope: 278 * 10 ** 14, // 2.78
         kink: 8 * 10 ** 15, // 0.8
         highSlope: 7667 * 10 ** 14, // 76.67

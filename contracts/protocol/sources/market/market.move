@@ -177,7 +177,8 @@ module protocol::market {
     reserve::register_coin<T>(&mut self.vault);
     let interest_model = ac_table::borrow(&self.interest_models, type);
     let base_borrow_rate = interest_model::base_borrow_rate(interest_model);
-    borrow_dynamics::register_coin<T>(&mut self.borrow_dynamics, base_borrow_rate, now);
+    let interest_rate_scale = interest_model::interest_rate_scale(interest_model);
+    borrow_dynamics::register_coin<T>(&mut self.borrow_dynamics, base_borrow_rate, interest_rate_scale, now);
     asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, type, true);
   }
 
@@ -338,8 +339,8 @@ module protocol::market {
       let type = *vector::borrow(&asset_types, i);
       let ulti_rate = reserve::ulti_rate(&self.vault, type);
       let interest_model = ac_table::borrow(&self.interest_models, type);
-      let new_interest_rate = interest_model::calc_interest(interest_model, ulti_rate);
-      borrow_dynamics::update_interest_rate(&mut self.borrow_dynamics, type, new_interest_rate);
+      let (new_interest_rate, interest_rate_scale) = interest_model::calc_interest(interest_model, ulti_rate);
+      borrow_dynamics::update_interest_rate(&mut self.borrow_dynamics, type, new_interest_rate, interest_rate_scale);
       i = i + 1;
     };
   }

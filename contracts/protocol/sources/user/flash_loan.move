@@ -37,9 +37,16 @@ module protocol::flash_loan {
       error::whitelist_error()
     );
 
+    let coin_type = type_name::get<T>();
+    // check if base asset is active
+    assert!(
+      market::is_base_asset_active(market, coin_type),
+      error::base_asset_not_active_error()
+    );
+
     emit(BorrowFlashLoanEvent {
       borrower: tx_context::sender(ctx),
-      asset: type_name::get<T>(),
+      asset: coin_type,
       amount,
     });
 

@@ -43,11 +43,15 @@ module protocol::reserve {
   public fun market_coin_supplies(vault: &Reserve): &SupplyBag { &vault.market_coin_supplies }
   public fun underlying_balances(vault: &Reserve): &BalanceBag { &vault.underlying_balances }
   public fun balance_sheets(vault: &Reserve): &WitTable<BalanceSheets, TypeName, BalanceSheet> { &vault.balance_sheets }
-  
+  public fun asset_types(self: &Reserve): vector<TypeName> {
+    wit_table::keys(&self.balance_sheets)
+  }
+
   public fun balance_sheet(balance_sheet: &BalanceSheet): (u64, u64, u64, u64) {
     (balance_sheet.cash, balance_sheet.debt, balance_sheet.revenue, balance_sheet.market_coin_supply)
   }
-  
+
+
   // create a vault for storing underlying assets and market coin supplies
   public(friend) fun new(ctx: &mut TxContext): Reserve {
     Reserve {
@@ -74,10 +78,6 @@ module protocol::reserve {
     } else {
       fixed_point32::create_from_rational(0, 1)
     }
-  }
-  
-  public fun asset_types(self: &Reserve): vector<TypeName> {
-    wit_table::keys(&self.balance_sheets)
   }
   
   public(friend) fun increase_debt(

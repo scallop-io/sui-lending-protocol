@@ -33,13 +33,20 @@ module protocol::deposit_collateral {
       error::whitelist_error()
     );
 
-    let has_risk_model = market::has_risk_model(market, get<T>());
+    let coin_type = get<T>();
+    // check if collateral state is active
+    assert!(
+      market::is_collateral_active(market, coin_type),
+      error::collateral_not_active_error()
+    );
+
+    let has_risk_model = market::has_risk_model(market, coin_type);
     assert!(has_risk_model == true, error::invalid_collateral_type_error());
     
     emit(CollateralDepositEvent{
       provider: tx_context::sender(ctx),
       obligation: object::id(obligation),
-      deposit_asset: type_name::get<T>(),
+      deposit_asset: coin_type,
       deposit_amount: coin::value(&coin),
     });
   

@@ -247,4 +247,21 @@ module protocol::app {
   ) {
     market::set_flash_loan_fee<T>(market, fee);
   }
+
+  // ======= management of asset active state =======
+  public entry fun set_base_asset_active_state<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    is_active: bool,
+  ) {
+    market::set_base_asset_active_state<T>(market, is_active);
+  }
+
+  public entry fun set_collateral_active_state<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    is_active: bool,
+  ) {
+    market::set_collateral_active_state<T>(market, is_active);
+  }
 }

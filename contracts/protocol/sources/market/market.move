@@ -14,8 +14,8 @@ module protocol::market {
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::reserve::{Self, Reserve, MarketCoin, FlashLoan};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
-  use protocol::collateral_stats::{CollateralStats, CollateralStat};
-  use protocol::collateral_stats;
+  use protocol::collateral_stats::{Self, CollateralStats, CollateralStat};
+  use protocol::asset_active_state::{Self, AssetActiveStates};
   use protocol::error;
   use math::fixed_point32_empower;
 
@@ -37,6 +37,7 @@ module protocol::market {
     interest_models: AcTable<InterestModels, TypeName, InterestModel>,
     risk_models: AcTable<RiskModels, TypeName, RiskModel>,
     limiters: WitTable<Limiters, TypeName, Limiter>,
+    asset_active_states: AssetActiveStates,
     vault: Reserve
   }
 
@@ -63,7 +64,13 @@ module protocol::market {
   }
   public fun has_limiter(self: &Market, type_name: TypeName): bool {
     wit_table::contains(&self.limiters, type_name)
-  } 
+  }
+  public fun is_base_asset_active(self: &Market, type_name: TypeName): bool {
+    asset_active_state::is_base_asset_active(&self.asset_active_states, type_name)
+  }
+  public fun is_collateral_active(self: &Market, type_name: TypeName): bool {
+    asset_active_state::is_collateral_active(&self.asset_active_states, type_name)
+  }
   
   public(friend) fun new(ctx: &mut TxContext)
   : (Market, AcTableCap<InterestModels>, AcTableCap<RiskModels>)
@@ -77,6 +84,7 @@ module protocol::market {
       interest_models,
       risk_models,
       limiters: limiter::init_table(ctx),
+      asset_active_states: asset_active_state::new(ctx),
       vault: reserve::new(ctx),
     };
     (market, interest_models_cap, risk_models_cap)
@@ -151,16 +159,33 @@ module protocol::market {
         inflow_value,
     );
   }
-  
+
+  // ===== management of asset active state =====
+  public(friend) fun set_base_asset_active_state<T>(self: &mut Market, is_active: bool) {
+    let type = get<T>();
+    asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, type, is_active);
+  }
+  public(friend) fun set_collateral_active_state<T>(self: &mut Market, is_active: bool) {
+    let type = get<T>();
+    asset_active_state::set_collateral_active_state(&mut self.asset_active_states, type, is_active);
+  }
+
+
+  // register base coin asset
   public(friend) fun register_coin<T>(self: &mut Market, now: u64) {
+    let type = get<T>();
     reserve::register_coin<T>(&mut self.vault);
-    let interest_model = ac_table::borrow(&self.interest_models, get<T>());
+    let interest_model = ac_table::borrow(&self.interest_models, type);
     let base_borrow_rate = interest_model::base_borrow_rate(interest_model);
     borrow_dynamics::register_coin<T>(&mut self.borrow_dynamics, base_borrow_rate, now);
+    asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, type, true);
   }
-  
+
+  // register collateral asset
   public(friend) fun register_collateral<T>(self: &mut Market) {
-    collateral_stats::init_collateral_if_none(&mut self.collateral_stats, get<T>());
+    let type = get<T>();
+    collateral_stats::init_collateral_if_none(&mut self.collateral_stats, type);
+    asset_active_state::set_collateral_active_state(&mut self.asset_active_states, type, true);
   }
 
   // the final fee rate is "fee/10000"

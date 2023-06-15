@@ -8,8 +8,8 @@ module switchboard_rule::switchboard_registry {
 
   use switchboard_std::aggregator::Aggregator;
 
-  const ERR_ILLEGAL_SWITCHBOARD_AGGREGATOR: u64 = 0;
-  const ERR_ILLEGAL_REGISTRY_CAP: u64 = 1;
+  const ERR_ILLEGAL_SWITCHBOARD_AGGREGATOR: u64 = 0x11405;
+  const ERR_ILLEGAL_REGISTRY_CAP: u64 = 0x11406;
 
   struct SwitchboardRegistry has key {
     id: UID,

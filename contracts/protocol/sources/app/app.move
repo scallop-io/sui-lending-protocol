@@ -81,7 +81,18 @@ module protocol::app {
       address,
     );
   }
-  
+
+  public fun remove_whitelist_address(
+    _: &AdminCap,
+    market: &mut Market,
+    address: address,
+  ) {
+    whitelist::remove_whitelist_address(
+      market::uid_mut(market),
+      address,
+    );
+  }
+
   public fun create_interest_model_change<T>(
     admin_cap: &AdminCap,
     base_rate_per_sec: u64,
@@ -235,5 +246,22 @@ module protocol::app {
     fee: u64
   ) {
     market::set_flash_loan_fee<T>(market, fee);
+  }
+
+  // ======= management of asset active state =======
+  public entry fun set_base_asset_active_state<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    is_active: bool,
+  ) {
+    market::set_base_asset_active_state<T>(market, is_active);
+  }
+
+  public entry fun set_collateral_active_state<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    is_active: bool,
+  ) {
+    market::set_collateral_active_state<T>(market, is_active);
   }
 }

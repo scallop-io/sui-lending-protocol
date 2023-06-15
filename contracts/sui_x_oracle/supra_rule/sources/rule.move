@@ -1,6 +1,6 @@
 module supra_rule::rule {
-  use sui::clock::Clock;
   use sui::math;
+  use sui::clock::{Self, Clock};
 
   use x_oracle::x_oracle::{ Self, XOraclePriceUpdateRequest };
   use x_oracle::price_feed;
@@ -12,9 +12,11 @@ module supra_rule::rule {
   const U8_MAX: u16 = 255;
   const U64_MAX: u128 = 18446744073709551615;
 
-  const PRICE_DECIMALS_TOO_LARGE: u64 = 0;
-  const PRICE_VALUE_TOO_LARGE: u64 = 1;
-  const TIMESTAMP_TOO_LARGE: u64 = 2;
+  const PRICE_DECIMALS_TOO_LARGE: u64 = 0x11301;
+  const PRICE_VALUE_TOO_LARGE: u64 = 0x11302;
+  const TIMESTAMP_TOO_LARGE: u64 = 0x11303;
+  const SUPRA_PRICE_TOO_OLD: u64 = 0x11304;
+  const SUPRA_PRICE_TOO_NEW: u64 = 0x11305;
 
   struct Rule has drop {}
 
@@ -45,10 +47,14 @@ module supra_rule::rule {
     assert!(price_value_with_formatted_decimals > 0, PRICE_DECIMALS_TOO_LARGE);
 
     // Supra timestamp is in milliseconds, but XOracle timestamp is in seconds
-    let now= timestamp / 1000;
-    assert!(now <= U64_MAX, TIMESTAMP_TOO_LARGE);
+    let price_update_time = timestamp / 1000;
+    assert!(price_update_time <= U64_MAX, TIMESTAMP_TOO_LARGE);
+    let price_update_time = (price_update_time as u64);
+    let now = clock::timestamp_ms(clock) / 1000;
+    assert!(price_update_time >= now - 60, SUPRA_PRICE_TOO_OLD);
+    assert!(price_update_time <= now + 10, SUPRA_PRICE_TOO_NEW);
 
-    let price_feed = price_feed::new(price_value_with_formatted_decimals, (now as u64));
+    let price_feed = price_feed::new(price_value_with_formatted_decimals, price_update_time);
     x_oracle::set_secondary_price(Rule {}, request, price_feed);
   }
 }

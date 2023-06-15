@@ -17,7 +17,7 @@ module pyth_rule::rule {
 
   const U8_MAX: u64 = 255;
 
-  const PYTH_PRICE_DECIMALS_TOO_LARGE: u64 = 0;
+  const PYTH_PRICE_DECIMALS_TOO_LARGE: u64 = 0x11204;
 
   struct Rule has drop {}
 

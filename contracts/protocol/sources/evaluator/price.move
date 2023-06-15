@@ -28,6 +28,7 @@ module protocol::price {
     // Check if price is stale
     let now = clock::timestamp_ms(clock) / 1000;
     assert!(now == last_updated, error::oracle_stale_price_error());
+    assert!(price_value > 0, error::oracle_zero_price_error());
 
     fixed_point32::create_from_rational(price_value, math::pow(10, price_decimal))
   }

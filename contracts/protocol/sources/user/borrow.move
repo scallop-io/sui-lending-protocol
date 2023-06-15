@@ -60,10 +60,17 @@ module protocol::borrow {
       error::whitelist_error()
     );
 
+    let coin_type = type_name::get<T>();
+
+    // check if base asset is active
+    assert!(
+      market::is_base_asset_active(market, coin_type),
+      error::base_asset_not_active_error()
+    );
+
     let now = clock::timestamp_ms(clock) / 1000;
     obligation::assert_key_match(obligation, obligation_key);
   
-    let coin_type = type_name::get<T>();
     let interest_model = market::interest_model(market, coin_type);
     let min_borrow_amount = interest_model::min_borrow_amount(interest_model);
     assert!(borrow_amount > min_borrow_amount, error::borrow_too_small_error());

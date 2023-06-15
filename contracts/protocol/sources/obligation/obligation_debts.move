@@ -7,7 +7,7 @@ module protocol::obligation_debts {
 
   friend protocol::obligation;
 
-  struct Debt has copy, store {
+  struct Debt has copy, store, drop {
     amount: u64,
     borrow_index: u64
   }
@@ -44,6 +44,9 @@ module protocol::obligation_debts {
   ) {
     let debt = wit_table::borrow_mut(ObligationDebts{}, debts, type_name);
     debt.amount = debt.amount - amount;
+    if (debt.amount == 0) {
+      wit_table::remove(ObligationDebts{}, debts, type_name);
+    }
   }
   
   public(friend) fun accure_interest(

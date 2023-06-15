@@ -3,10 +3,10 @@ module pyth_rule::pyth_adaptor {
   use std::vector;
   use sui::coin::Coin;
   use sui::sui::SUI;
-  use sui::clock::Clock;
+  use sui::clock::{Self, Clock};
 
   use pyth::pyth;
-  use pyth::price;
+  use pyth::price::{Self, Price};
   use pyth::i64;
   use pyth::state::{State as PythState};
   use pyth::price_info::{PriceInfoObject};
@@ -16,7 +16,9 @@ module pyth_rule::pyth_adaptor {
 
   const U8_MAX: u64 = 255;
 
-  const PYTH_PRICE_DECIMALS_TOO_LARGE: u64 = 0;
+  const PYTH_PRICE_DECIMALS_TOO_LARGE: u64 = 0x11201;
+  const PYTH_PRICE_TOO_OLD: u64 = 0x11202;
+  const PYTH_PRICE_TOO_NEW: u64 = 0x11203;
 
   public entry fun get_pyth_price(
     wormhole_state: &WormholeState,
@@ -46,7 +48,17 @@ module pyth_rule::pyth_adaptor {
     let price_decimals = i64::get_magnitude_if_negative(&price_decimals);
     // For price value, the decimals could definitely fit in a u8, otherwise there's a bug
     assert!(price_decimals <= U8_MAX, PYTH_PRICE_DECIMALS_TOO_LARGE);
+    // Make sure price is fresh
+    assert_price_not_stale(&pyth_price, clock);
     let price_decimals = (price_decimals as u8);
     (price_value, price_conf, price_decimals, price_updated_time)
+  }
+
+  fun assert_price_not_stale(price: &Price, clock: &Clock) {
+    // Check price time is within 60 seconds of current time
+    let price_updated_time  = price::get_timestamp(price);
+    let now = clock::timestamp_ms(clock) /1000;
+    assert!(price_updated_time <= now + 10, PYTH_PRICE_TOO_NEW);
+    assert!(price_updated_time >= now - 60, PYTH_PRICE_TOO_OLD);
   }
 }

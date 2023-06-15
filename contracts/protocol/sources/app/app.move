@@ -81,7 +81,18 @@ module protocol::app {
       address,
     );
   }
-  
+
+  public fun remove_whitelist_address(
+    _: &AdminCap,
+    market: &mut Market,
+    address: address,
+  ) {
+    whitelist::remove_whitelist_address(
+      market::uid_mut(market),
+      address,
+    );
+  }
+
   public fun create_interest_model_change<T>(
     admin_cap: &AdminCap,
     base_rate_per_sec: u64,

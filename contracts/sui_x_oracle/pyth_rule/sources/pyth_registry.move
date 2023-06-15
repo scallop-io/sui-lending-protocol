@@ -8,8 +8,8 @@ module pyth_rule::pyth_registry {
 
   use pyth::price_info::PriceInfoObject;
 
-  const ERR_ILLEGAL_PYTH_PRICE_OBJECT: u64 = 0;
-  const ERR_ILLEGAL_REGISTRY_CAP: u64 = 1;
+  const ERR_ILLEGAL_PYTH_PRICE_OBJECT: u64 = 0x11205;
+  const ERR_ILLEGAL_REGISTRY_CAP: u64 = 0x11206;
 
   struct PythRegistry has key {
     id: UID,

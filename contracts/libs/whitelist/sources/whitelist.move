@@ -16,24 +16,24 @@ module whitelist::whitelist {
 
   // === Events ===
   /// Emit this event when you add an address to the whitelist.
-  struct WhitelistAddEvent has copy, store, drop {
+  struct WhitelistAddEvent has copy, drop {
     id: ID,
     address: address,
   }
 
   /// Emit this event when you remove an address from the whitelist.
-  struct WhitelistRemoveEvent has copy, store, drop {
+  struct WhitelistRemoveEvent has copy, drop {
     id: ID,
     address: address,
   }
 
   /// Emit this event when you allow all addresses.
-  struct AllowAllEvent has copy, store, drop {
+  struct AllowAllEvent has copy, drop {
     id: ID,
   }
 
   /// Emit this event when you reject all addresses.
-  struct RejectAllEvent has copy, store, drop {
+  struct RejectAllEvent has copy, drop {
     id: ID,
   }
 

@@ -141,6 +141,7 @@ module protocol::reserve {
     };
     balance_sheet.cash = balance_sheet.cash + underlying_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply + mint_amount;
+    assert!(mint_amount > 0, error::mint_market_coin_too_small_error());
     balance_bag::join(&mut self.underlying_balances, underlying_balance);
     supply_bag::increase_supply<MarketCoin<T>>(&mut self.market_coin_supplies, mint_amount)
   }

@@ -10,6 +10,7 @@ module protocol::obligation {
   use x::balance_bag::{Self, BalanceBag};
   use x::ownership::{Self, Ownership};
   use x::wit_table::{Self, WitTable};
+  use x::witness::Witness;
   
   use protocol::obligation_debts::{Self, ObligationDebts, Debt};
   use protocol::obligation_collaterals::{Self, ObligationCollaterals, Collateral};
@@ -35,7 +36,17 @@ module protocol::obligation {
     id: UID,
     ownership: Ownership<ObligationOwnership>
   }
-  
+
+  // ==== Leave room for future extension ====
+
+  public fun obligation_key_uid_mut(key: &ObligationKey, _: Witness<ObligationKey>): &UID {
+    &mut key.id
+  }
+
+  public fun obligation_uid_mut(obligation: &Obligation, _: Witness<Obligation>): &UID {
+    &mut obligation.id
+  }
+
   public(friend) fun new(ctx: &mut tx_context::TxContext): (Obligation, ObligationKey) {
     let obligation = Obligation {
       id: object::new(ctx),

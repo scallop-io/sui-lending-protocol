@@ -7,13 +7,17 @@ module coin_decimals_registry::coin_decimals_registry {
   use sui::sui::SUI;
   use sui::tx_context::TxContext;
   use sui::transfer;
+  use sui::package;
+
+  struct COIN_DECIMALS_REGISTRY has drop {}
 
   struct CoinDecimalsRegistry has key, store {
     id: UID,
     table: Table<TypeName, u8>
   }
   
-  fun init(ctx: &mut TxContext){
+  fun init(otw: COIN_DECIMALS_REGISTRY, ctx: &mut TxContext){
+    package::claim_and_keep(otw, ctx);
     let registry = CoinDecimalsRegistry {
       id: object::new(ctx),
       table: table::new(ctx)

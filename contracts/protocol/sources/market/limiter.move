@@ -316,9 +316,8 @@ module protocol::limiter {
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;
     let table = init_table(test_scenario::ctx(scenario));
-    add_limiter(
+    add_limiter<USDC>(
       &mut table,
-      key,
       segment_count * 100,
       (cycle_duration as u32),
       (segment_duration as u32),
@@ -355,9 +354,8 @@ module protocol::limiter {
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;
     let table = init_table(test_scenario::ctx(scenario));
-    add_limiter(
+    add_limiter<USDC>(
       &mut table,
-      key,
       10000,
       (cycle_duration as u32),
       (segment_duration as u32),
@@ -398,9 +396,8 @@ module protocol::limiter {
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;
     let table = init_table(test_scenario::ctx(scenario));
-    add_limiter(
+    add_limiter<USDC>(
       &mut table,
-      key,
       10000,
       (cycle_duration as u32),
       (segment_duration as u32),

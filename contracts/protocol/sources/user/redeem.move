@@ -22,7 +22,7 @@ module protocol::redeem {
     time: u64,
   }
   
-  public fun redeem_entry<T>(
+  public entry fun redeem_entry<T>(
     version: &Version,
     market: &mut Market,
     coin: Coin<MarketCoin<T>>,

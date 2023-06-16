@@ -43,4 +43,7 @@ module protocol::error {
   // asset not active errors
   public fun base_asset_not_active_error(): u64 { 0x0012001 }
   public fun collateral_not_active_error(): u64 { 0x0012002 }
+
+  // risk model & interest model errors
+  public fun risk_model_param_error(): u64 { 0x0013001 }
 }

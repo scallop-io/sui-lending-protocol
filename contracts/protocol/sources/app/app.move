@@ -9,6 +9,7 @@ module protocol::app {
   use protocol::market::{Self, Market};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
+  use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
   use whitelist::whitelist;
 
   /// OTW
@@ -20,6 +21,7 @@ module protocol::app {
     interest_model_change_delay: u64,
     risk_model_cap: AcTableCap<RiskModels>,
     risk_model_change_delay: u64,
+    limiter_change_delay: u64,
   }
   
   fun init(otw: APP, ctx: &mut TxContext) {
@@ -39,6 +41,7 @@ module protocol::app {
       interest_model_change_delay: 0,
       risk_model_cap,
       risk_model_change_delay: 0,
+      limiter_change_delay: 0,
     };
     package::claim_and_keep(otw, ctx);
     transfer::public_share_object(market);
@@ -60,6 +63,14 @@ module protocol::app {
   ) {
     let new_delay = admin_cap.risk_model_change_delay + delay;
     admin_cap.risk_model_change_delay = new_delay;
+  }
+
+  public fun extend_limiter_change_delay(
+    admin_cap: &mut AdminCap,
+    delay: u64,
+  ) {
+    let new_delay = admin_cap.limiter_change_delay + delay;
+    admin_cap.limiter_change_delay = new_delay;
   }
 
   /// For extension of the protocol
@@ -206,37 +217,68 @@ module protocol::app {
     outflow_segment_duration: u32,
     _ctx: &mut TxContext
   ) {
-    market::add_limiter<T>(
-      market,
+    let limiter = market::rate_limiter_mut(market);
+    limiter::add_limiter<T>(
+      limiter,
       outflow_limit,
       outflow_cycle_duration,
       outflow_segment_duration,
     );
   }
 
-  public entry fun update_outflow_segment_params<T>(
-    _admin_cap: &AdminCap,
-    market: &mut Market,
+  public fun create_limiter_params_change<T>(
+    admin_cap: &AdminCap,
     outflow_cycle_duration: u32,
     outflow_segment_duration: u32,
-    _ctx: &mut TxContext
-  ) {
-    market::update_outflow_segment_params<T>(
-      market,
+    ctx: &mut TxContext
+  ): OneTimeLockValue<LimiterUpdateParamsChange> {
+    let one_time_lock_value = limiter::create_limiter_params_change<T>(
       outflow_cycle_duration,
       outflow_segment_duration,
+      admin_cap.limiter_change_delay,
+      ctx
+    );
+    one_time_lock_value
+  }
+
+  public fun create_limiter_limit_change<T>(
+    admin_cap: &AdminCap,
+    outflow_limit: u64,
+    ctx: &mut TxContext
+  ): OneTimeLockValue<LimiterUpdateLimitChange> {
+    let one_time_lock_value = limiter::create_limiter_limit_change<T>(
+      outflow_limit,
+      admin_cap.limiter_change_delay,
+      ctx
+    );
+    one_time_lock_value
+  }
+
+  public entry fun apply_limiter_limit_change<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    one_time_lock_value: OneTimeLockValue<LimiterUpdateLimitChange>,
+    ctx: &mut TxContext
+  ) {
+    let limiter = market::rate_limiter_mut(market);
+    limiter::apply_limiter_limit_change(
+      limiter,
+      one_time_lock_value,
+      ctx
     );
   }
 
-  public entry fun update_outflow_limit_params<T>(
+  public entry fun apply_limiter_params_change<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
-    outflow_limit: u64,
-    _ctx: &mut TxContext
+    one_time_lock_value: OneTimeLockValue<LimiterUpdateParamsChange>,
+    ctx: &mut TxContext
   ) {
-    market::update_outflow_limit_params<T>(
-      market,
-      outflow_limit,
+    let limiter = market::rate_limiter_mut(market);
+    limiter::apply_limiter_params_change(
+      limiter,
+      one_time_lock_value,
+      ctx
     );
   }
 

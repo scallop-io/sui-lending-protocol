@@ -39,11 +39,11 @@ module protocol::obligation {
 
   // ==== Leave room for future extension ====
 
-  public fun obligation_key_uid_mut(key: &ObligationKey, _: Witness<ObligationKey>): &UID {
+  public fun obligation_key_uid_mut(key: &mut ObligationKey, _: Witness<ObligationKey>): &mut UID {
     &mut key.id
   }
 
-  public fun obligation_uid_mut(obligation: &Obligation, _: Witness<Obligation>): &UID {
+  public fun obligation_uid_mut(obligation: &mut Obligation, _: Witness<Obligation>): &mut UID {
     &mut obligation.id
   }
 

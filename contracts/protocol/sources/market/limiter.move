@@ -1,11 +1,14 @@
 module protocol::limiter {
   use std::vector;
-  use x::wit_table::{Self, WitTable};
-  use sui::tx_context::TxContext;
-  use std::type_name::TypeName;
+  use std::type_name::{Self, TypeName};
+  use sui::tx_context::{Self, TxContext};
+  use sui::event::emit;
   use protocol::error;
+  use x::one_time_lock_value::{Self, OneTimeLockValue};
+  use x::wit_table::{Self, WitTable};
 
   friend protocol::market;
+  friend protocol::app;
 
   struct Limiter has store, drop {
     outflow_limit: u64,
@@ -22,17 +25,135 @@ module protocol::limiter {
     value: u64
   }
 
+  struct LimiterUpdateLimitChangeCreatedEvent has copy, drop {
+    changes: LimiterUpdateLimitChange,
+    current_epoch: u64,
+    delay_epoches: u64,
+    effective_epoches: u64
+  }
+
+  struct LimiterUpdateParamsChangeCreatedEvent has copy, drop {
+    changes: LimiterUpdateParamsChange,
+    current_epoch: u64,
+    delay_epoches: u64,
+    effective_epoches: u64
+  }
+
+  struct LimiterLimitChangeAppliedEvent has copy, drop {
+    changes: LimiterUpdateLimitChange,
+    current_epoch: u64,
+  }
+
+  struct LimiterParamsChangeAppliedEvent has copy, drop {
+    changes: LimiterUpdateParamsChange,
+    current_epoch: u64,
+  }
+
+  const LimiterUpdateChangeEffectiveEpoches: u64 = 7;
+
+  struct LimiterUpdateLimitChange has copy, store, drop {
+    coin_type: TypeName,
+    outflow_limit: u64,
+  }
+
+  struct LimiterUpdateParamsChange has copy, store, drop {
+    coin_type: TypeName,
+    outflow_cycle_duration: u32,
+    outflow_segment_duration: u32,
+  }
+
+  /// update the params of limiter, the params contains how it calculated
+  /// this changes will resets the calculation at the time it applied
+  public(friend) fun create_limiter_params_change<T>(
+    outflow_cycle_duration: u32,
+    outflow_segment_duration: u32,
+    change_delay: u64,
+    ctx: &mut TxContext,
+  ): OneTimeLockValue<LimiterUpdateParamsChange> {
+    let changes = LimiterUpdateParamsChange {
+      coin_type: type_name::get<T>(),
+      outflow_cycle_duration,
+      outflow_segment_duration,
+    };
+    emit(LimiterUpdateParamsChangeCreatedEvent {
+      changes,
+      current_epoch: tx_context::epoch(ctx),
+      delay_epoches: change_delay,
+      effective_epoches: tx_context::epoch(ctx) + change_delay
+    });
+    one_time_lock_value::new(changes, change_delay, LimiterUpdateChangeEffectiveEpoches, ctx)
+  }
+
+  /// update the limit of the limiter without resets current calculation
+  /// NOTE: in most of the cases, we only need to update the limit
+  public(friend) fun create_limiter_limit_change<T>(
+    outflow_limit: u64,
+    change_delay: u64,
+    ctx: &mut TxContext,
+  ): OneTimeLockValue<LimiterUpdateLimitChange> {
+    let changes = LimiterUpdateLimitChange {
+      coin_type: type_name::get<T>(),
+      outflow_limit,
+    };
+    emit(LimiterUpdateLimitChangeCreatedEvent {
+      changes,
+      current_epoch: tx_context::epoch(ctx),
+      delay_epoches: change_delay,
+      effective_epoches: tx_context::epoch(ctx) + change_delay
+    });
+    one_time_lock_value::new(changes, change_delay, LimiterUpdateChangeEffectiveEpoches, ctx)
+  }
+
+  public(friend) fun apply_limiter_limit_change(
+    table: &mut WitTable<Limiters, TypeName, Limiter>,
+    changes: OneTimeLockValue<LimiterUpdateLimitChange>,
+    ctx: &mut TxContext,
+  ) {
+    let params_change = one_time_lock_value::get_value(changes, ctx);
+
+    update_outflow_limit_params(
+      table,
+      params_change.coin_type,
+      params_change.outflow_limit
+    );
+
+    emit(LimiterLimitChangeAppliedEvent {
+      changes: params_change,
+      current_epoch: tx_context::epoch(ctx)
+    });
+  }
+
+  public(friend) fun apply_limiter_params_change(
+    table: &mut WitTable<Limiters, TypeName, Limiter>,
+    changes: OneTimeLockValue<LimiterUpdateParamsChange>,
+    ctx: &mut TxContext,
+  ) {
+    let params_change = one_time_lock_value::get_value(changes, ctx);
+
+    update_outflow_segment_params(
+      table,
+      params_change.coin_type,
+      params_change.outflow_cycle_duration,
+      params_change.outflow_segment_duration
+    );
+
+    emit(LimiterParamsChangeAppliedEvent {
+      changes: params_change,
+      current_epoch: tx_context::epoch(ctx)
+    });
+  }
+
   public(friend) fun init_table(ctx: &mut TxContext): WitTable<Limiters, TypeName, Limiter> {
     wit_table::new(Limiters {}, true, ctx)
   }
 
-  public(friend) fun add_limiter(
+  public(friend) fun add_limiter<T>(
     table: &mut WitTable<Limiters, TypeName, Limiter>,
-    key: TypeName,
     outflow_limit: u64,
     outflow_cycle_duration: u32,
     outflow_segment_duration: u32,
   ) {
+    let key = type_name::get<T>();
     wit_table::add(Limiters {}, table, key, new(
       outflow_limit,
       outflow_cycle_duration,
@@ -46,9 +167,9 @@ module protocol::limiter {
     outflow_segment_duration: u32,
   ): Limiter {
     Limiter {
-      outflow_limit: outflow_limit,
-      outflow_cycle_duration: outflow_cycle_duration,
-      outflow_segment_duration: outflow_segment_duration,
+      outflow_limit,
+      outflow_cycle_duration,
+      outflow_segment_duration,
       outflow_segments: build_segments(
         outflow_cycle_duration,
         outflow_segment_duration,
@@ -75,7 +196,7 @@ module protocol::limiter {
     vec_segments
   }
 
-  public(friend) fun update_outflow_limit_params(
+  fun update_outflow_limit_params(
     table: &mut WitTable<Limiters, TypeName, Limiter>,
     key: TypeName,
     new_limit: u64,
@@ -85,7 +206,7 @@ module protocol::limiter {
   }
 
   /// updating outflow segment params will resets the segments values
-  public(friend) fun update_outflow_segment_params(
+  fun update_outflow_segment_params(
     table: &mut WitTable<Limiters, TypeName, Limiter>,
     key: TypeName,
     cycle_duration: u32,
@@ -195,9 +316,8 @@ module protocol::limiter {
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;
     let table = init_table(test_scenario::ctx(scenario));
-    add_limiter(
+    add_limiter<USDC>(
       &mut table,
-      key,
       segment_count * 100,
       (cycle_duration as u32),
       (segment_duration as u32),
@@ -234,9 +354,8 @@ module protocol::limiter {
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;
     let table = init_table(test_scenario::ctx(scenario));
-    add_limiter(
+    add_limiter<USDC>(
       &mut table,
-      key,
       10000,
       (cycle_duration as u32),
       (segment_duration as u32),
@@ -266,8 +385,8 @@ module protocol::limiter {
     test_scenario::end(scenario_value);
   }
 
-  // Error Outflow Reach Limit = 0x0000901 = 2305
-  #[test, expected_failure(abort_code=2305, location=protocol::limiter)]
+  // Error Outflow Reach Limit = 0x0001001 = 4097
+  #[test, expected_failure(abort_code=4097, location=protocol::limiter)]
   fun outflow_limit_test_failed_reached_limit() {
     let segment_duration: u64 = 60 * 30;
     let cycle_duration: u64 = 60 * 60 * 24;
@@ -277,9 +396,8 @@ module protocol::limiter {
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;
     let table = init_table(test_scenario::ctx(scenario));
-    add_limiter(
+    add_limiter<USDC>(
       &mut table,
-      key,
       10000,
       (cycle_duration as u32),
       (segment_duration as u32),

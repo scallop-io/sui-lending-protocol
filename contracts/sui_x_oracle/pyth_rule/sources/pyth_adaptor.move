@@ -20,7 +20,7 @@ module pyth_rule::pyth_adaptor {
   const PYTH_PRICE_TOO_OLD: u64 = 0x11202;
   const PYTH_PRICE_TOO_NEW: u64 = 0x11203;
 
-  public entry fun get_pyth_price(
+  public fun get_pyth_price(
     wormhole_state: &WormholeState,
     pyth_state: &PythState,
     pyth_price_info_object: &mut PriceInfoObject,

@@ -21,7 +21,7 @@ module protocol::mint {
     time: u64,
   }
   
-  public fun mint_entry<T>(
+  public entry fun mint_entry<T>(
     version: &Version,
     market: &mut Market,
     coin: Coin<T>,

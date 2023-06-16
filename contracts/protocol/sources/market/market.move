@@ -9,8 +9,9 @@ module protocol::market {
   use sui::coin::{Self, Coin};
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
+  use x::one_time_lock_value::OneTimeLockValue;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
-  use protocol::limiter::{Self, Limiters, Limiter};
+  use protocol::limiter::{Self, Limiters, Limiter, LimiterUpdateLimitChange, LimiterUpdateParamsChange};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::reserve::{Self, Reserve, MarketCoin, FlashLoan};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
@@ -90,48 +91,6 @@ module protocol::market {
     (market, interest_models_cap, risk_models_cap)
   }
 
-  public(friend) fun add_limiter<T>(
-    self: &mut Market, 
-    outflow_limit: u64,
-    outflow_cycle_duration: u32,
-    outflow_segment_duration: u32,
-  ) {
-    let key = type_name::get<T>();
-    limiter::add_limiter(
-        &mut self.limiters,
-        key,
-        outflow_limit,
-        outflow_cycle_duration,
-        outflow_segment_duration,
-    );
-  }
-
-  public(friend) fun update_outflow_segment_params<T>(
-    self: &mut Market,
-    outflow_cycle_duration: u32,
-    outflow_segment_duration: u32,
-  ) {
-    let key = type_name::get<T>();
-    limiter::update_outflow_segment_params(
-        &mut self.limiters,
-        key,
-        outflow_cycle_duration,
-        outflow_segment_duration,
-    );
-  }
-
-  public(friend) fun update_outflow_limit_params<T>(
-    self: &mut Market,
-    outflow_limit: u64,
-  ) {
-    let key = type_name::get<T>();
-    limiter::update_outflow_limit_params(
-        &mut self.limiters,
-        key,
-        outflow_limit,
-    );
-  }
-
   public(friend) fun handle_outflow<T>(
     self: &mut Market,
     outflow_value: u64,
@@ -201,6 +160,10 @@ module protocol::market {
   
   public(friend) fun interest_models_mut(self: &mut Market): &mut AcTable<InterestModels, TypeName, InterestModel> {
     &mut self.interest_models
+  }
+
+  public(friend) fun rate_limiter_mut(self: &mut Market): &mut WitTable<Limiters, TypeName, Limiter> {
+    &mut self.limiters
   }
   
   public(friend) fun handle_borrow<T>(

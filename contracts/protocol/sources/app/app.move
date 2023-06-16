@@ -217,8 +217,9 @@ module protocol::app {
     outflow_segment_duration: u32,
     _ctx: &mut TxContext
   ) {
-    market::add_limiter<T>(
-      market,
+    let limiter = market::rate_limiter_mut(market);
+    limiter::add_limiter<T>(
+      limiter,
       outflow_limit,
       outflow_cycle_duration,
       outflow_segment_duration,
@@ -259,8 +260,9 @@ module protocol::app {
     one_time_lock_value: OneTimeLockValue<LimiterUpdateLimitChange>,
     ctx: &mut TxContext
   ) {
-    market::apply_limiter_limit_change(
-      market,
+    let limiter = market::rate_limiter_mut(market);
+    limiter::apply_limiter_limit_change(
+      limiter,
       one_time_lock_value,
       ctx
     );
@@ -272,8 +274,9 @@ module protocol::app {
     one_time_lock_value: OneTimeLockValue<LimiterUpdateParamsChange>,
     ctx: &mut TxContext
   ) {
-    market::apply_limiter_params_change(
-      market,
+    let limiter = market::rate_limiter_mut(market);
+    limiter::apply_limiter_params_change(
+      limiter,
       one_time_lock_value,
       ctx
     );

@@ -1,6 +1,6 @@
 module protocol::limiter {
   use std::vector;
-  use std::type_name::TypeName;
+  use std::type_name::{Self, TypeName};
   use sui::tx_context::{Self, TxContext};
   use sui::event::emit;
   use protocol::error;
@@ -72,8 +72,8 @@ module protocol::limiter {
   ): OneTimeLockValue<LimiterUpdateParamsChange> {
     let changes = LimiterUpdateParamsChange {
       coin_type: type_name::get<T>(),
-      outflow_cycle_duration: outflow_cycle_duration,
-      outflow_segment_duration: outflow_segment_duration,
+      outflow_cycle_duration,
+      outflow_segment_duration,
     };
     emit(LimiterUpdateParamsChangeCreatedEvent {
       changes,
@@ -93,7 +93,7 @@ module protocol::limiter {
   ): OneTimeLockValue<LimiterUpdateLimitChange> {
     let changes = LimiterUpdateLimitChange {
       coin_type: type_name::get<T>(),
-      outflow_limit: outflow_limit,
+      outflow_limit,
     };
     emit(LimiterUpdateLimitChangeCreatedEvent {
       changes,
@@ -147,13 +147,13 @@ module protocol::limiter {
     wit_table::new(Limiters {}, true, ctx)
   }
 
-  public(friend) fun add_limiter(
+  public(friend) fun add_limiter<T>(
     table: &mut WitTable<Limiters, TypeName, Limiter>,
-    key: TypeName,
     outflow_limit: u64,
     outflow_cycle_duration: u32,
     outflow_segment_duration: u32,
   ) {
+    let key = type_name::get<T>();
     wit_table::add(Limiters {}, table, key, new(
       outflow_limit,
       outflow_cycle_duration,
@@ -167,9 +167,9 @@ module protocol::limiter {
     outflow_segment_duration: u32,
   ): Limiter {
     Limiter {
-      outflow_limit: outflow_limit,
-      outflow_cycle_duration: outflow_cycle_duration,
-      outflow_segment_duration: outflow_segment_duration,
+      outflow_limit,
+      outflow_cycle_duration,
+      outflow_segment_duration,
       outflow_segments: build_segments(
         outflow_cycle_duration,
         outflow_segment_duration,

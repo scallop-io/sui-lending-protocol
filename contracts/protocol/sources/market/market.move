@@ -91,46 +91,6 @@ module protocol::market {
     (market, interest_models_cap, risk_models_cap)
   }
 
-  public(friend) fun add_limiter<T>(
-    self: &mut Market, 
-    outflow_limit: u64,
-    outflow_cycle_duration: u32,
-    outflow_segment_duration: u32,
-  ) {
-    let key = type_name::get<T>();
-    limiter::add_limiter(
-        &mut self.limiters,
-        key,
-        outflow_limit,
-        outflow_cycle_duration,
-        outflow_segment_duration,
-    );
-  }
-
-  public(friend) fun apply_limiter_limit_change(
-    self: &mut Market,
-    one_time_lock_value: OneTimeLockValue<LimiterUpdateLimitChange>,
-    ctx: &mut TxContext,
-  ) {
-    limiter::apply_limiter_limit_change(
-        &mut self.limiters,
-        one_time_lock_value,
-        ctx,
-    );
-  }
-
-  public(friend) fun apply_limiter_params_change(
-    self: &mut Market,
-    one_time_lock_value: OneTimeLockValue<LimiterUpdateParamsChange>,
-    ctx: &mut TxContext,
-  ) {
-    limiter::apply_limiter_params_change(
-        &mut self.limiters,
-        one_time_lock_value,
-        ctx,
-    );
-  }
-
   public(friend) fun handle_outflow<T>(
     self: &mut Market,
     outflow_value: u64,
@@ -200,6 +160,10 @@ module protocol::market {
   
   public(friend) fun interest_models_mut(self: &mut Market): &mut AcTable<InterestModels, TypeName, InterestModel> {
     &mut self.interest_models
+  }
+
+  public(friend) fun rate_limiter_mut(self: &mut Market): &mut WitTable<Limiters, TypeName, Limiter> {
+    &mut self.limiters
   }
   
   public(friend) fun handle_borrow<T>(

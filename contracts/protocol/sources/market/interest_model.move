@@ -2,11 +2,12 @@ module protocol::interest_model {
   
   use std::type_name::{TypeName, get};
   use std::fixed_point32::{Self, FixedPoint32};
-  use sui::tx_context::TxContext;
+  use sui::tx_context::{Self, TxContext};
+  use sui::event::emit;
   use math::fixed_point32_empower;
-  use protocol::error;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
+  use protocol::error;
 
   friend protocol::app;
   friend protocol::market;
@@ -30,6 +31,19 @@ module protocol::interest_model {
     min_borrow_amount: u64,
     borrow_weight: FixedPoint32,
   }
+
+  struct InterestModelChangeCreated has copy, drop {
+    interest_model: InterestModel,
+    current_epoch: u64, // the epoch when the change is created
+    delay_epoches: u64, // the delay epoches before the change takes effect
+    effective_epoches: u64, // the epoch when the change takes effect
+  }
+
+  struct InterestModelAdded has copy, drop {
+    interest_model: InterestModel,
+    current_epoch: u64, // the epoch when the interest model is updated
+  }
+
   public fun base_borrow_rate(model: &InterestModel): FixedPoint32 { model.base_borrow_rate_per_sec }
   public fun interest_rate_scale(model: &InterestModel): u64 { model.interest_rate_scale }
   public fun low_slope(model: &InterestModel): FixedPoint32 { model.low_slope }
@@ -80,26 +94,36 @@ module protocol::interest_model {
       min_borrow_amount,
       borrow_weight,
     };
+    emit(InterestModelChangeCreated{
+      interest_model,
+      current_epoch: tx_context::epoch(ctx),
+      delay_epoches: change_delay,
+      effective_epoches: tx_context::epoch(ctx) + change_delay
+    });
     one_time_lock_value::new(interest_model, change_delay, InterestModelChangeEffectiveEpoches, ctx)
   }
   
   public(friend) fun add_interest_model<T>(
-    interestModelTable: &mut AcTable<InterestModels, TypeName, InterestModel>,
+    interest_model_table: &mut AcTable<InterestModels, TypeName, InterestModel>,
     cap: &AcTableCap<InterestModels>,
-    interestModelChange: OneTimeLockValue<InterestModel>,
+    interest_model_change: OneTimeLockValue<InterestModel>,
     ctx: &mut TxContext,
   ) {
-    let interestModel = one_time_lock_value::get_value(interestModelChange, ctx);
+    let interest_model = one_time_lock_value::get_value(interest_model_change, ctx);
 
-    let typeName = get<T>();
-    assert!(interestModel.type == typeName, error::interest_model_type_not_match_error());
+    let type_name = get<T>();
+    assert!(interest_model.type == type_name, error::interest_model_type_not_match_error());
 
     // Remove the old interest model if exists
-    if (ac_table::contains(interestModelTable, typeName)) {
-      ac_table::remove(interestModelTable, cap, typeName);
+    if (ac_table::contains(interest_model_table, type_name)) {
+      ac_table::remove(interest_model_table, cap, type_name);
     };
     // Add the new interest model
-    ac_table::add(interestModelTable, cap, typeName, interestModel)
+    ac_table::add(interest_model_table, cap, type_name, interest_model);
+    emit(InterestModelAdded{
+      interest_model,
+      current_epoch: tx_context::epoch(ctx),
+    });
   }
 
   // Return the interest rate under the given utilization rate

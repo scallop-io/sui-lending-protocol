@@ -6,15 +6,14 @@ module supra_rule::rule {
   use x_oracle::price_feed;
 
   use supra_rule::supra_registry::{Self, SupraRegistry};
+  use supra_rule::supra_adaptor;
 
-  use SupraOracle::SupraSValueFeed::{Self, OracleHolder};
+  use SupraOracle::SupraSValueFeed::OracleHolder;
 
   const U8_MAX: u16 = 255;
   const U64_MAX: u128 = 18446744073709551615;
 
   const PRICE_DECIMALS_TOO_LARGE: u64 = 0x11301;
-  const PRICE_VALUE_TOO_LARGE: u64 = 0x11302;
-  const TIMESTAMP_TOO_LARGE: u64 = 0x11303;
   const SUPRA_PRICE_TOO_OLD: u64 = 0x11304;
   const SUPRA_PRICE_TOO_NEW: u64 = 0x11305;
 
@@ -23,19 +22,14 @@ module supra_rule::rule {
 
   public fun set_price<CoinType>(
     request: &mut XOraclePriceUpdateRequest<CoinType>,
-    supra_oracle: &mut OracleHolder,
+    supra_oracle: &OracleHolder,
     supra_registry: &SupraRegistry,
     clock: &Clock,
   ) {
     // Make sure the price info object is the registerred one for the coin type
     let pair_id = supra_registry::get_supra_pair_id<CoinType>(supra_registry);
-    let (price_value, price_decimals, timestamp, _) = SupraSValueFeed::get_price(supra_oracle, pair_id);
 
-    assert!(price_decimals <= U8_MAX, PRICE_DECIMALS_TOO_LARGE);
-    let price_decimals = (price_decimals as u8);
-
-    assert!(price_value <= U64_MAX, PRICE_VALUE_TOO_LARGE);
-    let price_value = (price_value as u64);
+    let (price_value, price_decimals, price_update_time) = supra_adaptor::get_supra_price(supra_oracle, pair_id);
 
     let formatted_decimals = price_feed::decimals();
     let price_value_with_formatted_decimals = if (price_decimals < formatted_decimals) {
@@ -46,10 +40,6 @@ module supra_rule::rule {
     };
     assert!(price_value_with_formatted_decimals > 0, PRICE_DECIMALS_TOO_LARGE);
 
-    // Supra timestamp is in milliseconds, but XOracle timestamp is in seconds
-    let price_update_time = timestamp / 1000;
-    assert!(price_update_time <= U64_MAX, TIMESTAMP_TOO_LARGE);
-    let price_update_time = (price_update_time as u64);
     let now = clock::timestamp_ms(clock) / 1000;
     assert!(price_update_time >= now - 60, SUPRA_PRICE_TOO_OLD);
     assert!(price_update_time <= now + 10, SUPRA_PRICE_TOO_NEW);

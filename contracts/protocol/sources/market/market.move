@@ -9,8 +9,9 @@ module protocol::market {
   use sui::coin::{Self, Coin};
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
+  use x::one_time_lock_value::OneTimeLockValue;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
-  use protocol::limiter::{Self, Limiters, Limiter};
+  use protocol::limiter::{Self, Limiters, Limiter, LimiterUpdateLimitChange, LimiterUpdateParamsChange};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::reserve::{Self, Reserve, MarketCoin, FlashLoan};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
@@ -106,29 +107,27 @@ module protocol::market {
     );
   }
 
-  public(friend) fun update_outflow_segment_params<T>(
+  public(friend) fun apply_limiter_limit_change(
     self: &mut Market,
-    outflow_cycle_duration: u32,
-    outflow_segment_duration: u32,
+    one_time_lock_value: OneTimeLockValue<LimiterUpdateLimitChange>,
+    ctx: &mut TxContext,
   ) {
-    let key = type_name::get<T>();
-    limiter::update_outflow_segment_params(
+    limiter::apply_limiter_limit_change(
         &mut self.limiters,
-        key,
-        outflow_cycle_duration,
-        outflow_segment_duration,
+        one_time_lock_value,
+        ctx,
     );
   }
 
-  public(friend) fun update_outflow_limit_params<T>(
+  public(friend) fun apply_limiter_params_change(
     self: &mut Market,
-    outflow_limit: u64,
+    one_time_lock_value: OneTimeLockValue<LimiterUpdateParamsChange>,
+    ctx: &mut TxContext,
   ) {
-    let key = type_name::get<T>();
-    limiter::update_outflow_limit_params(
+    limiter::apply_limiter_params_change(
         &mut self.limiters,
-        key,
-        outflow_limit,
+        one_time_lock_value,
+        ctx,
     );
   }
 

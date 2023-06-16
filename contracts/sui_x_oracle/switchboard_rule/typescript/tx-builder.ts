@@ -1,3 +1,4 @@
+import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js"
 import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit"
 
 export class SwitchboardRuleTxBuilder {
@@ -23,7 +24,7 @@ export class SwitchboardRuleTxBuilder {
   ) {
     tx.moveCall(
       `${this.packageId}::rule::set_price`,
-      [request, aggregator, this.registryId],
+      [request, aggregator, this.registryId, SUI_CLOCK_OBJECT_ID],
       [coinType]
     );
   }

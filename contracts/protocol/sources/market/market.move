@@ -9,9 +9,8 @@ module protocol::market {
   use sui::coin::{Self, Coin};
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
-  use x::one_time_lock_value::OneTimeLockValue;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
-  use protocol::limiter::{Self, Limiters, Limiter, LimiterUpdateLimitChange, LimiterUpdateParamsChange};
+  use protocol::limiter::{Self, Limiters, Limiter};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::reserve::{Self, Reserve, MarketCoin, FlashLoan};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};

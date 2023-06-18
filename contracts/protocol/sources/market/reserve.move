@@ -74,7 +74,7 @@ module protocol::reserve {
     wit_table::add(FlashLoanFees{}, &mut self.flash_loan_fees, get<T>(), 0);
   }
   
-  public fun ulti_rate(self: &Reserve, type_name: TypeName): FixedPoint32 {
+  public fun util_rate(self: &Reserve, type_name: TypeName): FixedPoint32 {
     let balance_sheet = wit_table::borrow(&self.balance_sheets, type_name);
     if (balance_sheet.debt > 0)  {
       fixed_point32::create_from_rational(

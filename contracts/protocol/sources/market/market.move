@@ -304,9 +304,9 @@ module protocol::market {
     let (i, n) = (0, vector::length(&asset_types));
     while (i < n) {
       let type = *vector::borrow(&asset_types, i);
-      let ulti_rate = reserve::ulti_rate(&self.vault, type);
+      let util_rate = reserve::util_rate(&self.vault, type);
       let interest_model = ac_table::borrow(&self.interest_models, type);
-      let (new_interest_rate, interest_rate_scale) = interest_model::calc_interest(interest_model, ulti_rate);
+      let (new_interest_rate, interest_rate_scale) = interest_model::calc_interest(interest_model, util_rate);
       borrow_dynamics::update_interest_rate(&mut self.borrow_dynamics, type, new_interest_rate, interest_rate_scale);
       i = i + 1;
     };

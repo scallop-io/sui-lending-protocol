@@ -5,6 +5,8 @@ module protocol::reserve {
   use sui::tx_context::TxContext;
   use sui::balance::{Self, Balance};
   use sui::object::{Self, UID};
+  use sui::coin::{Self, Coin};
+  use sui::math;
   use x::supply_bag::{Self, SupplyBag};
   use x::balance_bag::{Self, BalanceBag};
   use x::wit_table::{Self, WitTable};
@@ -27,7 +29,8 @@ module protocol::reserve {
   struct FlashLoanFees has drop {}
   
   struct FlashLoan<phantom T> {
-    amount: u64
+    loan_amount: u64,
+    fee: u64,
   }
   
   struct MarketCoin<phantom T> has drop {}
@@ -110,6 +113,8 @@ module protocol::reserve {
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     balance_sheet.cash = balance_sheet.cash - amount;
     balance_sheet.debt = balance_sheet.debt + amount;
+    // Make sure the cash is always more than the revenue
+    assert!(balance_sheet.cash >= balance_sheet.revenue, error::pool_liquidity_not_enough_error());
     balance_bag::split<T>(&mut self.underlying_balances, amount)
   }
 
@@ -119,7 +124,7 @@ module protocol::reserve {
     revenue_balance: Balance<T>,
   ) {
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
-    balance_sheet.cash = balance_sheet.cash + balance::value(&balance);
+    balance_sheet.cash = balance_sheet.cash + balance::value(&balance) + balance::value(&revenue_balance);
     balance_sheet.debt = balance_sheet.debt - balance::value(&balance);
     balance_bag::join(&mut self.underlying_balances, balance);
 
@@ -135,7 +140,7 @@ module protocol::reserve {
     let underlying_amount = balance::value(&underlying_balance);
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     let mint_amount = if (balance_sheet.market_coin_supply > 0) {
-      u64::mul_div(underlying_amount, balance_sheet.market_coin_supply, balance_sheet.cash + balance_sheet.debt)
+      u64::mul_div(underlying_amount, balance_sheet.market_coin_supply, balance_sheet.cash + balance_sheet.debt - balance_sheet.revenue)
     } else {
       underlying_amount
     };
@@ -153,7 +158,7 @@ module protocol::reserve {
     let market_coin_amount = balance::value(&market_coin_balance);
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     let redeem_amount = u64::mul_div(
-      market_coin_amount, balance_sheet.cash + balance_sheet.debt, balance_sheet.market_coin_supply
+      market_coin_amount, balance_sheet.cash + balance_sheet.debt - balance_sheet.revenue, balance_sheet.market_coin_supply
     );
     balance_sheet.cash = balance_sheet.cash - redeem_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply - market_coin_amount;
@@ -171,22 +176,42 @@ module protocol::reserve {
   
   public(friend) fun borrow_flash_loan<T>(
     self: &mut Reserve,
-    amount: u64
-  ): (Balance<T>, FlashLoan<T>) {
+    amount: u64,
+    ctx: &mut TxContext,
+  ): (Coin<T>, FlashLoan<T>) {
     let balance = balance_bag::split<T>(&mut self.underlying_balances, amount);
-    let fee = *wit_table::borrow(&self.flash_loan_fees, get<T>());
-    let loan_amount = amount + amount * fee / FlashloanFeeScale;
-    let flashLoan = FlashLoan<T> { amount: loan_amount };
-    (balance, flashLoan)
+    let fee_rate = *wit_table::borrow(&self.flash_loan_fees, get<T>());
+    let fee = amount * fee_rate / FlashloanFeeScale;
+    let loan_amount = amount + fee;
+    let flash_loan = FlashLoan<T> { loan_amount, fee };
+    (coin::from_balance(balance, ctx), flash_loan)
   }
 
   public(friend) fun repay_flash_loan<T>(
     self: &mut Reserve,
-    balance: Balance<T>,
+    coin: Coin<T>,
     flash_loan: FlashLoan<T>,
   ) {
-    let FlashLoan { amount } = flash_loan;
-    assert!(balance::value(&balance) >= amount, error::flash_loan_repay_not_enough_error());
-    balance_bag::join(&mut self.underlying_balances, balance);
+    let FlashLoan { loan_amount, fee } = flash_loan;
+    let repaid_amount = coin::value(&coin);
+    assert!(repaid_amount >= loan_amount, error::flash_loan_repay_not_enough_error());
+    balance_bag::join(&mut self.underlying_balances, coin::into_balance(coin));
+
+    // Update the balance sheet
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    balance_sheet.cash = balance_sheet.cash + fee;
+    balance_sheet.revenue = balance_sheet.revenue + fee;
+  }
+
+  public(friend) fun take_revenue<T>(
+    self: &mut Reserve,
+    amount: u64,
+    ctx: &mut TxContext,
+  ): Coin<T> {
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let take_amount = math::min(amount, balance_sheet.revenue);
+    balance_sheet.revenue = balance_sheet.revenue - take_amount;
+    let balance = balance_bag::split<T>(&mut self.underlying_balances, take_amount);
+    coin::from_balance(balance, ctx)
   }
 }

@@ -246,9 +246,7 @@ module protocol::market {
     amount: u64,
     ctx: &mut TxContext,
   ): (Coin<T>, FlashLoan<T>) {
-    let (balance, loan) = reserve::borrow_flash_loan<T>(&mut self.vault, amount);
-    let coin = coin::from_balance(balance, ctx);
-    (coin, loan)
+    reserve::borrow_flash_loan<T>(&mut self.vault, amount, ctx)
   }
 
   public(friend) fun repay_flash_loan<T>(
@@ -256,10 +254,9 @@ module protocol::market {
     coin: Coin<T>,
     loan: FlashLoan<T>,
   ) {
-    let balance = coin::into_balance(coin);
-    reserve::repay_flash_loan(&mut self.vault, balance, loan)
+    reserve::repay_flash_loan(&mut self.vault, coin, loan)
   }
-  
+
   public(friend) fun compound_interests(
     self: &mut Market,
     now: u64,
@@ -267,7 +264,15 @@ module protocol::market {
     accrue_all_interests(self, now);
     update_interest_rates(self);
   }
-  
+
+  public(friend) fun take_revenue<T>(
+    self: &mut Market,
+    amount: u64,
+    ctx: &mut TxContext,
+  ): Coin<T> {
+    reserve::take_revenue<T>(&mut self.vault, amount, ctx)
+  }
+
   // accure interest for all markets
   public(friend) fun accrue_all_interests(
     self: &mut Market,

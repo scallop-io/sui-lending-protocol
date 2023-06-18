@@ -48,7 +48,7 @@ module protocol::app {
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }
 
-  // ===== AdminCap =====
+  /// ===== AdminCap =====
   public fun extend_interest_model_change_delay(
     admin_cap: &mut AdminCap,
     delay: u64,
@@ -292,7 +292,7 @@ module protocol::app {
     market::set_flash_loan_fee<T>(market, fee);
   }
 
-  // ======= management of asset active state =======
+  /// ======= management of asset active state =======
   public entry fun set_base_asset_active_state<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
@@ -307,5 +307,15 @@ module protocol::app {
     is_active: bool,
   ) {
     market::set_collateral_active_state<T>(market, is_active);
+  }
+
+  /// ======= take revenue =======
+  public entry fun take_revenue<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    amount: u64,
+    ctx: &mut TxContext
+  ) {
+    market::take_revenue<T>(market, amount, ctx);
   }
 }

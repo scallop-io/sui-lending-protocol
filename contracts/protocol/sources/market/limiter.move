@@ -301,9 +301,6 @@ module protocol::limiter {
   #[test_only]
   use sui::test_scenario;
 
-  #[test_only]
-  use std::type_name;
-
   #[test]
   fun outflow_limit_test() {
     let segment_duration: u64 = 60 * 30;

@@ -46,4 +46,7 @@ module protocol::error {
 
   // risk model & interest model errors
   public fun risk_model_param_error(): u64 { 0x0013001 }
+
+  // pool liquidity errors
+  public fun pool_liquidity_not_enough_error(): u64 { 0x0014001 }
 }

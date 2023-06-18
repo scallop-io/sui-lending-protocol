@@ -50,8 +50,8 @@ module protocol::reserve {
     wit_table::keys(&self.balance_sheets)
   }
 
-  public fun balance_sheet(balance_sheet: &BalanceSheet): (u64, u64, u64) {
-    (balance_sheet.cash, balance_sheet.debt, balance_sheet.market_coin_supply)
+  public fun balance_sheet(balance_sheet: &BalanceSheet): (u64, u64, u64, u64) {
+    (balance_sheet.cash, balance_sheet.debt, balance_sheet.revenue, balance_sheet.market_coin_supply)
   }
 
 

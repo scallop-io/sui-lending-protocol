@@ -3,27 +3,26 @@ module x::witness {
 
   const EInvalidPublisher: u64 = 0x21101;
 
-  /// Collection witness generator
+  /// Witness generator
   struct WitnessGenerator<phantom T> has store {}
 
   /// Delegated witness of a generic type. The type `T` can be any type.
-  struct Witness<phantom T> has copy, drop {}
+  struct Witness<phantom T> has drop {}
 
-  /// Create a new `WitnessGenerator` from delegated witness
-  public fun generator_delegated<T>(
-    _witness: Witness<T>,
-  ): WitnessGenerator<T> {
-    WitnessGenerator {}
-  }
-
-  /// Creates a delegated witness from a package publisher.
+  /// Creates a delegated witness from package publisher.
   public fun from_publisher<T>(publisher: &Publisher): Witness<T> {
     assert_publisher<T>(publisher);
     Witness {}
   }
 
-  /// Delegate a collection generic witness
-  public fun delegate<T>(_generator: &WitnessGenerator<T>): Witness<T> {
+  /// Create a new `WitnessGenerator` from delegated witness
+  public fun to_generator<T>(_: Witness<T>): WitnessGenerator<T> {
+    WitnessGenerator {}
+  }
+
+  /// Get a delegated witness from `WitnessGenerator`
+  public fun from_generator<T>(generator: WitnessGenerator<T>): Witness<T> {
+    let WitnessGenerator { } = generator;
     Witness {}
   }
 

@@ -54,7 +54,6 @@ module protocol::reserve {
     (balance_sheet.cash, balance_sheet.debt, balance_sheet.revenue, balance_sheet.market_coin_supply)
   }
 
-
   // create a vault for storing underlying assets and market coin supplies
   public(friend) fun new(ctx: &mut TxContext): Reserve {
     Reserve {
@@ -129,11 +128,13 @@ module protocol::reserve {
     balance: Balance<T>,
     revenue_balance: Balance<T>,
   ) {
+    // update balance sheet
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     balance_sheet.cash = balance_sheet.cash + balance::value(&balance) + balance::value(&revenue_balance);
     balance_sheet.revenue = balance_sheet.revenue + balance::value(&revenue_balance);
     balance_sheet.debt = balance_sheet.debt - balance::value(&balance);
 
+    // put back the balance
     balance_bag::join(&mut self.underlying_balances, balance);
     balance_bag::join(&mut self.underlying_balances, revenue_balance);
   }
@@ -181,6 +182,9 @@ module protocol::reserve {
     // Update balance sheet
     balance_sheet.cash = balance_sheet.cash - redeem_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply - market_coin_amount;
+
+    // Make sure cash is always bigger than revenue
+    assert!(balance_sheet.cash >= balance_sheet.revenue, error::pool_liquidity_not_enough_error());
 
     // Redeem underlying coin
     supply_bag::decrease_supply(&mut self.market_coin_supplies, market_coin_balance);

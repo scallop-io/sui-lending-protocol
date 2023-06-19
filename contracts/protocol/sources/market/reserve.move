@@ -224,8 +224,10 @@ module protocol::reserve {
 
     // update balance sheet
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    balance_sheet.cash = balance_sheet.cash + fee;
     balance_sheet.revenue = balance_sheet.revenue + fee;
 
+    // repay flash loan
     balance_bag::join(&mut self.underlying_balances, coin::into_balance(coin));
   }
 
@@ -236,10 +238,14 @@ module protocol::reserve {
     ctx: &mut TxContext,
   ): Coin<T> {
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
-    // revenue = token_balance - cash
     let all_revenue = balance_sheet.revenue;
     let take_amount = math::min(amount, all_revenue);
+
+    // update balance sheet
     balance_sheet.revenue = balance_sheet.revenue - take_amount;
+    balance_sheet.cash = balance_sheet.cash - take_amount;
+
+    // take revenue
     let balance = balance_bag::split<T>(&mut self.underlying_balances, take_amount);
     coin::from_balance(balance, ctx)
   }

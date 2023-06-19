@@ -6,7 +6,7 @@ module protocol::market {
   use sui::tx_context::TxContext;
   use sui::balance::Balance;
   use sui::object::{Self, UID};
-  use sui::coin::{Self, Coin};
+  use sui::coin::Coin;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
   use protocol::interest_model::{Self, InterestModels, InterestModel};

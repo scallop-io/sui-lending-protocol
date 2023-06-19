@@ -30,7 +30,6 @@ module protocol::reserve {
   
   struct FlashLoan<phantom T> {
     loan_amount: u64,
-    fee: u64,
   }
   
   struct MarketCoin<phantom T> has drop {}
@@ -213,7 +212,7 @@ module protocol::reserve {
       0
     };
     let loan_amount = amount + fee;
-    let flash_loan = FlashLoan<T> { loan_amount, fee };
+    let flash_loan = FlashLoan<T> { loan_amount };
     (coin::from_balance(balance, ctx), flash_loan)
   }
 
@@ -222,14 +221,14 @@ module protocol::reserve {
     coin: Coin<T>,
     flash_loan: FlashLoan<T>,
   ) {
-    let FlashLoan { loan_amount, fee } = flash_loan;
+    let FlashLoan { loan_amount } = flash_loan;
     let repaid_amount = coin::value(&coin);
     assert!(repaid_amount >= loan_amount, error::flash_loan_repay_not_enough_error());
 
     // update balance sheet
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
-    balance_sheet.cash = balance_sheet.cash + fee;
-    balance_sheet.revenue = balance_sheet.revenue + fee;
+    balance_sheet.cash = balance_sheet.cash + repaid_amount;
+    balance_sheet.revenue = balance_sheet.revenue + repaid_amount;
 
     // repay flash loan
     balance_bag::join(&mut self.underlying_balances, coin::into_balance(coin));

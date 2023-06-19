@@ -74,7 +74,7 @@ module protocol::reserve {
     wit_table::add(FlashLoanFees{}, &mut self.flash_loan_fees, get<T>(), 0);
   }
   
-  public fun ulti_rate(self: &Reserve, type_name: TypeName): FixedPoint32 {
+  public fun util_rate(self: &Reserve, type_name: TypeName): FixedPoint32 {
     let balance_sheet = wit_table::borrow(&self.balance_sheets, type_name);
     if (balance_sheet.debt > 0)  {
       fixed_point32::create_from_rational(
@@ -239,6 +239,7 @@ module protocol::reserve {
     // revenue = token_balance - cash
     let all_revenue = balance_sheet.revenue;
     let take_amount = math::min(amount, all_revenue);
+    balance_sheet.revenue = balance_sheet.revenue - take_amount;
     let balance = balance_bag::split<T>(&mut self.underlying_balances, take_amount);
     coin::from_balance(balance, ctx)
   }

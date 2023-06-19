@@ -130,7 +130,7 @@ module protocol::interest_model {
   // Notice: the interest rate is scaled by a factor, because it's too small to be used directly
   public fun calc_interest(
     interest_model: &InterestModel,
-    ulti_rate: FixedPoint32,
+    util_rate: FixedPoint32,
   ): (FixedPoint32, u64) {
     let interest_rate_scale = interest_model.interest_rate_scale;
     let low_slope = interest_model.low_slope;
@@ -144,13 +144,13 @@ module protocol::interest_model {
     When ultiRate <= kink:
       interestRate = baseRate(1 + ultiRate * lowScope)
     ******************/
-    let rate_growth = if (fixed_point32_empower::gt(ulti_rate, kink)) {
+    let rate_growth = if (fixed_point32_empower::gt(util_rate, kink)) {
       fixed_point32_empower::add(
         fixed_point32_empower::mul(kink, low_slope),
-        fixed_point32_empower::mul(fixed_point32_empower::sub(ulti_rate, kink), high_slope)
+        fixed_point32_empower::mul(fixed_point32_empower::sub(util_rate, kink), high_slope)
       )
     } else {
-      fixed_point32_empower::mul(ulti_rate, low_slope)
+      fixed_point32_empower::mul(util_rate, low_slope)
     };
     (
       fixed_point32_empower::mul(

@@ -316,6 +316,7 @@ module protocol::app {
     amount: u64,
     ctx: &mut TxContext
   ) {
-    market::take_revenue<T>(market, amount, ctx);
+    let coin = market::take_revenue<T>(market, amount, ctx);
+    transfer::public_transfer(coin, tx_context::sender(ctx));
   }
 }

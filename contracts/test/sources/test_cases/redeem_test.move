@@ -6,12 +6,15 @@ module protocol_test::redeem_test {
   use sui::math;
   use sui::clock;
   use std::fixed_point32;
+  use std::type_name;
   use x_oracle::x_oracle;
   use coin_decimals_registry::coin_decimals_registry;
   use protocol::borrow;
   use protocol::deposit_collateral;
   use protocol::mint;
   use protocol::redeem;
+  use protocol::market;
+  use protocol::interest_model;
   use protocol::version;
   use protocol_test::app_t::app_init;
   use protocol_test::market_t::calc_growth_interest;
@@ -99,11 +102,12 @@ module protocol_test::redeem_test {
       mint_time - borrow_time,
     );
     let increased_debt = fixed_point32::multiply_u64(borrow_amount, growth_interest_rate);
+    let current_revenue = fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_mint_amount = calc_mint_amount(
       usdc_amount,
       usdc_amount,
-      borrow_amount + increased_debt,
+      borrow_amount + increased_debt - current_revenue,
       usdc_amount - borrow_amount,
     );
     let lender_b_market_coin_amount = coin::value(&lender_b_market_coin);
@@ -126,11 +130,12 @@ module protocol_test::redeem_test {
       redeem_time - mint_time,
     );
     let increased_debt = fixed_point32::multiply_u64(current_debt, growth_interest_rate);
+    let current_revenue = current_revenue + fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_redeem_amount = calc_redeem_amount(
       lender_a_market_coin_amount + lender_b_market_coin_amount,
       lender_a_market_coin_amount,
-      current_debt + increased_debt,
+      current_debt + increased_debt - current_revenue,
       current_cash,
     );
 

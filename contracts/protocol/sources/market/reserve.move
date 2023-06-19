@@ -239,6 +239,7 @@ module protocol::reserve {
     // revenue = token_balance - cash
     let all_revenue = balance_sheet.revenue;
     let take_amount = math::min(amount, all_revenue);
+    balance_sheet.revenue = balance_sheet.revenue - take_amount;
     let balance = balance_bag::split<T>(&mut self.underlying_balances, take_amount);
     coin::from_balance(balance, ctx)
   }

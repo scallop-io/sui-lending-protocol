@@ -3,39 +3,36 @@ module protocol::incentive_rewards {
   use std::type_name::{Self, TypeName};
   use std::fixed_point32::{Self, FixedPoint32};
   use sui::tx_context::TxContext;
-  use math::fixed_point32_empower;
   use x::wit_table::{Self, WitTable};
     
   friend protocol::app;
   friend protocol::market;
 
-  struct RewardRates has drop {}
+  struct RewardFactors has drop {}
     
-  struct RewardRate has store {
+  struct RewardFactor has store {
     coin_type: TypeName,
-    rate: FixedPoint32,
-  }
-  
-  public(friend) fun init_table(ctx: &mut TxContext): WitTable<RewardRates, TypeName, RewardRate> {
-    wit_table::new(RewardRates {}, false, ctx)
+    reward_factor: FixedPoint32,
   }
 
-  public(friend) fun set_reward_rate<T>(reward_rates: &mut WitTable<RewardRates, TypeName, RewardRate>, reward_rate_per_sec: u64, scale: u64) {
-    let rate = fixed_point32::create_from_rational(reward_rate_per_sec, scale);
+  public fun reward_factor(self: &RewardFactor): FixedPoint32 { self.reward_factor }
+  
+  public(friend) fun init_table(ctx: &mut TxContext): WitTable<RewardFactors, TypeName, RewardFactor> {
+    wit_table::new(RewardFactors {}, false, ctx)
+  }
+
+  public(friend) fun set_reward_factor<T>(reward_factors: &mut WitTable<RewardFactors, TypeName, RewardFactor>, reward_factor: u64, scale: u64) {
+    let factor = fixed_point32::create_from_rational(reward_factor, scale);
     let coin_type = type_name::get<T>();
-    if (!wit_table::contains(reward_rates, coin_type)) {
-      let reward_rate = RewardRate {
+    if (!wit_table::contains(reward_factors, coin_type)) {
+      let reward_factor = RewardFactor {
         coin_type,
-        rate,
+        reward_factor: factor,
       };
-      wit_table::add(RewardRates{}, reward_rates, coin_type, reward_rate);
+      wit_table::add(RewardFactors{}, reward_factors, coin_type, reward_factor);
     };
     
-    let reward_rate = wit_table::borrow_mut(RewardRates{}, reward_rates, coin_type);
-    reward_rate.rate = rate;
-  }
-
-  public fun calc_growth_rate(reward_rate: &RewardRate, time_delta: u64): FixedPoint32 {
-    fixed_point32_empower::mul(reward_rate.rate, fixed_point32_empower::from_u64(time_delta))
+    let reward_factor = wit_table::borrow_mut(RewardFactors{}, reward_factors, coin_type);
+    reward_factor.reward_factor = factor;
   }
 }

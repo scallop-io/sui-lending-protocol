@@ -1,6 +1,5 @@
 #[test_only]
 module protocol_test::app_t {
-  use sui::math;
   use sui::test_scenario::{Self, Scenario};
   use protocol::market::Market;
   use protocol::app::{Self, AdminCap};
@@ -15,11 +14,11 @@ module protocol_test::app_t {
     let market = test_scenario::take_shared<Market>(scenario);
 
     // set-up incentive rewards
-    app::set_incentive_reward<USDC>(
+    app::set_incentive_reward_factor<USDC>(
       &adminCap,
       &mut market,
-      31709791, // 10 * (10 ** 16) / (365 * 24 * 3600) / 100
-      math::pow(10, 16),
+      1000,
+      1,
       test_scenario::ctx(scenario)
     );
 

@@ -284,15 +284,15 @@ module protocol::app {
   }
 
   // ====== incentive rewards =====
-  public entry fun set_incentive_reward<T>(
+  public entry fun set_incentive_reward_factor<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
-    reward_rate_per_sec: u64,
+    reward_factor: u64,
     scale: u64,
     _ctx: &mut TxContext
   ) {
-    let reward_rates = market::reward_rates_mut(market);
-    incentive_rewards::set_reward_rate<T>(reward_rates, reward_rate_per_sec, scale);
+    let reward_factors = market::reward_factors_mut(market);
+    incentive_rewards::set_reward_factor<T>(reward_factors, reward_factor, scale);
   }
 
   // the final fee rate is "fee/10000"

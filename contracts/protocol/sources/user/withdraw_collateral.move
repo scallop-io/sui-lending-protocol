@@ -70,7 +70,7 @@ module protocol::withdraw_collateral {
     market::handle_withdraw_collateral<T>(market, withdraw_amount, now);
   
     // accure interests & rewards for obligation
-    obligation::accrue_interests_and_rewards(obligation, market, now);
+    obligation::accrue_interests_and_rewards(obligation, market);
     
     // IF withdraw_amount bigger than max, then abort
     let max_withdaw_amount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);

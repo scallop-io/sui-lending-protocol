@@ -54,7 +54,8 @@ module protocol_test::withdraw_collateral_test {
         deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
         
         clock::set_for_testing(&mut clock, 200 * 1000);
-        x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
+        // NOTE: Oracle update is not needed--user can takes all the collateral as he will, cause there's no debt
+        // x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
         test_scenario::next_tx(scenario, borrower);
         let withdrawed_collateral = withdraw_collateral::withdraw_collateral<ETH>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, eth_amount, &x_oracle, &clock, test_scenario::ctx(scenario));

@@ -12,6 +12,8 @@ module protocol::app {
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
   use protocol::incentive_rewards;
   use whitelist::whitelist;
+  use protocol::obligation_access::ObligationAccessStore;
+  use protocol::obligation_access;
 
   /// OTW
   struct APP has drop {}
@@ -331,5 +333,34 @@ module protocol::app {
   ) {
     let coin = market::take_revenue<T>(market, amount, ctx);
     transfer::public_transfer(coin, tx_context::sender(ctx));
+  }
+
+  /// ======= Management of obligation access keys
+  public entry fun add_lock_key<T>(
+    _admin_cap: &AdminCap,
+    obligation_access_store: &mut ObligationAccessStore,
+  ) {
+    obligation_access::add_lock_key<T>(obligation_access_store);
+  }
+
+  public entry fun remove_lock_key<T>(
+    _admin_cap: &AdminCap,
+    obligation_access_store: &mut ObligationAccessStore,
+  ) {
+    obligation_access::remove_lock_key<T>(obligation_access_store);
+  }
+
+  public entry fun add_reward_key<T>(
+    _admin_cap: &AdminCap,
+    obligation_access_store: &mut ObligationAccessStore,
+  ) {
+    obligation_access::add_reward_key<T>(obligation_access_store);
+  }
+
+  public entry fun remove_reward_key<T>(
+    _admin_cap: &AdminCap,
+    obligation_access_store: &mut ObligationAccessStore,
+  ) {
+    obligation_access::remove_reward_key<T>(obligation_access_store);
   }
 }

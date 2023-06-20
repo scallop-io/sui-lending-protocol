@@ -60,6 +60,12 @@ module protocol::borrow {
       error::whitelist_error()
     );
 
+    // check if obligation is locked
+    assert!(
+      obligation::is_locked(obligation) == false,
+      error::obligation_locked()
+    );
+
     let coin_type = type_name::get<T>();
 
     // check if base asset is active

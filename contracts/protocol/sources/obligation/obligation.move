@@ -17,7 +17,8 @@ module protocol::obligation {
   use protocol::obligation_collaterals::{Self, ObligationCollaterals, Collateral};
   use protocol::market::{Self, Market};
   use protocol::incentive_rewards;
-  
+  use protocol::obligation_access::{Self, ObligationAccessStore};
+
   friend protocol::repay;
   friend protocol::borrow;
   friend protocol::withdraw_collateral;
@@ -31,6 +32,7 @@ module protocol::obligation {
     debts: WitTable<ObligationDebts, TypeName, Debt>,
     collaterals: WitTable<ObligationCollaterals, TypeName, Collateral>,
     rewards_point: u64,
+    locked: bool,
   }
   
   struct ObligationOwnership has drop {}
@@ -57,6 +59,7 @@ module protocol::obligation {
       debts: obligation_debts::new(ctx),
       collaterals: obligation_collaterals::new(ctx),
       rewards_point: 0,
+      locked: false
     };
     let obligation_ownership = ownership::create_ownership(
       ObligationOwnership{},
@@ -176,5 +179,45 @@ module protocol::obligation {
   
   public fun collaterals(self: &Obligation): &WitTable<ObligationCollaterals, TypeName, Collateral> {
     &self.collaterals
+  }
+
+  /// ==== obligation lock management =====
+
+  public fun lock<T: drop>(
+    self: &Obligation,
+    obligation_key: &ObligationKey,
+    obligation_access_store: &ObligationAccessStore,
+    key: T
+  ) {
+    assert_key_match(self, obligation_key);
+    obligation_access::assert_reward_key_in_store(obligation_access_store, key);
+    self.locked = true
+  }
+
+  public fun unlock<T: drop>(
+    self: &Obligation,
+    obligation_key: &ObligationKey,
+    obligation_access_store: &ObligationAccessStore,
+    key: T
+  ) {
+    assert_key_match(self, obligation_key);
+    obligation_access::assert_reward_key_in_store(obligation_access_store, key);
+    self.locked = false
+  }
+
+  public fun is_locked(self: &Obligation): bool { self.locked }
+
+  /// ====== obligation rewards point access management
+
+  public fun redeem_rewards_point<T: drop>(
+    self: &mut Obligation,
+    obligation_key: &ObligationKey,
+    obligation_access_store: &ObligationAccessStore,
+    key: T,
+    amount: u64
+  ) {
+    assert_key_match(self, obligation_key);
+    obligation_access::assert_reward_key_in_store(obligation_access_store, key);
+    self.rewards_point = self.rewards_point - amount;
   }
 }

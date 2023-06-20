@@ -44,7 +44,7 @@ module protocol::repay {
 
     // always accrued all the interest before doing any actions
     market::accrue_all_interests(market, now);
-    obligation::accrue_interests(obligation, market);
+    obligation::accrue_interests_and_rewards(obligation, market, now);
 
     let (debt_amount, _) = obligation::debt(obligation, coin_type);
     let repay_amount = math::min(debt_amount, coin::value(&user_coin));

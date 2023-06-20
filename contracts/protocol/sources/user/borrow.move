@@ -82,9 +82,9 @@ module protocol::borrow {
     let borrowed_balance = market::handle_borrow<T>(market, borrow_amount, now);
     
     // init debt if borrow for the first time
-    obligation::init_debt(obligation, market, coin_type);
-    // accure interests for obligation
-    obligation::accrue_interests(obligation, market);
+    obligation::init_debt(obligation, market, coin_type, now);
+    // accure interests & rewards for obligation
+    obligation::accrue_interests_and_rewards(obligation, market, now);
     // calc the maximum borrow amount
     // If borrow too much, abort
     let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);

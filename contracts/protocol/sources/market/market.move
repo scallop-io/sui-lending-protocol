@@ -11,6 +11,7 @@ module protocol::market {
   use x::wit_table::{Self, WitTable};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::limiter::{Self, Limiters, Limiter};
+  use protocol::incentive_rewards::{Self, RewardRates, RewardRate};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::reserve::{Self, Reserve, MarketCoin, FlashLoan};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
@@ -37,6 +38,7 @@ module protocol::market {
     interest_models: AcTable<InterestModels, TypeName, InterestModel>,
     risk_models: AcTable<RiskModels, TypeName, RiskModel>,
     limiters: WitTable<Limiters, TypeName, Limiter>,
+    reward_rates: WitTable<RewardRates, TypeName, RewardRate>,
     asset_active_states: AssetActiveStates,
     vault: Reserve
   }
@@ -48,6 +50,7 @@ module protocol::market {
   public fun interest_models(market: &Market): &AcTable<InterestModels, TypeName, InterestModel> { &market.interest_models }
   public fun vault(market: &Market): &Reserve { &market.vault }
   public fun risk_models(market: &Market): &AcTable<RiskModels, TypeName, RiskModel> { &market.risk_models }
+  public fun reward_rates(market: &Market): &WitTable<RewardRates, TypeName, RewardRate> { &market.reward_rates }
   public fun collateral_stats(market: &Market): &WitTable<CollateralStats, TypeName, CollateralStat> { &market.collateral_stats }
   
   public fun borrow_index(self: &Market, type_name: TypeName): u64 {
@@ -58,6 +61,9 @@ module protocol::market {
   }
   public fun risk_model(self: &Market, type_name: TypeName): &RiskModel {
     ac_table::borrow(&self.risk_models, type_name)
+  }
+  public fun reward_rate(self: &Market, type_name: TypeName): &RewardRate {
+    wit_table::borrow(&self.reward_rates, type_name)
   }
   public fun has_risk_model(self: &Market, type_name: TypeName): bool {
     ac_table::contains(&self.risk_models, type_name)
@@ -84,6 +90,7 @@ module protocol::market {
       interest_models,
       risk_models,
       limiters: limiter::init_table(ctx),
+      reward_rates: incentive_rewards::init_table(ctx),
       asset_active_states: asset_active_state::new(ctx),
       vault: reserve::new(ctx),
     };
@@ -163,6 +170,10 @@ module protocol::market {
 
   public(friend) fun rate_limiter_mut(self: &mut Market): &mut WitTable<Limiters, TypeName, Limiter> {
     &mut self.limiters
+  }
+
+  public(friend) fun reward_rates_mut(self: &mut Market): &mut WitTable<RewardRates, TypeName, RewardRate> {
+    &mut self.reward_rates
   }
   
   public(friend) fun handle_borrow<T>(

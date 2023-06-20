@@ -74,16 +74,21 @@ module protocol::obligation {
     ownership::is_owner(&key.ownership, obligation)
   }
   
-  public(friend) fun accrue_interests(
+  public(friend) fun accrue_interests_and_rewards(
     obligation: &mut Obligation,
     market: &Market,
+    now: u64,
   ) {
     let debt_types = debt_types(obligation);
     let (i, n) = (0, vector::length(&debt_types));
     while (i < n) {
       let type = *vector::borrow(&debt_types, i);
       let new_borrow_index = market::borrow_index(market, type);
-      obligation_debts::accure_interest(&mut obligation.debts, type, new_borrow_index);
+      // accrue interest first, and then accrue the incentive_rewards to get the latest borrow amount
+      obligation_debts::accrue_interest(&mut obligation.debts, type, new_borrow_index);
+      
+      let reward_rate = market::reward_rate(market, type);
+      obligation_debts::accrue_incentive_rewards(&mut obligation.debts, type, reward_rate, now);
       i = i + 1;
     };
   }
@@ -117,9 +122,10 @@ module protocol::obligation {
     self: &mut Obligation,
     market: &Market,
     type_name: TypeName,
+    now: u64,
   ) {
     let borrow_index = market::borrow_index(market, type_name);
-    obligation_debts::init_debt(&mut self.debts, type_name, borrow_index);
+    obligation_debts::init_debt(&mut self.debts, type_name, borrow_index, now);
   }
   
   public(friend) fun increase_debt(

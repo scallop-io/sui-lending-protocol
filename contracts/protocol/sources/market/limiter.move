@@ -144,7 +144,7 @@ module protocol::limiter {
   }
 
   public(friend) fun init_table(ctx: &mut TxContext): WitTable<Limiters, TypeName, Limiter> {
-    wit_table::new(Limiters {}, true, ctx)
+    wit_table::new(Limiters {}, false, ctx)
   }
 
   public(friend) fun add_limiter<T>(

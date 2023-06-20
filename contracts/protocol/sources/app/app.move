@@ -336,28 +336,28 @@ module protocol::app {
   }
 
   /// ======= Management of obligation access keys
-  public entry fun add_lock_key<T>(
+  public entry fun add_lock_key<T: drop>(
     _admin_cap: &AdminCap,
     obligation_access_store: &mut ObligationAccessStore,
   ) {
     obligation_access::add_lock_key<T>(obligation_access_store);
   }
 
-  public entry fun remove_lock_key<T>(
+  public entry fun remove_lock_key<T: drop>(
     _admin_cap: &AdminCap,
     obligation_access_store: &mut ObligationAccessStore,
   ) {
     obligation_access::remove_lock_key<T>(obligation_access_store);
   }
 
-  public entry fun add_reward_key<T>(
+  public entry fun add_reward_key<T: drop>(
     _admin_cap: &AdminCap,
     obligation_access_store: &mut ObligationAccessStore,
   ) {
     obligation_access::add_reward_key<T>(obligation_access_store);
   }
 
-  public entry fun remove_reward_key<T>(
+  public entry fun remove_reward_key<T: drop>(
     _admin_cap: &AdminCap,
     obligation_access_store: &mut ObligationAccessStore,
   ) {

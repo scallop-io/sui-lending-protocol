@@ -196,7 +196,7 @@ module protocol::obligation {
   /// The key must be defined in the obligation_access_store
   /// only the obligation owner can lock the obligation
   public fun lock<T: drop>(
-    self: &Obligation,
+    self: &mut Obligation,
     obligation_key: &ObligationKey,
     obligation_access_store: &ObligationAccessStore,
     key: T
@@ -211,7 +211,7 @@ module protocol::obligation {
   /// The key must be the same as the key used to lock the obligation
   /// only the obligation owner can unlock the obligation
   public fun unlock<T: drop>(
-    self: &Obligation,
+    self: &mut Obligation,
     obligation_key: &ObligationKey,
     _: T
   ) {

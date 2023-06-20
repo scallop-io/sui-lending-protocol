@@ -2,6 +2,7 @@
 module protocol::obligation {
   
   use std::type_name::{Self, TypeName};
+  use std::option::{Self, Option};
   use std::vector;
   use std::fixed_point32;
   use sui::object::{Self, UID};
@@ -18,6 +19,7 @@ module protocol::obligation {
   use protocol::market::{Self, Market};
   use protocol::incentive_rewards;
   use protocol::obligation_access::{Self, ObligationAccessStore};
+  use protocol::error;
 
   friend protocol::repay;
   friend protocol::borrow;
@@ -32,6 +34,7 @@ module protocol::obligation {
     debts: WitTable<ObligationDebts, TypeName, Debt>,
     collaterals: WitTable<ObligationCollaterals, TypeName, Collateral>,
     rewards_point: u64,
+    lock_key: Option<TypeName>,
     locked: bool,
   }
   
@@ -59,6 +62,7 @@ module protocol::obligation {
       debts: obligation_debts::new(ctx),
       collaterals: obligation_collaterals::new(ctx),
       rewards_point: 0,
+      lock_key: option::none(),
       locked: false
     };
     let obligation_ownership = ownership::create_ownership(
@@ -168,7 +172,8 @@ module protocol::obligation {
   public fun collateral_types(self: &Obligation): vector<TypeName> {
     wit_table::keys(&self.collaterals)
   }
-  
+
+  /// ====== Readonly data ======
   public fun balance_bag(self: &Obligation): &BalanceBag {
     &self.balances
   }
@@ -181,8 +186,15 @@ module protocol::obligation {
     &self.collaterals
   }
 
+  public fun rewards_point(self: &Obligation): u64 { self.rewards_point }
+  public fun locked(self: &Obligation): bool { self.locked }
+  public fun lock_key(self: &Obligation): Option<TypeName> { self.lock_key }
+
   /// ==== obligation lock management =====
 
+  /// lock the obligation with a key
+  /// The key must be defined in the obligation_access_store
+  /// only the obligation owner can lock the obligation
   public fun lock<T: drop>(
     self: &Obligation,
     obligation_key: &ObligationKey,
@@ -191,24 +203,32 @@ module protocol::obligation {
   ) {
     assert_key_match(self, obligation_key);
     obligation_access::assert_reward_key_in_store(obligation_access_store, key);
+    self.lock_key = option::some(type_name::get<T>());
     self.locked = true
   }
 
+  /// unlock the obligation with a key
+  /// The key must be the same as the key used to lock the obligation
+  /// only the obligation owner can unlock the obligation
   public fun unlock<T: drop>(
     self: &Obligation,
     obligation_key: &ObligationKey,
-    obligation_access_store: &ObligationAccessStore,
-    key: T
+    _: T
   ) {
     assert_key_match(self, obligation_key);
-    obligation_access::assert_reward_key_in_store(obligation_access_store, key);
+    assert!(
+      *option::borrow(&self.lock_key) == type_name::get<T>(),
+      error::obligation_unlock_with_wrong_key()
+    );
+    self.lock_key = option::none();
     self.locked = false
   }
 
-  public fun is_locked(self: &Obligation): bool { self.locked }
-
   /// ====== obligation rewards point access management
 
+  /// Redeem the rewards point with a key
+  /// The key must be defined in the obligation_access_store
+  /// only the obligation owner can redeem the rewards point
   public fun redeem_rewards_point<T: drop>(
     self: &mut Obligation,
     obligation_key: &ObligationKey,

@@ -32,6 +32,11 @@ module protocol::deposit_collateral {
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
       error::whitelist_error()
     );
+    // check if obligation is locked
+    assert!(
+      obligation::deposit_collateral_locked(obligation) == false,
+      error::obligation_locked()
+    );
 
     let coin_type = type_name::get<T>();
     // check if collateral state is active

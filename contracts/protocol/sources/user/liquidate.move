@@ -66,8 +66,8 @@ module protocol::liquidate {
     let now = clock::timestamp_ms(clock) / 1000;
     // Accrue interests for market
     market::accrue_all_interests(market, now);
-    // Accrue interests for obligation
-    obligation::accrue_interests(obligation, market);
+    // Accrue interests & rewards for obligation
+    obligation::accrue_interests_and_rewards(obligation, market);
     
     // Calc liquidation amounts for the given debt type
     let available_repay_amount = balance::value(&available_repay_balance);

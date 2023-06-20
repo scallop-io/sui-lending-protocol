@@ -3,6 +3,7 @@ module protocol::obligation {
   
   use std::type_name::{Self, TypeName};
   use std::vector;
+  use std::fixed_point32;
   use sui::object::{Self, UID};
   use sui::tx_context;
   use sui::balance::{Self, Balance};
@@ -11,10 +12,11 @@ module protocol::obligation {
   use x::ownership::{Self, Ownership};
   use x::wit_table::{Self, WitTable};
   use x::witness::Witness;
-  
+
   use protocol::obligation_debts::{Self, ObligationDebts, Debt};
   use protocol::obligation_collaterals::{Self, ObligationCollaterals, Collateral};
   use protocol::market::{Self, Market};
+  use protocol::incentive_rewards;
   
   friend protocol::repay;
   friend protocol::borrow;
@@ -27,7 +29,8 @@ module protocol::obligation {
     id: UID,
     balances: BalanceBag,
     debts: WitTable<ObligationDebts, TypeName, Debt>,
-    collaterals: WitTable<ObligationCollaterals, TypeName, Collateral>
+    collaterals: WitTable<ObligationCollaterals, TypeName, Collateral>,
+    rewards_point: u64,
   }
   
   struct ObligationOwnership has drop {}
@@ -53,6 +56,7 @@ module protocol::obligation {
       balances: balance_bag::new(ctx),
       debts: obligation_debts::new(ctx),
       collaterals: obligation_collaterals::new(ctx),
+      rewards_point: 0,
     };
     let obligation_ownership = ownership::create_ownership(
       ObligationOwnership{},
@@ -74,7 +78,7 @@ module protocol::obligation {
     ownership::is_owner(&key.ownership, obligation)
   }
   
-  public(friend) fun accrue_interests(
+  public(friend) fun accrue_interests_and_rewards(
     obligation: &mut Obligation,
     market: &Market,
   ) {
@@ -83,7 +87,13 @@ module protocol::obligation {
     while (i < n) {
       let type = *vector::borrow(&debt_types, i);
       let new_borrow_index = market::borrow_index(market, type);
-      obligation_debts::accure_interest(&mut obligation.debts, type, new_borrow_index);
+      // accrue interest first, and then accrue the incentive_rewards to get the latest borrow amount
+      let accrued_interest = obligation_debts::accrue_interest(&mut obligation.debts, type, new_borrow_index);
+      
+      let reward_factor = incentive_rewards::reward_factor(market::reward_factor(market, type));
+      let accrued_rewards_point = fixed_point32::multiply_u64(accrued_interest, reward_factor);
+      obligation.rewards_point = obligation.rewards_point + accrued_rewards_point;
+
       i = i + 1;
     };
   }
@@ -137,7 +147,7 @@ module protocol::obligation {
   ) {
     obligation_debts::decrease(&mut self.debts, type_name, amount);
   }
-  
+
   public fun debt(self: &Obligation, type_name: TypeName): (u64, u64) {
     obligation_debts::debt(&self.debts, type_name)
   }

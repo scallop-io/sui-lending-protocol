@@ -10,6 +10,7 @@ module protocol::app {
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
+  use protocol::incentive_rewards;
   use whitelist::whitelist;
 
   /// OTW
@@ -280,6 +281,18 @@ module protocol::app {
       one_time_lock_value,
       ctx
     );
+  }
+
+  // ====== incentive rewards =====
+  public entry fun set_incentive_reward_factor<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    reward_factor: u64,
+    scale: u64,
+    _ctx: &mut TxContext
+  ) {
+    let reward_factors = market::reward_factors_mut(market);
+    incentive_rewards::set_reward_factor<T>(reward_factors, reward_factor, scale);
   }
 
   // the final fee rate is "fee/10000"

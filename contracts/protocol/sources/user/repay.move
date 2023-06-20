@@ -41,7 +41,7 @@ module protocol::repay {
 
     // check if obligation is locked
     assert!(
-      obligation::locked(obligation) == false,
+      obligation::repay_locked(obligation) == false,
       error::obligation_locked()
     );
 

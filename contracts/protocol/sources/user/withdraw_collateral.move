@@ -61,6 +61,12 @@ module protocol::withdraw_collateral {
       error::whitelist_error()
     );
 
+    // check if obligation is locked
+    assert!(
+      obligation::withdraw_collateral_locked(obligation) == false,
+      error::obligation_locked()
+    );
+
     let now = clock::timestamp_ms(clock) / 1000;
 
     obligation::assert_key_match(obligation, obligation_key);

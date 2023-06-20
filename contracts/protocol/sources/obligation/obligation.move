@@ -35,7 +35,11 @@ module protocol::obligation {
     collaterals: WitTable<ObligationCollaterals, TypeName, Collateral>,
     rewards_point: u64,
     lock_key: Option<TypeName>,
-    locked: bool,
+    borrow_locked: bool,
+    repay_locked: bool,
+    deposit_collateral_locked: bool,
+    withdraw_collateral_locked: bool,
+    liquidate_locked: bool, // Almost impossible to be true, but we still want the possibility in future
   }
   
   struct ObligationOwnership has drop {}
@@ -63,7 +67,11 @@ module protocol::obligation {
       collaterals: obligation_collaterals::new(ctx),
       rewards_point: 0,
       lock_key: option::none(),
-      locked: false
+      borrow_locked: false,
+      repay_locked: false,
+      deposit_collateral_locked: false,
+      withdraw_collateral_locked: false,
+      liquidate_locked: false,
     };
     let obligation_ownership = ownership::create_ownership(
       ObligationOwnership{},
@@ -187,7 +195,11 @@ module protocol::obligation {
   }
 
   public fun rewards_point(self: &Obligation): u64 { self.rewards_point }
-  public fun locked(self: &Obligation): bool { self.locked }
+  public fun borrow_locked(self: &Obligation): bool { self.borrow_locked }
+  public fun repay_locked(self: &Obligation): bool { self.repay_locked }
+  public fun withdraw_collateral_locked(self: &Obligation): bool { self.withdraw_collateral_locked }
+  public fun deposit_collateral_locked(self: &Obligation): bool { self.deposit_collateral_locked }
+  public fun liquidate_locked(self: &Obligation): bool { self.liquidate_locked }
   public fun lock_key(self: &Obligation): Option<TypeName> { self.lock_key }
 
   /// ==== obligation lock management =====
@@ -199,12 +211,21 @@ module protocol::obligation {
     self: &mut Obligation,
     obligation_key: &ObligationKey,
     obligation_access_store: &ObligationAccessStore,
+    lock_borrow: bool,
+    lock_repay: bool,
+    lock_deposit_collateral: bool,
+    lock_withdraw_collateral: bool,
+    lock_liquidate: bool,
     key: T
   ) {
     assert_key_match(self, obligation_key);
     obligation_access::assert_reward_key_in_store(obligation_access_store, key);
     self.lock_key = option::some(type_name::get<T>());
-    self.locked = true
+    self.borrow_locked = lock_borrow;
+    self.repay_locked = lock_repay;
+    self.withdraw_collateral_locked = lock_deposit_collateral;
+    self.deposit_collateral_locked = lock_withdraw_collateral;
+    self.liquidate_locked = lock_liquidate;
   }
 
   /// unlock the obligation with a key
@@ -221,7 +242,11 @@ module protocol::obligation {
       error::obligation_unlock_with_wrong_key()
     );
     self.lock_key = option::none();
-    self.locked = false
+    self.borrow_locked = false;
+    self.repay_locked = false;
+    self.withdraw_collateral_locked = false;
+    self.deposit_collateral_locked = false;
+    self.liquidate_locked = false;
   }
 
   /// ====== obligation rewards point access management

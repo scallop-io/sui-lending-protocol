@@ -62,6 +62,12 @@ module protocol::liquidate {
       error::whitelist_error()
     );
 
+    // check if obligation is locked
+    assert!(
+      obligation::liquidate_locked(obligation) == false,
+      error::obligation_locked()
+    );
+
     let available_repay_balance = coin::into_balance(available_repay_coin);
     let now = clock::timestamp_ms(clock) / 1000;
     // Accrue interests for market

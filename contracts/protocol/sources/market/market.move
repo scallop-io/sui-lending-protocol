@@ -9,6 +9,7 @@ module protocol::market {
   use sui::coin::Coin;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
+  use x::witness::Witness;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::limiter::{Self, Limiters, Limiter};
   use protocol::incentive_rewards::{Self, RewardFactors, RewardFactor};
@@ -44,6 +45,7 @@ module protocol::market {
   }
 
   public fun uid(market: &Market): &UID { &market.id }
+  public fun uid_mut_delegated(market: &mut Market, _: Witness<Market>): &mut UID { &mut market.id }
   public(friend) fun uid_mut(market: &mut Market): &mut UID { &mut market.id }
 
   public fun borrow_dynamics(market: &Market): &WitTable<BorrowDynamics, TypeName, BorrowDynamic> { &market.borrow_dynamics }

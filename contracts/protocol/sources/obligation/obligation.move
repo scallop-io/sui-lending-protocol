@@ -5,10 +5,11 @@ module protocol::obligation {
   use std::option::{Self, Option};
   use std::vector;
   use std::fixed_point32;
-  use sui::object::{Self, UID};
-  use sui::tx_context;
+  use sui::object::{Self, UID, ID};
   use sui::balance::{Self, Balance};
-  
+  use sui::event::emit;
+  use sui::tx_context;
+
   use x::balance_bag::{Self, BalanceBag};
   use x::ownership::{Self, Ownership};
   use x::wit_table::{Self, WitTable};
@@ -49,13 +50,44 @@ module protocol::obligation {
     ownership: Ownership<ObligationOwnership>
   }
 
-  // ==== Leave room for future extension ====
+  /// ==== Events ====
 
-  public fun obligation_key_uid_mut(key: &mut ObligationKey, _: Witness<ObligationKey>): &mut UID {
+  struct ObligationRewardsPointRedeemed has copy, drop {
+    obligation: ID,
+    witness: TypeName,
+    amount: u64,
+  }
+
+  struct ObligationLocked has copy, drop {
+    obligation: ID,
+    witness: TypeName,
+    borrow_locked: bool,
+    repay_locked: bool,
+    deposit_collateral_locked: bool,
+    withdraw_collateral_locked: bool,
+    liquidate_locked: bool,
+  }
+
+  struct ObligationUnlocked has copy, drop {
+    obligation: ID,
+    witness: TypeName,
+  }
+
+  /// ==== Leave room for future extension ====
+
+  public fun obligation_key_uid(key: &ObligationKey, _: Witness<ObligationKey>): &UID {
+    &key.id
+  }
+  /// Get mut UID for obligation key with delegted witness
+  public fun obligation_key_uid_mut_delegated(key: &mut ObligationKey, _: Witness<ObligationKey>): &mut UID {
     &mut key.id
   }
 
-  public fun obligation_uid_mut(obligation: &mut Obligation, _: Witness<Obligation>): &mut UID {
+  public fun obligation_uid(obligation: &Obligation, _: Witness<Obligation>): &UID {
+    &obligation.id
+  }
+  /// Get mut UID for obligation with delegated witness
+  public fun obligation_uid_mut_delegated(obligation: &mut Obligation, _: Witness<Obligation>): &mut UID {
     &mut obligation.id
   }
 
@@ -226,6 +258,16 @@ module protocol::obligation {
     self.withdraw_collateral_locked = lock_deposit_collateral;
     self.deposit_collateral_locked = lock_withdraw_collateral;
     self.liquidate_locked = lock_liquidate;
+
+    emit(ObligationLocked {
+      obligation: object::id(self),
+      witness: type_name::get<T>(),
+      borrow_locked: self.borrow_locked,
+      repay_locked: self.repay_locked,
+      withdraw_collateral_locked: self.withdraw_collateral_locked,
+      deposit_collateral_locked: self.deposit_collateral_locked,
+      liquidate_locked: self.liquidate_locked,
+    });
   }
 
   /// unlock the obligation with a key
@@ -247,6 +289,11 @@ module protocol::obligation {
     self.withdraw_collateral_locked = false;
     self.deposit_collateral_locked = false;
     self.liquidate_locked = false;
+
+    emit(ObligationUnlocked {
+      obligation: object::id(self),
+      witness: type_name::get<T>(),
+    });
   }
 
   /// ====== obligation rewards point access management
@@ -264,5 +311,11 @@ module protocol::obligation {
     assert_key_match(self, obligation_key);
     obligation_access::assert_reward_key_in_store(obligation_access_store, key);
     self.rewards_point = self.rewards_point - amount;
+
+    emit(ObligationRewardsPointRedeemed {
+      obligation: object::id(self),
+      witness: type_name::get<T>(),
+      amount,
+    });
   }
 }

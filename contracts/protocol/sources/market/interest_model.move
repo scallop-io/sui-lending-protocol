@@ -19,7 +19,9 @@ module protocol::interest_model {
     base_borrow_rate_per_sec: FixedPoint32,
     interest_rate_scale: u64,
     low_slope: FixedPoint32,
-    kink: FixedPoint32,
+    mid_kink: FixedPoint32,
+    mid_slope: FixedPoint32,
+    high_kink: FixedPoint32,
     high_slope: FixedPoint32,
     revenue_factor: FixedPoint32,
     /********
@@ -47,7 +49,9 @@ module protocol::interest_model {
   public fun base_borrow_rate(model: &InterestModel): FixedPoint32 { model.base_borrow_rate_per_sec }
   public fun interest_rate_scale(model: &InterestModel): u64 { model.interest_rate_scale }
   public fun low_slope(model: &InterestModel): FixedPoint32 { model.low_slope }
-  public fun kink(model: &InterestModel): FixedPoint32 { model.kink }
+  public fun mid_kink(model: &InterestModel): FixedPoint32 { model.mid_kink }
+  public fun mid_slope(model: &InterestModel): FixedPoint32 { model.mid_slope }
+  public fun high_kink(model: &InterestModel): FixedPoint32 { model.high_kink }
   public fun high_slope(model: &InterestModel): FixedPoint32 { model.high_slope }
   public fun revenue_factor(model: &InterestModel): FixedPoint32 { model.revenue_factor }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.min_borrow_amount }
@@ -68,7 +72,9 @@ module protocol::interest_model {
     base_rate_per_sec: u64,
     interest_rate_scale: u64,
     low_slope: u64,
-    kink: u64,
+    mid_kink: u64,
+    mid_slope: u64,
+    high_kink: u64,
     high_slope: u64,
     revenue_factor: u64,
     scale: u64,
@@ -79,7 +85,9 @@ module protocol::interest_model {
   ): OneTimeLockValue<InterestModel> {
     let base_borrow_rate_per_sec = fixed_point32::create_from_rational(base_rate_per_sec, scale);
     let low_slope = fixed_point32::create_from_rational(low_slope, scale);
-    let kink = fixed_point32::create_from_rational(kink, scale);
+    let mid_kink = fixed_point32::create_from_rational(mid_kink, scale);
+    let mid_slope = fixed_point32::create_from_rational(mid_slope, scale);
+    let high_kink = fixed_point32::create_from_rational(high_kink, scale);
     let high_slope = fixed_point32::create_from_rational(high_slope, scale);
     let revenue_factor = fixed_point32::create_from_rational(revenue_factor, scale);
     let borrow_weight = fixed_point32::create_from_rational(borrow_weight, scale);
@@ -88,7 +96,9 @@ module protocol::interest_model {
       base_borrow_rate_per_sec,
       interest_rate_scale,
       low_slope,
-      kink,
+      mid_kink,
+      mid_slope,
+      high_kink,
       high_slope,
       revenue_factor,
       min_borrow_amount,
@@ -134,20 +144,33 @@ module protocol::interest_model {
   ): (FixedPoint32, u64) {
     let interest_rate_scale = interest_model.interest_rate_scale;
     let low_slope = interest_model.low_slope;
+    let mid_kink = interest_model.mid_kink;
+    let mid_slope = interest_model.mid_slope;
+    let high_kink = interest_model.high_kink;
     let high_slope = interest_model.high_slope;
-    let kink = interest_model.kink;
     let base_rate = interest_model.base_borrow_rate_per_sec;
     /*****************
     Calculate the interest rate with the given utlilization rate of the pool
-    When ultiRate > kink:
-      interestRate = baseRate(1 + kink * lowScope + (ultiRate - kink) * highScope)
-    When ultiRate <= kink:
-      interestRate = baseRate(1 + ultiRate * lowScope)
+    if ultiRate > high_kink:
+      interestRate = baseRate * (1 + mid_kink * low_scope + (high_kink - mid_kink) * mid_scope + (util_rate - high_kink) * high_slope)
+    else if ultiRate > mid_kink:
+      interestRate = baseRate * (1 + mid_kink * low_scope + (util_rate - mid_kink) * mid_scope)
+    else:
+      interestRate = baseRate * (1 + util_rate * low_scope)
     ******************/
-    let rate_growth = if (fixed_point32_empower::gt(util_rate, kink)) {
+    let rate_growth = if (fixed_point32_empower::gt(util_rate, high_kink)) {
+      let first_part = fixed_point32_empower::add(
+        fixed_point32_empower::mul(mid_kink, low_slope),
+        fixed_point32_empower::mul(fixed_point32_empower::sub(high_kink, mid_kink), mid_slope)
+      );
       fixed_point32_empower::add(
-        fixed_point32_empower::mul(kink, low_slope),
-        fixed_point32_empower::mul(fixed_point32_empower::sub(util_rate, kink), high_slope)
+        first_part,
+        fixed_point32_empower::mul(fixed_point32_empower::sub(util_rate, high_kink), high_slope)
+      )
+    } else if (fixed_point32_empower::gt(util_rate, mid_kink)) {
+      fixed_point32_empower::add(
+        fixed_point32_empower::mul(mid_kink, low_slope),
+        fixed_point32_empower::mul(fixed_point32_empower::sub(util_rate, mid_kink), mid_slope)
       )
     } else {
       fixed_point32_empower::mul(util_rate, low_slope)

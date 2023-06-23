@@ -4,7 +4,7 @@ import { protocolTxBuilder } from '../contracts/protocol';
 
 export const addWhitelistForTest = async () => {
     const tx = new SuiTxBlock();
-    const addr = '0x5e813e4c2504b76bfbef802411c11d1688b5d35f7a5c209e9eb4eb78780b322a';
+    const addr = '0xbe379359ac6e9d0fc0b867f147f248f1c2d9fc019a9a708adfcbe15fc3130c18';
     protocolTxBuilder.addWhitelistAddress(tx, addr)
     return suiKit.signAndSendTxn(tx);
 }

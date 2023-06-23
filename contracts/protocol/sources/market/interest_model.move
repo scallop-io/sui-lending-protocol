@@ -185,7 +185,7 @@ module protocol::interest_model {
     } else {
       let weight = fixed_point32_empower::div(
         fixed_point32_empower::sub(util_rate, high_kink),
-        fixed_point32_empower::sub(fixed_point32_empower::from_u64(100), high_kink)
+        fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), high_kink)
       );
       let range = fixed_point32_empower::sub(max_borrow_rate, borrow_rate_on_high_kink);
 
@@ -196,5 +196,93 @@ module protocol::interest_model {
     };
 
     (borrow_rate, interest_rate_scale)
+  }
+
+  #[test_only]
+  struct USDC has drop {}
+
+  #[test_only]
+  use std::type_name;
+
+  #[test]
+  fun interest_rates_test() {
+    let interest_model = InterestModel {
+      type: type_name::get<USDC>(),
+      // this borrow rate is not for every sec, cause it just for testing
+      base_borrow_rate_per_sec: fixed_point32::create_from_rational(2, 100),
+      interest_rate_scale: 1,
+      borrow_rate_on_mid_kink: fixed_point32::create_from_rational(10, 100),
+      mid_kink: fixed_point32::create_from_rational(40, 100),
+      borrow_rate_on_high_kink: fixed_point32::create_from_rational(50, 100),
+      high_kink: fixed_point32::create_from_rational(80, 100),
+      max_borrow_rate: fixed_point32::create_from_rational(120, 100),
+      revenue_factor: fixed_point32::create_from_rational(5, 100), // in this case, it will be ignored anyway
+      min_borrow_amount: 1000, // in this case, it will be ignored anyway
+      borrow_weight: fixed_point32::create_from_rational(1, 1), // in this case, it will be ignored anyway
+    };
+    
+    // === Low Demand
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(10, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(40, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+
+    // === Optimal Demand
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(41, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(50, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(60, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(70, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(80, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+    
+    // === High Demand
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(85, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(90, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(95, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));
+
+    let (borrow_rate, _) = calc_interest(
+      &interest_model, fixed_point32::create_from_rational(100, 100)
+    );
+    std::debug::print(&shift_decimal(borrow_rate, 2));    
+  }
+
+  #[test_only]
+  fun shift_decimal(number: FixedPoint32, number_of_shift: u8): u64 {
+    use sui::math;
+    fixed_point32::multiply_u64(math::pow(10, number_of_shift), number)
   }
 }

@@ -50,4 +50,11 @@ module math::fixed_point32_empower {
     let b_raw = fixed_point32::get_raw_value(b);
     return a_raw > b_raw
   }
+
+  // greater than equal
+  public fun gte(a: FixedPoint32, b: FixedPoint32): bool {
+    let a_raw = fixed_point32::get_raw_value(a);
+    let b_raw = fixed_point32::get_raw_value(b);
+    return a_raw >= b_raw
+  }
 }

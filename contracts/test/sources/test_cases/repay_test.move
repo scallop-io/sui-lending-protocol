@@ -92,6 +92,7 @@ module protocol_test::repay_test {
       &market,
       borrow_amount,
       usdc_amount - borrow_amount,
+      0,
       math::pow(10, 9),
       time_delta,
     );

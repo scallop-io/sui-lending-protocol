@@ -5,77 +5,83 @@ module protocol_test::constants {
   use test_coin::usdc::USDC;
   
   struct RiskModelParams<phantom T> has copy, drop {
-    collateralFactor: u64,
-    liquidationFactor: u64,
-    liquidationPenalty: u64,
-    liquidationDiscount: u64,
+    collateral_factor: u64,
+    liquidation_factor: u64,
+    liquidation_penalty: u64,
+    liquidation_discount: u64,
     scale: u64,
-    maxCollateralAmount: u64
+    max_collateral_amount: u64
   }
   
   struct InterestModelParams<phantom T> has copy, drop {
-    baseRatePerSec: u64,
-    interestRateScale: u64,
-    lowSlope: u64,
-    kink: u64,
-    highSlope: u64,
-    revenueFactor: u64,
+    base_rate_per_sec: u64,
+    interest_rate_scale: u64,
+    borrow_rate_on_mid_kink: u64,
+    mid_kink: u64,
+    borrow_rate_on_high_kink: u64,
+    high_kink: u64,
+    max_borrow_rate: u64,
+    revenue_factor: u64,
     scale: u64,
-    minBorrowAmount: u64,
+    min_borrow_amount: u64,
     borrow_weight: u64,
   }
   
-  public fun collateral_factor<T>(params: &RiskModelParams<T>): u64 { params.collateralFactor }
-  public fun liquidation_factor<T>(params: &RiskModelParams<T>): u64 { params.liquidationFactor }
-  public fun liquidation_penalty<T>(params: &RiskModelParams<T>): u64 { params.liquidationPenalty }
-  public fun liquidation_discount<T>(params: &RiskModelParams<T>): u64 { params.liquidationDiscount }
+  public fun collateral_factor<T>(params: &RiskModelParams<T>): u64 { params.collateral_factor }
+  public fun liquidation_factor<T>(params: &RiskModelParams<T>): u64 { params.liquidation_factor }
+  public fun liquidation_penalty<T>(params: &RiskModelParams<T>): u64 { params.liquidation_penalty }
+  public fun liquidation_discount<T>(params: &RiskModelParams<T>): u64 { params.liquidation_discount }
   public fun risk_model_scale<T>(params: &RiskModelParams<T>): u64 { params.scale }
-  public fun max_collateral_amount<T>(params: &RiskModelParams<T>): u64 { params.maxCollateralAmount }
+  public fun max_collateral_amount<T>(params: &RiskModelParams<T>): u64 { params.max_collateral_amount }
   
-  public fun base_rate_per_sec<T>(params: &InterestModelParams<T>): u64 { params.baseRatePerSec }
-  public fun interest_rate_scale<T>(params: &InterestModelParams<T>): u64 { params.interestRateScale }
-  public fun low_slope<T>(params: &InterestModelParams<T>): u64 { params.lowSlope }
-  public fun kink<T>(params: &InterestModelParams<T>): u64 { params.kink }
-  public fun high_slope<T>(params: &InterestModelParams<T>): u64 { params.highSlope }
-  public fun revenue_factor<T>(params: &InterestModelParams<T>): u64 { params.revenueFactor }
+  public fun base_rate_per_sec<T>(params: &InterestModelParams<T>): u64 { params.base_rate_per_sec }
+  public fun interest_rate_scale<T>(params: &InterestModelParams<T>): u64 { params.interest_rate_scale }
+  public fun borrow_rate_on_mid_kink<T>(params: &InterestModelParams<T>): u64 { params.borrow_rate_on_mid_kink }
+  public fun mid_kink<T>(params: &InterestModelParams<T>): u64 { params.mid_kink }
+  public fun borrow_rate_on_high_kink<T>(params: &InterestModelParams<T>): u64 { params.borrow_rate_on_high_kink }
+  public fun high_kink<T>(params: &InterestModelParams<T>): u64 { params.high_kink }
+  public fun max_borrow_rate<T>(params: &InterestModelParams<T>): u64 { params.max_borrow_rate }
+  public fun revenue_factor<T>(params: &InterestModelParams<T>): u64 { params.revenue_factor }
   public fun interest_model_scale<T>(params: &InterestModelParams<T>): u64 { params.scale }
-  public fun min_borrow_amount<T>(params: &InterestModelParams<T>): u64 { params.minBorrowAmount }
+  public fun min_borrow_amount<T>(params: &InterestModelParams<T>): u64 { params.min_borrow_amount }
   public fun borrow_weight<T>(params: &InterestModelParams<T>): u64 { params.borrow_weight }
   
   public fun set_borrow_weight<T>(params: &mut InterestModelParams<T>, borrow_weight: u64) { params.borrow_weight = borrow_weight; }
 
   public fun eth_risk_model_params(): RiskModelParams<ETH> {
     RiskModelParams {
-      collateralFactor: 70,
-      liquidationFactor: 80,
-      liquidationPenalty: 8,
-      liquidationDiscount: 5,
+      collateral_factor: 70,
+      liquidation_factor: 80,
+      liquidation_penalty: 8,
+      liquidation_discount: 5,
       scale: 100,
-      maxCollateralAmount: math::pow(10, 9 + 7)
+      max_collateral_amount: math::pow(10, 9 + 7)
     }
   }
 
   public fun btc_risk_model_params(): RiskModelParams<BTC> {
     RiskModelParams {
-      collateralFactor: 70,
-      liquidationFactor: 80,
-      liquidationPenalty: 8,
-      liquidationDiscount: 5,
+      collateral_factor: 70,
+      liquidation_factor: 80,
+      liquidation_penalty: 8,
+      liquidation_discount: 5,
       scale: 100,
-      maxCollateralAmount: math::pow(10, 9 + 7)
+      max_collateral_amount: math::pow(10, 9 + 7)
     }
   }
   
   public fun usdc_interest_model_params(): InterestModelParams<USDC> {
     InterestModelParams {
-      baseRatePerSec: 15854986000,
-      interestRateScale: 1000,
-      lowSlope: 2 * math::pow(10, 16),
-      kink: 80 * math::pow(10, 14),
-      highSlope: 20 * math::pow(10, 16),
-      revenueFactor: 2 * math::pow(10, 14),
+      base_rate_per_sec: 6341958397,
+      interest_rate_scale: 1000,
+      borrow_rate_on_mid_kink: 8 * math::pow(10, 14),
+      mid_kink: 60 * math::pow(10, 14),
+      borrow_rate_on_high_kink: 50 * math::pow(10, 16),
+      high_kink: 90 * math::pow(10, 14),
+      max_borrow_rate: 300 * math::pow(10, 14),
+      revenue_factor: 2 * math::pow(10, 14),
       scale: math::pow(10, 16),
-      minBorrowAmount: math::pow(10, 8),
+      min_borrow_amount: math::pow(10, 8),
       borrow_weight: math::pow(10, 16),
     }
   }

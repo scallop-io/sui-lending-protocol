@@ -117,9 +117,9 @@ module protocol::app {
     high_kink: u64,
     max_borrow_rate: u64,
     revenue_factor: u64,
+    borrow_weight: u64,
     scale: u64,
     min_borrow_amount: u64,
-    borrow_weight: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
     let interest_model_change = interest_model::create_interest_model_change<T>(
@@ -132,9 +132,9 @@ module protocol::app {
       high_kink,
       max_borrow_rate,
       revenue_factor,
+      borrow_weight,
       scale,
       min_borrow_amount,
-      borrow_weight,
       admin_cap.interest_model_change_delay,
       ctx,
     );

@@ -161,6 +161,20 @@ export class ProtocolTxBuilder {
     );
   }
 
+  setIncentiveRewardFactor(
+    suiTxBlock: SuiTxBlock,
+    coinType: string,
+    rewardFactor: number,
+    scale: number,
+  ) {
+    const setIncentiveRewardFactorTarget = `${this.packageId}::app::set_incentive_reward_factor`;
+    suiTxBlock.moveCall(
+      setIncentiveRewardFactorTarget,
+      [this.adminCapId, this.marketId, rewardFactor, scale],
+      [coinType],
+    );
+  }
+
   supplyBaseAsset(
     suiTxBlock: SuiTxBlock,
     coinId: SuiTxArg,

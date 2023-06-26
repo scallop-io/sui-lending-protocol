@@ -1,5 +1,5 @@
 module protocol_query::market_query {
-  
+
   use std::vector;
   use x::wit_table;
   use x::ac_table;
@@ -20,18 +20,21 @@ module protocol_query::market_query {
     lastUpdated: u64,
     type: TypeName,
     baseBorrowRatePerSec: FixedPoint32,
-    lowSlope: FixedPoint32,
-    kink: FixedPoint32,
-    highSlope: FixedPoint32,
+    interestRateScale: u64,
+    borrowRateOnMidKink: FixedPoint32,
+    midKink: FixedPoint32,
+    borrowRateOnHighKink: FixedPoint32,
+    highKink: FixedPoint32,
+    maxBorrowRate: FixedPoint32,
     reserveFactor: FixedPoint32,
-    minBorrowAmount: u64,
     borrowWeight: FixedPoint32,
+    minBorrowAmount: u64,
     cash: u64,
     debt: u64,
     reserve: u64,
     marketCoinSupply: u64,
   }
-  
+
   struct CollateralData has copy, store, drop {
     type: TypeName,
     collateralFactor: FixedPoint32,
@@ -54,13 +57,13 @@ module protocol_query::market_query {
 
     emit(MarketData { pools, collaterals });
   }
-  
+
   public fun pool_data(market: &Market): vector<PoolData> {
     let borrowDynamics = market::borrow_dynamics(market);
     let interestModels = market::interest_models(market);
     let vault = market::vault(market);
     let balanceSheets = reserve::balance_sheets(vault);
-    
+
     let poolAssetTypes = ac_table::keys(interestModels);
     let (i, n) = (0, vector::length(&poolAssetTypes));
     let poolDataList = vector::empty<PoolData>();
@@ -77,9 +80,12 @@ module protocol_query::market_query {
         lastUpdated: borrow_dynamics::last_updated(borrowDynamic),
         type: interest_model::type_name(interestModel),
         baseBorrowRatePerSec: interest_model::base_borrow_rate(interestModel),
-        lowSlope: interest_model::low_slope(interestModel),
-        kink: interest_model::kink(interestModel),
-        highSlope: interest_model::high_slope(interestModel),
+        interestRateScale: interest_model::interest_rate_scale(interestModel),
+        borrowRateOnMidKink: interest_model::borrow_rate_on_mid_kink(interestModel),
+        midKink: interest_model::mid_kink(interestModel),
+        borrowRateOnHighKink: interest_model::borrow_rate_on_high_kink(interestModel),
+        highKink: interest_model::high_kink(interestModel),
+        maxBorrowRate: interest_model::max_borrow_rate(interestModel),
         reserveFactor: interest_model::revenue_factor(interestModel),
         minBorrowAmount: interest_model::min_borrow_amount(interestModel),
         borrowWeight: interest_model::borrow_weight(interestModel),
@@ -93,7 +99,7 @@ module protocol_query::market_query {
     };
     poolDataList
   }
-  
+
   public fun collateral_data(market: &Market): vector<CollateralData> {
     let riskModels = market::risk_models(market);
     let collateralStats = market::collateral_stats(market);

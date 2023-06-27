@@ -24,9 +24,9 @@ module protocol_test::interest_model_t {
       constants::high_kink(params),
       constants::max_borrow_rate(params),
       constants::revenue_factor(params),
+      constants::borrow_weight(params),
       constants::interest_model_scale(params),
       constants::min_borrow_amount(params),
-      constants::borrow_weight(params),
       test_scenario::ctx(scenario)
     );
     app::add_interest_model<T>(

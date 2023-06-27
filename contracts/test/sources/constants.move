@@ -73,16 +73,16 @@ module protocol_test::constants {
   public fun usdc_interest_model_params(): InterestModelParams<USDC> {
     InterestModelParams {
       base_rate_per_sec: 6341958397,
-      interest_rate_scale: 1000,
-      borrow_rate_on_mid_kink: 8 * math::pow(10, 14),
-      mid_kink: 60 * math::pow(10, 14),
-      borrow_rate_on_high_kink: 50 * math::pow(10, 16),
-      high_kink: 90 * math::pow(10, 14),
-      max_borrow_rate: 300 * math::pow(10, 14),
-      revenue_factor: 2 * math::pow(10, 14),
-      scale: math::pow(10, 16),
+      interest_rate_scale: 10000000,
+      borrow_rate_on_mid_kink: 8 * math::pow(10, 10),
+      mid_kink: 60 * math::pow(10, 10),
+      borrow_rate_on_high_kink: 50 * math::pow(10, 12),
+      high_kink: 90 * math::pow(10, 10),
+      max_borrow_rate: 300 * math::pow(10, 10),
+      revenue_factor: 2 * math::pow(10, 10),
+      scale: math::pow(10, 12),
       min_borrow_amount: math::pow(10, 8),
-      borrow_weight: math::pow(10, 16),
+      borrow_weight: math::pow(10, 12),
     }
   }
 }

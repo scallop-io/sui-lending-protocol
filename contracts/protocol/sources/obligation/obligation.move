@@ -28,6 +28,7 @@ module protocol::obligation {
   friend protocol::deposit_collateral;
   friend protocol::liquidate;
   friend protocol::open_obligation;
+  friend protocol::accrue_interest;
   
   struct Obligation has key, store {
     id: UID,

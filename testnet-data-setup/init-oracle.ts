@@ -24,8 +24,8 @@ export const initXOracleForTest = (tx: SuiTxBlock) => {
 
 export const addRulesForXOracle = (tx: SuiTxBlock) => {
   xOracleTxBuilder.addPrimaryPriceUpdateRule(tx, pythRuleStructType);
-  xOracleTxBuilder.addSecondaryPriceUpdateRule(tx, switchboardRuleStructType);
-  xOracleTxBuilder.addSecondaryPriceUpdateRule(tx, supraRuleStructType);
+  // xOracleTxBuilder.addSecondaryPriceUpdateRule(tx, switchboardRuleStructType);
+  // xOracleTxBuilder.addSecondaryPriceUpdateRule(tx, supraRuleStructType);
 }
 
 export const registerSwitchboardAggregators = (tx: SuiTxBlock) => {

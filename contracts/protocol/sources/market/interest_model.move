@@ -24,6 +24,7 @@ module protocol::interest_model {
     high_kink: FixedPoint32,
     max_borrow_rate: FixedPoint32,
     revenue_factor: FixedPoint32,
+    borrow_weight: FixedPoint32,
     /********
     when the principal and ratio of borrow indices are both small,
     the result can equal the principal, due to automatic truncation of division
@@ -31,7 +32,6 @@ module protocol::interest_model {
     so that the user could borrow without interest
     *********/
     min_borrow_amount: u64,
-    borrow_weight: FixedPoint32,
   }
 
   struct InterestModelChangeCreated has copy, drop {
@@ -54,10 +54,10 @@ module protocol::interest_model {
   public fun high_kink(model: &InterestModel): FixedPoint32 { model.high_kink }
   public fun max_borrow_rate(model: &InterestModel): FixedPoint32 { model.max_borrow_rate }
   public fun revenue_factor(model: &InterestModel): FixedPoint32 { model.revenue_factor }
+  public fun borrow_weight(model: &InterestModel): FixedPoint32 { model.borrow_weight }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.min_borrow_amount }
   public fun type_name(model: &InterestModel): TypeName { model.type }
-  public fun borrow_weight(model: &InterestModel): FixedPoint32 { model.borrow_weight }
-  
+
   struct InterestModels has drop {}
   
   public(friend) fun new(ctx: &mut TxContext): (
@@ -77,9 +77,9 @@ module protocol::interest_model {
     high_kink: u64,
     max_borrow_rate: u64,
     revenue_factor: u64,
+    borrow_weight: u64,
     scale: u64,
     min_borrow_amount: u64,
-    borrow_weight: u64,
     change_delay: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
@@ -225,59 +225,59 @@ module protocol::interest_model {
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(10, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 3, 0);
 
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(40, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 9, 0);
 
     // === Optimal Demand
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(41, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 10, 0);
 
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(50, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 19, 0);
 
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(60, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 29, 0);
 
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(70, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 39, 0);
 
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(80, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 50, 0);
     
     // === High Demand
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(85, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 67, 0);
 
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(90, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 84, 0);
 
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(95, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));
+    assert!(shift_decimal(borrow_rate, 2) == 102, 0);
 
     let (borrow_rate, _) = calc_interest(
       &interest_model, fixed_point32::create_from_rational(100, 100)
     );
-    std::debug::print(&shift_decimal(borrow_rate, 2));    
+    assert!(shift_decimal(borrow_rate, 2) == 119, 0);
   }
 
   #[test_only]

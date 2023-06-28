@@ -100,7 +100,6 @@ module protocol_test::borrow_test {
   }
 
   #[test]
-  #[expected_failure]
   public fun borrow_and_repay_unequal_debt_test() {
     // Scenario:
     // 0. the price of USDC = $1 and the price of ETH = $1000
@@ -205,12 +204,12 @@ module protocol_test::borrow_test {
     let balance_sheet = wit_table::borrow(balance_sheets, type_name::get<USDC>());
     let (_, reserve_debt_amount, _, _) = reserve::balance_sheet(balance_sheet);
     let market_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
-    std::debug::print(&reserve_debt_amount);
-    std::debug::print(&market_borrow_index);
     
     let (obligation_debt_amount, obligation_debt_borrow_index) = obligation::debt(&obligation, type_name::get<USDC>());
-    std::debug::print(&obligation_debt_amount);
-    std::debug::print(&obligation_debt_borrow_index);
+    // make sure both liquidation and reserve already updated to the latest borrow_index
+    // so the debt data is the latest one
+    assert!(obligation_debt_borrow_index == market_borrow_index, 0);
+    assert!(reserve_debt_amount != obligation_debt_amount, 0);
 
     let repay_amount = obligation_debt_amount;
     let usdc_coin = coin::mint_for_testing<USDC>(repay_amount, test_scenario::ctx(scenario));

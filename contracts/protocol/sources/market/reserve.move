@@ -103,9 +103,15 @@ module protocol::reserve {
     self: &mut Reserve,
     balance: Balance<T>
   ) {
+    let repay_amount = balance::value(&balance);
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
-    balance_sheet.cash = balance_sheet.cash + balance::value(&balance);
-    balance_sheet.debt = balance_sheet.debt - balance::value(&balance);
+    if (balance_sheet.debt >= repay_amount) {
+      balance_sheet.debt = balance_sheet.debt - repay_amount;
+    } else {
+      balance_sheet.revenue = balance_sheet.revenue + (repay_amount - balance_sheet.debt);
+      balance_sheet.debt = 0;
+    };
+    balance_sheet.cash = balance_sheet.cash + repay_amount;
     balance_bag::join(&mut self.underlying_balances, balance)
   }
 

@@ -89,16 +89,19 @@ module protocol_test::redeem_test {
     coin::burn_for_testing(borrowed);
 
     test_scenario::next_tx(scenario, lender_b);
+    let current_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let mint_time = 400;
     clock::set_for_testing(&mut clock, mint_time * 1000);
     let lender_b_market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
 
+    let current_revenue = 0;
     let growth_interest_rate = calc_growth_interest<USDC>(
       &market,
       borrow_amount,
       usdc_amount - borrow_amount,
-      math::pow(10, 9),
+      current_revenue,
+      current_borrow_index,
       mint_time - borrow_time,
     );
     let increased_debt = fixed_point32::multiply_u64(borrow_amount, growth_interest_rate);
@@ -118,6 +121,7 @@ module protocol_test::redeem_test {
     test_scenario::next_tx(scenario, lender_a);
     let redeem_time = 500;
     clock::set_for_testing(&mut clock, 500 * 1000);
+    let current_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
     let redeemed_coin = redeem::redeem(&version, &mut market, lender_a_market_coin, &clock, test_scenario::ctx(scenario));
 
     let current_debt = borrow_amount + increased_debt;
@@ -126,7 +130,8 @@ module protocol_test::redeem_test {
       &market,
       current_debt,
       current_cash,
-      math::pow(10, 9),
+      current_revenue,
+      current_borrow_index,
       redeem_time - mint_time,
     );
     let increased_debt = fixed_point32::multiply_u64(current_debt, growth_interest_rate);

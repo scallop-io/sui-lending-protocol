@@ -30,6 +30,7 @@ module protocol::market {
   friend protocol::withdraw_collateral;
   friend protocol::deposit_collateral;
   friend protocol::flash_loan;
+  friend protocol::accrue_interest;
 
   
   struct Market has key, store {
@@ -295,6 +296,14 @@ module protocol::market {
     let (i, n) = (0, vector::length(&asset_types));
     while (i < n) {
       let type = *vector::borrow(&asset_types, i);
+
+      // if the interest has been accrued, skip
+      let last_updated = borrow_dynamics::last_updated_by_type(&self.borrow_dynamics, type);
+      if (last_updated == now) {
+        i = i + 1;
+        continue
+      };
+
       // update borrow index
       let old_borrow_index = borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type);
       borrow_dynamics::update_borrow_index(&mut self.borrow_dynamics, type, now);

@@ -88,8 +88,6 @@ module protocol::risk_model {
     let max_liquidation_discount = fixed_point32::create_from_rational(MaxLiquidationDiscount, ConstantScale);
     assert!(fixed_point32_empower::gt(liquidation_discount, max_liquidation_discount) == false, error::risk_model_param_error());
 
-    // Make sure liquidation factor is bigger than collateral factor
-    assert!(fixed_point32_empower::gt(liquidation_factor, collateral_factor), error::risk_model_param_error());
     // Make sure liquidation penalty is bigger than liquidation discount
     assert!(fixed_point32_empower::gt(liquidation_penalty, liquidation_discount), error::risk_model_param_error());
 

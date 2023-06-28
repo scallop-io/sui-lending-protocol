@@ -1,6 +1,9 @@
 {
-  "packageId": "0xcd9bf99ee89711edd5084fbd67aee0865b866f0bb3262701ec487cd45b0d3041",
-  "upgradeCapId": "0xec98d6bb45b299a76f5b9b4a2fc3e33aa27c82f75434c8308dd3277d5794b6dd",
-  "xOracleId": "0xb02a9c487b8f2b75c98dd169ff4e1e6dc3dbcd51f8d8e20a3ca964c82ce6e6f4",
-  "xOracleCapId": "0x24c1d16bd63e023ea247d521649a9be02d9c761fc2dfdb69b15325bb859ec175"
+  "packageId": "0x6987906fbf965e4ac549e774e22714cbab402fd934330702727e2efb1b2aa98e",
+  "upgradeCapId": "0x9fe9d2c5162011a62baf92d67949cb9258c9d1fd2c2ed0a3952cdbf9b0783de2",
+  "publisherIds": [
+    "0xae3c0c03a57f529baeb8e0c02aee958f415ddf5580a2020c7fcd2def3c2c244f"
+  ],
+  "xOracleId": "0xa6bae31db1355996685532208f749bd3d572bf3ce1c9104daa9d50f0a83c427c",
+  "xOracleCapId": "0x6e1cf102507bfe23350e92301f8e3a9a23c1fc85c629caf776e4e070871dbbe2"
 }

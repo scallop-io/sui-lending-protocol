@@ -15,9 +15,9 @@ const protocolQueryPkgPath = path.join(__dirname, "../contracts/query");
 
 export const protocolPackageList: PackageBatch = [
   { packagePath: xOraclePath },
-  { packagePath: mathPkgPath },
-  { packagePath: xPkgPath },
-  { packagePath: whitelistPkgPath },
+  { packagePath: mathPkgPath, option: { enforce: true } },
+  { packagePath: xPkgPath, option: { enforce: true } },
+  { packagePath: whitelistPkgPath, option: { enforce: true } },
   { packagePath: coinDecimalsRegistryPath, option: { publishResultParser: decimalsRegistryParser } },
   { packagePath: protocolPkgPath, option: { publishResultParser: protocolParser, enforce: true } },
   { packagePath: protocolQueryPkgPath, option: { enforce: true } }

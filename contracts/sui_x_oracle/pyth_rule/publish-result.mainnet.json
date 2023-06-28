@@ -1,6 +1,7 @@
 {
-  "packageId": "0xc80721d45b4e4b461b8b2d9c262b656f7e8a8fa936f03f5909044ba289204062",
-  "upgradeCapId": "0xf7fa20d448e4c8e0e294b49a0dd19db48c6676aa359666fcc939001dfaff1872",
-  "pythRegistryId": "0x7598f2724cffe7dad3bab2077ba7764e795dfd7be434917015a8a69c8fe1d910",
-  "pythRegistryCapId": "0x0e83fe9df14cf624fd63056bab4bf77a76b02d7c6f1878867e89ab15f78d1409"
+  "packageId": "0x467a24e385368f74bb525e24783ff33d692c0ed5c09d544ef85d583f823ba387",
+  "upgradeCapId": "0x38468387f4c04b62bd94a623fc4692e1c6a4a786cfd064bfb14bacdd345aea83",
+  "publisherIds": [],
+  "pythRegistryId": "0x117e79085672f5067baff5c7eb6c00cc00f548cbaf3afcbb28c9d1dadef84839",
+  "pythRegistryCapId": "0xa59b217d6023c88a03b45d6a9edbf0c7e8b62f25606f0ddc94d94d19e4a01ea4"
 }

@@ -1,8 +1,11 @@
 {
-  "packageId": "0x8ea7d7dcfcaf5dff6c24a73caf6c1171a16d7677a6b12cf3c93011eeb84bb44f",
-  "upgradeCapId": "0x062e00c1d9a5e592dc8db1078bdaf571f236365b176d8ace6123d0e451cb98a5",
-  "marketId": "0xcdd65d04519aea065fdbd15315ab75ff41a65a4a39fd71e107dffc4a06c02f32",
-  "adminCapId": "0xaa9cf672ea136d4944b481a5e000e46c60c1532da0aed97ea4bd7d3be1953ee3",
-  "versionId": "0x7ab77dc86726b2a6b806039a4a6758bdd125f5b4a59667b672609d21ef1ebebf",
-  "versionCapId": "0xcaa85006aa4ffab07a72748b750ff25073ad4e65f7a24bb1d98fbf155763d423"
+  "packageId": "0x99aaa66c01af06d78c1634300e6ca4fabf46bfe830291184bca7d11ddc96859c",
+  "upgradeCapId": "0x3974b8ec7779aa2bf7e66d957dc0b2885a619b814dc568410a57cf93cdec63b3",
+  "publisherIds": [
+    "0xd469bce1db6591ecf327befe7cec0eb345588ccf9c739e6ea7102ecf4e71bfa2"
+  ],
+  "marketId": "0x3588d25a8dd0b471f79721b49fdaa9abf94404c9b32c35022f139ad96eba6253",
+  "adminCapId": "0x890846ae6ed85168f34c7e1511658f70626ac8aac89f1b7a8feebc4203ac44eb",
+  "versionId": "0x07177e28c833984898514bd9c86f04623e298dde94568413794833500c23c14e",
+  "versionCapId": "0xf3d01f167d7ab682d8d65dc7edbdefa456997f9bcee101bc7176f4e45302bd1d"
 }

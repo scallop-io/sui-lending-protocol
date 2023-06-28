@@ -55,6 +55,10 @@ module protocol::obligation_debts {
     new_borrow_index: u64
   ): u64 {
     let debt = wit_table::borrow_mut(ObligationDebts{}, debts, type_name);
+
+    // If the borrow index hasn't changed, there is no interest to accrue.
+    if (debt.borrow_index == new_borrow_index) return 0;
+
     let prev_amount = debt.amount;
     debt.amount = fixed_point32::multiply_u64(debt.amount, fixed_point32::create_from_rational(new_borrow_index, debt.borrow_index));
     let accrued_interest = debt.amount - prev_amount;

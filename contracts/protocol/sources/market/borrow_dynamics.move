@@ -52,14 +52,28 @@ module protocol::borrow_dynamics {
     let debt_dynamic = wit_table::borrow(self, type_name);
     debt_dynamic.borrow_index
   }
-  
+
+  public fun last_updated_by_type(
+    self: &WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
+    type_name: TypeName,
+  ): u64 {
+    let debt_dynamic = wit_table::borrow(self, type_name);
+    debt_dynamic.last_updated
+  }
+
   public(friend) fun update_borrow_index(
     self: &mut WitTable<BorrowDynamics, TypeName, BorrowDynamic>,
     type_name: TypeName,
     now: u64
   ) {
-    // new_borrow_index = old_borrow_index + (old_borrow_index * interest_rate * time_delta)
     let debt_dynamic = wit_table::borrow_mut(BorrowDynamics {}, self, type_name);
+
+    // if the borrow index is already updated, return
+    if (debt_dynamic.last_updated == now) {
+      return
+    };
+
+    // new_borrow_index = old_borrow_index + (old_borrow_index * interest_rate * time_delta)
     let time_delta = fixed_point32_empower::from_u64(now - debt_dynamic.last_updated);
     let index_delta =
       fixed_point32::multiply_u64(debt_dynamic.borrow_index, fixed_point32_empower::mul(time_delta, debt_dynamic.interest_rate));

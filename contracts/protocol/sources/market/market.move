@@ -301,7 +301,7 @@ module protocol::market {
       let last_updated = borrow_dynamics::last_updated_by_type(&self.borrow_dynamics, type);
       if (last_updated == now) {
         i = i + 1;
-        continue;
+        continue
       };
 
       // update borrow index

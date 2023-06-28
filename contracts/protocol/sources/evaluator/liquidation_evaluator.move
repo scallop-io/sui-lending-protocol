@@ -1,5 +1,5 @@
 module protocol::liquidation_evaluator {
-  use std::type_name::{get, TypeName};
+  use std::type_name;
   use std::fixed_point32;
   use std::fixed_point32::FixedPoint32;
   use sui::math;
@@ -26,7 +26,7 @@ module protocol::liquidation_evaluator {
     clock: &Clock,
   ): (u64, u64, u64) {
 
-    let collateral_type = get<CollateralType>();
+    let collateral_type = type_name::get<CollateralType>();
     let risk_model = market::risk_model(market, collateral_type);
     let liq_revenue_factor = risk_model::liq_revenue_factor(risk_model);
 
@@ -58,11 +58,11 @@ module protocol::liquidation_evaluator {
     clock: &Clock,
   ): (u64, u64) {
 
-    let debt_type = get<DebtType>();
+    let debt_type = type_name::get<DebtType>();
 
     // get all the necessary parameters for liquidation
     obligation::debt(obligation, debt_type);
-    let collateral_type = get<CollateralType>();
+    let collateral_type = type_name::get<CollateralType>();
     let total_collateral_amount = obligation::collateral(obligation, collateral_type);
     let collateral_decimals = coin_decimals_registry::decimals(coin_decimals_registry, collateral_type);
     let collateral_scale = math::pow(10, collateral_decimals);
@@ -127,8 +127,8 @@ module protocol::liquidation_evaluator {
     x_oracle: &XOracle,
     clock: &Clock,
   ): FixedPoint32 {
-    let collateral_type = get<CollateralType>();
-    let debt_type = get<DebtType>();
+    let collateral_type = type_name::get<CollateralType>();
+    let debt_type = type_name::get<DebtType>();
     let collateral_decimals = coin_decimals_registry::decimals(coin_decimals_registry, collateral_type);
     let debt_decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
     let collateral_scale = math::pow(10, collateral_decimals);

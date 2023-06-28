@@ -30,7 +30,7 @@ module protocol::liquidation_evaluator {
     let risk_model = market::risk_model(market, collateral_type);
     let liq_revenue_factor = risk_model::liq_revenue_factor(risk_model);
 
-    let (max_repay_amount, max_liq_amount ) = max_liquidation_amounts<DebtType, CollateralType>(obligation, market, coin_decimals_registry, x_oracle, clock);
+    let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, CollateralType>(obligation, market, coin_decimals_registry, x_oracle, clock);
 
     let (actual_repay_amount, actual_liq_amount) = if (available_repay_amount >= max_repay_amount) {
       (max_repay_amount, max_liq_amount)
@@ -119,6 +119,8 @@ module protocol::liquidation_evaluator {
     (max_repay_amount, max_liq_amount)
   }
 
+  /// calculate the liquidation exchange rate
+  /// Debt to Collateral ratio for liquidator
   fun calc_liq_exchange_rate<DebtType, CollateralType>(
     market: &Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
@@ -147,6 +149,7 @@ module protocol::liquidation_evaluator {
       exchange_rate,
       fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), liq_discount)
     );
-    exchange_rate
+
+    liq_exchange_rate
   }
 }

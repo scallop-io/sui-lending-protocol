@@ -63,13 +63,13 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
     },
   ];
 
-  const scale = 10 ** 16;
+  const scale = 10 ** 12;
   const interestModelPairs: { type: string, interestModel: InterestModel }[] = [
     {
       type: SUI_TYPE_ARG,
       interestModel: {
-        baseBorrowRatePerSec: 15854986000, // 5 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
-        interestRateScale: 1000,
+        baseBorrowRatePerSec: 15854986000, // 5 * (10 ** 16) / (365 * 24 * 3600) / 100 * (10 ** 7)
+        interestRateScale: 10 ** 7,
 
         borrowRateOnMidKink: 10 * (scale / 100), // 10%
         borrowRateOnHighKink: 100 * (scale / 100), // 100%
@@ -78,8 +78,8 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         midKink: 60 * (scale / 100), // 60%
         highKink: 90 * (scale / 100), // 90%
 
-        revenueFactor: 5 * 10 ** 14, // 5%
-        borrowWeight: 125 * 10 ** 14, // 1.25
+        revenueFactor: 5 * (scale / 100), // 5%
+        borrowWeight: 125 * (scale / 100), // 1.25
         scale,
         minBorrowAmount: 10 ** 9, // 1SUI
       }
@@ -97,8 +97,8 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         midKink: 60 * (scale / 100), // 60%
         highKink: 90 * (scale / 100), // 90%
 
-        revenueFactor: 5 * 10 ** 14, // 5%
-        borrowWeight: 125 * 10 ** 14, // 1
+        revenueFactor: 5 * (scale / 100), // 5%
+        borrowWeight: 100 * (scale / 100), // 1
         scale,
         minBorrowAmount: 10 ** 9, // 1 USDC
       },
@@ -116,8 +116,8 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         midKink: 60 * (scale / 100), // 60%
         highKink: 90 * (scale / 100), // 90%
 
-        revenueFactor: 5 * 10 ** 14, // 5%
-        borrowWeight: 125 * 10 ** 14, // 1
+        revenueFactor: 5 * (scale / 100), // 5%
+        borrowWeight: 100 * (scale / 100), // 1
         scale,
         minBorrowAmount: 10 ** 9, // 1 USDT
       },
@@ -135,8 +135,8 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         midKink: 60 * (scale / 100), // 60%
         highKink: 90 * (scale / 100), // 90%
 
-        revenueFactor: 5 * 10 ** 14, // 5%
-        borrowWeight: 125 * 10 ** 14, // 1.25
+        revenueFactor: 5 * (scale / 100), // 5%
+        borrowWeight: 100 * (scale / 100), // 1
         scale,
         minBorrowAmount: 10 ** 9, // 1BTC
       },
@@ -154,8 +154,8 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         midKink: 60 * (scale / 100), // 60%
         highKink: 90 * (scale / 100), // 90%
 
-        revenueFactor: 5 * 10 ** 14, // 5%
-        borrowWeight: 125 * 10 ** 14, // 1.25
+        revenueFactor: 5 * (scale / 100), // 5%
+        borrowWeight: 100 * (scale / 100), // 1
         scale,
         minBorrowAmount: 10 ** 9, // 1ETH
       },

@@ -64,6 +64,33 @@ export class ProtocolTxBuilder {
     );
   }
 
+  updateRiskModel(
+    suiTxBlock: SuiTxBlock,
+    riskModel: RiskModel,
+    coinType: string,
+  ) {
+    const createRiskModelChangeTarget = `${this.packageId}::app::create_risk_model_change`;
+    let riskModelChange= suiTxBlock.moveCall(
+      createRiskModelChangeTarget,
+      [
+        this.adminCapId,
+        riskModel.collateralFactor,
+        riskModel.liquidationFactor,
+        riskModel.liquidationPanelty,
+        riskModel.liquidationDiscount,
+        riskModel.scale,
+        riskModel.maxCollateralAmount,
+      ],
+      [coinType],
+    );
+    const updateRiskModelTarget = `${this.packageId}::app::update_risk_model`;
+    suiTxBlock.moveCall(
+      updateRiskModelTarget,
+      [this.marketId, this.adminCapId, riskModelChange],
+      [coinType],
+    );
+  }
+
   addInterestModel(
     suiTxBlock: SuiTxBlock,
     interestModel: InterestModel,

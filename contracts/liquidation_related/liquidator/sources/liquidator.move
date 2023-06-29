@@ -1,8 +1,7 @@
 module scallop_liquidator::liquidator {
 
   use sui::clock::Clock;
-  use sui::coin::{Self, Coin};
-  use sui::sui::SUI;
+  use sui::coin;
   use sui::tx_context::{Self, TxContext};
   use sui::transfer;
 
@@ -16,17 +15,11 @@ module scallop_liquidator::liquidator {
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
   use x_oracle::x_oracle::XOracle;
 
-  use pyth::state::State as PythState;
-  use pyth::price_info::PriceInfoObject;
-  use wormhole::state::State as WormholeState;
-  use pyth_rule::pyth_registry::PythRegistry;
-
   use cetus_adaptor::cetus_flash_loan;
   use cetus_clmm::pool::{Pool as CetusPool, swap_pay_amount};
   use cetus_clmm::config::GlobalConfig as CetusConfig;
 
-  use scallop_liquidator::oracle;
-  use scallop_liquidator::util;
+  use scallop_liquidator::coin_util;
 
   public fun liquidate_obligation<DebtType, CollateralType>(
     version: &Version,
@@ -34,34 +27,11 @@ module scallop_liquidator::liquidator {
     market: &mut Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     x_oracle: &mut XOracle,
-    wormhole_state: &WormholeState,
-    pyth_state: &PythState,
-    sui_price_info_object: &mut PriceInfoObject,
-    usdc_price_info_object: &mut PriceInfoObject,
-    pyth_registry: &PythRegistry,
-    sui_vaa_buf: vector<u8>,
-    usdc_vaa_buf: vector<u8>,
     cetus_config:  &CetusConfig,
     cetus_pool: &mut CetusPool<DebtType, CollateralType>,
-    fee: Coin<SUI>,
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    /// First update the oracle prices
-    oracle::update_usdc_sui_prices(
-      x_oracle,
-      wormhole_state,
-      pyth_state,
-      sui_price_info_object,
-      usdc_price_info_object,
-      pyth_registry,
-      sui_vaa_buf,
-      usdc_vaa_buf,
-      fee,
-      clock,
-      ctx
-    );
-
     /// Then accrue interest for the obligation
     accrue_interest_for_market_and_obligation(
       market,
@@ -70,7 +40,7 @@ module scallop_liquidator::liquidator {
     );
 
     /// Calculate the liquidation amount
-    let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, CollateralType>(
+    let (max_repay_amount, _max_liq_amount) = max_liquidation_amounts<DebtType, CollateralType>(
       obligation,
       market,
       coin_decimals_registry,
@@ -115,6 +85,6 @@ module scallop_liquidator::liquidator {
     transfer::public_transfer(collateral_coin, tx_context::sender(ctx));
 
     /// If there is any debt coin left, send it to the liquidator
-    util::destory_or_send_to_sender(debt_coin, ctx);
+    coin_util::destory_or_send_to_sender(debt_coin, ctx);
   }
 }

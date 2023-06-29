@@ -1,4 +1,4 @@
-module scallop_liquidator::util {
+module scallop_liquidator::coin_util {
 
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};

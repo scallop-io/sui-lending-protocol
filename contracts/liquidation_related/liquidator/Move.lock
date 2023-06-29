@@ -5,19 +5,9 @@ version = 0
 
 dependencies = [
   { name = "CetusAdaptor" },
-  { name = "CetusClmm" },
-  { name = "CoinDecimalsRegistry" },
-  { name = "Math" },
   { name = "MoveStdlib" },
-  { name = "Pyth" },
-  { name = "PythRule" },
   { name = "ScallopProtocol" },
   { name = "Sui" },
-  { name = "Whitelist" },
-  { name = "Wormhole" },
-  { name = "WormholeUsdc" },
-  { name = "X" },
-  { name = "XOracle" },
 ]
 
 [[move.package]]
@@ -76,27 +66,6 @@ name = "MoveStdlib"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
-name = "Pyth"
-source = { local = "../../sui_x_oracle/pyth_rule/vendors/pyth" }
-
-dependencies = [
-  { name = "Sui" },
-  { name = "Wormhole" },
-]
-
-[[move.package]]
-name = "PythRule"
-source = { local = "../../sui_x_oracle/pyth_rule" }
-
-dependencies = [
-  { name = "MoveStdlib" },
-  { name = "Pyth" },
-  { name = "Sui" },
-  { name = "Wormhole" },
-  { name = "XOracle" },
-]
-
-[[move.package]]
 name = "ScallopProtocol"
 source = { local = "../../protocol" }
 
@@ -120,22 +89,6 @@ dependencies = [
 [[move.package]]
 name = "Whitelist"
 source = { local = "../../libs/whitelist" }
-
-dependencies = [
-  { name = "Sui" },
-]
-
-[[move.package]]
-name = "Wormhole"
-source = { local = "../../sui_x_oracle/pyth_rule/vendors/wormhole" }
-
-dependencies = [
-  { name = "Sui" },
-]
-
-[[move.package]]
-name = "WormholeUsdc"
-source = { local = "../wormhole_usdc" }
 
 dependencies = [
   { name = "Sui" },

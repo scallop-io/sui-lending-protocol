@@ -1,0 +1,25 @@
+[package]
+name = "ScallopLiquidator"
+version = "0.0.1"
+published-at = "0x554323512e239444caca9941a34a49c539ba56caea5ed403ba81e2ef83192062"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "mainnet"
+override = true
+
+[dependencies.MoveStdlib]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/move-stdlib"
+rev = "mainnet"
+override = true
+
+[dependencies.ScallopProtocol]
+local = "../../protocol"
+
+[dependencies.CetusAdaptor]
+local = "../cetus_adaptor"
+
+[addresses]
+scallop_liquidator = "0x554323512e239444caca9941a34a49c539ba56caea5ed403ba81e2ef83192062"

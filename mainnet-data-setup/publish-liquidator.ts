@@ -1,6 +1,11 @@
 /**
  * This script is used to publish scallop liquidator to the blockchain.
  * TODO: Move the liquidation contracts to a separate repo when the contracts are stable
+ *
+ * README:
+ * Before running this script, please make sure:
+ * 1. Make sure x-oracle is published to the blockchain
+ * 2. Make sure the protocol is published to the blockchain
  */
 
 import * as path from "path";
@@ -47,13 +52,13 @@ export const protocolPackageList: PackageBatch = [
   { packagePath: protocolPkgPath },
 
   // Liquidation packages
-  { packagePath: cetusAdaptorPkgPath, option: { enforce: true } },
+  { packagePath: cetusAdaptorPkgPath, option: { enforce: false } },
   { packagePath: liquidatorPkgPath, option: { enforce: true } },
 ];
-export const publishProtocol = async (
+export const publishLiquidator = async (
   signer: RawSigner
 ) => {
   return packagePublisher.publishPackageBatch(protocolPackageList, signer);
 }
 
-publishProtocol(suiKit.getSigner()).then(console.log).catch(console.error).finally(() => process.exit(0));
+publishLiquidator(suiKit.getSigner()).then(console.log).catch(console.error).finally(() => process.exit(0));

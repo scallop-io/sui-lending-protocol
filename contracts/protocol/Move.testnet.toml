@@ -1,5 +1,5 @@
 [package]
-name = "Protocol"
+name = "ScallopProtocol"
 version = "0.0.1"
 published-at = "0x4434f5a3dcd1c7309465db2baf49bf4602c1ea5db73e9036d7e8ec7257f99045"
 

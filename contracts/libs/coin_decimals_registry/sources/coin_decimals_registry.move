@@ -9,6 +9,8 @@ module coin_decimals_registry::coin_decimals_registry {
   use sui::transfer;
   use sui::package;
 
+  const EDecimalsNotFound: u64 = 999;
+
   struct COIN_DECIMALS_REGISTRY has drop {}
 
   struct CoinDecimalsRegistry has key, store {
@@ -62,6 +64,7 @@ module coin_decimals_registry::coin_decimals_registry {
     registry: &CoinDecimalsRegistry,
     typeName: TypeName,
   ): u8 {
+    assert!(table::contains(&registry.table, typeName), EDecimalsNotFound);
     *table::borrow(&registry.table, typeName)
   }
   

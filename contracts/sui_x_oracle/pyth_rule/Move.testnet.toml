@@ -1,0 +1,28 @@
+[package]
+name = "PythRule"
+version = "0.0.1"
+published-at = "0x0d710c8fd9d26c17c89b0dc772c1d1d32c19c2efd44f3abc10d31ef6669fe140"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "mainnet"
+override = true
+
+[dependencies.MoveStdlib]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/move-stdlib"
+rev = "mainnet"
+override = true
+
+[dependencies.Pyth]
+local = "./vendors/pyth"
+
+[dependencies.Wormhole]
+local = "./vendors/wormhole"
+
+[dependencies.XOracle]
+local = "../x_oracle"
+
+[addresses]
+pyth_rule = "0x0d710c8fd9d26c17c89b0dc772c1d1d32c19c2efd44f3abc10d31ef6669fe140"

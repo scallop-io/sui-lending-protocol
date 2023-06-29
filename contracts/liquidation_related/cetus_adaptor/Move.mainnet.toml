@@ -1,0 +1,18 @@
+[package]
+name = "CetusAdaptor"
+version = "0.0.1"
+published-at = "0xbee4e5f893adbb2b1bb741f150df84a90891f10568f95780614e921eb2cc6cd4"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "mainnet"
+override = true
+
+[dependencies.CetusClmm]
+git = "https://github.com/CetusProtocol/cetus-clmm-interface.git"
+subdir = "sui/clmmpool"
+rev = "main"
+
+[addresses]
+cetus_adaptor = "0xbee4e5f893adbb2b1bb741f150df84a90891f10568f95780614e921eb2cc6cd4"

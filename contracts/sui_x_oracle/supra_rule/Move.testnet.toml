@@ -1,0 +1,25 @@
+[package]
+name = "SupraRule"
+version = "0.0.1"
+published-at = "0x5e96a287ad24797555307437b980ece7b6cdbdaf81b235f1c8682a31f4b3f254"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "mainnet"
+override = true
+
+[dependencies.MoveStdlib]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/move-stdlib"
+rev = "mainnet"
+override = true
+
+[dependencies.SupraOracle]
+local = "./vendors/supra_oracle"
+
+[dependencies.XOracle]
+local = "../x_oracle"
+
+[addresses]
+supra_rule = "0x5e96a287ad24797555307437b980ece7b6cdbdaf81b235f1c8682a31f4b3f254"

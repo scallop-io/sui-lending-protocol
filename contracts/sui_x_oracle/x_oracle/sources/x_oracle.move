@@ -11,7 +11,7 @@ module x_oracle::x_oracle {
   use x_oracle::price_update_policy::{Self, PriceUpdatePolicy, PriceUpdateRequest, PriceUpdatePolicyCap};
   use x_oracle::price_feed::{Self, PriceFeed};
 
-  const PRIMARY_PRICE_NOT_QUALIFIED: u64 = 0;
+  const PRIMARY_PRICE_NOT_QUALIFIED: u64 = 720;
 
   struct X_ORACLE has drop {}
 

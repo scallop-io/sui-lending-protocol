@@ -8,9 +8,9 @@ module x_oracle::price_update_policy {
 
   use x_oracle::price_feed::PriceFeed;
 
-  const REQUIRE_ALL_RULES_FOLLOWED: u64 = 0;
-  const REQUST_NOT_FOR_THIS_POLICY: u64 = 1;
-  const WRONG_POLICY_CAP: u64 = 2;
+  const REQUIRE_ALL_RULES_FOLLOWED: u64 = 721;
+  const REQUST_NOT_FOR_THIS_POLICY: u64 = 722;
+  const WRONG_POLICY_CAP: u64 = 723;
 
   struct PriceUpdateRequest<phantom T> {
     for: ID,

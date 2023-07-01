@@ -48,16 +48,16 @@ module protocol_test::repay_test {
     let scenario = &mut scenario_value;
     let clock = clock::create_for_testing(test_scenario::ctx(scenario));
     let version = version::create_for_testing(test_scenario::ctx(scenario));
-    let (market, admin_cap) = app_init(scenario, &version);
+    let (market, admin_cap) = app_init(scenario);
     let usdc_interest_params = usdc_interest_model_params();
 
     let (x_oracle, x_oracle_policy_cap) = oracle_t::init_t(scenario);
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &version, &admin_cap, &usdc_interest_params, &clock);
+    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
-    add_risk_model_t<ETH>(scenario, &mut market, &version, &admin_cap, &eth_risk_params);
+    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
@@ -92,6 +92,7 @@ module protocol_test::repay_test {
       &market,
       borrow_amount,
       usdc_amount - borrow_amount,
+      0,
       math::pow(10, 9),
       time_delta,
     );

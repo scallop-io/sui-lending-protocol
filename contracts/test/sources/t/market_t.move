@@ -13,26 +13,29 @@ module protocol_test::market_t {
         market: &Market,
         curr_borrow: u64,
         curr_cash: u64,
-    ): FixedPoint32 {    
-        let util_rate = fixed_point32::create_from_rational(curr_borrow, curr_borrow + curr_cash);
+        curr_revenue: u64,
+    ): (FixedPoint32, u64) {    
+        let util_rate = fixed_point32::create_from_rational(curr_borrow, curr_borrow + curr_cash - curr_revenue);
         let coin_type = type_name::get<T>();
         let interest_models = market_lib::interest_models(market);
         let interest_model = ac_table::borrow(interest_models, coin_type);
-        let interest_rate = interest_model_lib::calc_interest(interest_model, util_rate);
-        interest_rate
+        interest_model_lib::calc_interest(interest_model, util_rate)
     }
 
     public fun calc_growth_interest<T>(
         market: &Market,
         curr_borrow: u64,
         curr_cash: u64,
+        curr_revenue: u64,
         curr_borrow_index: u64,
         time_delta: u64,
     ): FixedPoint32 {
+        let (interest_rate, interest_rate_scale) = calc_interest_rate<T>(market, curr_borrow, curr_cash, curr_revenue);
         let index_delta = fixed_point32::multiply_u64(curr_borrow_index, fixed_point32_empower::mul(
             fixed_point32_empower::from_u64(time_delta), 
-            calc_interest_rate<T>(market, curr_borrow, curr_cash)
+            interest_rate
         ));
+        let index_delta = index_delta / interest_rate_scale;
         let new_borrow_index = curr_borrow_index + index_delta;
         fixed_point32_empower::sub(fixed_point32::create_from_rational(new_borrow_index, curr_borrow_index), fixed_point32_empower::from_u64(1))
     }

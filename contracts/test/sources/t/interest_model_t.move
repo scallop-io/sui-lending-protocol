@@ -4,7 +4,6 @@ module protocol_test::interest_model_t {
   use sui::clock::Clock;
   use sui::test_scenario::{Self, Scenario};
   use protocol::market::Market;
-  use protocol::version::Version;
   use protocol::app::{Self, AdminCap};
   use protocol_test::constants::{Self, InterestModelParams};
   use protocol_test::transaction_utils_t;
@@ -12,24 +11,25 @@ module protocol_test::interest_model_t {
   public fun add_interest_model_t<T>(
     scenario: &mut Scenario,
     outflow_limit: u64, outflow_cycle_duration: u32, outflow_segment_duration: u32,
-    market: &mut Market, version: &Version, admin_cap: &AdminCap, params: &InterestModelParams<T>, clock: &Clock,
+    market: &mut Market, admin_cap: &AdminCap, params: &InterestModelParams<T>, clock: &Clock,
   ) {
     test_scenario::next_tx(scenario, @0x0);
     let interest_model = app::create_interest_model_change<T>(
-      version,
       admin_cap,
       constants::base_rate_per_sec(params),
-      constants::low_slope(params),
-      constants::kink(params),
-      constants::high_slope(params),
+      constants::interest_rate_scale(params),
+      constants::borrow_rate_on_mid_kink(params),
+      constants::mid_kink(params),
+      constants::borrow_rate_on_high_kink(params),
+      constants::high_kink(params),
+      constants::max_borrow_rate(params),
       constants::revenue_factor(params),
+      constants::borrow_weight(params),
       constants::interest_model_scale(params),
       constants::min_borrow_amount(params),
-      constants::borrow_weight(params),
       test_scenario::ctx(scenario)
     );
     app::add_interest_model<T>(
-      version,
       market,
       admin_cap,
       interest_model,
@@ -40,7 +40,6 @@ module protocol_test::interest_model_t {
     transaction_utils_t::skip_epoch(scenario, 11);
     
     app::add_limiter<T>(
-      version,
       admin_cap,
       market,
       outflow_limit,

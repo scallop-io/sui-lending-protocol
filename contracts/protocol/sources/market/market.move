@@ -6,16 +6,18 @@ module protocol::market {
   use sui::tx_context::TxContext;
   use sui::balance::Balance;
   use sui::object::{Self, UID};
-  use sui::coin::{Self, Coin};
+  use sui::coin::Coin;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
+  use x::witness::Witness;
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::limiter::{Self, Limiters, Limiter};
+  use protocol::incentive_rewards::{Self, RewardFactors, RewardFactor};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::reserve::{Self, Reserve, MarketCoin, FlashLoan};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
-  use protocol::collateral_stats::{CollateralStats, CollateralStat};
-  use protocol::collateral_stats;
+  use protocol::collateral_stats::{Self, CollateralStats, CollateralStat};
+  use protocol::asset_active_state::{Self, AssetActiveStates};
   use protocol::error;
   use math::fixed_point32_empower;
 
@@ -28,6 +30,7 @@ module protocol::market {
   friend protocol::withdraw_collateral;
   friend protocol::deposit_collateral;
   friend protocol::flash_loan;
+  friend protocol::accrue_interest;
 
   
   struct Market has key, store {
@@ -37,16 +40,20 @@ module protocol::market {
     interest_models: AcTable<InterestModels, TypeName, InterestModel>,
     risk_models: AcTable<RiskModels, TypeName, RiskModel>,
     limiters: WitTable<Limiters, TypeName, Limiter>,
+    reward_factors: WitTable<RewardFactors, TypeName, RewardFactor>,
+    asset_active_states: AssetActiveStates,
     vault: Reserve
   }
 
   public fun uid(market: &Market): &UID { &market.id }
+  public fun uid_mut_delegated(market: &mut Market, _: Witness<Market>): &mut UID { &mut market.id }
   public(friend) fun uid_mut(market: &mut Market): &mut UID { &mut market.id }
 
   public fun borrow_dynamics(market: &Market): &WitTable<BorrowDynamics, TypeName, BorrowDynamic> { &market.borrow_dynamics }
   public fun interest_models(market: &Market): &AcTable<InterestModels, TypeName, InterestModel> { &market.interest_models }
   public fun vault(market: &Market): &Reserve { &market.vault }
   public fun risk_models(market: &Market): &AcTable<RiskModels, TypeName, RiskModel> { &market.risk_models }
+  public fun reward_factors(market: &Market): &WitTable<RewardFactors, TypeName, RewardFactor> { &market.reward_factors }
   public fun collateral_stats(market: &Market): &WitTable<CollateralStats, TypeName, CollateralStat> { &market.collateral_stats }
   
   public fun borrow_index(self: &Market, type_name: TypeName): u64 {
@@ -58,12 +65,21 @@ module protocol::market {
   public fun risk_model(self: &Market, type_name: TypeName): &RiskModel {
     ac_table::borrow(&self.risk_models, type_name)
   }
+  public fun reward_factor(self: &Market, type_name: TypeName): &RewardFactor {
+    wit_table::borrow(&self.reward_factors, type_name)
+  }
   public fun has_risk_model(self: &Market, type_name: TypeName): bool {
     ac_table::contains(&self.risk_models, type_name)
   }
   public fun has_limiter(self: &Market, type_name: TypeName): bool {
     wit_table::contains(&self.limiters, type_name)
-  } 
+  }
+  public fun is_base_asset_active(self: &Market, type_name: TypeName): bool {
+    asset_active_state::is_base_asset_active(&self.asset_active_states, type_name)
+  }
+  public fun is_collateral_active(self: &Market, type_name: TypeName): bool {
+    asset_active_state::is_collateral_active(&self.asset_active_states, type_name)
+  }
   
   public(friend) fun new(ctx: &mut TxContext)
   : (Market, AcTableCap<InterestModels>, AcTableCap<RiskModels>)
@@ -77,51 +93,11 @@ module protocol::market {
       interest_models,
       risk_models,
       limiters: limiter::init_table(ctx),
+      reward_factors: incentive_rewards::init_table(ctx),
+      asset_active_states: asset_active_state::new(ctx),
       vault: reserve::new(ctx),
     };
     (market, interest_models_cap, risk_models_cap)
-  }
-
-  public(friend) fun add_limiter<T>(
-    self: &mut Market, 
-    outflow_limit: u64,
-    outflow_cycle_duration: u32,
-    outflow_segment_duration: u32,
-  ) {
-    let key = type_name::get<T>();
-    limiter::add_limiter(
-        &mut self.limiters,
-        key,
-        outflow_limit,
-        outflow_cycle_duration,
-        outflow_segment_duration,
-    );
-  }
-
-  public(friend) fun update_outflow_segment_params<T>(
-    self: &mut Market,
-    outflow_cycle_duration: u32,
-    outflow_segment_duration: u32,
-  ) {
-    let key = type_name::get<T>();
-    limiter::update_outflow_segment_params(
-        &mut self.limiters,
-        key,
-        outflow_cycle_duration,
-        outflow_segment_duration,
-    );
-  }
-
-  public(friend) fun update_outflow_limit_params<T>(
-    self: &mut Market,
-    outflow_limit: u64,
-  ) {
-    let key = type_name::get<T>();
-    limiter::update_outflow_limit_params(
-        &mut self.limiters,
-        key,
-        outflow_limit,
-    );
   }
 
   public(friend) fun handle_outflow<T>(
@@ -151,16 +127,34 @@ module protocol::market {
         inflow_value,
     );
   }
-  
-  public(friend) fun register_coin<T>(self: &mut Market, now: u64) {
-    reserve::register_coin<T>(&mut self.vault);
-    let interest_model = ac_table::borrow(&self.interest_models, get<T>());
-    let base_borrow_rate = interest_model::base_borrow_rate(interest_model);
-    borrow_dynamics::register_coin<T>(&mut self.borrow_dynamics, base_borrow_rate, now);
+
+  // ===== management of asset active state =====
+  public(friend) fun set_base_asset_active_state<T>(self: &mut Market, is_active: bool) {
+    let type = get<T>();
+    asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, type, is_active);
   }
-  
+  public(friend) fun set_collateral_active_state<T>(self: &mut Market, is_active: bool) {
+    let type = get<T>();
+    asset_active_state::set_collateral_active_state(&mut self.asset_active_states, type, is_active);
+  }
+
+
+  // register base coin asset
+  public(friend) fun register_coin<T>(self: &mut Market, now: u64) {
+    let type = get<T>();
+    reserve::register_coin<T>(&mut self.vault);
+    let interest_model = ac_table::borrow(&self.interest_models, type);
+    let base_borrow_rate = interest_model::base_borrow_rate(interest_model);
+    let interest_rate_scale = interest_model::interest_rate_scale(interest_model);
+    borrow_dynamics::register_coin<T>(&mut self.borrow_dynamics, base_borrow_rate, interest_rate_scale, now);
+    asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, type, true);
+  }
+
+  // register collateral asset
   public(friend) fun register_collateral<T>(self: &mut Market) {
-    collateral_stats::init_collateral_if_none(&mut self.collateral_stats, get<T>());
+    let type = get<T>();
+    collateral_stats::init_collateral_if_none(&mut self.collateral_stats, type);
+    asset_active_state::set_collateral_active_state(&mut self.asset_active_states, type, true);
   }
 
   // the final fee rate is "fee/10000"
@@ -175,6 +169,14 @@ module protocol::market {
   
   public(friend) fun interest_models_mut(self: &mut Market): &mut AcTable<InterestModels, TypeName, InterestModel> {
     &mut self.interest_models
+  }
+
+  public(friend) fun rate_limiter_mut(self: &mut Market): &mut WitTable<Limiters, TypeName, Limiter> {
+    &mut self.limiters
+  }
+
+  public(friend) fun reward_factors_mut(self: &mut Market): &mut WitTable<RewardFactors, TypeName, RewardFactor> {
+    &mut self.reward_factors
   }
   
   public(friend) fun handle_borrow<T>(
@@ -258,9 +260,7 @@ module protocol::market {
     amount: u64,
     ctx: &mut TxContext,
   ): (Coin<T>, FlashLoan<T>) {
-    let (balance, loan) = reserve::borrow_flash_loan<T>(&mut self.vault, amount);
-    let coin = coin::from_balance(balance, ctx);
-    (coin, loan)
+    reserve::borrow_flash_loan<T>(&mut self.vault, amount, ctx)
   }
 
   public(friend) fun repay_flash_loan<T>(
@@ -268,10 +268,9 @@ module protocol::market {
     coin: Coin<T>,
     loan: FlashLoan<T>,
   ) {
-    let balance = coin::into_balance(coin);
-    reserve::repay_flash_loan(&mut self.vault, balance, loan)
+    reserve::repay_flash_loan(&mut self.vault, coin, loan)
   }
-  
+
   public(friend) fun compound_interests(
     self: &mut Market,
     now: u64,
@@ -279,7 +278,15 @@ module protocol::market {
     accrue_all_interests(self, now);
     update_interest_rates(self);
   }
-  
+
+  public(friend) fun take_revenue<T>(
+    self: &mut Market,
+    amount: u64,
+    ctx: &mut TxContext,
+  ): Coin<T> {
+    reserve::take_revenue<T>(&mut self.vault, amount, ctx)
+  }
+
   // accure interest for all markets
   public(friend) fun accrue_all_interests(
     self: &mut Market,
@@ -289,6 +296,14 @@ module protocol::market {
     let (i, n) = (0, vector::length(&asset_types));
     while (i < n) {
       let type = *vector::borrow(&asset_types, i);
+
+      // if the interest has been accrued, skip
+      let last_updated = borrow_dynamics::last_updated_by_type(&self.borrow_dynamics, type);
+      if (last_updated == now) {
+        i = i + 1;
+        continue
+      };
+
       // update borrow index
       let old_borrow_index = borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type);
       borrow_dynamics::update_borrow_index(&mut self.borrow_dynamics, type, now);
@@ -311,10 +326,10 @@ module protocol::market {
     let (i, n) = (0, vector::length(&asset_types));
     while (i < n) {
       let type = *vector::borrow(&asset_types, i);
-      let ulti_rate = reserve::ulti_rate(&self.vault, type);
+      let util_rate = reserve::util_rate(&self.vault, type);
       let interest_model = ac_table::borrow(&self.interest_models, type);
-      let new_interest_rate = interest_model::calc_interest(interest_model, ulti_rate);
-      borrow_dynamics::update_interest_rate(&mut self.borrow_dynamics, type, new_interest_rate);
+      let (new_interest_rate, interest_rate_scale) = interest_model::calc_interest(interest_model, util_rate);
+      borrow_dynamics::update_interest_rate(&mut self.borrow_dynamics, type, new_interest_rate, interest_rate_scale);
       i = i + 1;
     };
   }

@@ -61,6 +61,12 @@ module protocol::withdraw_collateral {
       error::whitelist_error()
     );
 
+    // check if obligation is locked
+    assert!(
+      obligation::withdraw_collateral_locked(obligation) == false,
+      error::obligation_locked()
+    );
+
     let now = clock::timestamp_ms(clock) / 1000;
 
     obligation::assert_key_match(obligation, obligation_key);
@@ -69,8 +75,8 @@ module protocol::withdraw_collateral {
     // Because interest need to be accrued first before other operations
     market::handle_withdraw_collateral<T>(market, withdraw_amount, now);
   
-    // accure interests for obligation
-    obligation::accrue_interests(obligation, market);
+    // accure interests & rewards for obligation
+    obligation::accrue_interests_and_rewards(obligation, market);
     
     // IF withdraw_amount bigger than max, then abort
     let max_withdaw_amount = borrow_withdraw_evaluator::max_withdraw_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);

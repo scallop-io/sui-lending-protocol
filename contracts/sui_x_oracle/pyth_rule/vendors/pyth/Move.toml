@@ -1,6 +1,7 @@
 [package]
 name = "Pyth"
 version = "0.0.1"
+published-at = "0x00b53b0f4174108627fbee72e2498b58d6a2714cded53fac537034c220d26302"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -11,7 +12,7 @@ rev = "09b2081498366df936abae26eea4b2d5cafb2788"
 local = "../wormhole"
 
 [addresses]
-pyth = "0x0"
+pyth = "0x00b53b0f4174108627fbee72e2498b58d6a2714cded53fac537034c220d26302"
 
 [dev-addresses]
 pyth = "0x100"

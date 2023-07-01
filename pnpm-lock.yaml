@@ -5,17 +5,17 @@ dependencies:
     specifier: ^2.2.5
     version: 2.2.5
   '@mysten/sui.js':
-    specifier: ^0.35.1
-    version: 0.35.1
+    specifier: ^0.36.0
+    version: 0.36.0
   '@pythnetwork/price-service-client':
     specifier: ^1.4.1
     version: 1.4.1
   '@scallop-io/sui-kit':
-    specifier: ^0.35.2
-    version: 0.35.2(@mysten/sui.js@0.35.1)
+    specifier: ^0.36.1
+    version: 0.36.1(@mysten/sui.js@0.36.0)
   '@scallop-io/sui-package-kit':
-    specifier: ^0.35.1
-    version: 0.35.1(@mysten/sui.js@0.35.1)
+    specifier: ^0.36.0
+    version: 0.36.0(@mysten/sui.js@0.36.0)
   fs:
     specifier: 0.0.1-security
     version: 0.0.1-security
@@ -73,17 +73,17 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.14
     dev: true
 
-  /@mysten/bcs@0.7.1:
-    resolution: {integrity: sha512-wFPb8bkhwrbiStfZMV5rFM7J+umpke59/dNjDp+UYJKykNlW23LCk2ePyEUvGdb62HGJM1jyOJ8g4egE3OmdKA==}
+  /@mysten/bcs@0.7.2:
+    resolution: {integrity: sha512-M8aUGFwoBEj9XPCJcYuVlv8UbqBINAYhrDGLavdCYZwGlN5saGgrBcnGpXk+D2/Vp+aEUFh3RCyKudn7H0G9hQ==}
     dependencies:
       bs58: 5.0.0
     dev: false
 
-  /@mysten/sui.js@0.35.1:
-    resolution: {integrity: sha512-1UQ65oJhO+G5Bt+EWYqMs5y3eqY1ZZxEdB2y4K+XJVeRZBOy32GjSLiYmZufUAR9o53gAlwAvvNRIzMzuiNQzw==}
+  /@mysten/sui.js@0.36.0:
+    resolution: {integrity: sha512-l/gZUxlr0oHgnwuHYxIVp+JOrdj1imhffL5iK25JYh3WV4sTxiQntCLuSen6etXyFG9c1l2GNvVaGZaV3mb4Hw==}
     engines: {node: '>=16'}
     dependencies:
-      '@mysten/bcs': 0.7.1
+      '@mysten/bcs': 0.7.2
       '@noble/curves': 1.0.0
       '@noble/hashes': 1.3.0
       '@open-rpc/client-js': 1.8.1
@@ -141,13 +141,13 @@ packages:
     resolution: {integrity: sha512-h4HcUwBPFEZwa5nLMTz9YnwdLE5m+Bfctzqbj09vpSJo2DyPHCyEXScFUuizWBbfofxB/pF+OnZXjU3pJxtm/w==}
     dev: false
 
-  /@scallop-io/sui-kit@0.35.2(@mysten/sui.js@0.35.1):
-    resolution: {integrity: sha512-gu0I8PcBhotzZb9otnA4V/WudRu10UASBy67AgvjQaSyz0Fr0rFJUwhVlXzmrYDEz3j2/VmJXJkGgkL2D2NJuA==}
+  /@scallop-io/sui-kit@0.36.1(@mysten/sui.js@0.36.0):
+    resolution: {integrity: sha512-PMz4Tn6myxVOPWEisI4ULx+gscGCiqn7j62Ncda32GQZh5sPFrGUnixu0rn2cyVOBGmwWdTpjG6xBYKVLwfTvw==}
     engines: {node: '>=18'}
     peerDependencies:
-      '@mysten/sui.js': ^0.35.1
+      '@mysten/sui.js': ^0.36.0
     dependencies:
-      '@mysten/sui.js': 0.35.1
+      '@mysten/sui.js': 0.36.0
       '@scure/bip39': 1.2.0
       assert: 2.0.0
       colorts: 0.1.63
@@ -156,14 +156,14 @@ packages:
       ts-retry-promise: 0.7.0
     dev: false
 
-  /@scallop-io/sui-package-kit@0.35.1(@mysten/sui.js@0.35.1):
-    resolution: {integrity: sha512-9Zf+bgS0dQffJgdflHE/Eowr1RMMPxfxsfW4EVj8AQldrV3yYNLdBW2Z+VcwQzs/xlMnn+OZVwdNAwSTD4QhcQ==}
+  /@scallop-io/sui-package-kit@0.36.0(@mysten/sui.js@0.36.0):
+    resolution: {integrity: sha512-ujiN5u/o4FTUb8EhhXo4/e7nxiZZp+x9wwf4u0+vdmcDwdw9igjOa9tUFfkfRuHstjbLUxwBgmGaFjfpVwieRw==}
     engines: {node: '>=16'}
     peerDependencies:
-      '@mysten/sui.js': ^0.35.1
+      '@mysten/sui.js': ^0.36.0
     dependencies:
       '@iarna/toml': 2.2.5
-      '@mysten/sui.js': 0.35.1
+      '@mysten/sui.js': 0.36.0
       colorts: 0.1.63
       superstruct: 1.0.3
       tmp: 0.2.1

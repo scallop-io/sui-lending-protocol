@@ -6,7 +6,7 @@ module protocol::obligation_collaterals {
 
   friend protocol::obligation;
   
-  struct Collateral has copy, store {
+  struct Collateral has copy, store, drop {
     amount: u64
   }
   
@@ -41,6 +41,9 @@ module protocol::obligation_collaterals {
   ) {
     let collateral = wit_table::borrow_mut(ObligationCollaterals{}, collaterals, type_name);
     collateral.amount = collateral.amount - amount;
+    if (collateral.amount == 0) {
+      wit_table::remove(ObligationCollaterals{}, collaterals, type_name);
+    }
   }
   
   public fun collateral(

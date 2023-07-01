@@ -9,7 +9,11 @@ module protocol::app {
   use protocol::market::{Self, Market};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
+  use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
+  use protocol::incentive_rewards;
   use whitelist::whitelist;
+  use protocol::obligation_access::ObligationAccessStore;
+  use protocol::obligation_access;
 
   /// OTW
   struct APP has drop {}
@@ -20,6 +24,7 @@ module protocol::app {
     interest_model_change_delay: u64,
     risk_model_cap: AcTableCap<RiskModels>,
     risk_model_change_delay: u64,
+    limiter_change_delay: u64,
   }
   
   fun init(otw: APP, ctx: &mut TxContext) {
@@ -39,13 +44,14 @@ module protocol::app {
       interest_model_change_delay: 0,
       risk_model_cap,
       risk_model_change_delay: 0,
+      limiter_change_delay: 0,
     };
     package::claim_and_keep(otw, ctx);
     transfer::public_share_object(market);
     transfer::transfer(adminCap, tx_context::sender(ctx));
   }
 
-  // ===== AdminCap =====
+  /// ===== AdminCap =====
   public fun extend_interest_model_change_delay(
     admin_cap: &mut AdminCap,
     delay: u64,
@@ -60,6 +66,14 @@ module protocol::app {
   ) {
     let new_delay = admin_cap.risk_model_change_delay + delay;
     admin_cap.risk_model_change_delay = new_delay;
+  }
+
+  public fun extend_limiter_change_delay(
+    admin_cap: &mut AdminCap,
+    delay: u64,
+  ) {
+    let new_delay = admin_cap.limiter_change_delay + delay;
+    admin_cap.limiter_change_delay = new_delay;
   }
 
   /// For extension of the protocol
@@ -81,29 +95,46 @@ module protocol::app {
       address,
     );
   }
-  
+
+  public fun remove_whitelist_address(
+    _: &AdminCap,
+    market: &mut Market,
+    address: address,
+  ) {
+    whitelist::remove_whitelist_address(
+      market::uid_mut(market),
+      address,
+    );
+  }
+
   public fun create_interest_model_change<T>(
     admin_cap: &AdminCap,
     base_rate_per_sec: u64,
-    low_slope: u64,
-    kink: u64,
-    high_slope: u64,
+    interest_rate_scale: u64,
+    borrow_rate_on_mid_kink: u64,
+    mid_kink: u64,
+    borrow_rate_on_high_kink: u64,
+    high_kink: u64,
+    max_borrow_rate: u64,
     revenue_factor: u64,
+    borrow_weight: u64,
     scale: u64,
     min_borrow_amount: u64,
-    borrow_weight: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
     let interest_model_change = interest_model::create_interest_model_change<T>(
       &admin_cap.interest_model_cap,
       base_rate_per_sec,
-      low_slope,
-      kink,
-      high_slope,
+      interest_rate_scale,
+      borrow_rate_on_mid_kink,
+      mid_kink,
+      borrow_rate_on_high_kink,
+      high_kink,
+      max_borrow_rate,
       revenue_factor,
+      borrow_weight,
       scale,
       min_borrow_amount,
-      borrow_weight,
       admin_cap.interest_model_change_delay,
       ctx,
     );
@@ -193,38 +224,81 @@ module protocol::app {
     outflow_segment_duration: u32,
     _ctx: &mut TxContext
   ) {
-    market::add_limiter<T>(
-      market,
+    let limiter = market::rate_limiter_mut(market);
+    limiter::add_limiter<T>(
+      limiter,
       outflow_limit,
       outflow_cycle_duration,
       outflow_segment_duration,
     );
   }
 
-  public entry fun update_outflow_segment_params<T>(
-    _admin_cap: &AdminCap,
-    market: &mut Market,
+  public fun create_limiter_params_change<T>(
+    admin_cap: &AdminCap,
     outflow_cycle_duration: u32,
     outflow_segment_duration: u32,
-    _ctx: &mut TxContext
-  ) {
-    market::update_outflow_segment_params<T>(
-      market,
+    ctx: &mut TxContext
+  ): OneTimeLockValue<LimiterUpdateParamsChange> {
+    let one_time_lock_value = limiter::create_limiter_params_change<T>(
       outflow_cycle_duration,
       outflow_segment_duration,
+      admin_cap.limiter_change_delay,
+      ctx
+    );
+    one_time_lock_value
+  }
+
+  public fun create_limiter_limit_change<T>(
+    admin_cap: &AdminCap,
+    outflow_limit: u64,
+    ctx: &mut TxContext
+  ): OneTimeLockValue<LimiterUpdateLimitChange> {
+    let one_time_lock_value = limiter::create_limiter_limit_change<T>(
+      outflow_limit,
+      admin_cap.limiter_change_delay,
+      ctx
+    );
+    one_time_lock_value
+  }
+
+  public entry fun apply_limiter_limit_change<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    one_time_lock_value: OneTimeLockValue<LimiterUpdateLimitChange>,
+    ctx: &mut TxContext
+  ) {
+    let limiter = market::rate_limiter_mut(market);
+    limiter::apply_limiter_limit_change(
+      limiter,
+      one_time_lock_value,
+      ctx
     );
   }
 
-  public entry fun update_outflow_limit_params<T>(
+  public entry fun apply_limiter_params_change<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
-    outflow_limit: u64,
+    one_time_lock_value: OneTimeLockValue<LimiterUpdateParamsChange>,
+    ctx: &mut TxContext
+  ) {
+    let limiter = market::rate_limiter_mut(market);
+    limiter::apply_limiter_params_change(
+      limiter,
+      one_time_lock_value,
+      ctx
+    );
+  }
+
+  // ====== incentive rewards =====
+  public entry fun set_incentive_reward_factor<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    reward_factor: u64,
+    scale: u64,
     _ctx: &mut TxContext
   ) {
-    market::update_outflow_limit_params<T>(
-      market,
-      outflow_limit,
-    );
+    let reward_factors = market::reward_factors_mut(market);
+    incentive_rewards::set_reward_factor<T>(reward_factors, reward_factor, scale);
   }
 
   // the final fee rate is "fee/10000"
@@ -235,5 +309,62 @@ module protocol::app {
     fee: u64
   ) {
     market::set_flash_loan_fee<T>(market, fee);
+  }
+
+  /// ======= management of asset active state =======
+  public entry fun set_base_asset_active_state<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    is_active: bool,
+  ) {
+    market::set_base_asset_active_state<T>(market, is_active);
+  }
+
+  public entry fun set_collateral_active_state<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    is_active: bool,
+  ) {
+    market::set_collateral_active_state<T>(market, is_active);
+  }
+
+  /// ======= take revenue =======
+  public entry fun take_revenue<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    amount: u64,
+    ctx: &mut TxContext
+  ) {
+    let coin = market::take_revenue<T>(market, amount, ctx);
+    transfer::public_transfer(coin, tx_context::sender(ctx));
+  }
+
+  /// ======= Management of obligation access keys
+  public entry fun add_lock_key<T: drop>(
+    _admin_cap: &AdminCap,
+    obligation_access_store: &mut ObligationAccessStore,
+  ) {
+    obligation_access::add_lock_key<T>(obligation_access_store);
+  }
+
+  public entry fun remove_lock_key<T: drop>(
+    _admin_cap: &AdminCap,
+    obligation_access_store: &mut ObligationAccessStore,
+  ) {
+    obligation_access::remove_lock_key<T>(obligation_access_store);
+  }
+
+  public entry fun add_reward_key<T: drop>(
+    _admin_cap: &AdminCap,
+    obligation_access_store: &mut ObligationAccessStore,
+  ) {
+    obligation_access::add_reward_key<T>(obligation_access_store);
+  }
+
+  public entry fun remove_reward_key<T: drop>(
+    _admin_cap: &AdminCap,
+    obligation_access_store: &mut ObligationAccessStore,
+  ) {
+    obligation_access::remove_reward_key<T>(obligation_access_store);
   }
 }

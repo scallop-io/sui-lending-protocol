@@ -60,10 +60,23 @@ module protocol::borrow {
       error::whitelist_error()
     );
 
+    // check if obligation is locked
+    assert!(
+      obligation::borrow_locked(obligation) == false,
+      error::obligation_locked()
+    );
+
+    let coin_type = type_name::get<T>();
+
+    // check if base asset is active
+    assert!(
+      market::is_base_asset_active(market, coin_type),
+      error::base_asset_not_active_error()
+    );
+
     let now = clock::timestamp_ms(clock) / 1000;
     obligation::assert_key_match(obligation, obligation_key);
   
-    let coin_type = type_name::get<T>();
     let interest_model = market::interest_model(market, coin_type);
     let min_borrow_amount = interest_model::min_borrow_amount(interest_model);
     assert!(borrow_amount > min_borrow_amount, error::borrow_too_small_error());
@@ -76,8 +89,8 @@ module protocol::borrow {
     
     // init debt if borrow for the first time
     obligation::init_debt(obligation, market, coin_type);
-    // accure interests for obligation
-    obligation::accrue_interests(obligation, market);
+    // accure interests & rewards for obligation
+    obligation::accrue_interests_and_rewards(obligation, market);
     // calc the maximum borrow amount
     // If borrow too much, abort
     let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);

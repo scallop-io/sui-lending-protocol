@@ -16,24 +16,29 @@ module whitelist::whitelist {
 
   // === Events ===
   /// Emit this event when you add an address to the whitelist.
-  struct WhitelistAddEvent has copy, store, drop {
+  struct WhitelistAddEvent has copy, drop {
     id: ID,
     address: address,
   }
 
   /// Emit this event when you remove an address from the whitelist.
-  struct WhitelistRemoveEvent has copy, store, drop {
+  struct WhitelistRemoveEvent has copy, drop {
     id: ID,
     address: address,
   }
 
   /// Emit this event when you allow all addresses.
-  struct AllowAllEvent has copy, store, drop {
+  struct AllowAllEvent has copy, drop {
     id: ID,
   }
 
   /// Emit this event when you reject all addresses.
-  struct RejectAllEvent has copy, store, drop {
+  struct RejectAllEvent has copy, drop {
+    id: ID,
+  }
+
+  /// Emit this event when you switch to whitelist mode.
+  struct SwitchToWhitelistModeEvent has copy, drop {
     id: ID,
   }
 
@@ -69,6 +74,13 @@ module whitelist::whitelist {
 
   public fun is_reject_all(uid: &UID): bool {
     df::exists_(uid, RejectAllKey {})
+  }
+
+  /// Switch to whitelist mode.
+  public fun switch_to_whitelist_mode(uid: &mut UID) {
+    df::remove_if_exists<AllowAllKey, bool>(uid, AllowAllKey {});
+    df::remove_if_exists<RejectAllKey, bool>(uid, RejectAllKey {});
+    event::emit(SwitchToWhitelistModeEvent { id: object::uid_to_inner(uid) });
   }
 
   /// Check if an address is in the whitelist.

@@ -6,12 +6,15 @@ module protocol_test::redeem_test {
   use sui::math;
   use sui::clock;
   use std::fixed_point32;
+  use std::type_name;
   use x_oracle::x_oracle;
   use coin_decimals_registry::coin_decimals_registry;
   use protocol::borrow;
   use protocol::deposit_collateral;
   use protocol::mint;
   use protocol::redeem;
+  use protocol::market;
+  use protocol::interest_model;
   use protocol::version;
   use protocol_test::app_t::app_init;
   use protocol_test::market_t::calc_growth_interest;
@@ -41,7 +44,7 @@ module protocol_test::redeem_test {
 
     let clock = clock::create_for_testing(test_scenario::ctx(scenario));
     let version = version::create_for_testing(test_scenario::ctx(scenario));
-    let (market, admin_cap) = app_init(scenario, &version);
+    let (market, admin_cap) = app_init(scenario);
 
     test_scenario::next_tx(scenario, admin);
 
@@ -51,10 +54,10 @@ module protocol_test::redeem_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &version, &admin_cap, &usdc_interest_params, &clock);
+    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
 
     let eth_risk_params = eth_risk_model_params();
-    add_risk_model_t<ETH>(scenario, &mut market, &version, &admin_cap, &eth_risk_params);
+    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
 
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
@@ -86,24 +89,28 @@ module protocol_test::redeem_test {
     coin::burn_for_testing(borrowed);
 
     test_scenario::next_tx(scenario, lender_b);
+    let current_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let mint_time = 400;
-    clock::set_for_testing(&mut clock, 400 * 1000);
+    clock::set_for_testing(&mut clock, mint_time * 1000);
     let lender_b_market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
 
+    let current_revenue = 0;
     let growth_interest_rate = calc_growth_interest<USDC>(
       &market,
       borrow_amount,
       usdc_amount - borrow_amount,
-      math::pow(10, 9),
+      current_revenue,
+      current_borrow_index,
       mint_time - borrow_time,
     );
     let increased_debt = fixed_point32::multiply_u64(borrow_amount, growth_interest_rate);
+    let current_revenue = fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_mint_amount = calc_mint_amount(
       usdc_amount,
       usdc_amount,
-      borrow_amount + increased_debt,
+      borrow_amount + increased_debt - current_revenue,
       usdc_amount - borrow_amount,
     );
     let lender_b_market_coin_amount = coin::value(&lender_b_market_coin);
@@ -114,6 +121,7 @@ module protocol_test::redeem_test {
     test_scenario::next_tx(scenario, lender_a);
     let redeem_time = 500;
     clock::set_for_testing(&mut clock, 500 * 1000);
+    let current_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
     let redeemed_coin = redeem::redeem(&version, &mut market, lender_a_market_coin, &clock, test_scenario::ctx(scenario));
 
     let current_debt = borrow_amount + increased_debt;
@@ -122,15 +130,17 @@ module protocol_test::redeem_test {
       &market,
       current_debt,
       current_cash,
-      math::pow(10, 9),
+      current_revenue,
+      current_borrow_index,
       redeem_time - mint_time,
     );
     let increased_debt = fixed_point32::multiply_u64(current_debt, growth_interest_rate);
+    let current_revenue = current_revenue + fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_redeem_amount = calc_redeem_amount(
       lender_a_market_coin_amount + lender_b_market_coin_amount,
       lender_a_market_coin_amount,
-      current_debt + increased_debt,
+      current_debt + increased_debt - current_revenue,
       current_cash,
     );
 

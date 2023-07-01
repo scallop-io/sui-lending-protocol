@@ -7,8 +7,8 @@ module supra_rule::supra_registry {
   use sui::transfer;
 
 
-  const ERR_ILLEGAL_SUPRA_PAIR: u64 = 0;
-  const ERR_ILLEGAL_REGISTRY_CAP: u64 = 1;
+  const ERR_ILLEGAL_SUPRA_PAIR: u64 = 0x11306;
+  const ERR_ILLEGAL_REGISTRY_CAP: u64 = 0x11307;
 
   struct SupraRegistry has key {
     id: UID,

@@ -21,7 +21,7 @@ module protocol::mint {
     time: u64,
   }
   
-  public fun mint_entry<T>(
+  public entry fun mint_entry<T>(
     version: &Version,
     market: &mut Market,
     coin: Coin<T>,
@@ -48,6 +48,13 @@ module protocol::mint {
       error::whitelist_error()
     );
 
+    let coin_type = type_name::get<T>();
+    // check if base asset is active
+    assert!(
+      market::is_base_asset_active(market, coin_type),
+      error::base_asset_not_active_error()
+    );
+
     let now = clock::timestamp_ms(clock) / 1000;
     let deposit_amount = coin::value(&coin);
     let mint_balance = market::handle_mint(market, coin::into_balance(coin), now);
@@ -56,7 +63,7 @@ module protocol::mint {
     
     emit(MintEvent{
       minter: sender,
-      deposit_asset: type_name::get<T>(),
+      deposit_asset: coin_type,
       deposit_amount,
       mint_asset: type_name::get<MarketCoin<T>>(),
       mint_amount: balance::value(&mint_balance),

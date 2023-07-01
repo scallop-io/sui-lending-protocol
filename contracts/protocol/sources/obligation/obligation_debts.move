@@ -7,9 +7,9 @@ module protocol::obligation_debts {
 
   friend protocol::obligation;
 
-  struct Debt has copy, store {
+  struct Debt has copy, store, drop {
     amount: u64,
-    borrow_index: u64
+    borrow_index: u64,
   }
   
   struct ObligationDebts has drop {}
@@ -44,16 +44,26 @@ module protocol::obligation_debts {
   ) {
     let debt = wit_table::borrow_mut(ObligationDebts{}, debts, type_name);
     debt.amount = debt.amount - amount;
+    if (debt.amount == 0) {
+      wit_table::remove(ObligationDebts{}, debts, type_name);
+    }
   }
   
-  public(friend) fun accure_interest(
+  public(friend) fun accrue_interest(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,
     type_name: TypeName,
     new_borrow_index: u64
-  ) {
+  ): u64 {
     let debt = wit_table::borrow_mut(ObligationDebts{}, debts, type_name);
+
+    // If the borrow index hasn't changed, there is no interest to accrue.
+    if (debt.borrow_index == new_borrow_index) return 0;
+
+    let prev_amount = debt.amount;
     debt.amount = fixed_point32::multiply_u64(debt.amount, fixed_point32::create_from_rational(new_borrow_index, debt.borrow_index));
+    let accrued_interest = debt.amount - prev_amount;
     debt.borrow_index = new_borrow_index;
+    accrued_interest
   }
   
   public fun debt(

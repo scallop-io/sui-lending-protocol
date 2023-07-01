@@ -8,10 +8,17 @@ module protocol::error {
 
   // obligation
   public fun invalid_obligation_error(): u64 { 0x0000301 }
+  public fun obligation_locked(): u64 { 0x0000302 }
+  public fun obligation_unlock_with_wrong_key(): u64 { 0x0000303 }
+  public fun obligation_access_lock_key_not_in_store(): u64 { 0x0000305 }
+  public fun obligation_access_reward_key_not_in_store(): u64 { 0x0000306 }
+  public fun obligation_access_store_key_exists(): u64 { 0x0000307 }
+  public fun obligation_access_store_key_not_found(): u64 { 0x0000308 }
 
   // oracle
   public fun oracle_stale_price_error(): u64 { 0x0000401 }
   public fun oracle_price_not_found_error(): u64 { 0x0000402 }
+  public fun oracle_zero_price_error(): u64 { 0x0000403 }
 
   // borrow
   public fun borrow_too_much_error(): u64 { 0x0000501 }
@@ -21,12 +28,13 @@ module protocol::error {
   // liquidation
   public fun unable_to_liquidate_error(): u64 { 0x0000601 }
 
-  // deposit collateral
+  // collateral error
   public fun max_collateral_reached_error(): u64 { 0x0000701 }
   public fun invalid_collateral_type_error(): u64 { 0x0000702 }
+  public fun withdraw_collateral_too_much_error(): u64 { 0x0000703 }
 
-  // withdraw collateral
-  public fun withdraw_collateral_too_much_error(): u64 { 0x0000801 }
+  // market coin error
+  public fun mint_market_coin_too_small_error(): u64 { 0x0000801 }
 
   // admin
   public fun interest_model_type_not_match_error(): u64 { 0x0000901 }
@@ -34,6 +42,17 @@ module protocol::error {
 
   // misc
   public fun outflow_reach_limit_error(): u64 { 0x0001001 }
-  
-  public fun flash_loan_not_paid_enough(): u64 { 0x0000403 }
+
+  // flashloan
+  public fun flash_loan_not_paid_enough(): u64 { 0x0011001 }
+
+  // asset not active errors
+  public fun base_asset_not_active_error(): u64 { 0x0012001 }
+  public fun collateral_not_active_error(): u64 { 0x0012002 }
+
+  // risk model & interest model errors
+  public fun risk_model_param_error(): u64 { 0x0013001 }
+
+  // pool liquidity errors
+  public fun pool_liquidity_not_enough_error(): u64 { 0x0014001 }
 }

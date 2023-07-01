@@ -39,12 +39,19 @@ module protocol::repay {
       error::whitelist_error()
     );
 
+    // check if obligation is locked
+    assert!(
+      obligation::repay_locked(obligation) == false,
+      error::obligation_locked()
+    );
+
+
     let now = clock::timestamp_ms(clock) / 1000;
     let coin_type = type_name::get<T>();
 
     // always accrued all the interest before doing any actions
     market::accrue_all_interests(market, now);
-    obligation::accrue_interests(obligation, market);
+    obligation::accrue_interests_and_rewards(obligation, market);
 
     let (debt_amount, _) = obligation::debt(obligation, coin_type);
     let repay_amount = math::min(debt_amount, coin::value(&user_coin));

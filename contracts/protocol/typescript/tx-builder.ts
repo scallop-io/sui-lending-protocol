@@ -11,14 +11,17 @@ export type RiskModel = {
 }
 
 export type InterestModel = {
-  baseRatePerSec: number,
-  lowSlope: number,
-  kink: number,
-  highSlope: number,
-  marketFactor: number,
+  baseBorrowRatePerSec: number,
+  interestRateScale: number,
+  borrowRateOnMidKink: number,
+  midKink: number,
+  borrowRateOnHighKink: number,
+  highKink: number,
+  maxBorrowRate: number,
+  revenueFactor: number,
+  borrowWeight: number,
   scale: number,
   minBorrowAmount: number,
-  borrow_weight: number,
 }
 
 export type OutflowLimiterModel = {
@@ -61,6 +64,33 @@ export class ProtocolTxBuilder {
     );
   }
 
+  updateRiskModel(
+    suiTxBlock: SuiTxBlock,
+    riskModel: RiskModel,
+    coinType: string,
+  ) {
+    const createRiskModelChangeTarget = `${this.packageId}::app::create_risk_model_change`;
+    let riskModelChange= suiTxBlock.moveCall(
+      createRiskModelChangeTarget,
+      [
+        this.adminCapId,
+        riskModel.collateralFactor,
+        riskModel.liquidationFactor,
+        riskModel.liquidationPanelty,
+        riskModel.liquidationDiscount,
+        riskModel.scale,
+        riskModel.maxCollateralAmount,
+      ],
+      [coinType],
+    );
+    const updateRiskModelTarget = `${this.packageId}::app::update_risk_model`;
+    suiTxBlock.moveCall(
+      updateRiskModelTarget,
+      [this.marketId, this.adminCapId, riskModelChange],
+      [coinType],
+    );
+  }
+
   addInterestModel(
     suiTxBlock: SuiTxBlock,
     interestModel: InterestModel,
@@ -71,14 +101,17 @@ export class ProtocolTxBuilder {
       createInterestModelChangeTarget,
       [
         this.adminCapId,
-        interestModel.baseRatePerSec,
-        interestModel.lowSlope,
-        interestModel.kink,
-        interestModel.highSlope,
-        interestModel.marketFactor,
+        interestModel.baseBorrowRatePerSec,
+        interestModel.interestRateScale,
+        interestModel.borrowRateOnMidKink,
+        interestModel.midKink,
+        interestModel.borrowRateOnHighKink,
+        interestModel.highKink,
+        interestModel.maxBorrowRate,
+        interestModel.revenueFactor,
+        interestModel.borrowWeight,
         interestModel.scale,
         interestModel.minBorrowAmount,
-        interestModel.borrow_weight,
       ],
       [coinType],
     );
@@ -100,14 +133,17 @@ export class ProtocolTxBuilder {
       createInterestModelChangeTarget,
       [
         this.adminCapId,
-        interestModel.baseRatePerSec,
-        interestModel.lowSlope,
-        interestModel.kink,
-        interestModel.highSlope,
-        interestModel.marketFactor,
+        interestModel.baseBorrowRatePerSec,
+        interestModel.interestRateScale,
+        interestModel.borrowRateOnMidKink,
+        interestModel.midKink,
+        interestModel.borrowRateOnHighKink,
+        interestModel.highKink,
+        interestModel.maxBorrowRate,
+        interestModel.revenueFactor,
+        interestModel.borrowWeight,
         interestModel.scale,
         interestModel.minBorrowAmount,
-        interestModel.borrow_weight,
       ],
       [coinType],
     );
@@ -150,6 +186,20 @@ export class ProtocolTxBuilder {
         this.marketId,
         suiTxBlock.pure(address),
       ],
+    );
+  }
+
+  setIncentiveRewardFactor(
+    suiTxBlock: SuiTxBlock,
+    rewardFactor: number,
+    scale: number,
+    coinType: string,
+  ) {
+    const setIncentiveRewardFactorTarget = `${this.packageId}::app::set_incentive_reward_factor`;
+    suiTxBlock.moveCall(
+      setIncentiveRewardFactorTarget,
+      [this.adminCapId, this.marketId, rewardFactor, scale],
+      [coinType],
     );
   }
 

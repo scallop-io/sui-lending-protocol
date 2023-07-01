@@ -7,13 +7,19 @@ module coin_decimals_registry::coin_decimals_registry {
   use sui::sui::SUI;
   use sui::tx_context::TxContext;
   use sui::transfer;
+  use sui::package;
+
+  const EDecimalsNotFound: u64 = 999;
+
+  struct COIN_DECIMALS_REGISTRY has drop {}
 
   struct CoinDecimalsRegistry has key, store {
     id: UID,
     table: Table<TypeName, u8>
   }
   
-  fun init(ctx: &mut TxContext){
+  fun init(otw: COIN_DECIMALS_REGISTRY, ctx: &mut TxContext){
+    package::claim_and_keep(otw, ctx);
     let registry = CoinDecimalsRegistry {
       id: object::new(ctx),
       table: table::new(ctx)
@@ -58,6 +64,7 @@ module coin_decimals_registry::coin_decimals_registry {
     registry: &CoinDecimalsRegistry,
     typeName: TypeName,
   ): u8 {
+    assert!(table::contains(&registry.table, typeName), EDecimalsNotFound);
     *table::borrow(&registry.table, typeName)
   }
   

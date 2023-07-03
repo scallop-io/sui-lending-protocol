@@ -1,7 +1,7 @@
 [package]
 name = "ScallopLiquidator"
 version = "0.0.1"
-published-at = "0x554323512e239444caca9941a34a49c539ba56caea5ed403ba81e2ef83192062"
+published-at = "0xf2062bbba05a3546bff6447c0fa8ab353aad041b854590e216cf47de10df63cb"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -22,4 +22,4 @@ local = "../../protocol"
 local = "../cetus_adaptor"
 
 [addresses]
-scallop_liquidator = "0x554323512e239444caca9941a34a49c539ba56caea5ed403ba81e2ef83192062"
+scallop_liquidator = "0xf2062bbba05a3546bff6447c0fa8ab353aad041b854590e216cf47de10df63cb"

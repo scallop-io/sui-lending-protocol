@@ -36,7 +36,8 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
     {
       type: SUI_TYPE_ARG,
       interestModel: {
-        baseBorrowRatePerSec: 15854986000, // 5 * (10 ** 12) / (365 * 24 * 3600) / 100 * (10 ** 7)
+        // baseBorrowRatePerSec: 15854986000, // 5 * (10 ** 12) / (365 * 24 * 3600) / 100 * (10 ** 7)
+        baseBorrowRatePerSec: 0,
         interestRateScale: 10 ** 7,
 
         borrowRateOnMidKink: 10 * (scale / 100), // 10%
@@ -55,7 +56,8 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
     {
       type: wormholeUsdcType,
       interestModel: {
-        baseBorrowRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * (10 ** 7)
+        // baseBorrowRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * (10 ** 7)
+        baseBorrowRatePerSec: 0,
         interestRateScale: 10 ** 7,
 
         borrowRateOnMidKink: 8 * (scale / 100), // 8%

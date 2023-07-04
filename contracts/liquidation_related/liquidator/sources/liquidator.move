@@ -19,8 +19,8 @@ module scallop_liquidator::liquidator {
   use cetus_clmm::pool::{Pool as CetusPool, swap_pay_amount};
   use cetus_clmm::config::GlobalConfig as CetusConfig;
 
-  use scallop_liquidator::price_util;
   use scallop_liquidator::coin_util;
+  use scallop_liquidator::cetus_util;
 
   /// This function is used for Cetus Pool<A, B>
   /// where A = DebtType & B = CollateralType
@@ -52,12 +52,11 @@ module scallop_liquidator::liquidator {
     );
 
     /// Make sure the liquidation is profitable
-    let is_profitable = price_util::is_liquidation_profitable<CollateralType>(
-      x_oracle,
-      market,
-      coin_decimals_registry,
+    let is_profitable = cetus_util::is_liquidation_profitable(
+      cetus_pool,
+      false,
+      max_repay_amount,
       max_liq_amount,
-      clock
     );
     if (is_profitable == false) { return };
 
@@ -131,12 +130,11 @@ module scallop_liquidator::liquidator {
     );
 
     /// Make sure the liquidation is profitable
-    let is_profitable = price_util::is_liquidation_profitable<CollateralType>(
-      x_oracle,
-      market,
-      coin_decimals_registry,
+    let is_profitable = cetus_util::is_liquidation_profitable(
+      cetus_pool,
+      true,
+      max_repay_amount,
       max_liq_amount,
-      clock
     );
     if (is_profitable == false) { return };
 
@@ -210,12 +208,10 @@ module scallop_liquidator::liquidator {
     );
 
     /// Make sure the liquidation is profitable
-    let is_profitable = price_util::is_liquidation_profitable<DebtType>(
-      x_oracle,
-      market,
-      coin_decimals_registry,
+    let is_profitable = cetus_util::is_liquidation_profitable_with_double_swap(
+      cetus_pool,
+      max_repay_amount,
       max_liq_amount,
-      clock
     );
     if (is_profitable == false) { return };
 
@@ -289,12 +285,10 @@ module scallop_liquidator::liquidator {
     );
 
     /// Make sure the liquidation is profitable
-    let is_profitable = price_util::is_liquidation_profitable<DebtType>(
-      x_oracle,
-      market,
-      coin_decimals_registry,
+    let is_profitable = cetus_util::is_liquidation_profitable_with_double_swap(
+      cetus_pool,
+      max_repay_amount,
       max_liq_amount,
-      clock
     );
     if (is_profitable == false) { return };
 

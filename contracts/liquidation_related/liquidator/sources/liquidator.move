@@ -1,5 +1,8 @@
 module scallop_liquidator::liquidator {
 
+  use std::vector;
+  use std::type_name::get;
+
   use sui::clock::Clock;
   use sui::coin;
   use sui::tx_context::{Self, TxContext};
@@ -7,7 +10,7 @@ module scallop_liquidator::liquidator {
 
   use protocol::accrue_interest::accrue_interest_for_market_and_obligation;
   use protocol::liquidate::liquidate;
-  use protocol::obligation::Obligation;
+  use protocol::obligation::{Self, Obligation};
   use protocol::market::Market;
   use protocol::liquidation_evaluator::max_liquidation_amounts;
   use protocol::version::Version;
@@ -35,6 +38,12 @@ module scallop_liquidator::liquidator {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
+    /// Make sure the obligation has DebtType, and CollateralType
+    if (
+      vector::contains(&obligation::debt_types(obligation), &get<DebtType>()) == false ||
+        vector::contains(&obligation::collateral_types(obligation), &get<CollateralType>()) == false
+    ) return;
+
     /// Then accrue interest for the obligation
     accrue_interest_for_market_and_obligation(
       market,
@@ -113,6 +122,12 @@ module scallop_liquidator::liquidator {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
+    /// Make sure the obligation has DebtType, and CollateralType
+    if (
+      vector::contains(&obligation::debt_types(obligation), &get<DebtType>()) == false ||
+        vector::contains(&obligation::collateral_types(obligation), &get<CollateralType>()) == false
+    ) return;
+
     /// Then accrue interest for the obligation
     accrue_interest_for_market_and_obligation(
       market,
@@ -191,6 +206,12 @@ module scallop_liquidator::liquidator {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
+    /// Make sure the obligation has DebtType, and CollateralType
+    if (
+      vector::contains(&obligation::debt_types(obligation), &get<DebtType>()) == false ||
+        vector::contains(&obligation::collateral_types(obligation), &get<DebtType>()) == false
+    ) return;
+
     /// Then accrue interest for the obligation
     accrue_interest_for_market_and_obligation(
       market,
@@ -268,6 +289,12 @@ module scallop_liquidator::liquidator {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
+    /// Make sure the obligation has DebtType, and CollateralType
+    if (
+      vector::contains(&obligation::debt_types(obligation), &get<DebtType>()) == false ||
+        vector::contains(&obligation::collateral_types(obligation), &get<DebtType>()) == false
+    ) return;
+
     /// Then accrue interest for the obligation
     accrue_interest_for_market_and_obligation(
       market,

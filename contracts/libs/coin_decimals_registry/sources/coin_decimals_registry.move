@@ -1,5 +1,6 @@
 module coin_decimals_registry::coin_decimals_registry {
-  
+
+  use std::ascii::String;
   use std::type_name::{Self, TypeName};
   use sui::table::{Self, Table};
   use sui::object::{Self, UID};
@@ -8,6 +9,7 @@ module coin_decimals_registry::coin_decimals_registry {
   use sui::tx_context::TxContext;
   use sui::transfer;
   use sui::package;
+  use sui::event::emit;
 
   const EDecimalsNotFound: u64 = 999;
 
@@ -16,6 +18,12 @@ module coin_decimals_registry::coin_decimals_registry {
   struct CoinDecimalsRegistry has key, store {
     id: UID,
     table: Table<TypeName, u8>
+  }
+
+  struct CoinDecimalsRegistered has copy, drop {
+    registry: address,
+    coin_type: String,
+    decimals: u8,
   }
   
   fun init(otw: COIN_DECIMALS_REGISTRY, ctx: &mut TxContext){
@@ -48,7 +56,16 @@ module coin_decimals_registry::coin_decimals_registry {
   ) {
     let type_name = type_name::get<T>();
     let decimals = coin::get_decimals(coin_meta);
+
+    if (table::contains(&registry.table, type_name)) {
+      return;
+    };
     table::add(&mut registry.table, type_name, decimals);
+    emit(CoinDecimalsRegistered {
+      registry: object::id_to_address(&object::id(registry)),
+      coin_type: type_name::into_string(type_name),
+      decimals,
+    })
   }
   
   #[test_only]

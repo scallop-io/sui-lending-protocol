@@ -1,0 +1,14 @@
+[package]
+name = "ProtocolWhitelist"
+version = "0.0.1"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "mainnet"
+
+[dependencies.Protocol]
+local = "../protocol"
+
+[addresses]
+protocol_whitelist = "0x0"

@@ -68,7 +68,7 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
     {
       type: SUI_TYPE_ARG,
       interestModel: {
-        baseBorrowRatePerSec: 15854986000, // 5 * (10 ** 16) / (365 * 24 * 3600) / 100 * (10 ** 7)
+        baseBorrowRatePerSec: 0,
         interestRateScale: 10 ** 7,
 
         borrowRateOnMidKink: 10 * (scale / 100), // 10%
@@ -81,14 +81,14 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         revenueFactor: 5 * (scale / 100), // 5%
         borrowWeight: 125 * (scale / 100), // 1.25
         scale,
-        minBorrowAmount: 10 ** 9, // 1SUI
+        minBorrowAmount: 10 ** 7, // 0.01SUI
       }
     },
     {
       type: testCoinTypes.usdc,
       interestModel: {
-        baseBorrowRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
-        interestRateScale: 1000,
+        baseBorrowRatePerSec: 0,
+        interestRateScale: 10 ** 7,
 
         borrowRateOnMidKink: 8 * (scale / 100), // 8%
         borrowRateOnHighKink: 50 * (scale / 100), // 50%
@@ -100,14 +100,14 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         revenueFactor: 5 * (scale / 100), // 5%
         borrowWeight: 100 * (scale / 100), // 1
         scale,
-        minBorrowAmount: 10 ** 9, // 1 USDC
+        minBorrowAmount: 10 ** 7, // 0.01 USDC
       },
     },
     {
       type: testCoinTypes.usdt,
       interestModel: {
-        baseBorrowRatePerSec: 9512937000, // 3 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
-        interestRateScale: 1000,
+        baseBorrowRatePerSec: 0,
+        interestRateScale: 10 ** 7,
 
         borrowRateOnMidKink: 8 * (scale / 100), // 8%
         borrowRateOnHighKink: 50 * (scale / 100), // 50%
@@ -119,14 +119,14 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         revenueFactor: 5 * (scale / 100), // 5%
         borrowWeight: 100 * (scale / 100), // 1
         scale,
-        minBorrowAmount: 10 ** 9, // 1 USDT
+        minBorrowAmount: 10 ** 9, // 0.01 USDT
       },
     },
     {
       type: testCoinTypes.btc,
       interestModel: {
-        baseBorrowRatePerSec: 15854986000, // 5 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
-        interestRateScale: 1000,
+        baseBorrowRatePerSec: 0,
+        interestRateScale: 10 ** 7,
 
         borrowRateOnMidKink: 10 * (scale / 100), // 10%
         borrowRateOnHighKink: 100 * (scale / 100), // 100%
@@ -138,14 +138,14 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         revenueFactor: 5 * (scale / 100), // 5%
         borrowWeight: 100 * (scale / 100), // 1
         scale,
-        minBorrowAmount: 10 ** 9, // 1BTC
+        minBorrowAmount: 10 ** 9, // 0.01BTC
       },
     },
     {
       type: testCoinTypes.eth,
       interestModel: {
-        baseBorrowRatePerSec: 15854986000, // 5 * (10 ** 16) / (365 * 24 * 3600) / 100 * 1000
-        interestRateScale: 1000,
+        baseBorrowRatePerSec: 0,
+        interestRateScale: 10 ** 7,
 
         borrowRateOnMidKink: 10 * (scale / 100), // 10%
         borrowRateOnHighKink: 100 * (scale / 100), // 100%
@@ -157,7 +157,7 @@ export const initMarketForTest = (suiTxBlock: SuiTxBlock) => {
         revenueFactor: 5 * (scale / 100), // 5%
         borrowWeight: 100 * (scale / 100), // 1
         scale,
-        minBorrowAmount: 10 ** 9, // 1ETH
+        minBorrowAmount: 10 ** 7, // 0.01ETH
       },
     },
   ];

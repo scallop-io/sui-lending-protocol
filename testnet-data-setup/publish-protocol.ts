@@ -14,6 +14,7 @@ const coinDecimalsRegistryPath = path.join(__dirname, "../contracts/libs/coin_de
 const testCoinPkgPath = path.join(__dirname, "../contracts/test_coin");
 const protocolPkgPath = path.join(__dirname, "../contracts/protocol");
 const protocolQueryPkgPath = path.join(__dirname, "../contracts/query");
+const protocolWhitelistPkgPath = path.join(__dirname, "../contracts/protocol_whitelist")
 
 export const protocolPackageList: PackageBatch = [
   { packagePath: xOraclePath },
@@ -23,7 +24,8 @@ export const protocolPackageList: PackageBatch = [
   { packagePath: coinDecimalsRegistryPath, option: { publishResultParser: decimalsRegistryParser } },
   { packagePath: testCoinPkgPath, option: { publishResultParser: testCoinParser } },
   { packagePath: protocolPkgPath, option: { publishResultParser: protocolParser, enforce: true } },
-  { packagePath: protocolQueryPkgPath, option: { enforce: true } }
+  { packagePath: protocolQueryPkgPath, option: { enforce: true } },
+  { packagePath: protocolWhitelistPkgPath, option: { enforce: true } },
 ];
 export const publishProtocol = async (
   signer: RawSigner

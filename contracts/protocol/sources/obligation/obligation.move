@@ -252,7 +252,13 @@ module protocol::obligation {
     key: T
   ) {
     assert_key_match(self, obligation_key);
+    assert!(
+      option::is_none(&self.lock_key),
+      error::obligation_already_locked()
+    );
+
     obligation_access::assert_reward_key_in_store(obligation_access_store, key);
+
     self.lock_key = option::some(type_name::get<T>());
     self.borrow_locked = lock_borrow;
     self.repay_locked = lock_repay;

@@ -10,6 +10,7 @@ module protocol::error {
   public fun invalid_obligation_error(): u64 { 0x0000301 }
   public fun obligation_locked(): u64 { 0x0000302 }
   public fun obligation_unlock_with_wrong_key(): u64 { 0x0000303 }
+  public fun obligation_already_locked(): u64 { 0x0000304 }
   public fun obligation_access_lock_key_not_in_store(): u64 { 0x0000305 }
   public fun obligation_access_reward_key_not_in_store(): u64 { 0x0000306 }
   public fun obligation_access_store_key_exists(): u64 { 0x0000307 }

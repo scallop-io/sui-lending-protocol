@@ -6,8 +6,9 @@ version = "0.0.1"
 git = "https://github.com/MystenLabs/sui.git"
 subdir = "crates/sui-framework/packages/sui-framework"
 rev = "mainnet"
+override = true
 
-[dependencies.Protocol]
+[dependencies.ScallopProtocol]
 local = "../protocol"
 
 [addresses]

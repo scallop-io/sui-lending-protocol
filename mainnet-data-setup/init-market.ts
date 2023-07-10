@@ -50,7 +50,7 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
         revenueFactor: 5 * (scale / 100), // 5%
         borrowWeight: scale, // 1
         scale,
-        minBorrowAmount: 10 ** 9, // 1 SUI
+        minBorrowAmount: 10 ** 7, // 0.01 SUI
       }
     },
     {
@@ -70,7 +70,7 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
         revenueFactor: 5 * (scale / 100), // 5%
         borrowWeight: scale, // 1
         scale,
-        minBorrowAmount: 10 ** 6, // 1 USDC
+        minBorrowAmount: 10 ** 4, // 0.01 USDC
       },
     },
   ];

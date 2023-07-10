@@ -1,7 +1,7 @@
 [package]
 name = "PythRule"
 version = "0.0.1"
-published-at = "0xc80721d45b4e4b461b8b2d9c262b656f7e8a8fa936f03f5909044ba289204062"
+published-at = "0x8af0cc660aacf3c645c2fd0fcc48e988c6271c6d65de7ab463a3c51d3ea199f6"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -25,4 +25,4 @@ local = "./vendors/wormhole"
 local = "../x_oracle"
 
 [addresses]
-pyth_rule = "0xc80721d45b4e4b461b8b2d9c262b656f7e8a8fa936f03f5909044ba289204062"
+pyth_rule = "0x8af0cc660aacf3c645c2fd0fcc48e988c6271c6d65de7ab463a3c51d3ea199f6"

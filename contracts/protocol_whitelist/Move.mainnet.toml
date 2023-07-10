@@ -1,6 +1,7 @@
 [package]
 name = "ProtocolWhitelist"
 version = "0.0.1"
+published-at = "0x71628b5210ab1506268f53b40d8b599bcc0781e160706f97abf3a842fc6b79fa"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -12,4 +13,4 @@ override = true
 local = "../protocol"
 
 [addresses]
-protocol_whitelist = "0x0"
+protocol_whitelist = "0x71628b5210ab1506268f53b40d8b599bcc0781e160706f97abf3a842fc6b79fa"

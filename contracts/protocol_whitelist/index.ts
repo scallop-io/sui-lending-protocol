@@ -7,6 +7,6 @@ export const publishResult = require(path.join(__dirname, `./publish-result.${ne
 
 export const protocolWhitelistTxBuilder = new ProtocolWhitelistTxBuilder(
   publishResult.packageId,
-  protocolPublishResult.marketId,
   protocolPublishResult.publisherIds[0],
+  protocolPublishResult.marketId,
 );

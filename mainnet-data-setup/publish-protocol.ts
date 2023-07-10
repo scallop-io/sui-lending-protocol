@@ -16,13 +16,13 @@ const protocolWhitelistPkgPath = path.join(__dirname, "../contracts/protocol_whi
 
 export const protocolPackageList: PackageBatch = [
   { packagePath: xOraclePath },
-  { packagePath: mathPkgPath },
-  { packagePath: xPkgPath },
-  { packagePath: whitelistPkgPath },
-  { packagePath: coinDecimalsRegistryPath, option: { publishResultParser: decimalsRegistryParser } },
-  { packagePath: protocolPkgPath, option: { publishResultParser: protocolParser, enforce: true } },
-  { packagePath: protocolQueryPkgPath, option: { enforce: true } },
-  { packagePath: protocolWhitelistPkgPath, option: { enforce: true } },
+  { packagePath: mathPkgPath, option: { enforce: false } },
+  { packagePath: xPkgPath, option: { enforce: false } },
+  { packagePath: whitelistPkgPath, option: { enforce: false } },
+  { packagePath: coinDecimalsRegistryPath, option: { publishResultParser: decimalsRegistryParser, enforce: false } },
+  { packagePath: protocolPkgPath, option: { publishResultParser: protocolParser, enforce: false } },
+  { packagePath: protocolQueryPkgPath, option: { enforce: false } },
+  { packagePath: protocolWhitelistPkgPath, option: { enforce: false } },
 ];
 export const publishProtocol = async (
   signer: RawSigner

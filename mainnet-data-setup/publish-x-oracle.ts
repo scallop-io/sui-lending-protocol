@@ -13,11 +13,11 @@ const pythRulePath = path.join(__dirname, "../contracts/sui_x_oracle/pyth_rule")
 
 
 const xOraclePackageList: PackageBatch = [
-  { packagePath: xOraclePath, option: { publishResultParser: xOracleParser } },
+  { packagePath: xOraclePath, option: { publishResultParser: xOracleParser, enforce: false } },
 
   { packagePath: wormholePath },
   { packagePath: pythOraclePath },
-  { packagePath: pythRulePath, option: { publishResultParser: pythRuleParser } },
+  { packagePath: pythRulePath, option: { publishResultParser: pythRuleParser, enforce: false } },
 ];
 // publish packages for the protocol
 // the latter package could depend on the former one in the list, so the order matters

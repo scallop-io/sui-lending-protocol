@@ -2,6 +2,7 @@ module scallop_liquidator::liquidator {
 
   use std::vector;
   use std::type_name::get;
+  use std::fixed_point32;
 
   use sui::clock::Clock;
   use sui::coin;
@@ -13,6 +14,8 @@ module scallop_liquidator::liquidator {
   use protocol::obligation::{Self, Obligation};
   use protocol::market::Market;
   use protocol::liquidation_evaluator::max_liquidation_amounts;
+  use protocol::debt_value::debts_value_usd_with_weight;
+  use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::version::Version;
 
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
@@ -50,6 +53,11 @@ module scallop_liquidator::liquidator {
       obligation,
       clock,
     );
+
+    // to avoid the transaction failed, because the passed obligation that is not liquidatable
+    // we need to check it in advance
+    // the purpose of avoiding the transaction fails is to do batch liquidation
+    if (!is_liquidatable(market, coin_decimals_registry, x_oracle, obligation, clock)) { return };
 
     // Calculate the liquidation amount
     let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, CollateralType>(
@@ -135,6 +143,11 @@ module scallop_liquidator::liquidator {
       clock,
     );
 
+    // to avoid the transaction failed, because the passed obligation that is not liquidatable
+    // we need to check it in advance
+    // the purpose of avoiding the transaction fails is to do batch liquidation
+    if (!is_liquidatable(market, coin_decimals_registry, x_oracle, obligation, clock)) { return };
+
     // Calculate the liquidation amount
     let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, CollateralType>(
       obligation,
@@ -219,6 +232,11 @@ module scallop_liquidator::liquidator {
       clock,
     );
 
+    // to avoid the transaction failed, because the passed obligation that is not liquidatable
+    // we need to check it in advance
+    // the purpose of avoiding the transaction fails is to do batch liquidation
+    if (!is_liquidatable(market, coin_decimals_registry, x_oracle, obligation, clock)) { return };
+
     // Calculate the liquidation amount
     let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, DebtType>(
       obligation,
@@ -302,6 +320,11 @@ module scallop_liquidator::liquidator {
       clock,
     );
 
+    // to avoid the transaction failed, because the passed obligation that is not liquidatable
+    // we need to check it in advance
+    // the purpose of avoiding the transaction fails is to do batch liquidation
+    if (!is_liquidatable(market, coin_decimals_registry, x_oracle, obligation, clock)) { return };
+
     // Calculate the liquidation amount
     let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, DebtType>(
       obligation,
@@ -357,5 +380,20 @@ module scallop_liquidator::liquidator {
 
     // If there is any debt coin left, send it to the liquidator
     coin_util::destory_or_send_to_sender(debt_coin, ctx);
+  }
+
+  public fun is_liquidatable(
+    market: &Market,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    x_oracle: &XOracle,
+    obligation: &Obligation,
+    clock: &Clock,
+  ): bool {
+    let collaterals_value = collaterals_value_usd_for_liquidation(obligation, market, coin_decimals_registry, x_oracle, clock);
+    let weighted_debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle, clock);
+
+    let collateral_raw_value = fixed_point32::get_raw_value(collaterals_value);
+    let debt_raw_value = fixed_point32::get_raw_value(weighted_debts_value);
+    debt_raw_value > collateral_raw_value
   }
 }

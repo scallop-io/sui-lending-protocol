@@ -56,24 +56,21 @@ module protocol::app {
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
-    let new_delay = admin_cap.interest_model_change_delay + delay;
-    admin_cap.interest_model_change_delay = new_delay;
+    admin_cap.interest_model_change_delay = admin_cap.interest_model_change_delay + delay;
   }
 
   public fun extend_risk_model_change_delay(
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
-    let new_delay = admin_cap.risk_model_change_delay + delay;
-    admin_cap.risk_model_change_delay = new_delay;
+    admin_cap.risk_model_change_delay = admin_cap.risk_model_change_delay + delay;
   }
 
   public fun extend_limiter_change_delay(
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
-    let new_delay = admin_cap.limiter_change_delay + delay;
-    admin_cap.limiter_change_delay = new_delay;
+    admin_cap.limiter_change_delay = admin_cap.limiter_change_delay + delay;
   }
 
   /// For extension of the protocol

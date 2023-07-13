@@ -38,20 +38,20 @@ module scallop_liquidator::liquidator {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    /// Make sure the obligation has DebtType, and CollateralType
+    // Make sure the obligation has DebtType, and CollateralType
     if (
       vector::contains(&obligation::debt_types(obligation), &get<DebtType>()) == false ||
         vector::contains(&obligation::collateral_types(obligation), &get<CollateralType>()) == false
     ) return;
 
-    /// Then accrue interest for the obligation
+    // Then accrue interest for the obligation
     accrue_interest_for_market_and_obligation(
       market,
       obligation,
       clock,
     );
 
-    /// Calculate the liquidation amount
+    // Calculate the liquidation amount
     let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, CollateralType>(
       obligation,
       market,
@@ -60,7 +60,7 @@ module scallop_liquidator::liquidator {
       clock
     );
 
-    /// Make sure the liquidation is profitable
+    // Make sure the liquidation is profitable
     let is_profitable = cetus_util::is_liquidation_profitable(
       cetus_pool,
       false,
@@ -69,7 +69,7 @@ module scallop_liquidator::liquidator {
     );
     if (is_profitable == false) { return };
 
-    /// Borrow the DebtType Coin from Cetus
+    // Borrow the DebtType Coin from Cetus
     let (debt_coin, loan_receipt) = cetus_flash_loan::borrow_a_repay_b_later(
       cetus_config,
       cetus_pool,
@@ -78,7 +78,7 @@ module scallop_liquidator::liquidator {
       ctx
     );
 
-    /// Liquidate the obligation
+    // Liquidate the obligation
     let (debt_coin, collateral_coin) = liquidate<DebtType, CollateralType>(
       version,
       obligation,
@@ -90,11 +90,11 @@ module scallop_liquidator::liquidator {
       ctx
     );
 
-    /// Split a coin from the collateral coin to repay the loan
+    // Split a coin from the collateral coin to repay the loan
     let loan_amount = swap_pay_amount(&loan_receipt);
     let repay_coin = coin::split(&mut collateral_coin, loan_amount, ctx);
 
-    /// Repay to Cetus
+    // Repay to Cetus
     cetus_flash_loan::repay_b(
       cetus_config,
       cetus_pool,
@@ -102,10 +102,10 @@ module scallop_liquidator::liquidator {
       loan_receipt,
     );
 
-    /// Send the collateral coin to the liquidator
+    // Send the collateral coin to the liquidator
     transfer::public_transfer(collateral_coin, tx_context::sender(ctx));
 
-    /// If there is any debt coin left, send it to the liquidator
+    // If there is any debt coin left, send it to the liquidator
     coin_util::destory_or_send_to_sender(debt_coin, ctx);
   }
 
@@ -122,20 +122,20 @@ module scallop_liquidator::liquidator {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    /// Make sure the obligation has DebtType, and CollateralType
+    // Make sure the obligation has DebtType, and CollateralType
     if (
       vector::contains(&obligation::debt_types(obligation), &get<DebtType>()) == false ||
         vector::contains(&obligation::collateral_types(obligation), &get<CollateralType>()) == false
     ) return;
 
-    /// Then accrue interest for the obligation
+    // Then accrue interest for the obligation
     accrue_interest_for_market_and_obligation(
       market,
       obligation,
       clock,
     );
 
-    /// Calculate the liquidation amount
+    // Calculate the liquidation amount
     let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, CollateralType>(
       obligation,
       market,
@@ -144,7 +144,7 @@ module scallop_liquidator::liquidator {
       clock
     );
 
-    /// Make sure the liquidation is profitable
+    // Make sure the liquidation is profitable
     let is_profitable = cetus_util::is_liquidation_profitable(
       cetus_pool,
       true,
@@ -153,7 +153,7 @@ module scallop_liquidator::liquidator {
     );
     if (is_profitable == false) { return };
 
-    /// Borrow the DebtType Coin from Cetus
+    // Borrow the DebtType Coin from Cetus
     let (debt_coin, loan_receipt) = cetus_flash_loan::borrow_b_repay_a_later(
       cetus_config,
       cetus_pool,
@@ -162,7 +162,7 @@ module scallop_liquidator::liquidator {
       ctx
     );
 
-    /// Liquidate the obligation
+    // Liquidate the obligation
     let (debt_coin, collateral_coin) = liquidate<DebtType, CollateralType>(
       version,
       obligation,
@@ -174,11 +174,11 @@ module scallop_liquidator::liquidator {
       ctx
     );
 
-    /// Split a coin from the collateral coin to repay the loan
+    // Split a coin from the collateral coin to repay the loan
     let loan_amount = swap_pay_amount(&loan_receipt);
     let repay_coin = coin::split(&mut collateral_coin, loan_amount, ctx);
 
-    /// Repay to Cetus
+    // Repay to Cetus
     cetus_flash_loan::repay_a(
       cetus_config,
       cetus_pool,
@@ -186,10 +186,10 @@ module scallop_liquidator::liquidator {
       loan_receipt,
     );
 
-    /// Send the collateral coin to the liquidator
+    // Send the collateral coin to the liquidator
     transfer::public_transfer(collateral_coin, tx_context::sender(ctx));
 
-    /// If there is any debt coin left, send it to the liquidator
+    // If there is any debt coin left, send it to the liquidator
     coin_util::destory_or_send_to_sender(debt_coin, ctx);
   }
 
@@ -206,20 +206,20 @@ module scallop_liquidator::liquidator {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    /// Make sure the obligation has DebtType, and CollateralType
+    // Make sure the obligation has DebtType, and CollateralType
     if (
       vector::contains(&obligation::debt_types(obligation), &get<DebtType>()) == false ||
         vector::contains(&obligation::collateral_types(obligation), &get<DebtType>()) == false
     ) return;
 
-    /// Then accrue interest for the obligation
+    // Then accrue interest for the obligation
     accrue_interest_for_market_and_obligation(
       market,
       obligation,
       clock,
     );
 
-    /// Calculate the liquidation amount
+    // Calculate the liquidation amount
     let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, DebtType>(
       obligation,
       market,
@@ -228,7 +228,7 @@ module scallop_liquidator::liquidator {
       clock
     );
 
-    /// Make sure the liquidation is profitable
+    // Make sure the liquidation is profitable
     let is_profitable = cetus_util::is_liquidation_profitable_with_double_swap(
       cetus_pool,
       max_repay_amount,
@@ -236,7 +236,7 @@ module scallop_liquidator::liquidator {
     );
     if (is_profitable == false) { return };
 
-    /// Borrow the DebtType Coin from Cetus
+    // Borrow the DebtType Coin from Cetus
     let (debt_coin, loan_receipt) = cetus_flash_loan::borrow_a_repay_a_later(
       cetus_config,
       cetus_pool,
@@ -245,7 +245,7 @@ module scallop_liquidator::liquidator {
       ctx
     );
 
-    /// Liquidate the obligation
+    // Liquidate the obligation
     let (debt_coin, collateral_coin) = liquidate<DebtType, DebtType>(
       version,
       obligation,
@@ -257,11 +257,11 @@ module scallop_liquidator::liquidator {
       ctx
     );
 
-    /// Split a coin from the collateral coin to repay the loan
+    // Split a coin from the collateral coin to repay the loan
     let loan_amount = swap_pay_amount(&loan_receipt);
     let repay_coin = coin::split(&mut collateral_coin, loan_amount, ctx);
 
-    /// Repay to Cetus
+    // Repay to Cetus
     cetus_flash_loan::repay_a(
       cetus_config,
       cetus_pool,
@@ -269,10 +269,10 @@ module scallop_liquidator::liquidator {
       loan_receipt,
     );
 
-    /// Send the collateral coin to the liquidator
+    // Send the collateral coin to the liquidator
     transfer::public_transfer(collateral_coin, tx_context::sender(ctx));
 
-    /// If there is any debt coin left, send it to the liquidator
+    // If there is any debt coin left, send it to the liquidator
     coin_util::destory_or_send_to_sender(debt_coin, ctx);
   }
 
@@ -289,20 +289,20 @@ module scallop_liquidator::liquidator {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    /// Make sure the obligation has DebtType, and CollateralType
+    // Make sure the obligation has DebtType, and CollateralType
     if (
       vector::contains(&obligation::debt_types(obligation), &get<DebtType>()) == false ||
         vector::contains(&obligation::collateral_types(obligation), &get<DebtType>()) == false
     ) return;
 
-    /// Then accrue interest for the obligation
+    // Then accrue interest for the obligation
     accrue_interest_for_market_and_obligation(
       market,
       obligation,
       clock,
     );
 
-    /// Calculate the liquidation amount
+    // Calculate the liquidation amount
     let (max_repay_amount, max_liq_amount) = max_liquidation_amounts<DebtType, DebtType>(
       obligation,
       market,
@@ -311,7 +311,7 @@ module scallop_liquidator::liquidator {
       clock
     );
 
-    /// Make sure the liquidation is profitable
+    // Make sure the liquidation is profitable
     let is_profitable = cetus_util::is_liquidation_profitable_with_double_swap(
       cetus_pool,
       max_repay_amount,
@@ -319,7 +319,7 @@ module scallop_liquidator::liquidator {
     );
     if (is_profitable == false) { return };
 
-    /// Borrow the DebtType Coin from Cetus
+    // Borrow the DebtType Coin from Cetus
     let (debt_coin, loan_receipt) = cetus_flash_loan::borrow_b_repay_b_later(
       cetus_config,
       cetus_pool,
@@ -328,7 +328,7 @@ module scallop_liquidator::liquidator {
       ctx
     );
 
-    /// Liquidate the obligation
+    // Liquidate the obligation
     let (debt_coin, collateral_coin) = liquidate<DebtType, DebtType>(
       version,
       obligation,
@@ -340,11 +340,11 @@ module scallop_liquidator::liquidator {
       ctx
     );
 
-    /// Split a coin from the collateral coin to repay the loan
+    // Split a coin from the collateral coin to repay the loan
     let loan_amount = swap_pay_amount(&loan_receipt);
     let repay_coin = coin::split(&mut collateral_coin, loan_amount, ctx);
 
-    /// Repay to Cetus
+    // Repay to Cetus
     cetus_flash_loan::repay_b(
       cetus_config,
       cetus_pool,
@@ -352,10 +352,10 @@ module scallop_liquidator::liquidator {
       loan_receipt,
     );
 
-    /// Send the collateral coin to the liquidator
+    // Send the collateral coin to the liquidator
     transfer::public_transfer(collateral_coin, tx_context::sender(ctx));
 
-    /// If there is any debt coin left, send it to the liquidator
+    // If there is any debt coin left, send it to the liquidator
     coin_util::destory_or_send_to_sender(debt_coin, ctx);
   }
 }

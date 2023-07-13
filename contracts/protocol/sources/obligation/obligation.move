@@ -257,13 +257,13 @@ module protocol::obligation {
       error::obligation_already_locked()
     );
 
-    obligation_access::assert_reward_key_in_store(obligation_access_store, key);
+    obligation_access::assert_lock_key_in_store(obligation_access_store, key);
 
     self.lock_key = option::some(type_name::get<T>());
     self.borrow_locked = lock_borrow;
     self.repay_locked = lock_repay;
-    self.withdraw_collateral_locked = lock_deposit_collateral;
-    self.deposit_collateral_locked = lock_withdraw_collateral;
+    self.withdraw_collateral_locked = lock_withdraw_collateral;
+    self.deposit_collateral_locked = lock_deposit_collateral;
     self.liquidate_locked = lock_liquidate;
 
     emit(ObligationLocked {

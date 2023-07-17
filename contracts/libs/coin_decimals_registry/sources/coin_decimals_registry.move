@@ -58,7 +58,7 @@ module coin_decimals_registry::coin_decimals_registry {
     let decimals = coin::get_decimals(coin_meta);
 
     if (table::contains(&registry.table, type_name)) {
-      return;
+      return
     };
     table::add(&mut registry.table, type_name, decimals);
     emit(CoinDecimalsRegistered {

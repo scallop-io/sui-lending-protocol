@@ -7,7 +7,7 @@ git = "https://github.com/MystenLabs/sui.git"
 subdir = "crates/sui-framework/packages/sui-framework"
 rev = "testnet"
 
-[dependencies.Protocol]
+[dependencies.ScallopProtocol]
 local = "../protocol"
 
 [dependencies.TestCoin]

@@ -30,9 +30,9 @@ module protocol::incentive_rewards {
         reward_factor: factor,
       };
       wit_table::add(RewardFactors{}, reward_factors, coin_type, reward_factor);
+    } else {
+      let reward_factor = wit_table::borrow_mut(RewardFactors{}, reward_factors, coin_type);
+      reward_factor.reward_factor = factor;
     };
-    
-    let reward_factor = wit_table::borrow_mut(RewardFactors{}, reward_factors, coin_type);
-    reward_factor.reward_factor = factor;
   }
 }

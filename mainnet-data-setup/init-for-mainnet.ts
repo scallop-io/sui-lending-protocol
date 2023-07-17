@@ -7,8 +7,8 @@ import { addWhitelist } from "./add-whitelist";
 
 export const setupForMainnet = async () => {
   const tx = new SuiTxBlock();
-  // initXOracle(tx);
-  // initCoinDecimalRegistry(tx);
+  initXOracle(tx);
+  initCoinDecimalRegistry(tx);
   initMarket(tx);
   addWhitelist(tx);
   return suiKit.signAndSendTxn(tx);

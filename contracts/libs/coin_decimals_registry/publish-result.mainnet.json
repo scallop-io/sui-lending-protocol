@@ -1,5 +1,8 @@
 {
-  "packageId": "0xd68eb3aafa85228a532500ca1ca45af097cb3b941dbdf297e68b1f01e0cdd95e",
-  "upgradeCapId": "0x6d5963572e9f881555f7d1406f786862a8c0d5cd9aab16fa1ed01dc41f4e6e5b",
-  "coinDecimalsRegistryId": "0xd7e436d32c0e73e7447c46613b76431a33a0cb46fb8768dcc14d52a43cdff1c3"
+  "packageId": "0xca5a5a62f01c79a104bf4d31669e29daa387f325c241de4edbe30986a9bc8b0d",
+  "upgradeCapId": "0x34e76a945d29f195bc53ca704fa70877d1cf3a5d7bbfdda1b13e633fff13c0f6",
+  "publisherIds": [
+    "0xf7b93059253191020e6616e4e56e6b9d22e3f95bf7865eff48b9eedc8449af10"
+  ],
+  "coinDecimalsRegistryId": "0x200abe9bf19751cc566ae35aa58e2b7e4ff688fc1130f8d8909ea09bc137d668"
 }

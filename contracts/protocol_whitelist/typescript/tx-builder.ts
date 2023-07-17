@@ -14,7 +14,7 @@ export class ProtocolWhitelistTxBuilder {
     const target = `${this.packageId}::protocol_whitelist::add_whitelist_address`;
     txBlock.moveCall(
       target,
-      [this.scallopPublisherId, this.marketId, address]
+      [this.scallopPublisherId, this.marketId, txBlock.pure(address)]
     );
   }
 
@@ -25,7 +25,7 @@ export class ProtocolWhitelistTxBuilder {
     const target = `${this.packageId}::protocol_whitelist::remove_whitelist_address`;
     txBlock.moveCall(
       target,
-      [this.scallopPublisherId, this.marketId, address]
+      [this.scallopPublisherId, this.marketId, txBlock.pure(address)]
     );
   }
 
@@ -39,6 +39,14 @@ export class ProtocolWhitelistTxBuilder {
 
   rejectAll(txBlock: SuiTxBlock) {
     const target = `${this.packageId}::protocol_whitelist::reject_all`;
+    txBlock.moveCall(
+      target,
+      [this.scallopPublisherId, this.marketId]
+    );
+  }
+
+  switchToWhitelistMode(txBlock: SuiTxBlock) {
+    const target = `${this.packageId}::protocol_whitelist::switch_to_whitelist_mode`;
     txBlock.moveCall(
       target,
       [this.scallopPublisherId, this.marketId]

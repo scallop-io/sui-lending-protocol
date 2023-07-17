@@ -1,6 +1,7 @@
 import { PublishResultParser } from "@scallop-io/sui-package-kit";
 
 export const publishResultParser: PublishResultParser = (res) => {
+  console.log('xOracle res', res);
   const parsedResult = {
     xOracleId: '',
     xOracleCapId: '',
@@ -14,5 +15,6 @@ export const publishResultParser: PublishResultParser = (res) => {
       parsedResult.xOracleCapId = obj.objectId;
     }
   }
+  console.log('xOracle parsedResult', parsedResult)
   return parsedResult;
 }

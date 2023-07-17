@@ -1,0 +1,16 @@
+[package]
+name = "ProtocolWhitelist"
+version = "0.0.1"
+published-at = "0x4c262d9343dac53ecb28f482a2a3f62c73d0ebac5b5f03d57383d56ff219acdf"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "mainnet"
+override = true
+
+[dependencies.ScallopProtocol]
+local = "../protocol"
+
+[addresses]
+protocol_whitelist = "0x4c262d9343dac53ecb28f482a2a3f62c73d0ebac5b5f03d57383d56ff219acdf"

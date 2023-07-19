@@ -5,17 +5,17 @@ dependencies:
     specifier: ^2.2.5
     version: 2.2.5
   '@mysten/sui.js':
-    specifier: ^0.36.0
-    version: 0.36.0
+    specifier: ^0.37.1
+    version: 0.37.1
   '@pythnetwork/price-service-client':
     specifier: ^1.4.1
     version: 1.4.1
   '@scallop-io/sui-kit':
-    specifier: ^0.36.1
-    version: 0.36.1(@mysten/sui.js@0.36.0)
+    specifier: ^0.38.1
+    version: 0.38.1(@mysten/sui.js@0.37.1)
   '@scallop-io/sui-package-kit':
-    specifier: ^0.36.0
-    version: 0.36.0(@mysten/sui.js@0.36.0)
+    specifier: ^0.37.1
+    version: 0.37.1(@mysten/sui.js@0.37.1)
   fs:
     specifier: 0.0.1-security
     version: 0.0.1-security
@@ -73,23 +73,24 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.14
     dev: true
 
-  /@mysten/bcs@0.7.2:
-    resolution: {integrity: sha512-M8aUGFwoBEj9XPCJcYuVlv8UbqBINAYhrDGLavdCYZwGlN5saGgrBcnGpXk+D2/Vp+aEUFh3RCyKudn7H0G9hQ==}
+  /@mysten/bcs@0.7.3:
+    resolution: {integrity: sha512-fbusBfsyc2MpTACi72H5edWJ670T84va+qn9jSPpb5BzZ+pzUM1Q0ApPrF5OT+mB1o5Ng+mxPQpBCZQkfiV2TA==}
     dependencies:
       bs58: 5.0.0
     dev: false
 
-  /@mysten/sui.js@0.36.0:
-    resolution: {integrity: sha512-l/gZUxlr0oHgnwuHYxIVp+JOrdj1imhffL5iK25JYh3WV4sTxiQntCLuSen6etXyFG9c1l2GNvVaGZaV3mb4Hw==}
+  /@mysten/sui.js@0.37.1:
+    resolution: {integrity: sha512-nEOqnjUqb/VJcVk23LgZOX1FmBib/mBCwAWaJhtsCHLwv2jIAfCPY/fpB9lJ62QHrM8UFclpWxsLkqcUkKyPgA==}
     engines: {node: '>=16'}
     dependencies:
-      '@mysten/bcs': 0.7.2
+      '@mysten/bcs': 0.7.3
       '@noble/curves': 1.0.0
       '@noble/hashes': 1.3.0
       '@open-rpc/client-js': 1.8.1
       '@scure/bip32': 1.3.0
       '@scure/bip39': 1.2.0
       '@suchipi/femver': 1.0.0
+      events: 3.3.0
       superstruct: 1.0.3
       tweetnacl: 1.0.3
     transitivePeerDependencies:
@@ -141,29 +142,27 @@ packages:
     resolution: {integrity: sha512-h4HcUwBPFEZwa5nLMTz9YnwdLE5m+Bfctzqbj09vpSJo2DyPHCyEXScFUuizWBbfofxB/pF+OnZXjU3pJxtm/w==}
     dev: false
 
-  /@scallop-io/sui-kit@0.36.1(@mysten/sui.js@0.36.0):
-    resolution: {integrity: sha512-PMz4Tn6myxVOPWEisI4ULx+gscGCiqn7j62Ncda32GQZh5sPFrGUnixu0rn2cyVOBGmwWdTpjG6xBYKVLwfTvw==}
+  /@scallop-io/sui-kit@0.38.1(@mysten/sui.js@0.37.1):
+    resolution: {integrity: sha512-rGJaluM0n8JZQYaHmJ7RsV6vr5VuBn17DBeke3kq8RFVbOwJtXxjGmcrcqJ3mEPFKDj6D24iZyvCSwk0RAojXQ==}
     engines: {node: '>=18'}
     peerDependencies:
-      '@mysten/sui.js': ^0.36.0
+      '@mysten/sui.js': ^0.37.1
     dependencies:
-      '@mysten/sui.js': 0.36.0
-      '@scure/bip39': 1.2.0
+      '@mysten/sui.js': 0.37.1
+      '@scure/bip39': 1.2.1
       assert: 2.0.0
-      colorts: 0.1.63
       superstruct: 1.0.3
-      tmp: 0.2.1
       ts-retry-promise: 0.7.0
     dev: false
 
-  /@scallop-io/sui-package-kit@0.36.0(@mysten/sui.js@0.36.0):
-    resolution: {integrity: sha512-ujiN5u/o4FTUb8EhhXo4/e7nxiZZp+x9wwf4u0+vdmcDwdw9igjOa9tUFfkfRuHstjbLUxwBgmGaFjfpVwieRw==}
+  /@scallop-io/sui-package-kit@0.37.1(@mysten/sui.js@0.37.1):
+    resolution: {integrity: sha512-hzOUZTbt58/p9Clhf0DsFKfyOW2UGUmie6jN61n3r/vcFSBqnUy3++hA3HPiV2JWU+2Su1MVv0CEWclCpHyPFw==}
     engines: {node: '>=16'}
     peerDependencies:
-      '@mysten/sui.js': ^0.36.0
+      '@mysten/sui.js': ^0.37.1
     dependencies:
       '@iarna/toml': 2.2.5
-      '@mysten/sui.js': 0.36.0
+      '@mysten/sui.js': 0.37.1
       colorts: 0.1.63
       superstruct: 1.0.3
       tmp: 0.2.1
@@ -183,6 +182,13 @@ packages:
 
   /@scure/bip39@1.2.0:
     resolution: {integrity: sha512-SX/uKq52cuxm4YFXWFaVByaSHJh2w3BnokVSeUJVCv6K7WulT9u2BuNRBhuFl8vAuYnzx9bEu9WgpcNYTrYieg==}
+    dependencies:
+      '@noble/hashes': 1.3.0
+      '@scure/base': 1.1.1
+    dev: false
+
+  /@scure/bip39@1.2.1:
+    resolution: {integrity: sha512-Z3/Fsz1yr904dduJD0NpiyRHhRYHdcnyh73FZWiV+/qhWi83wNJ3NWolYqCEN+ZWsUz2TWwajJggcRE9r1zUYg==}
     dependencies:
       '@noble/hashes': 1.3.0
       '@scure/base': 1.1.1
@@ -340,6 +346,11 @@ packages:
 
   /es6-object-assign@1.1.0:
     resolution: {integrity: sha512-MEl9uirslVwqQU369iHNWZXsI8yaZYGg/D65aOgZkeyFJwHYSxilf7rQzXKI7DdDuBPrBXbfk3sl9hJhmd5AUw==}
+    dev: false
+
+  /events@3.3.0:
+    resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
+    engines: {node: '>=0.8.x'}
     dev: false
 
   /follow-redirects@1.15.2:

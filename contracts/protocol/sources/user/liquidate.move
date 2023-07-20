@@ -90,7 +90,7 @@ module protocol::liquidate {
     // Put the repay and revenue balance to the market
     let repay_on_behalf_balance = balance::split(&mut available_repay_balance, repay_on_behalf);
     let revenue_balance = balance::split(&mut available_repay_balance, repay_revenue);
-    market::handle_liquidation(market, repay_on_behalf_balance, revenue_balance);
+    market::handle_liquidation<DebtType, CollateralType>(market, repay_on_behalf_balance, revenue_balance, liq_amount);
 
     emit(LiquidateEvent {
       liquidator: tx_context::sender(ctx),

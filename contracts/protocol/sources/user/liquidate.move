@@ -86,6 +86,7 @@ module protocol::liquidate {
     // Reduce the debt for the obligation
     let debt_type = type_name::get<DebtType>();
     obligation::decrease_debt(obligation, debt_type, repay_on_behalf);
+    market::handle_inflow<DebtType>(market, repay_on_behalf, now);
     
     // Put the repay and revenue balance to the market
     let repay_on_behalf_balance = balance::split(&mut available_repay_balance, repay_on_behalf);

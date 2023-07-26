@@ -16,10 +16,10 @@ const protocolWhitelistPkgPath = path.join(__dirname, "../contracts/protocol_whi
 
 export const protocolPackageList: PackageBatch = [
   { packagePath: xOraclePath },
-  { packagePath: mathPkgPath, option: { enforce: true } },
-  { packagePath: xPkgPath, option: { enforce: true } },
-  { packagePath: whitelistPkgPath, option: { enforce: true } },
-  { packagePath: coinDecimalsRegistryPath, option: { publishResultParser: decimalsRegistryParser, enforce: true } },
+  { packagePath: mathPkgPath, option: { enforce: false } },
+  { packagePath: xPkgPath, option: { enforce: false } },
+  { packagePath: whitelistPkgPath, option: { enforce: false } },
+  { packagePath: coinDecimalsRegistryPath, option: { publishResultParser: decimalsRegistryParser, enforce: false } },
   { packagePath: protocolPkgPath, option: { publishResultParser: protocolParser, enforce: true } },
   { packagePath: protocolQueryPkgPath, option: { enforce: true } },
   { packagePath: protocolWhitelistPkgPath, option: { enforce: true } },

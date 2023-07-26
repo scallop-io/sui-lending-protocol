@@ -1,4 +1,5 @@
 module protocol_test::constants {
+  use math::u64;
   use sui::math;
   use test_coin::eth::ETH;
   use test_coin::btc::BTC;
@@ -71,18 +72,25 @@ module protocol_test::constants {
   }
   
   public fun usdc_interest_model_params(): InterestModelParams<USDC> {
+    let interest_rate_scale = math::pow(10, 7);
+    let scale = math::pow(10, 12);
+    let secs_per_year = 365 * 24 * 60 * 60;
+
+    let borrow_rate_on_mid_kink = 8 * u64::mul_div(scale, interest_rate_scale, secs_per_year) / 100;
+    let borrow_rate_on_high_kink = 50 * u64::mul_div(scale, interest_rate_scale, secs_per_year) / 100;
+    let max_borrow_rate = 300 * u64::mul_div(scale, interest_rate_scale, secs_per_year) / 100;
     InterestModelParams {
-      base_rate_per_sec: 6341958397,
-      interest_rate_scale: 10000000,
-      borrow_rate_on_mid_kink: 8 * math::pow(10, 10),
-      mid_kink: 60 * math::pow(10, 10),
-      borrow_rate_on_high_kink: 50 * math::pow(10, 12),
-      high_kink: 90 * math::pow(10, 10),
-      max_borrow_rate: 300 * math::pow(10, 10),
-      revenue_factor: 2 * math::pow(10, 10),
-      scale: math::pow(10, 12),
+      base_rate_per_sec: 0,
+      interest_rate_scale,
+      borrow_rate_on_mid_kink,
+      borrow_rate_on_high_kink,
+      max_borrow_rate,
+      mid_kink: u64::mul_div(60, scale, 100),
+      high_kink: u64::mul_div(90, scale, 100),
+      revenue_factor: u64::mul_div(2, scale, 100),
+      scale,
       min_borrow_amount: math::pow(10, 8),
-      borrow_weight: math::pow(10, 12),
+      borrow_weight: 1 * scale,
     }
   }
 }

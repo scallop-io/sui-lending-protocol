@@ -10,7 +10,6 @@ module protocol_test::borrow_index_test {
   use x_oracle::x_oracle;
   use coin_decimals_registry::coin_decimals_registry;
   use math::fixed_point32_empower;
-  use math::u64;
   use protocol::version;
   use protocol::borrow;
   use protocol::deposit_collateral;

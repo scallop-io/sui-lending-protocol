@@ -14,6 +14,7 @@ module bullshark_quest::quest_point_lottery {
   use bullshark_quest::quest_controller::{Self, QuestController};
 
   friend bullshark_quest::suifren_lucky_draw;
+  friend bullshark_quest::paid_lucky_draw;
 
   const PLACE_BASE: u64 = 10000;
   const FIRST_PLACE_THRESHOLD: u64 = 1; // 0.01% to win the first place.

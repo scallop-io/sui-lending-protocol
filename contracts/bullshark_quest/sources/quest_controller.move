@@ -1,6 +1,9 @@
+/// TODO: Add admin functions to set the point rate and the ticket price.
 module bullshark_quest::quest_controller {
 
   use std::fixed_point32::{Self, FixedPoint32};
+  use sui::balance::{Self, Balance};
+  use sui::sui::SUI;
   use sui::math;
   use sui::object::{Self, UID};
   use sui::tx_context::TxContext;
@@ -14,6 +17,8 @@ module bullshark_quest::quest_controller {
     third_place_point: u64,
     fourth_place_point: u64,
     no_luck_point: u64,
+    ticket_price: u64,
+    vault: Balance<SUI>,
   }
 
   fun init(ctx: &mut TxContext) {
@@ -29,6 +34,8 @@ module bullshark_quest::quest_controller {
       third_place_point: 1000,
       fourth_place_point: 100,
       no_luck_point: 10,
+      ticket_price: math::pow(10, 9), // 1 SUI
+      vault: balance::zero(),
     };
     transfer::share_object(controller);
   }
@@ -38,6 +45,7 @@ module bullshark_quest::quest_controller {
   public fun third_place_point(controller: &QuestController): u64 { controller.third_place_point }
   public fun fourth_place_point(controller: &QuestController): u64 { controller.fourth_place_point }
   public fun no_luck_point(controller: &QuestController): u64 { controller.no_luck_point }
+  public fun ticket_price(controller: &QuestController): u64 { controller.ticket_price }
 
 
   /// Convert the borrow point to bullshark quest point.
@@ -46,5 +54,13 @@ module bullshark_quest::quest_controller {
     borrow_point: u64,
   ): u64 {
     fixed_point32::multiply_u64(borrow_point, controller.borrow_point_rate)
+  }
+
+  /// Collect the fees
+  public fun collect_fees(
+    controller: &mut QuestController,
+    balance: Balance<SUI>,
+  ) {
+    balance::join(&mut controller.vault, balance);
   }
 }

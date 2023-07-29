@@ -1,4 +1,4 @@
-module bullshark_quest::suifren_lucky_draw {
+module bullshark_quest::quest_point_lottery_suifren {
 
   use sui::clock::{Self, Clock};
   use sui::dynamic_field;

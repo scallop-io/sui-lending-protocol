@@ -1,4 +1,4 @@
-module bullshark_quest::paid_lucky_draw {
+module bullshark_quest::quest_point_lottery_paid {
 
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};

@@ -8,7 +8,7 @@ module bullshark_quest::quest_point {
   use sui::event::emit;
 
   friend bullshark_quest::borrow_quest;
-  friend bullshark_quest::suifren_lucky_draw;
+  friend bullshark_quest::quest_point_lottery_suifren;
   friend bullshark_quest::quest_point_lottery;
 
   struct QUEST_POINT has drop {}

@@ -11,6 +11,7 @@ module protocol::app {
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
   use protocol::incentive_rewards;
+  use protocol::error;
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
@@ -119,6 +120,11 @@ module protocol::app {
     min_borrow_amount: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
+    assert!(mid_kink <= high_kink, error::interest_model_param_error());
+    assert!(base_rate_per_sec <= borrow_rate_on_mid_kink, error::interest_model_param_error());
+    assert!(borrow_rate_on_mid_kink <= borrow_rate_on_high_kink, error::interest_model_param_error());
+    assert!(borrow_rate_on_high_kink <= max_borrow_rate, error::interest_model_param_error());
+
     let interest_model_change = interest_model::create_interest_model_change<T>(
       &admin_cap.interest_model_cap,
       base_rate_per_sec,

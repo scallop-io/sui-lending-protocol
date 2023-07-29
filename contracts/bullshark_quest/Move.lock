@@ -6,6 +6,7 @@ version = 0
 dependencies = [
   { name = "ScallopProtocol" },
   { name = "Sui" },
+  { name = "suifrens" },
 ]
 
 [[move.package]]
@@ -68,6 +69,14 @@ dependencies = [
 [[move.package]]
 name = "XOracle"
 source = { local = "../sui_x_oracle/x_oracle" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "suifrens"
+source = { local = "deps/suifrens" }
 
 dependencies = [
   { name = "Sui" },

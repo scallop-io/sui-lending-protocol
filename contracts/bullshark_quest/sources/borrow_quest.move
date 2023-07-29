@@ -10,7 +10,7 @@ module bullshark_quest::borrow_quest {
   use bullshark_quest::quest_point::{Self, QuestPointTreasury};
   use bullshark_quest::quest_controller::{Self, QuestController};
 
-  const REDEEM_POINT_TOO_SMALL: u64 = 0x111;
+  const REDEEM_POINT_TOO_SMALL: u64 = 0x1001;
 
   struct BORROW_QUEST_KEY has drop {}
 
@@ -21,6 +21,7 @@ module bullshark_quest::borrow_quest {
     timestamp: u64,
   }
 
+  /// Allow the borrower to redeem quest point based on the amount of borrow point.
   public fun redeem_borrow_quest_point(
     obligation: &mut Obligation,
     obligation_key: &ObligationKey,
@@ -43,13 +44,7 @@ module bullshark_quest::borrow_quest {
       borrow_point,
     );
     assert!(quest_point > 0, REDEEM_POINT_TOO_SMALL);
-    quest_point::mint_to_address(
-      quest_point_treasury,
-      quest_point,
-      tx_context::sender(ctx),
-      clock,
-      ctx
-    );
+    quest_point::mint_to_sender(quest_point_treasury, quest_point, clock, ctx);
     emit(
       BrrowQuestPointRedeemed {
         address: tx_context::sender(ctx),

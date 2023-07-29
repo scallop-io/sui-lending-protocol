@@ -8,7 +8,12 @@ module bullshark_quest::quest_controller {
 
   struct QuestController has key {
     id: UID,
-    borrow_point_rate: FixedPoint32,
+    borrow_point_rate: FixedPoint32, // the rate of borrow point to quest point
+    first_place_point: u64,
+    second_place_point: u64,
+    third_place_point: u64,
+    fourth_place_point: u64,
+    no_luck_point: u64,
   }
 
   fun init(ctx: &mut TxContext) {
@@ -19,9 +24,20 @@ module bullshark_quest::quest_controller {
     let controller = QuestController {
       id: object::new(ctx),
       borrow_point_rate: initial_borrow_point_rate,
+      first_place_point: 100000,
+      second_place_point: 10000,
+      third_place_point: 1000,
+      fourth_place_point: 100,
+      no_luck_point: 10,
     };
     transfer::share_object(controller);
   }
+
+  public fun first_place_point(controller: &QuestController): u64 { controller.first_place_point }
+  public fun second_place_point(controller: &QuestController): u64 { controller.second_place_point }
+  public fun third_place_point(controller: &QuestController): u64 { controller.third_place_point }
+  public fun fourth_place_point(controller: &QuestController): u64 { controller.fourth_place_point }
+  public fun no_luck_point(controller: &QuestController): u64 { controller.no_luck_point }
 
 
   /// Convert the borrow point to bullshark quest point.

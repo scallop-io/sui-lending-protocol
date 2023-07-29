@@ -11,5 +11,8 @@ override = true
 [dependencies.ScallopProtocol]
 local = "../protocol"
 
+[dependencies.suifrens]
+local = "./deps/suifrens"
+
 [addresses]
 bullshark_quest = "0x0"

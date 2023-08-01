@@ -29,6 +29,12 @@ export type OutflowLimiterModel = {
   outflowCycleDuration: number,
   outflowSegmentDuration: number,
 }
+
+export type IncentiveRewardFactor = {
+  rewardFactor: number,
+  scale: number,
+}
+
 export class ProtocolTxBuilder {
   constructor(
     public packageId: string,
@@ -191,14 +197,18 @@ export class ProtocolTxBuilder {
 
   setIncentiveRewardFactor(
     suiTxBlock: SuiTxBlock,
-    rewardFactor: number,
-    scale: number,
+    incentiveRewardFactor: IncentiveRewardFactor,
     coinType: string,
   ) {
     const setIncentiveRewardFactorTarget = `${this.packageId}::app::set_incentive_reward_factor`;
     suiTxBlock.moveCall(
       setIncentiveRewardFactorTarget,
-      [this.adminCapId, this.marketId, rewardFactor, scale],
+      [
+        this.adminCapId,
+        this.marketId,
+        incentiveRewardFactor.rewardFactor,
+        incentiveRewardFactor.scale
+      ],
       [coinType],
     );
   }

@@ -1,6 +1,12 @@
 import { SUI_TYPE_ARG } from '@mysten/sui.js'
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { protocolTxBuilder, RiskModel, InterestModel, OutflowLimiterModel } from '../contracts/protocol';
+import {
+  protocolTxBuilder,
+  RiskModel,
+  InterestModel,
+  OutflowLimiterModel,
+  IncentiveRewardFactor
+} from '../contracts/protocol';
 import { wormholeUsdcType } from './chain-data'
 
 
@@ -95,16 +101,20 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
     },
   ];
 
-  const incentiveRewardFactorPairs: { type: string, value: number, scale: number }[] = [
+  const incentiveRewardFactorPairs: { type: string, incentiveRewardFactor: IncentiveRewardFactor }[] = [
     {
       type: SUI_TYPE_ARG,
-      value: 2,
-      scale: 1,
+      incentiveRewardFactor: {
+        rewardFactor: 2,
+        scale: 1,
+      }
     },
     {
       type: wormholeUsdcType,
-      value: 1,
-      scale: 1,
+      incentiveRewardFactor: {
+        rewardFactor: 1,
+        scale: 1,
+      }
     }
   ];
 
@@ -132,8 +142,7 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
   incentiveRewardFactorPairs.forEach(pair => {
     protocolTxBuilder.setIncentiveRewardFactor(
       suiTxBlock,
-      pair.value,
-      pair.scale,
+      pair.incentiveRewardFactor,
       pair.type,
     )
   });

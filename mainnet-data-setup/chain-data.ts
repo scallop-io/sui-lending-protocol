@@ -1,6 +1,10 @@
 
 import { SUI_TYPE_ARG } from '@mysten/sui.js';
 
+export type SupportedCollaterals = 'sui' | 'wormholeUsdc' | 'wormholeUsdt' | 'wormholeEth';
+
+export type SupportedBaseAssets = 'sui' | 'wormholeUsdc' | 'wormholeUsdt' | 'wormholeEth';
+
 export const wormholeUsdcCoinMetadataId = '0x4fbf84f3029bd0c0b77164b587963be957f853eccf834a67bb9ecba6ec80f189';
 export const wormholeUsdcDecimal = 6;
 export const wormholeUsdtCoinMetadataId = '0xfb0e3eb97dd158a5ae979dddfa24348063843c5b20eb8381dd5fa7c93699e45c';

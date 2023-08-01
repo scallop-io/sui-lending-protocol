@@ -38,38 +38,18 @@ const addEthUsdt = (txBlock: SuiTxBlock) => {
   ];
 
   decimalsPairs.forEach(pair => {
-    decimalsRegistryTxBuilder.registerDecimals(
-      txBlock,
-      pair.metadataId,
-      pair.type,
-    );
+    decimalsRegistryTxBuilder.registerDecimals(txBlock, pair.metadataId, pair.type);
   });
   riskModelPairs.forEach(pair => {
-    protocolTxBuilder.addRiskModel(
-      txBlock,
-      pair.riskModel,
-      pair.type,
-    );
+    protocolTxBuilder.addRiskModel(txBlock, pair.riskModel, pair.type);
   });
   interestModelPairs.forEach(pair => {
-    protocolTxBuilder.addInterestModel(
-      txBlock,
-      pair.interestModel,
-      pair.type,
-    );
+    protocolTxBuilder.addInterestModel(txBlock, pair.interestModel, pair.type);
   });
   outflowRateLimiterPairs.forEach(pair => {
-    protocolTxBuilder.addLimiter(
-      txBlock,
-      pair.outflowRateLimiter,
-      pair.type,
-    );
+    protocolTxBuilder.addLimiter(txBlock, pair.outflowRateLimiter, pair.type);
   });
   incentiveRewardFactorPairs.forEach(pair => {
-    protocolTxBuilder.setIncentiveRewardFactor(
-      txBlock,
-      pair.incentiveRewardFactor,
-      pair.type,
-    )
+    protocolTxBuilder.setIncentiveRewardFactor(txBlock, pair.incentiveRewardFactor, pair.type)
   });
 }

@@ -4,8 +4,9 @@ import {
   wormholeUsdcDecimal,
   wormholeUsdtDecimal,
   wormholeEthDecimal,
+  SupportedBaseAssets,
 } from './chain-data'
-export const outflowRateLimiters: Record<string, OutflowLimiterModel> = {
+export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterModel> = {
   sui: {
     outflowLimit: 10 ** (6 + suiDecimal), // 1 million SUI per day
     outflowCycleDuration: 60 * 60 * 24, // 1 day

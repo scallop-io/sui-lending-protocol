@@ -1,6 +1,6 @@
 import { RiskModel } from '../contracts/protocol';
 import {
-  suiDecimal,
+  suiDecimal, SupportedCollaterals,
   wormholeEthDecimal,
   wormholeUsdcDecimal,
   wormholeUsdtDecimal
@@ -43,7 +43,7 @@ export const wormholeUsdtRiskModel: RiskModel = {
 }
 
 
-export const riskModels = {
+export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   sui: suiRiskModel,
   wormholeEth: wormholeEthRiskModel,
   wormholeUsdc: wormholeUsdcRiskModel,

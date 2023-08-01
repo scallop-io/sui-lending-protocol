@@ -1,6 +1,6 @@
 import { InterestModel } from '../contracts/protocol';
 import {
-  suiDecimal,
+  suiDecimal, SupportedBaseAssets,
   wormholeEthDecimal,
   wormholeUsdcDecimal,
   wormholeUsdtDecimal,
@@ -79,7 +79,7 @@ export const wormholeUsdtInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (wormholeUsdtDecimal - 2), // 0.01 USDT
 }
 
-export const interestModels = {
+export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sui: suiInterestModel,
   wormholeEth: wormholeEthInterestModel,
   wormholeUsdc: wormholeUsdcInterestModel,

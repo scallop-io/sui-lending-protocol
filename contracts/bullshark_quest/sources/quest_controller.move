@@ -17,7 +17,8 @@ module bullshark_quest::quest_controller {
     third_place_point: u64,
     fourth_place_point: u64,
     no_luck_point: u64,
-    ticket_price: u64,
+    paid_ticket_price: u64,
+
     vault: Balance<SUI>,
   }
 
@@ -34,7 +35,7 @@ module bullshark_quest::quest_controller {
       third_place_point: 1000,
       fourth_place_point: 100,
       no_luck_point: 10,
-      ticket_price: math::pow(10, 9), // 1 SUI
+      paid_ticket_price: math::pow(10, 9), // 1 SUI
       vault: balance::zero(),
     };
     transfer::share_object(controller);
@@ -45,7 +46,7 @@ module bullshark_quest::quest_controller {
   public fun third_place_point(controller: &QuestController): u64 { controller.third_place_point }
   public fun fourth_place_point(controller: &QuestController): u64 { controller.fourth_place_point }
   public fun no_luck_point(controller: &QuestController): u64 { controller.no_luck_point }
-  public fun ticket_price(controller: &QuestController): u64 { controller.ticket_price }
+  public fun paid_ticket_price(controller: &QuestController): u64 { controller.paid_ticket_price }
 
 
   /// Convert the borrow point to bullshark quest point.

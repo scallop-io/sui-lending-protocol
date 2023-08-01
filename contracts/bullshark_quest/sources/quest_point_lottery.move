@@ -52,7 +52,7 @@ module bullshark_quest::quest_point_lottery {
     timestamp: u64,
   }
 
-  /// Draw a ticket based on the current drand round.
+  /// Draw a ticket and send to sender.
   public(friend) fun draw_ticket(
     drand_sig: vector<u8>,
     drand_prev_sig: vector<u8>,

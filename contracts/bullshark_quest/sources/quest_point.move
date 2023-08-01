@@ -45,14 +45,23 @@ module bullshark_quest::quest_point {
     clock: &Clock,
     ctx: &mut TxContext
   ) {
+    let point = mint(quest_point_treasury, amount, clock, ctx);
+    let recipient = tx_context::sender(ctx);
+    transfer::transfer(point, recipient);
+    emit(QuestPointMinted { point: amount, address: recipient, timestamp: clock::timestamp_ms(clock) });
+  }
+
+  fun mint(
+    quest_point_treasury: &mut QuestPointTreasury,
+    amount: u64,
+    clock: &Clock,
+    ctx: &mut TxContext
+  ): QuestPoint {
     let balance = balance::increase_supply(
       &mut quest_point_treasury.supply,
       amount
     );
     let timestamp = clock::timestamp_ms(clock);
-    let point = QuestPoint { id: object::new(ctx), balance, issue_timestamp: timestamp };
-    let recipient = tx_context::sender(ctx);
-    transfer::transfer(point, recipient);
-    emit(QuestPointMinted { point: amount, address: recipient, timestamp });
+    QuestPoint { id: object::new(ctx), balance, issue_timestamp: timestamp }
   }
 }

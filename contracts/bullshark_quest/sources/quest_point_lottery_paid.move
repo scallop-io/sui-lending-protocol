@@ -32,7 +32,7 @@ module bullshark_quest::quest_point_lottery_paid {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let ticket_price = quest_controller::ticket_price(controller);
+    let ticket_price = quest_controller::paid_ticket_price(controller);
     let fee_amount = coin::value(&fee);
     assert!(fee_amount >= ticket_price, NOT_ENOUGH_FEE);
     quest_controller::collect_fees(controller, coin::into_balance(fee));

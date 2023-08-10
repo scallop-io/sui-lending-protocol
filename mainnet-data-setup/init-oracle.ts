@@ -1,19 +1,22 @@
-import { SUI_TYPE_ARG } from '@mysten/sui.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
+import { suiKit } from 'sui-elements';
 import {
   pythRuleTxBuilder,
   pythRuleStructType,
   pythOracleData,
-} from 'contracts/sui_x_oracle/pyth_rule'
+} from 'contracts/sui_x_oracle/pyth_rule';
+import {
+  oracles,
+} from './asset-oracles';
 import {
   xOracleTxBuilder
-} from 'contracts/sui_x_oracle/x_oracle'
+} from 'contracts/sui_x_oracle/x_oracle';
 import {
-  wormholeUsdcType,
-} from './chain-data'
+  coinTypes,
+} from './chain-data';
 
 export const initXOracle = (tx: SuiTxBlock) => {
-  addRulesForXOracle(tx);
+  // addRulesForXOracle(tx);
   registerPythPriceObject(tx);
 }
 
@@ -24,10 +27,14 @@ export const addRulesForXOracle = (tx: SuiTxBlock) => {
 export const registerPythPriceObject = (tx: SuiTxBlock) => {
 
   const pairs = [
-    { coinType: wormholeUsdcType, priceObject: pythOracleData.priceFeeds.usdc_usd.priceFeedObjectId },
-    { coinType: SUI_TYPE_ARG, priceObject: pythOracleData.priceFeeds.sui_usd.priceFeedObjectId }
+    { coinType: coinTypes.wormholeUsdc, priceObject: oracles.wormholeUsdc.pythPriceObjectId },
+    { coinType: coinTypes.sui, priceObject: oracles.sui.pythPriceObjectId }
   ];
   pairs.forEach(pair => {
     pythRuleTxBuilder.registerPythPriceInfoObject(tx, pair.priceObject, pair.coinType);
   });
 }
+
+const tx = new SuiTxBlock();
+registerPythPriceObject(tx);
+suiKit.signAndSendTxn(tx).then(console.log).catch(console.error).finally(() => process.exit(0));

@@ -23,6 +23,18 @@
     "sui_usd": {
       "priceFeedId": "23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744",
       "priceFeedObjectId": "0x168aa44fa92b27358beb17643834078b1320be6adf1b3bb0c7f018ac3591db1a"
+    },
+    "sol_usd": {
+      "priceFeedId": "ef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+      "priceFeedObjectId": "0x0ea409db743138a6a35d067de468b1f43944f970267a9026de9794a86e3a0ac3"
+    },
+    "cetus_usd": {
+      "priceFeedId": "e5b274b2611143df055d6e7cd8d93fe1961716bcd4dca1cad87a83bc1e78c1ef",
+      "priceFeedObjectId": "2caadc4fb259ec57d6ee5ea8b6256376851955dffdb679d5e5526c5b6f8d865f"
+    },
+    "apt_usd": {
+      "priceFeedId": "03ae4db29ed4ae33d323568895aa00337e658e348b37509f5372ae51f0af00d5",
+      "priceFeedObjectId": "0x02ed0bfc818a060e1378eccda6a6c1dc6b4360b499bdaa23e3c69bb9ba2bfc96"
     }
   }
 }

@@ -1,87 +1,163 @@
 import { InterestModel } from '../contracts/protocol';
 import {
-  suiDecimal, SupportedBaseAssets,
-  wormholeEthDecimal,
-  wormholeUsdcDecimal,
-  wormholeUsdtDecimal,
+  SupportedBaseAssets,
+  coinDecimals,
 } from './chain-data';
 
 const scale = 10 ** 12;
 const interestRateScale = 10 ** 7;
-let secsPerYear = 365 * 24 * 60 * 60;
+const midKink = 60 * (scale / 100); // 60%
+const highKink = 90 * (scale / 100); // 90%
+const revenueFactor = 5 * (scale / 100); // 5%
+const borrowWeight = scale; // 1
+
+const getRatePerSec = (ratePerYear: number) => {
+  const secsPerYear = 365 * 24 * 60 * 60;
+  return Math.floor(ratePerYear * (scale / 100) * interestRateScale / secsPerYear);
+}
 export const suiInterestModel: InterestModel = {
-  // baseBorrowRatePerSec: 15854986000, // 5 * (10 ** 12) / (365 * 24 * 3600) / 100 * (10 ** 7)
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: Math.floor(10 * (scale / 100) * interestRateScale / secsPerYear), // 10%
-  borrowRateOnHighKink: Math.floor(100 * (scale / 100) * interestRateScale / secsPerYear), // 100%
-  maxBorrowRate: Math.floor(300 * (scale / 100) * interestRateScale / secsPerYear), // 300%
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
 
-  midKink: 60 * (scale / 100), // 60%
-  highKink: 90 * (scale / 100), // 90%
+  midKink, // 60%
+  highKink, // 90%
 
-  revenueFactor: 5 * (scale / 100), // 5%
-  borrowWeight: scale, // 1
+  revenueFactor, // 5%
+  borrowWeight, // 1
   scale,
-  minBorrowAmount: 10 ** (suiDecimal - 2), // 0.01 SUI
+  minBorrowAmount: 10 ** (coinDecimals.sui - 2), // 0.01 SUI
 };
+
+export const cetusInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 60%
+  highKink, // 90%
+
+  revenueFactor, // 5%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.cetus), // 1 CETUS
+}
 
 export const wormholeEthInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: Math.floor(10 * (scale / 100) * interestRateScale / secsPerYear), // 10%
-  borrowRateOnHighKink: Math.floor(100 * (scale / 100) * interestRateScale / secsPerYear), // 100%
-  maxBorrowRate: Math.floor(300 * (scale / 100) * interestRateScale / secsPerYear), // 300%
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
 
-  midKink: 60 * (scale / 100), // 60%
-  highKink: 90 * (scale / 100), // 90%
+  midKink, // 60%
+  highKink, // 90%
 
-  revenueFactor: 5 * (scale / 100), // 5%
-  borrowWeight: scale, // 1
+  revenueFactor, // 5%
+  borrowWeight, // 1
   scale,
-  // TODO: check the eth decimal, and change the minBorrowAmount
-  minBorrowAmount: 10 ** (wormholeEthDecimal - 2), // 0.01 ETH
+  minBorrowAmount: 10 ** (coinDecimals.wormholeEth - 3), // 0.001 ETH
 };
+
+export const wormholeBtcInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 60%
+  highKink, // 90%
+
+  revenueFactor, // 5%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.wormholeBtc - 4), // 0.0001 BTC
+}
+
+export const wormholeSolInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 60%
+  highKink, // 90%
+
+  revenueFactor, // 5%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.wormholeSol - 2), // 0.01 SOL
+}
+
+export const wormholeAptInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 60%
+  highKink, // 90%
+
+  revenueFactor, // 5%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.wormholeApt - 2), // 0.01 APT
+}
 
 export const wormholeUsdcInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: Math.floor(8 * (scale / 100) * interestRateScale / secsPerYear), // 8%
-  borrowRateOnHighKink: Math.floor(50 * (scale / 100) * interestRateScale / secsPerYear), // 50%
-  maxBorrowRate: Math.floor(150 * (scale / 100) * interestRateScale / secsPerYear), // 150%
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink: 60 * (scale / 100), // 60%
-  highKink: 90 * (scale / 100), // 90%
+  midKink, // 60%
+  highKink, // 90%
 
-  revenueFactor: 5 * (scale / 100), // 5%
-  borrowWeight: scale, // 1
+  revenueFactor, // 5%
+  borrowWeight, // 1
   scale,
-  minBorrowAmount: 10 ** (wormholeUsdcDecimal - 2), // 0.01 USDC
+  minBorrowAmount: 10 ** (coinDecimals.wormholeUsdc - 2), // 0.01 USDC
 }
 
 export const wormholeUsdtInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: Math.floor(8 * (scale / 100) * interestRateScale / secsPerYear), // 8%
-  borrowRateOnHighKink: Math.floor(50 * (scale / 100) * interestRateScale / secsPerYear), // 50%
-  maxBorrowRate: Math.floor(150 * (scale / 100) * interestRateScale / secsPerYear), // 150%
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink: 60 * (scale / 100), // 60%
-  highKink: 90 * (scale / 100), // 90%
+  midKink, // 60%
+  highKink, // 90%
 
-  revenueFactor: 5 * (scale / 100), // 5%
-  borrowWeight: scale, // 1
+  revenueFactor, // 5%
+  borrowWeight, // 1
   scale,
-  minBorrowAmount: 10 ** (wormholeUsdtDecimal - 2), // 0.01 USDT
+  minBorrowAmount: 10 ** (coinDecimals.wormholeUsdt - 2), // 0.01 USDT
 }
 
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sui: suiInterestModel,
+  cetus: cetusInterestModel,
   wormholeEth: wormholeEthInterestModel,
   wormholeUsdc: wormholeUsdcInterestModel,
   wormholeUsdt: wormholeUsdtInterestModel,
+  wormholeBtc: wormholeBtcInterestModel,
+  wormholeSol: wormholeSolInterestModel,
+  wormholeApt: wormholeAptInterestModel,
 }

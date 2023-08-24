@@ -94,6 +94,17 @@ module protocol::borrow_withdraw_evaluator {
     let risk_model = market::risk_model(market, coin_type);
     let collateral_factor = risk_model::collateral_factor(risk_model);
 
+    if (fixed_point32::is_zero(collateral_factor)) {
+      // if available_borrow_amount > 0, then other collateral is enough to cover the required collateral for debt
+      // so we can return all of the collateral_amount here
+      // otherwise, he can't withdraw any collateral
+      return if (!fixed_point32::is_zero(available_borrow_amount)) {
+        collateral_amount
+      } else {
+        0
+      }
+    };
+
     math::min(fixed_point32::divide_u64(available_withdraw_amount, collateral_factor), collateral_amount)
   }
 }

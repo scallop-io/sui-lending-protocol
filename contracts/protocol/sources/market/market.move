@@ -223,13 +223,15 @@ module protocol::market {
     update_interest_rates(self);
   }
   
-  public(friend) fun handle_liquidation<T>(
+  public(friend) fun handle_liquidation<DebtType, CollateralType>(
     self: &mut Market,
-    balance: Balance<T>,
-    revenue_balance: Balance<T>,
+    balance: Balance<DebtType>,
+    revenue_balance: Balance<DebtType>,
+    liquidate_amount: u64, // liquidate amount of the collateral
   ) {
     // We don't accrue interest here, because it has already been accrued in previous step for liquidation
     reserve::handle_liquidation(&mut self.vault, balance, revenue_balance);
+    collateral_stats::decrease(&mut self.collateral_stats, get<CollateralType>(), liquidate_amount);
     update_interest_rates(self);
   }
   

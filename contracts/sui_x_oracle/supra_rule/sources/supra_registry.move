@@ -20,16 +20,16 @@ module supra_rule::supra_registry {
   }
 
   fun init(ctx: &mut TxContext) {
-    let pyth_registry = SupraRegistry {
+    let supra_registry = SupraRegistry {
       id: object::new(ctx),
       table: table::new(ctx)
     };
-    let pyth_registry_cap = SupraRegistryCap {
+    let supra_registry_cap = SupraRegistryCap {
       id: object::new(ctx),
-      for: object::id(&pyth_registry)
+      for: object::id(&supra_registry)
     };
-    transfer::share_object(pyth_registry);
-    transfer::transfer(pyth_registry_cap, tx_context::sender(ctx));
+    transfer::share_object(supra_registry);
+    transfer::transfer(supra_registry_cap, tx_context::sender(ctx));
   }
 
   public entry fun register_supra_pair_id<CoinType>(

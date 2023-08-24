@@ -61,7 +61,6 @@ module protocol::liquidation_evaluator {
     let debt_type = type_name::get<DebtType>();
 
     // get all the necessary parameters for liquidation
-    obligation::debt(obligation, debt_type);
     let collateral_type = type_name::get<CollateralType>();
     let total_collateral_amount = obligation::collateral(obligation, collateral_type);
     let collateral_decimals = coin_decimals_registry::decimals(coin_decimals_registry, collateral_type);

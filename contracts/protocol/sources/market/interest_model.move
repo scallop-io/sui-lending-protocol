@@ -83,6 +83,11 @@ module protocol::interest_model {
     change_delay: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
+    assert!(mid_kink <= high_kink, error::interest_model_param_error());
+    assert!(base_rate_per_sec <= borrow_rate_on_mid_kink, error::interest_model_param_error());
+    assert!(borrow_rate_on_mid_kink <= borrow_rate_on_high_kink, error::interest_model_param_error());
+    assert!(borrow_rate_on_high_kink <= max_borrow_rate, error::interest_model_param_error());
+
     let base_borrow_rate_per_sec = fixed_point32::create_from_rational(base_rate_per_sec, scale);
     let borrow_rate_on_mid_kink = fixed_point32::create_from_rational(borrow_rate_on_mid_kink, scale);
     let mid_kink = fixed_point32::create_from_rational(mid_kink, scale);
@@ -152,12 +157,12 @@ module protocol::interest_model {
     /* ================== Interest Rate Formula ==================
 
     Calculate the interest rate with the given utlilization rate of the pool
-    if ulti_rate <= mid_kink:
+    if util_rate <= mid_kink:
       interest_rate = (util_rate / mid_kink) * (borrow_rate_on_mid_kink - base_rate) + base_rate
-    else if ulti_rate <= high_kink:
+    else if util_rate <= high_kink:
       interest_rate = ((util_rate - mid_kink) / (high_kink - mid_kink)) * (borrow_rate_on_high_kink - borrow_rate_on_mid_kink) + borrow_rate_on_mid_kink
     else:
-      interest_rate = ((util_rate - high_kink) / (100 - high_kink)) * (max_borrow_rate - borrow_rate_on_high_kink) + borrow_rate_on_high_kink
+      interest_rate = ((util_rate - high_kink) / (1 - high_kink)) * (max_borrow_rate - borrow_rate_on_high_kink) + borrow_rate_on_high_kink
 
     ============================================================== */
 

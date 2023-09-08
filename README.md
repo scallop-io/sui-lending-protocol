@@ -40,38 +40,6 @@ Let's take the `test_coin` package as an example:
 
 - `README.md` description of the package, explain the usage of the package.
 
-## Publish move package
-We use typescript to publish the move package.
-The following steps will show you how to publish the `test_coin` package.
+## Use Scallop SDK to interact with the contracts
 
-1. Make a new file `publish.ts` in the `typescript` folder for the package.:
-
-```typescript
-import * as path from "path"
-import { suiKit, networkType } from "sui-elements"
-import { publishPackageWithCache, writeAsJson } from "contract-deployment"
-
-/**
- * 
- * If there's no `Move.${networkType}.toml` file in the package folder, it will
- * 1. publish the package with the default `Move.testnet.toml` file
- * 2. Write the object ids to the `ids.${networkType}.json` file
- * 3. And then, generate the `Move.${networkType}.toml` file based on the `Move.testnet.toml` file
- * 4. Make a backup of the `Move.testnet.toml` file as `Move.testnet.toml.bak`
- * 5. Replace the `Move.testnet.toml` file with the `Move.${networkType}.toml` file
-
- * Otherwise, it will:
- * 1. Replace the `Move.testnet.toml` file with the `Move.${networkType}.toml` file
- */
-export const publishPackage = async () => {
-  const pkgPath = path.join(__dirname, "../");
-  // If the package has already been published, it will return undefined
-  const res = await publishPackageWithCache(pkgPath, suiKit.getSigner(), networkType)
-  if (!res) return;
-
-  // Write your own `parseObjectIds` function to parse the necessary object ids from the publish result
-  const parsedJson = parseObjectIds(res);
-
-  writeAsJson(parsedJson, path.join(__dirname, `./ids.${networkType}.json`));
-}
-```
+It's recommended to use the Scallop SDK to interact with the contracts, see the official documentation: [How to use Scallop SDK](https://github.com/scallop-io/sui-scallop-sdk)

@@ -30,7 +30,7 @@ Let's take the `test_coin` package as an example:
 
 - `typescript` folder usually contains the typescript code that will be used to deploy & interact with the contract.
 
-- `ids.${networkType}.json` contains the important object ids of the contracts for each network type.
+- `publish-result.${networkType}.json` contains the important object ids of the contracts for each network type.
 
 - `index.ts` export the typescript code in the `typescript` folder.
 

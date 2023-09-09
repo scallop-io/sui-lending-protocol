@@ -43,3 +43,11 @@ Let's take the `test_coin` package as an example:
 ## Use Scallop SDK to interact with the contracts
 
 It's recommended to use the Scallop SDK to interact with the contracts, see the official documentation: [How to use Scallop SDK](https://github.com/scallop-io/sui-scallop-sdk)
+
+## Integrate with Scallop Protocol in SUI Move
+
+The protocol is designed to be simple, efficient, and secure.
+
+Moreover, the protocol is designed to be composable, meaning that other protocols can easily integrate with it.
+
+[Contract integration guide](contract-integration.md)

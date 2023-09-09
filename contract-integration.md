@@ -59,7 +59,6 @@ In your project, you can add the following lines to your `Move.toml` file to imp
 git = "https://github.com/scallop-io/sui-lending-protocol.git"
 subdir = "contracts/protocol"
 rev = "mainnet"
-
 ```
 
 ## User interaction with the protocol
@@ -254,3 +253,13 @@ module protocol::liquidate {
   
 }
 ```
+
+## Core Objects
+
+| Object                   | id                                                                 |
+|--------------------------|--------------------------------------------------------------------|
+| Scallop Protocol Package | 0xc05a9cdf09d2f2451dea08ca72641e013834baef3d2ea5fcfee60a9d1dc3c7d9 |
+| Version                  | 0x07871c4b3c847a0f674510d4978d5cf6f960452795e8ff6f189fd2088a3f6ac7 |
+| Market                   | 0xa757975255146dc9686aa823b7838b507f315d704f428cbadad2f4ea061939d9 |
+| xOracle                  | 0x61053e6a38eabcb7c5b59f050377e4b1f30a5cbeaa89a4a766ff1186cf2f15e9 |
+| CoinDecimalsRegistry     | 0x93d5bf0936b71eb27255941e532fac33b5a5c7759e377b4923af0a1359ad494f |

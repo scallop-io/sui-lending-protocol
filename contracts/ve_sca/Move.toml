@@ -10,5 +10,8 @@ rev = "mainnet"
 [dependencies.ScallopProtocol]
 local = "../protocol"
 
+[dependencies.ScallopToken]
+local = "../sca"
+
 [addresses]
 ve_token = "0x0"

@@ -11,7 +11,8 @@ module ve_token::ve_sca {
   struct VeSca has key {
     id: UID,
     balance: Balance<VE_SCA>,
-    mint_timestamp: u64
+    mint_timestamp: u64,
+    duration: u64
   }
 
   struct VeScaTreasury has key {
@@ -31,6 +32,7 @@ module ve_token::ve_sca {
   public fun mint_ve_sca(
     ve_sca_treasury: &mut VeScaTreasury,
     amount: u64,
+    duration: u64,
     clock: &Clock,
     ctx: &mut TxContext
   ): VeSca {
@@ -39,7 +41,8 @@ module ve_token::ve_sca {
     let ve_sca = VeSca {
       id: object::new(ctx),
       balance: ve_sca_balance,
-      mint_timestamp: timestamp
+      mint_timestamp: timestamp,
+      duration
     };
     ve_sca
   }

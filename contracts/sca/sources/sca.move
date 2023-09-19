@@ -1,6 +1,11 @@
 module scallop_token::sca {
 
-  use sui::tx_context::TxContext;
+  use std::option
+
+  use sui::tx_context::{Self, TxContext};
+  use sui::url;
+  use sui::coin;
+  use sui::transfer;
 
   struct SCA has drop {}
 
@@ -13,7 +18,7 @@ module scallop_token::sca {
       b"https://raw.githubusercontent.com/scallop-io/scallop-decorations-uri/master/img/SCA.png"
     );
     let (treasuryCap, coinMeta) = coin::create_currency(
-      wtiness,
+      otw,
       decimals,
       symbol,
       name,

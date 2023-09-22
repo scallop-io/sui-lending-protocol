@@ -23,19 +23,19 @@ module cetus_adaptor::cetus_flash_loan {
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Coin<B>, FlashSwapReceipt<A, B>) {
-    /// We want to borrow B
-    /// so we need to swap A to B, hence a2b = true
+    // We want to borrow B
+    // so we need to swap A to B, hence a2b = true
     let a2b = true;
 
-    /// we want to specify the exact amount of B we want to borrow
-    /// "by_amount_in = true": means the amount will be the input amount of A
-    /// "by_amount_in = false", means the amount will be the output amount of B
-    ///  so we set by_amount_in = false
+    // we want to specify the exact amount of B we want to borrow
+    // "by_amount_in = true": means the amount will be the input amount of A
+    // "by_amount_in = false", means the amount will be the output amount of B
+    //  so we set by_amount_in = false
     let by_amount_in = false;
 
-    /// For Cetus Pool<A, B>, A is base token, B is quote token
-    /// As we swap from A to B, it means the base token price will drop
-    /// so we need to set the price limit to be the minimum price limit to allow maximum borrow of B
+    // For Cetus Pool<A, B>, A is base token, B is quote token
+    // As we swap from A to B, it means the base token price will drop
+    // so we need to set the price limit to be the minimum price limit to allow maximum borrow of B
     let sqrt_price_limit = CETUS_MIN_PRICE_LIMIT;
 
     let (a_balance, b_balance, receipt) = flash_swap(
@@ -48,10 +48,10 @@ module cetus_adaptor::cetus_flash_loan {
       clock
     );
 
-    /// destroy the zero balance
+    // destroy the zero balance
     balance::destroy_zero(a_balance);
 
-    /// return the B coin and the receipt
+    // return the B coin and the receipt
     (
       coin::from_balance(b_balance, ctx),
       receipt
@@ -68,19 +68,19 @@ module cetus_adaptor::cetus_flash_loan {
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Coin<A>, FlashSwapReceipt<A, B>) {
-    /// We want to borrow A
-    /// so we need to swap B to A, hence a2b = false
+    // We want to borrow A
+    // so we need to swap B to A, hence a2b = false
     let a2b = false;
 
-    /// we want to specify the exact amount of A we want to borrow
-    /// "by_amount_in = true": means the amount will be the input amount of B
-    /// "by_amount_in = false", means the amount will be the output amount of A
-    ///  so we set by_amount_in = false
+    // we want to specify the exact amount of A we want to borrow
+    // "by_amount_in = true": means the amount will be the input amount of B
+    // "by_amount_in = false", means the amount will be the output amount of A
+    //  so we set by_amount_in = false
     let by_amount_in = false;
 
-    /// For Cetus Pool<A, B>, A is base token, B is quote token
-    /// As we swap from B to A, it means the base token price will rise
-    /// so we need to set the price limit to be the maximum price limit to allow maximum borrow of A
+    // For Cetus Pool<A, B>, A is base token, B is quote token
+    // As we swap from B to A, it means the base token price will rise
+    // so we need to set the price limit to be the maximum price limit to allow maximum borrow of A
     let sqrt_price_limit = CETUS_MAX_PRICE_LIMIT;
 
     let (a_balance, b_balance, receipt) = flash_swap(
@@ -93,10 +93,10 @@ module cetus_adaptor::cetus_flash_loan {
       clock
     );
 
-    /// destroy the zero balance
+    // destroy the zero balance
     balance::destroy_zero(b_balance);
 
-    /// return the A coin and the receipt
+    // return the A coin and the receipt
     (
       coin::from_balance(a_balance, ctx),
       receipt
@@ -113,7 +113,7 @@ module cetus_adaptor::cetus_flash_loan {
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Coin<B>, FlashSwapReceipt<A, B>) {
-    /// First we borrow B from Cetus Pool<A, B>
+    // First we borrow B from Cetus Pool<A, B>
     let (b_coin, a_receipt) = borrow_b_repay_a_later(
       cetus_config,
       cetus_pool,
@@ -121,7 +121,7 @@ module cetus_adaptor::cetus_flash_loan {
       clock,
       ctx
     );
-    /// Then we borrow A from Cetus Pool<A, B>
+    // Then we borrow A from Cetus Pool<A, B>
     let (a_coin, b_receipt) = borrow_a_repay_b_later(
       cetus_config,
       cetus_pool,
@@ -129,14 +129,14 @@ module cetus_adaptor::cetus_flash_loan {
       clock,
       ctx
     );
-    /// Repay A to Cetus Pool<A, B>
+    // Repay A to Cetus Pool<A, B>
     repay_a(
       cetus_config,
       cetus_pool,
       a_coin,
       a_receipt
     );
-    /// Return B coin and the receipt
+    // Return B coin and the receipt
     ( b_coin, b_receipt )
   }
 
@@ -149,7 +149,7 @@ module cetus_adaptor::cetus_flash_loan {
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Coin<A>, FlashSwapReceipt<A, B>) {
-    /// First we borrow A from Cetus Pool<A, B>
+    // First we borrow A from Cetus Pool<A, B>
     let (a_coin, b_receipt) = borrow_a_repay_b_later(
       cetus_config,
       cetus_pool,
@@ -157,7 +157,7 @@ module cetus_adaptor::cetus_flash_loan {
       clock,
       ctx
     );
-    /// Then we borrow B from Cetus Pool<A, B>
+    // Then we borrow B from Cetus Pool<A, B>
     let (b_coin, a_receipt) = borrow_b_repay_a_later(
       cetus_config,
       cetus_pool,
@@ -165,14 +165,14 @@ module cetus_adaptor::cetus_flash_loan {
       clock,
       ctx
     );
-    /// Repay B to Cetus Pool<A, B>
+    // Repay B to Cetus Pool<A, B>
     repay_b(
       cetus_config,
       cetus_pool,
       b_coin,
       b_receipt
     );
-    /// Return A coin and the receipt
+    // Return A coin and the receipt
     ( a_coin, a_receipt )
   }
 

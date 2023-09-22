@@ -4,6 +4,17 @@
 version = 0
 
 dependencies = [
+  { name = "CetusAdaptor" },
+  { name = "MoveStdlib" },
+  { name = "ScallopProtocol" },
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "CetusAdaptor"
+source = { local = "../cetus_adaptor" }
+
+dependencies = [
   { name = "CetusClmm" },
   { name = "Sui" },
 ]
@@ -19,8 +30,24 @@ dependencies = [
 ]
 
 [[move.package]]
+name = "CoinDecimalsRegistry"
+source = { local = "../../libs/coin_decimals_registry" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
 name = "IntegerMate"
 source = { git = "https://github.com/CetusProtocol/integer-mate.git", rev = "sui-v1.1.0", subdir = "sui" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "Math"
+source = { local = "../../libs/math" }
 
 dependencies = [
   { name = "Sui" },
@@ -39,9 +66,46 @@ name = "MoveStdlib"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
+name = "ScallopProtocol"
+source = { local = "../../protocol" }
+
+dependencies = [
+  { name = "CoinDecimalsRegistry" },
+  { name = "Math" },
+  { name = "Sui" },
+  { name = "Whitelist" },
+  { name = "X" },
+  { name = "XOracle" },
+]
+
+[[move.package]]
 name = "Sui"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { name = "MoveStdlib" },
+]
+
+[[move.package]]
+name = "Whitelist"
+source = { local = "../../libs/whitelist" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "X"
+source = { local = "../../libs/x" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "XOracle"
+source = { local = "../../sui_x_oracle/x_oracle" }
+
+dependencies = [
+  { name = "Sui" },
 ]

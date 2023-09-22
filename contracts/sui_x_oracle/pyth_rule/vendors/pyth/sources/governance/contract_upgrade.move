@@ -13,12 +13,11 @@ module pyth::contract_upgrade {
     use sui::package::{UpgradeReceipt, UpgradeTicket};
     use wormhole::bytes32::{Self, Bytes32};
     use wormhole::cursor::{Self};
-    use wormhole::governance_message::{Self, DecreeTicket, DecreeReceipt};
 
     use pyth::state::{Self, State};
-    use pyth::governance_witness::{GovernanceWitness, new_governance_witness};
     use pyth::governance_instruction::{Self};
     use pyth::governance_action::{Self};
+    use pyth::governance::{Self, WormholeVAAVerificationReceipt};
 
     friend pyth::migrate;
 
@@ -26,6 +25,7 @@ module pyth::contract_upgrade {
     const E_DIGEST_ZERO_BYTES: u64 = 0;
     const E_GOVERNANCE_ACTION_MUST_BE_CONTRACT_UPGRADE: u64 = 1;
     const E_GOVERNANCE_CONTRACT_UPGRADE_CHAIN_ID_ZERO: u64 = 2;
+    const E_CANNOT_EXECUTE_GOVERNANCE_ACTION_WITH_OBSOLETE_SEQUENCE_NUMBER: u64 = 3;
 
     /// Specific governance payload ID (action) to complete upgrading the
     /// contract.
@@ -42,35 +42,34 @@ module pyth::contract_upgrade {
         digest: Bytes32
     }
 
-    public fun authorize_governance(
-        pyth_state: &State
-    ): DecreeTicket<GovernanceWitness> {
-        governance_message::authorize_verify_local(
-            new_governance_witness(),
-            state::governance_chain(pyth_state),
-            state::governance_contract(pyth_state),
-            state::governance_module(),
-            CONTRACT_UPGRADE
-        )
-    }
-
     /// Redeem governance VAA to issue an `UpgradeTicket` for the upgrade given
     /// a contract upgrade VAA. This governance message is only relevant for Sui
     /// because a contract upgrade is only relevant to one particular network
     /// (in this case Sui), whose build digest is encoded in this message.
     public fun authorize_upgrade(
         pyth_state: &mut State,
-        receipt: DecreeReceipt<GovernanceWitness>
+        receipt: WormholeVAAVerificationReceipt,
     ): UpgradeTicket {
 
-        // Current package checking when consuming VAA hashes. This is because
-        // upgrades are protected by the Sui VM, enforcing the latest package
-        // is the one performing the upgrade.
-        let consumed =
-            state::borrow_mut_consumed_vaas_unchecked(pyth_state);
+        // Get the sequence number of the governance VAA that was used to
+        // generate the receipt.
+        let sequence = governance::take_sequence(&receipt);
 
-        // And consume.
-        let payload = governance_message::take_payload(consumed, receipt);
+        // Require that new sequence number is greater than last executed sequence number.
+        assert!(sequence > state::get_last_executed_governance_sequence(pyth_state),
+            E_CANNOT_EXECUTE_GOVERNANCE_ACTION_WITH_OBSOLETE_SEQUENCE_NUMBER);
+
+        // Update latest executed sequence number to current one.
+        state::set_last_executed_governance_sequence_unchecked(pyth_state, sequence);
+
+        let digest = take_upgrade_digest(receipt);
+        // Proceed with processing new implementation version.
+        handle_upgrade_contract(pyth_state, digest)
+    }
+
+
+    public(friend) fun take_upgrade_digest(receipt: WormholeVAAVerificationReceipt): Bytes32 {
+        let payload = governance::take_payload(&receipt);
 
         let instruction = governance_instruction::from_byte_vec(payload);
 
@@ -78,16 +77,16 @@ module pyth::contract_upgrade {
         let action = governance_instruction::get_action(&instruction);
 
         assert!(action == governance_action::new_contract_upgrade(),
-             E_GOVERNANCE_ACTION_MUST_BE_CONTRACT_UPGRADE);
+            E_GOVERNANCE_ACTION_MUST_BE_CONTRACT_UPGRADE);
 
         assert!(governance_instruction::get_target_chain_id(&instruction) != 0,
-             E_GOVERNANCE_CONTRACT_UPGRADE_CHAIN_ID_ZERO);
+            E_GOVERNANCE_CONTRACT_UPGRADE_CHAIN_ID_ZERO);
 
+        governance::destroy(receipt);
         // upgrade_payload contains a 32-byte digest
         let upgrade_payload = governance_instruction::destroy(instruction);
 
-        // Proceed with processing new implementation version.
-        handle_upgrade_contract(pyth_state, upgrade_payload)
+        take_digest(upgrade_payload)
     }
 
     /// Finalize the upgrade that ran to produce the given `receipt`. This
@@ -116,20 +115,19 @@ module pyth::contract_upgrade {
 
     fun handle_upgrade_contract(
         pyth_state: &mut State,
-        payload: vector<u8>
+        digest: Bytes32
     ): UpgradeTicket {
-        state::authorize_upgrade(pyth_state, take_digest(payload))
+        state::authorize_upgrade(pyth_state, digest)
     }
 
     fun deserialize(payload: vector<u8>): UpgradeContract {
         let cur = cursor::new(payload);
-
-        // This amount cannot be greater than max u64.
         let digest = bytes32::take_bytes(&mut cur);
         assert!(bytes32::is_nonzero(&digest), E_DIGEST_ZERO_BYTES);
 
-        cursor::destroy_empty(cur);
-
+        // there might be additional appended to payload in the future,
+        // which is why we don't cursor::destroy_empty(&mut cur)
+        cursor::take_rest(cur);
         UpgradeContract { digest }
     }
 

@@ -39,6 +39,8 @@ module pyth::governance_instruction {
             target_chain_id : (target_chain_id as u64),
             payload
         };
+
+        // validate validates that module and target chain are correct
         validate(&instruction);
 
         instruction
@@ -61,7 +63,7 @@ module pyth::governance_instruction {
             module_: _,
             action: _,
             target_chain_id: _,
-            payload: payload
+            payload
         } = instruction;
         payload
     }

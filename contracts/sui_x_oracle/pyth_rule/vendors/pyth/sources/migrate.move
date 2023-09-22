@@ -12,11 +12,10 @@
 /// their required minimum version.
 module pyth::migrate {
     use sui::object::{ID};
-    use wormhole::governance_message::{Self, DecreeReceipt};
 
     use pyth::state::{Self, State};
     use pyth::contract_upgrade::{Self};
-    use pyth::governance_witness::{GovernanceWitness};
+    use pyth::governance::{WormholeVAAVerificationReceipt};
 
     struct MigrateComplete has drop, copy {
         package: ID
@@ -24,10 +23,8 @@ module pyth::migrate {
 
     public fun migrate(
         pyth_state: &mut State,
-        receipt: DecreeReceipt<GovernanceWitness>
+        receipt: WormholeVAAVerificationReceipt,
     ) {
-        // This should be removed in an upgrade from 0.1.1.
-        state::migrate__v__0_1_1(pyth_state);
 
         // Perform standard migrate.
         handle_migrate(pyth_state, receipt);
@@ -53,27 +50,20 @@ module pyth::migrate {
 
     fun handle_migrate(
         pyth_state: &mut State,
-        receipt: DecreeReceipt<GovernanceWitness>
+        receipt: WormholeVAAVerificationReceipt,
     ) {
-        // Update the version first.
-        //
         // See `version_control` module for hard-coded configuration.
         state::migrate_version(pyth_state);
 
         // This capability ensures that the current build version is used.
         let latest_only = state::assert_latest_only(pyth_state);
 
-        // Check if build digest is the current one.
-        let digest =
-            contract_upgrade::take_digest(
-                governance_message::payload(&receipt)
-            );
+        let digest = contract_upgrade::take_upgrade_digest(receipt);
         state::assert_authorized_digest(
             &latest_only,
             pyth_state,
             digest
         );
-        governance_message::destroy(receipt);
 
         // Finally emit an event reflecting a successful migrate.
         let package = state::current_package(&latest_only, pyth_state);

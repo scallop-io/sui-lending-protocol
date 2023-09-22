@@ -13,7 +13,7 @@ const pythRulePath = path.join(__dirname, "../contracts/sui_x_oracle/pyth_rule")
 
 
 const xOraclePackageList: PackageBatch = [
-  { packagePath: xOraclePath, option: { publishResultParser: xOracleParser, enforce: true } },
+  { packagePath: xOraclePath, option: { publishResultParser: xOracleParser, enforce: false } },
 
   { packagePath: wormholePath },
   { packagePath: pythOraclePath },

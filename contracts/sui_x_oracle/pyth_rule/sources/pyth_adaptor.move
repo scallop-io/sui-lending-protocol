@@ -17,7 +17,7 @@ module pyth_rule::pyth_adaptor {
 
   public fun get_pyth_price(
     pyth_state: &PythState,
-    pyth_price_info_object: &mut PriceInfoObject,
+    pyth_price_info_object: &PriceInfoObject,
     clock: &Clock,
   ): (u64, u64, u8, u64) {
     let pyth_price = pyth::get_price(pyth_state, pyth_price_info_object, clock);

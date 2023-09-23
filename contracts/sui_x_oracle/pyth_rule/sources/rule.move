@@ -22,7 +22,7 @@ module pyth_rule::rule {
   public fun set_price<CoinType>(
     request: &mut XOraclePriceUpdateRequest<CoinType>,
     pyth_state: &PythState,
-    pyth_price_info_object: &mut PriceInfoObject,
+    pyth_price_info_object: &PriceInfoObject,
     pyth_registry: &PythRegistry,
     clock: &Clock,
   ) {

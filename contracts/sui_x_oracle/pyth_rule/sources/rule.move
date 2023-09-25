@@ -1,13 +1,10 @@
 module pyth_rule::rule {
 
   use sui::clock::Clock;
-  use sui::sui::SUI;
-  use sui::coin::Coin;
   use sui::math;
 
   use pyth::state::State as PythState;
   use pyth::price_info::PriceInfoObject;
-  use wormhole::state::State as WormholeState;
 
   use x_oracle::x_oracle::{ Self, XOraclePriceUpdateRequest };
   use x_oracle::price_feed;
@@ -24,23 +21,17 @@ module pyth_rule::rule {
 
   public fun set_price<CoinType>(
     request: &mut XOraclePriceUpdateRequest<CoinType>,
-    wormhole_state: &WormholeState,
     pyth_state: &PythState,
-    pyth_price_info_object: &mut PriceInfoObject,
+    pyth_price_info_object: &PriceInfoObject,
     pyth_registry: &PythRegistry,
-    vaa_buf: vector<u8>,
-    fee: Coin<SUI>,
     clock: &Clock,
   ) {
     // Make sure the price info object is the registerred one for the coin type
     pyth_registry::assert_pyth_price_info_object<CoinType>(pyth_registry, pyth_price_info_object);
 
     let (price_value, _, price_decimals, updated_time) = pyth_adaptor::get_pyth_price(
-      wormhole_state,
       pyth_state,
       pyth_price_info_object,
-      vaa_buf,
-      fee,
       clock
     );
     let formatted_decimals = price_feed::decimals();

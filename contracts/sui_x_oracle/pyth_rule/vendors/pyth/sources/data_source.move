@@ -11,8 +11,11 @@ module pyth::data_source {
     friend pyth::set_data_sources;
     friend pyth::pyth;
     friend pyth::set_governance_data_source;
+    friend pyth::governance;
     #[test_only]
     friend pyth::pyth_tests;
+    #[test_only]
+    friend pyth::set_data_sources_tests;
 
     const KEY: vector<u8> = b"data_sources";
     const E_DATA_SOURCE_REGISTRY_ALREADY_EXISTS: u64 = 0;
@@ -59,8 +62,8 @@ module pyth::data_source {
 
     public(friend) fun new(emitter_chain: u64, emitter_address: ExternalAddress): DataSource {
         DataSource {
-            emitter_chain: emitter_chain,
-            emitter_address: emitter_address,
+            emitter_chain,
+            emitter_address,
         }
     }
 

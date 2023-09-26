@@ -1,5 +1,5 @@
 [package]
-name = "ScallopVeToken"
+name = "BorrowIncentive"
 version = "0.0.1"
 
 [dependencies.Sui]
@@ -10,8 +10,9 @@ rev = "testnet"
 [dependencies.ScallopProtocol]
 local = "../protocol"
 
-[dependencies.ScallopToken]
-local = "../sca"
+
+[dependencies.ScallopVeToken]
+local = "../ve_sca"
 
 [addresses]
-ve_token = "0x0"
+borrow_incentive = "0x0"

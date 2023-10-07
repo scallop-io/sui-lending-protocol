@@ -12,6 +12,8 @@ module ve_token::ve_sca {
 
   const UnauthorizedIssuer: u64 = 0x1;
 
+  friend ve_token::claim_ve_sca;
+
   struct VeScaAccessKey has drop {}
 
   struct VE_SCA has drop {}
@@ -36,7 +38,6 @@ module ve_token::ve_sca {
 
   struct VeScaCap has key, store {
     id: UID,
-    // do we need to add `for` field, to put the `VeScaState` obj id object?
   }
 
   fun init(otw: VE_SCA, ctx: &mut TxContext) {
@@ -104,7 +105,7 @@ module ve_token::ve_sca {
     vec_set::remove(&mut ve_sca_state.issuers, &type_name::get<T>());
   }
 
-  public fun redeem_ve_sca(
+  public(friend) fun redeem_ve_sca(
     ve_sca_treasury: &mut VeScaTreasury,
     ve_sca: VeSca,
   ) {

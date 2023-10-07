@@ -16,6 +16,22 @@ module borrow_incentive::borrow_incentive {
 
     struct VeScaBorrowIncentiveType has drop {}
 
+    struct VeScaBorrowIncentivePolicy has drop {}
+
+    public fun claim_rewards(
+        request_redeem_obj: &mut RequestRedeemVeSca,
+        ve_sca_treasury: &VeScaTreasury,
+        ve_sca: VeSca,
+        clock: &Clock,
+        ctx: &mut TxContext
+    ) {
+        // @FIX ME!!!
+        // CHANGE TO THE CORRECT CALCULATION WAY
+        let amount = 1;
+
+        ve_sca::store_calculation_result(request_redeem_obj, VeScaBorrowIncentivePolicy{}, amount);
+    }
+
     public fun redeem_borrow_rewards(
         ve_sca_treasury: &mut VeScaTreasury,
         ve_sca_state: &VeScaState,
@@ -34,7 +50,7 @@ module borrow_incentive::borrow_incentive {
             clock,
         );
 
-        // is it necessary to have conversion rates between rewards point to VeSCA
+        // @EVALUATE: is it necessary to have conversion rates between rewards point to VeSCA?
         let rewards_point = obligation::rewards_point(obligation);
 
         obligation::redeem_rewards_point<VeScaIssuer>(

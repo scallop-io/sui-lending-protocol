@@ -9,20 +9,16 @@ export type SupportedCollaterals =
   | 'wormholeUsdc'
   | 'wormholeUsdt'
   | 'wormholeEth'
-  | 'wormholeBtc'
-  | 'wormholeSol'
-  | 'wormholeApt'
 ;
 
 export type SupportedBaseAssets =
   | 'sui'
   | 'cetus'
+  | 'afSui'
+  | 'haSui'
   | 'wormholeUsdc'
   | 'wormholeUsdt'
   | 'wormholeEth'
-  | 'wormholeBtc'
-  | 'wormholeSol'
-  | 'wormholeApt'
 ;
 
 export const coinTypes = {

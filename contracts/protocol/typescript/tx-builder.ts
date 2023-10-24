@@ -306,4 +306,36 @@ export class ProtocolTxBuilder {
       [coinType]
     );
   }
+
+  setBaseAssetActiveState(
+    suiTxBlock: SuiTxBlock,
+    isActive: boolean,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::set_base_asset_active_state`,
+      [
+        this.adminCapId,
+        this.marketId,
+        suiTxBlock.pure(isActive),
+      ],
+      [coinType]
+    );
+  }
+
+  setCollateralActiveState(
+    suiTxBlock: SuiTxBlock,
+    isActive: boolean,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::set_collateral_active_state`,
+      [
+        this.adminCapId,
+        this.marketId,
+        suiTxBlock.pure(isActive),
+      ],
+      [coinType]
+    );
+  }
 }

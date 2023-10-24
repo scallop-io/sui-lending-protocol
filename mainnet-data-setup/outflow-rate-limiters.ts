@@ -14,12 +14,12 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   afSui: {
-    outflowLimit: 10 ** (4 + coinDecimals.sui), // 10k afSUI per day
+    outflowLimit: 10 ** (4 + coinDecimals.afSui), // 10k afSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   haSui: {
-    outflowLimit: 10 ** (4 + coinDecimals.sui), // 10k haSUI per day
+    outflowLimit: 10 ** (4 + coinDecimals.haSui), // 10k haSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },

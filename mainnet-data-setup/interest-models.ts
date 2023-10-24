@@ -115,7 +115,7 @@ export const afSuiInterestModel: InterestModel = {
   revenueFactor, // 10%
   borrowWeight, // 1
   scale,
-  minBorrowAmount: 10 ** (coinDecimals.sui - 2), // 0.01 afSUI
+  minBorrowAmount: 10 ** (coinDecimals.afSui - 2), // 0.01 afSUI
 };
 
 export const haSuiInterestModel: InterestModel = {
@@ -132,7 +132,7 @@ export const haSuiInterestModel: InterestModel = {
   revenueFactor, // 10%
   borrowWeight, // 1
   scale,
-  minBorrowAmount: 10 ** (coinDecimals.sui - 2), // 0.01 haSUI
+  minBorrowAmount: 10 ** (coinDecimals.haSui - 2), // 0.01 haSUI
 };
 
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {

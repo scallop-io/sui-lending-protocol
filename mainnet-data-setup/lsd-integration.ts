@@ -1,6 +1,4 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { toB64 } from "@mysten/sui.js";
-import { suiKit } from 'sui-elements';
 import { riskModels } from './risk-models';
 import { oracles } from './asset-oracles';
 import { coinTypes, coinMetadataIds } from './chain-data';
@@ -8,13 +6,17 @@ import {
   protocolTxBuilder,
   RiskModel,
   InterestModel,
+  OutflowLimiterModel,
+  IncentiveRewardFactor,
 } from '../contracts/protocol';
 import { pythRuleTxBuilder } from '../contracts/sui_x_oracle';
 import {
   decimalsRegistryTxBuilder,
 } from '../contracts/libs/coin_decimals_registry';
-import { MULTI_SIG_ADDRESS } from './multi-sig';
 import { interestModels } from './interest-models';
+import { incentiveRewardFactors } from './incentive-reward-factors';
+import { outflowRateLimiters } from './outflow-rate-limiters';
+import { buildMultiSigTx } from './multi-sig';
 
 const integrateLSD = (txBlock: SuiTxBlock) => {
   const riskModelPairs: { type: string, riskModel: RiskModel }[] = [
@@ -33,6 +35,14 @@ const integrateLSD = (txBlock: SuiTxBlock) => {
     { type: coinTypes.afSui, pythPriceObject: oracles.afSui.pythPriceObjectId },
     { type: coinTypes.haSui, pythPriceObject: oracles.haSui.pythPriceObjectId },
   ];
+  const outflowLimiterPairs: { type: string, outflowLimiter: OutflowLimiterModel }[] = [
+    { type: coinTypes.afSui, outflowLimiter: outflowRateLimiters.afSui },
+    { type: coinTypes.haSui, outflowLimiter: outflowRateLimiters.haSui },
+  ];
+  const incentiveRewardFactorPairs: { type: string, incentiveRewardFactor: IncentiveRewardFactor }[] = [
+    { type: coinTypes.afSui, incentiveRewardFactor: incentiveRewardFactors.afSui },
+    { type: coinTypes.haSui, incentiveRewardFactor: incentiveRewardFactors.haSui },
+  ];
 
   // register decimals
   decimalsPairs.forEach(pair => {
@@ -48,11 +58,18 @@ const integrateLSD = (txBlock: SuiTxBlock) => {
   });
   // register pyth price objects
   oraclePairs.forEach(pair => {
-    pythRuleTxBuilder.registerPythPriceInfoObject(tx, pair.pythPriceObject, pair.type);
+    pythRuleTxBuilder.registerPythPriceInfoObject(txBlock, pair.pythPriceObject, pair.type);
   });
+  // add outflow limiters
+  outflowLimiterPairs.forEach(pair => {
+    protocolTxBuilder.addLimiter(txBlock, pair.outflowLimiter, pair.type);
+  });
+  // add incentive reward factors
+  incentiveRewardFactorPairs.forEach(pair => {
+    protocolTxBuilder.setIncentiveRewardFactor(txBlock, pair.incentiveRewardFactor, pair.type);
+  });
+
+  return buildMultiSigTx(txBlock);
 }
 
-const tx = new SuiTxBlock();
-integrateLSD(tx);
-tx.setSender(MULTI_SIG_ADDRESS);
-tx.build({ provider: suiKit.provider() }).then(bytes => toB64(bytes)).then(console.log).catch(console.error).finally(() => process.exit(0));
+integrateLSD(new SuiTxBlock()).then(console.log);

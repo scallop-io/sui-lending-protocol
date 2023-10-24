@@ -15,6 +15,7 @@ const getRatePerSec = (ratePerYear: number) => {
   const secsPerYear = 365 * 24 * 60 * 60;
   return Math.floor(ratePerYear * (scale / 100) * interestRateScale / secsPerYear);
 }
+
 export const suiInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,

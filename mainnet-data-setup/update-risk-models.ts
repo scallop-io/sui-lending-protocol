@@ -10,3 +10,5 @@ function updateRiskModels() {
   protocolTxBuilder.updateRiskModel(tx, suiRiskModel, coinTypes.sui);
   return buildMultiSigTx(tx);
 }
+
+updateRiskModels().then(console.log);

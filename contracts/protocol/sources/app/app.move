@@ -258,7 +258,7 @@ module protocol::app {
     one_time_lock_value
   }
 
-  public entry fun apply_limiter_limit_change(
+  public entry fun apply_limiter_limit_change<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
     one_time_lock_value: OneTimeLockValue<LimiterUpdateLimitChange>,
@@ -272,7 +272,7 @@ module protocol::app {
     );
   }
 
-  public entry fun apply_limiter_params_change(
+  public entry fun apply_limiter_params_change<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
     one_time_lock_value: OneTimeLockValue<LimiterUpdateParamsChange>,

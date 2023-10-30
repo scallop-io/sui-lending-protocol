@@ -15,6 +15,7 @@ module protocol::error {
   public fun obligation_access_reward_key_not_in_store(): u64 { 0x0000306 }
   public fun obligation_access_store_key_exists(): u64 { 0x0000307 }
   public fun obligation_access_store_key_not_found(): u64 { 0x0000308 }
+  public fun obligation_cant_forcely_unlocked(): u64 { 0x0000309 }
 
   // oracle
   public fun oracle_stale_price_error(): u64 { 0x0000401 }

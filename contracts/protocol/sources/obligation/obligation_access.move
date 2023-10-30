@@ -28,6 +28,11 @@ module protocol::obligation_access {
     transfer::share_object(store);
   }
 
+  #[test_only]
+  public fun init_test(ctx: &mut TxContext) {
+    init(ctx);
+  }
+
   /// ====== Obligation Access Store ======
 
   /// Add a lock key to the store.

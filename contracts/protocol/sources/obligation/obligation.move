@@ -29,6 +29,7 @@ module protocol::obligation {
   friend protocol::liquidate;
   friend protocol::open_obligation;
   friend protocol::accrue_interest;
+  friend protocol::lock_obligation;
   
   struct Obligation has key, store {
     id: UID,
@@ -252,19 +253,17 @@ module protocol::obligation {
     key: T
   ) {
     assert_key_match(self, obligation_key);
-    assert!(
-      option::is_none(&self.lock_key),
-      error::obligation_already_locked()
+    
+    set_lock<T>(
+      self,
+      obligation_access_store,
+      lock_borrow,
+      lock_repay,
+      lock_deposit_collateral,
+      lock_withdraw_collateral,
+      lock_liquidate,
+      key
     );
-
-    obligation_access::assert_lock_key_in_store(obligation_access_store, key);
-
-    self.lock_key = option::some(type_name::get<T>());
-    self.borrow_locked = lock_borrow;
-    self.repay_locked = lock_repay;
-    self.withdraw_collateral_locked = lock_withdraw_collateral;
-    self.deposit_collateral_locked = lock_deposit_collateral;
-    self.liquidate_locked = lock_liquidate;
 
     emit(ObligationLocked {
       obligation: object::id(self),
@@ -283,24 +282,58 @@ module protocol::obligation {
   public fun unlock<T: drop>(
     self: &mut Obligation,
     obligation_key: &ObligationKey,
-    _: T
+    key: T
   ) {
     assert_key_match(self, obligation_key);
+    
+    set_unlock(self, key);
+
+    emit(ObligationUnlocked {
+      obligation: object::id(self),
+      witness: type_name::get<T>(),
+    });
+  }
+
+  public(friend) fun set_lock<T: drop>(
+    self: &mut Obligation,
+    obligation_access_store: &ObligationAccessStore,
+    lock_borrow: bool,
+    lock_repay: bool,
+    lock_deposit_collateral: bool,
+    lock_withdraw_collateral: bool,
+    lock_liquidate: bool,
+    key: T
+  ) {
+    assert!(
+      option::is_none(&self.lock_key),
+      error::obligation_already_locked()
+    );
+
+    obligation_access::assert_lock_key_in_store(obligation_access_store, key);
+
+    self.lock_key = option::some(type_name::get<T>());
+    self.borrow_locked = lock_borrow;
+    self.repay_locked = lock_repay;
+    self.withdraw_collateral_locked = lock_withdraw_collateral;
+    self.deposit_collateral_locked = lock_deposit_collateral;
+    self.liquidate_locked = lock_liquidate;
+  }
+
+  public(friend) fun set_unlock<T: drop>(
+    self: &mut Obligation,
+    _: T
+  ) {
     assert!(
       *option::borrow(&self.lock_key) == type_name::get<T>(),
       error::obligation_unlock_with_wrong_key()
     );
+
     self.lock_key = option::none();
     self.borrow_locked = false;
     self.repay_locked = false;
     self.withdraw_collateral_locked = false;
     self.deposit_collateral_locked = false;
     self.liquidate_locked = false;
-
-    emit(ObligationUnlocked {
-      obligation: object::id(self),
-      witness: type_name::get<T>(),
-    });
   }
 
   /// ====== obligation rewards point access management
@@ -324,5 +357,20 @@ module protocol::obligation {
       witness: type_name::get<T>(),
       amount,
     });
+  }
+
+  #[test_only]
+  public fun new_obligation_test(ctx: &mut tx_context::TxContext): (Obligation, ObligationKey) {
+    new(ctx)
+  }
+
+  #[test_only]
+  public fun add_debt_test(
+    self: &mut Obligation,
+    type_name: TypeName,
+    amount: u64,
+  ) {
+    obligation_debts::init_debt(&mut self.debts, type_name, sui::math::pow(10, 9));
+    increase_debt(self, type_name, amount);
   }
 }

@@ -11,6 +11,7 @@ import { interestModels } from './interest-models';
 import { outflowRateLimiters } from './outflow-rate-limiters';
 import { incentiveRewardFactors } from './incentive-reward-factors';
 import { coinTypes } from './chain-data';
+import {suiKit} from "../sui-elements";
 
 
 export const initMarket = (suiTxBlock: SuiTxBlock) => {
@@ -47,3 +48,7 @@ export const initMarket = (suiTxBlock: SuiTxBlock) => {
     protocolTxBuilder.setIncentiveRewardFactor(suiTxBlock, pair.incentiveRewardFactor, pair.type)
   });
 }
+
+const tx = new SuiTxBlock();
+initMarket(tx);
+suiKit.signAndSendTxn(tx).then(console.log).catch(console.error).finally(() => process.exit(0));

@@ -307,6 +307,7 @@ export class ProtocolTxBuilder {
     );
   }
 
+<<<<<<< HEAD
   setBaseAssetActiveState(
     suiTxBlock: SuiTxBlock,
     isActive: boolean,
@@ -337,5 +338,16 @@ export class ProtocolTxBuilder {
       ],
       [coinType]
     );
+=======
+  addLockKey(
+    suiTxBlock: SuiTxBlock,
+    keyType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::add_lock_key`,
+      [this.versionId, keyType],
+    );
+    )
+>>>>>>> b88cf64 (Add query)
   }
 }

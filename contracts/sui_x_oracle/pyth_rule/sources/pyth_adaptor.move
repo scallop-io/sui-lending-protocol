@@ -40,8 +40,8 @@ module pyth_rule::pyth_adaptor {
   fun assert_price_not_stale(price: &Price, clock: &Clock) {
     let price_updated_time  = price::get_timestamp(price);
     let now = clock::timestamp_ms(clock) /1000;
-    // Make sure price is updated within 10 seconds
-    assert!(price_updated_time >= now - 10, PYTH_PRICE_TOO_OLD);
+    // Make sure price is updated within 30 seconds
+    assert!(price_updated_time >= now - 30, PYTH_PRICE_TOO_OLD);
   }
 
   fun assert_price_conf_within_range(price_value: u64, price_conf: u64) {

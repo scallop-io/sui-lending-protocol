@@ -3,6 +3,7 @@ import { suiKit } from 'sui-elements';
 import {
   pythRuleTxBuilder,
   pythRuleStructType,
+  publishResult as pythPublishResult,
 } from 'contracts/sui_x_oracle/pyth_rule';
 import {
   oracles,
@@ -13,35 +14,38 @@ import {
 import {
   coinTypes,
 } from './chain-data';
+import {buildMultiSigTx, MULTI_SIG_ADDRESS} from "./multi-sig";
 
-export const updateXOracle = (tx: SuiTxBlock) => {
-  updateRulesForXOracle(tx);
-  registerPythPriceObject(tx);
-}
-
-export const updateRulesForXOracle = (tx: SuiTxBlock) => {
-  const oldPythRule = '0xaac1fdb607b884cc256c59dc307bb78b6ba95b97e22d4415fe87ad99689ea462::rule::Rule';
+export const updatePythRuleForXOracle = () => {
+  const tx = new SuiTxBlock();
+  const oldPythPkgId = '0x9f116b10b6c166901b2d4f46e7d0f5bb68424b9428c43774517d3ea6928a4040';
+  const oldPythRule = `${oldPythPkgId}::rule::Rule`;
   xOracleTxBuilder.removePrimaryPriceUpdateRule(tx, oldPythRule);
   xOracleTxBuilder.addPrimaryPriceUpdateRule(tx, pythRuleStructType);
+  return buildMultiSigTx(tx);
+}
+
+export const migrateToMultiSig = () => {
+  const tx = new SuiTxBlock();
+  tx.transferObjects([pythPublishResult.upgradeCapId, pythPublishResult.pythRegistryCapId], MULTI_SIG_ADDRESS);
+  return suiKit.signAndSendTxn(tx);
 }
 
 export const registerPythPriceObject = (tx: SuiTxBlock) => {
 
   const pairs = [
     { coinType: coinTypes.sui, priceObject: oracles.sui.pythPriceObjectId },
+    { coinType: coinTypes.haSui, priceObject: oracles.sui.pythPriceObjectId },
+    { coinType: coinTypes.afSui, priceObject: oracles.sui.pythPriceObjectId },
+    { coinType: coinTypes.cetus, priceObject: oracles.cetus.pythPriceObjectId },
     { coinType: coinTypes.wormholeUsdc, priceObject: oracles.wormholeUsdc.pythPriceObjectId },
     { coinType: coinTypes.wormholeUsdt, priceObject: oracles.wormholeUsdt.pythPriceObjectId },
-    { coinType: coinTypes.wormholeSol, priceObject: oracles.wormholeSol.pythPriceObjectId },
     { coinType: coinTypes.wormholeEth, priceObject: oracles.wormholeEth.pythPriceObjectId },
-    { coinType: coinTypes.wormholeBtc, priceObject: oracles.wormholeBtc.pythPriceObjectId },
-    { coinType: coinTypes.wormholeApt, priceObject: oracles.wormholeApt.pythPriceObjectId },
-    { coinType: coinTypes.cetus, priceObject: oracles.cetus.pythPriceObjectId },
   ];
   pairs.forEach(pair => {
     pythRuleTxBuilder.registerPythPriceInfoObject(tx, pair.priceObject, pair.coinType);
   });
 }
 
-const tx = new SuiTxBlock();
-updateXOracle(tx);
-suiKit.signAndSendTxn(tx).then(console.log).catch(console.error).finally(() => process.exit(0));
+
+updatePythRuleForXOracle().then(console.log);

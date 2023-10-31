@@ -41,6 +41,7 @@ export class ProtocolTxBuilder {
     public adminCapId: string,
     public marketId: string,
     public versionId: string,
+    public obligationAccessStoreId: string,
   ) { }
 
   addRiskModel(
@@ -336,6 +337,20 @@ export class ProtocolTxBuilder {
         suiTxBlock.pure(isActive),
       ],
       [coinType]
+    );
+  }
+
+  addLockKey(
+    suiTxBlock: SuiTxBlock,
+    keyType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::add_lock_key`,
+      [
+        this.adminCapId,
+        this.obligationAccessStoreId,
+      ],
+      [keyType]
     );
   }
 }

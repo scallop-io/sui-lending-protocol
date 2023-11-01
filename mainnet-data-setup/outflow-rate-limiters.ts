@@ -24,7 +24,7 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   vSui: {
-    outflowLimit: 10 ** (4 + coinDecimals.haSui), // 10k vSUI per day
+    outflowLimit: 10 ** (4 + coinDecimals.vSui), // 10k vSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },

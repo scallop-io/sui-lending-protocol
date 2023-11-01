@@ -55,7 +55,7 @@ export const afSuiRiskModel: RiskModel = {
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.sui + 3), // 1k afSUI
+  maxCollateralAmount: 10 ** (coinDecimals.afSui + 3), // 1k afSUI
 }
 
 export const haSuiRiskModel: RiskModel = {
@@ -64,7 +64,7 @@ export const haSuiRiskModel: RiskModel = {
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.sui + 3), // 1k haSUI
+  maxCollateralAmount: 10 ** (coinDecimals.haSui + 3), // 1k haSUI
 }
 
 export const vSuiRiskModel: RiskModel = {
@@ -73,7 +73,7 @@ export const vSuiRiskModel: RiskModel = {
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.sui + 3), // 1k haSUI
+  maxCollateralAmount: 10 ** (coinDecimals.vSui + 3), // 1k haSUI
 }
 
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {

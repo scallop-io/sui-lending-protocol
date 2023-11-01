@@ -14,7 +14,7 @@ export const suiRiskModel: RiskModel = {
 };
 
 export const cetusRiskModel: RiskModel = {
-  collateralFactor: 30,
+  collateralFactor: 50,
   liquidationFactor: 80,
   liquidationPanelty: 5,
   liquidationDiscount: 4,

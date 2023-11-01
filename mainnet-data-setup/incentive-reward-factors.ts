@@ -26,6 +26,7 @@ export const incentiveRewardFactors: Record<SupportedBaseAssets, IncentiveReward
   sui: calculateRewardFactor(1, coinDecimals.sui, 2),
   afSui: calculateRewardFactor(1, coinDecimals.afSui, 2),
   haSui: calculateRewardFactor(1, coinDecimals.haSui, 2),
+  vSui: calculateRewardFactor(1, coinDecimals.haSui, 2),
   cetus: calculateRewardFactor(0.04, coinDecimals.cetus),
   wormholeEth: calculateRewardFactor(2000, coinDecimals.wormholeEth),
   wormholeUsdc: calculateRewardFactor(1, coinDecimals.wormholeUsdc),

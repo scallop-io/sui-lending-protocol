@@ -6,6 +6,7 @@ export type SupportedCollaterals =
   | 'cetus'
   | 'afSui'
   | 'haSui'
+  | 'vSui'
   | 'wormholeUsdc'
   | 'wormholeUsdt'
   | 'wormholeEth'
@@ -16,6 +17,7 @@ export type SupportedBaseAssets =
   | 'cetus'
   | 'afSui'
   | 'haSui'
+  | 'vSui'
   | 'wormholeUsdc'
   | 'wormholeUsdt'
   | 'wormholeEth'
@@ -26,6 +28,7 @@ export const coinTypes = {
   cetus: '0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS',
   afSui: '0xf325ce1300e8dac124071d3152c5c5ee6174914f8bc2161e88329cf579246efc::afsui::AFSUI',
   haSui: '0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d::hasui::HASUI',
+  vSui: '0x549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55::cert::CERT',
   wormholeUsdc: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN',
   wormholeUsdt: '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN',
   wormholeEth: '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5::coin::COIN',
@@ -39,6 +42,7 @@ export const coinMetadataIds = {
   cetus: '0x4c0dce55eff2db5419bbd2d239d1aa22b4a400c01bbb648b058a9883989025da',
   afSui: '0x2f9217f533e51334873a39b8026a4aa6919497b47f49d0986a4f1aec66f8a34d',
   haSui: '0x2c5f33af93f6511df699aaaa5822d823aac6ed99d4a0de2a4a50b3afa0172e24',
+  vSui: '0xabd84a23467b33854ab25cf862006fd97479f8f6f53e50fe732c43a274d939bd',
   wormholeUsdc: '0x4fbf84f3029bd0c0b77164b587963be957f853eccf834a67bb9ecba6ec80f189',
   wormholeUsdt: '0xfb0e3eb97dd158a5ae979dddfa24348063843c5b20eb8381dd5fa7c93699e45c',
   wormholeEth: '0x8900e4ceede3363bef086d6b50ca89d816d0e90bf6bc46efefe1f8455e08f50f',
@@ -52,6 +56,7 @@ export const coinDecimals = {
   cetus: 9,
   afSui: 9,
   haSui: 9,
+  vSui: 9,
   wormholeUsdc: 6,
   wormholeUsdt: 6,
   wormholeEth: 8,

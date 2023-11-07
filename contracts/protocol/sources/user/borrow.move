@@ -31,7 +31,17 @@ module protocol::borrow {
     amount: u64,
     time: u64,
   }
-  
+
+  struct BorrowEventV2 has copy, drop {
+    borrower: address,
+    obligation: ID,
+    asset: TypeName,
+    amount: u64,
+    borrow_fee: u64,
+    time: u64,
+  }
+
+
   public entry fun borrow_entry<T>(
     version: &Version,
     obligation: &mut Obligation,
@@ -105,14 +115,6 @@ module protocol::borrow {
     // increase the debt for obligation
     obligation::increase_debt(obligation, coin_type, borrow_amount);
 
-    emit(BorrowEvent {
-      borrower: tx_context::sender(ctx),
-      obligation: object::id(obligation),
-      asset: coin_type,
-      amount: borrow_amount,
-      time: now,
-    });
-
     // Deduct borrow fee
     let borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
     let borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), borrow_fee_key);
@@ -129,6 +131,15 @@ module protocol::borrow {
       let borrow_fee_coin = coin::from_balance(borrow_fee, ctx);
       transfer::public_transfer(borrow_fee_coin, *borrow_fee_recipient);
     };
+
+    emit(BorrowEventV2 {
+      borrower: tx_context::sender(ctx),
+      obligation: object::id(obligation),
+      asset: coin_type,
+      amount: borrow_amount,
+      borrow_fee: borrow_fee_amount,
+      time: now,
+    });
 
     coin::from_balance(borrowed_balance, ctx)
   }

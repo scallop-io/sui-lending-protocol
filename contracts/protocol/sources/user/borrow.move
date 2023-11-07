@@ -117,13 +117,17 @@ module protocol::borrow {
     let borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
     let borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), borrow_fee_key);
     let borrow_fee_amount = fixed_point32::multiply_u64(borrow_amount, *borrow_fee_rate);
-    let borrow_fee = balance::split(&mut borrowed_balance, borrow_fee_amount);
-    let borrow_fee_coin = coin::from_balance(borrow_fee, ctx);
 
-    // Transfer borrow fee to fee recipient
+    // Get the borrow fee recipient
     let borrow_fee_recipient_key = market_dynamic_keys::borrow_fee_recipient_key();
     let borrow_fee_recipient = dynamic_field::borrow<BorrowFeeRecipientKey, address>(market::uid(market), borrow_fee_recipient_key);
-    transfer::public_transfer(borrow_fee_coin, *borrow_fee_recipient);
+
+    // transfer the borrow fee to the recipient if borrow fee is not zero
+    if (borrow_fee_amount > 0) {
+      let borrow_fee = balance::split(&mut borrowed_balance, borrow_fee_amount);
+      let borrow_fee_coin = coin::from_balance(borrow_fee, ctx);
+      transfer::public_transfer(borrow_fee_coin, *borrow_fee_recipient);
+    };
 
     coin::from_balance(borrowed_balance, ctx)
   }

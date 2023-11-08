@@ -24,11 +24,11 @@ const calculateRewardFactor = (usdPrice: number, coinDecimals: number, boost: nu
 
 export const incentiveRewardFactors: Record<SupportedBaseAssets, IncentiveRewardFactor> = {
   sui: calculateRewardFactor(1, coinDecimals.sui, 2),
+  afSui: calculateRewardFactor(1, coinDecimals.afSui, 2),
+  haSui: calculateRewardFactor(1, coinDecimals.haSui, 2),
+  vSui: calculateRewardFactor(1, coinDecimals.vSui, 2),
   cetus: calculateRewardFactor(0.04, coinDecimals.cetus),
   wormholeEth: calculateRewardFactor(2000, coinDecimals.wormholeEth),
-  wormholeBtc: calculateRewardFactor(30000, coinDecimals.wormholeBtc),
-  wormholeSol: calculateRewardFactor(20, coinDecimals.wormholeSol),
-  wormholeApt: calculateRewardFactor(6, coinDecimals.wormholeApt),
   wormholeUsdc: calculateRewardFactor(1, coinDecimals.wormholeUsdc),
   wormholeUsdt: calculateRewardFactor(1, coinDecimals.wormholeUsdt),
 };

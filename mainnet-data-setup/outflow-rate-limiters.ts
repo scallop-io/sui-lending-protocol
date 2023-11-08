@@ -13,6 +13,21 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  afSui: {
+    outflowLimit: 10 ** (4 + coinDecimals.afSui), // 10k afSUI per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  haSui: {
+    outflowLimit: 10 ** (4 + coinDecimals.haSui), // 10k haSUI per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  vSui: {
+    outflowLimit: 10 ** (4 + coinDecimals.vSui), // 10k vSUI per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
   cetus: {
     outflowLimit: 10 ** (6 + coinDecimals.cetus), // 1 million CETUS per day
     outflowCycleDuration,
@@ -20,21 +35,6 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
   },
   wormholeEth: {
     outflowLimit: 10 ** (3 + coinDecimals.wormholeEth), // 1000 ETH per day
-    outflowCycleDuration,
-    outflowSegmentDuration,
-  },
-  wormholeBtc: {
-    outflowLimit: 10 ** (2 + coinDecimals.wormholeBtc), // 100 BTC per day
-    outflowCycleDuration,
-    outflowSegmentDuration,
-  },
-  wormholeSol: {
-    outflowLimit: 10 ** (4 + coinDecimals.wormholeSol), // 10,000 SOL per day
-    outflowCycleDuration,
-    outflowSegmentDuration,
-  },
-  wormholeApt: {
-    outflowLimit: 10 ** (5 + coinDecimals.wormholeApt), // 100,000 APT per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },

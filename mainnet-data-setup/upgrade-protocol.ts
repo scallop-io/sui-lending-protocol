@@ -2,6 +2,7 @@ import * as path from "path";
 import {JsonRpcProvider, RawSigner} from "@mysten/sui.js";
 import { packagePublisher, suiKit } from "sui-elements";
 import { publishResult } from "contracts/protocol";
+import { MULTI_SIG_ADDRESS } from './multi-sig';
 
 const xOraclePath = path.join(__dirname, "../contracts/sui_x_oracle/x_oracle");
 const mathPkgPath = path.join(__dirname, "../contracts/libs/math");
@@ -32,7 +33,7 @@ const upgradeProtocol = async (signer: RawSigner) => {
 }
 
 const createUpgradeProtocolTx = async (provider: JsonRpcProvider, publisher: string) => {
-  return packagePublisher.createUpgradePackageTxWithDependencies(
+  const res = await packagePublisher.createUpgradePackageTxWithDependencies(
     protocolPackagePath,
     oldProtocolPackageId,
     protocolUpgradeCapId,
@@ -40,8 +41,9 @@ const createUpgradeProtocolTx = async (provider: JsonRpcProvider, publisher: str
     provider,
     publisher,
   );
+  return res.txBytesBase64;
 }
 
-upgradeProtocol(suiKit.getSigner()).then(console.log).catch(console.error).finally(() => process.exit(0));
+createUpgradeProtocolTx(suiKit.provider(), MULTI_SIG_ADDRESS).then(console.log).catch(console.error).finally(() => process.exit(0));
 
 // createUpgradeProtocolTx(suiKit.provider(), suiKit.currentAddress()).then(console.log).catch(console.error).finally(() => process.exit(0));

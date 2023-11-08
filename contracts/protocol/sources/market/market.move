@@ -31,7 +31,7 @@ module protocol::market {
   friend protocol::deposit_collateral;
   friend protocol::flash_loan;
   friend protocol::accrue_interest;
-
+  friend protocol::lock_obligation;
   
   struct Market has key, store {
     id: UID,
@@ -197,6 +197,7 @@ module protocol::market {
     self: &mut Market,
     balance: Balance<T>,
   ) {
+    // @TODO: extra-checks assert that borrow_dynamics last_updated already equal to current time
     reserve::handle_repay(&mut self.vault, balance);
     update_interest_rates(self);
   }

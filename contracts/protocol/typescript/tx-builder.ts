@@ -41,6 +41,7 @@ export class ProtocolTxBuilder {
     public adminCapId: string,
     public marketId: string,
     public versionId: string,
+    public obligationAccessStoreId: string,
   ) { }
 
   addRiskModel(
@@ -304,6 +305,52 @@ export class ProtocolTxBuilder {
         SUI_CLOCK_OBJECT_ID
       ],
       [coinType]
+    );
+  }
+
+  setBaseAssetActiveState(
+    suiTxBlock: SuiTxBlock,
+    isActive: boolean,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::set_base_asset_active_state`,
+      [
+        this.adminCapId,
+        this.marketId,
+        suiTxBlock.pure(isActive),
+      ],
+      [coinType]
+    );
+  }
+
+  setCollateralActiveState(
+    suiTxBlock: SuiTxBlock,
+    isActive: boolean,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::set_collateral_active_state`,
+      [
+        this.adminCapId,
+        this.marketId,
+        suiTxBlock.pure(isActive),
+      ],
+      [coinType]
+    );
+  }
+
+  addLockKey(
+    suiTxBlock: SuiTxBlock,
+    keyType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::add_lock_key`,
+      [
+        this.adminCapId,
+        this.obligationAccessStoreId,
+      ],
+      [keyType]
     );
   }
 }

@@ -40,6 +40,11 @@ module pyth::state {
     /// state methods.
     struct LatestOnly has drop {}
 
+    #[test_only]
+    public fun create_latest_only_for_test():LatestOnly {
+        LatestOnly{}
+    }
+
     struct State has key, store {
         id: UID,
         governance_data_source: DataSource,
@@ -246,6 +251,13 @@ module pyth::state {
     }
 
     public(friend) fun set_last_executed_governance_sequence(_: &LatestOnly, s: &mut State, sequence: u64) {
+        s.last_executed_governance_sequence = sequence;
+    }
+
+    // We have an unchecked version of set_last_executed_governance_sequence, because in the governance contract
+    // upgrade code path, no LatestOnly is created (for example, see authorize_upgrade and commit_upgrade in
+    // governance/contract_upgrade.move)
+    public(friend) fun set_last_executed_governance_sequence_unchecked(s: &mut State, sequence: u64) {
         s.last_executed_governance_sequence = sequence;
     }
 

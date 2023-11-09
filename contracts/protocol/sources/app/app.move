@@ -384,7 +384,7 @@ module protocol::app {
     dynamic_field::add(market_uid_mut, key, fee);
   }
 
-  public entry fun update_borrow_fee_recipient<T: drop>(
+  public entry fun update_borrow_fee_recipient(
     _admin_cap: &AdminCap,
     market: &mut Market,
     recipient: address,

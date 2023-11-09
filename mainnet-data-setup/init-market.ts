@@ -22,7 +22,6 @@ export const initMarket = () => {
 
   protocolWhitelistTxBuilder.allowAll(suiTxBlock);
 
-  protocolTxBuilder.updateBorrowFee(suiTxBlock, coinTypes.sui, 1, 1000);
   protocolTxBuilder.updateBorrowFeeRecipient(suiTxBlock, suiKit.currentAddress());
 
   const riskModelPairs: { type: string, riskModel: RiskModel }[] = [
@@ -45,6 +44,11 @@ export const initMarket = () => {
     { type: coinTypes.wormholeUsdc, incentiveRewardFactor: incentiveRewardFactors.wormholeUsdc }
   ];
 
+  const borrowFeePairs: { type: string, numerator: number, denominator: number }[] = [
+    { type: coinTypes.sui, numerator: 1, denominator: 1000 },
+    { type: coinTypes.wormholeUsdc, numerator: 1, denominator: 1000 },
+  ];
+
 
   riskModelPairs.forEach(pair => {
     protocolTxBuilder.addRiskModel(suiTxBlock, pair.riskModel, pair.type);
@@ -57,6 +61,9 @@ export const initMarket = () => {
   });
   incentiveRewardFactorPairs.forEach(pair => {
     protocolTxBuilder.setIncentiveRewardFactor(suiTxBlock, pair.incentiveRewardFactor, pair.type)
+  });
+  borrowFeePairs.forEach(pair => {
+    protocolTxBuilder.updateBorrowFee(suiTxBlock, pair.type, pair.numerator, pair.denominator);
   });
 
   return suiKit.signAndSendTxn(suiTxBlock);

@@ -353,4 +353,36 @@ export class ProtocolTxBuilder {
       [keyType]
     );
   }
+
+  updateBorrowFee(
+    suiTxBlock: SuiTxBlock,
+    coinType: string,
+    feeEnumerator: number,
+    feeDenominator: number,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::update_borrow_fee`,
+      [
+        this.adminCapId,
+        this.marketId,
+        feeEnumerator,
+        feeDenominator,
+      ],
+      [coinType]
+    );
+  }
+
+  updateBorrowFeeRecipient(
+    suiTxBlock: SuiTxBlock,
+    recipient: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::update_borrow_fee_recipient`,
+      [
+        this.adminCapId,
+        this.marketId,
+        suiTxBlock.pure(recipient, 'address'),
+      ],
+    );
+  }
 }

@@ -1,5 +1,6 @@
 module protocol::app {
   use std::fixed_point32;
+  use std::fixed_point32::FixedPoint32;
   use std::type_name;
   use sui::tx_context::{Self, TxContext};
   use sui::object::{Self, UID};
@@ -11,13 +12,13 @@ module protocol::app {
   use x::one_time_lock_value::OneTimeLockValue;
   use protocol::market::{Self, Market};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
-  use protocol::risk_model::{Self, RiskModels, RiskModel, type_name};
+  use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
   use protocol::incentive_rewards;
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys;
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey};
 
   /// OTW
   struct APP has drop {}
@@ -379,7 +380,7 @@ module protocol::app {
     let key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
     let fee = fixed_point32::create_from_rational(fee_enumerator, fee_denominator);
 
-    dynamic_field::remove_if_exists<>(market_uid_mut, key);
+    dynamic_field::remove_if_exists<BorrowFeeKey, FixedPoint32>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, fee);
   }
 
@@ -391,7 +392,7 @@ module protocol::app {
     let market_uid_mut = market::uid_mut(market);
     let key = market_dynamic_keys::borrow_fee_recipient_key();
 
-    dynamic_field::remove_if_exists<>(market_uid_mut, key);
+    dynamic_field::remove_if_exists<BorrowFeeRecipientKey, address>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, recipient);
   }
 }

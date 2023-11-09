@@ -1,7 +1,7 @@
 [package]
 name = "ScallopProtocol"
 version = "0.0.1"
-published-at = "0x94395cb33657aff9d8e0b278db498acaab50bad2160d28d4fad1be21687c3357"
+published-at = "0x9e30efa44fc125b7b704dab2ca3536a7d83228f00b0d1415569eed60455b9c06"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -24,4 +24,4 @@ local = "../libs/coin_decimals_registry"
 local = "../sui_x_oracle/x_oracle"
 
 [addresses]
-protocol = "0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf"
+protocol = "0x9e30efa44fc125b7b704dab2ca3536a7d83228f00b0d1415569eed60455b9c06"

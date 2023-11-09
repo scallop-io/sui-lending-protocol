@@ -5,7 +5,8 @@ import {
   RiskModel,
   InterestModel,
   OutflowLimiterModel,
-  IncentiveRewardFactor
+  IncentiveRewardFactor,
+  BorrowFee,
 } from '../contracts/protocol';
 import {
   protocolWhitelistTxBuilder,
@@ -14,6 +15,7 @@ import { riskModels } from './risk-models';
 import { interestModels } from './interest-models';
 import { outflowRateLimiters } from './outflow-rate-limiters';
 import { incentiveRewardFactors } from './incentive-reward-factors';
+import { borrowFees } from './borrow-fee';
 import { coinTypes } from './chain-data';
 
 
@@ -44,9 +46,9 @@ export const initMarket = () => {
     { type: coinTypes.wormholeUsdc, incentiveRewardFactor: incentiveRewardFactors.wormholeUsdc }
   ];
 
-  const borrowFeePairs: { type: string, numerator: number, denominator: number }[] = [
-    { type: coinTypes.sui, numerator: 1, denominator: 1000 },
-    { type: coinTypes.wormholeUsdc, numerator: 1, denominator: 1000 },
+  const borrowFeePairs: { type: string, borrowFee: BorrowFee }[] = [
+    { type: coinTypes.sui, borrowFee: borrowFees.sui },
+    { type: coinTypes.wormholeUsdc, borrowFee: borrowFees.wormholeUsdc },
   ];
 
 
@@ -63,7 +65,7 @@ export const initMarket = () => {
     protocolTxBuilder.setIncentiveRewardFactor(suiTxBlock, pair.incentiveRewardFactor, pair.type)
   });
   borrowFeePairs.forEach(pair => {
-    protocolTxBuilder.updateBorrowFee(suiTxBlock, pair.type, pair.numerator, pair.denominator);
+    protocolTxBuilder.updateBorrowFee(suiTxBlock, pair.borrowFee, pair.type);
   });
 
   return suiKit.signAndSendTxn(suiTxBlock);

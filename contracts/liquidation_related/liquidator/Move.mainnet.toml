@@ -1,6 +1,7 @@
 [package]
-name="ScallopLiquidator"
-version="0.0.1"
+name = "ScallopLiquidator"
+version = "0.0.1"
+published-at = "0x5f2d47f0f8eebb71f91b12b0d269b01b51a98a77c112f7efd2e1da01fb6cdcb9"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -21,4 +22,4 @@ local = "../cetus_adaptor"
 local = "../../../../scallop/spool/borrow_incentive"
 
 [addresses]
-scallop_liquidator = "0x0"
+scallop_liquidator = "0x5f2d47f0f8eebb71f91b12b0d269b01b51a98a77c112f7efd2e1da01fb6cdcb9"

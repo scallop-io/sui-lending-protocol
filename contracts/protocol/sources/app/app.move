@@ -373,12 +373,12 @@ module protocol::app {
   public entry fun update_borrow_fee<T: drop>(
     _admin_cap: &AdminCap,
     market: &mut Market,
-    fee_enumerator: u64,
+    fee_numerator: u64,
     fee_denominator: u64,
   ) {
     let market_uid_mut = market::uid_mut(market);
     let key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
-    let fee = fixed_point32::create_from_rational(fee_enumerator, fee_denominator);
+    let fee = fixed_point32::create_from_rational(fee_numerator, fee_denominator);
 
     dynamic_field::remove_if_exists<BorrowFeeKey, FixedPoint32>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, fee);

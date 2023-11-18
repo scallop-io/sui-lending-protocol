@@ -1,5 +1,6 @@
 module protocol::borrow {
-  
+
+  use std::fixed_point32::{Self, FixedPoint32};
   use std::type_name::{Self, TypeName};
   use sui::coin::{Self, Coin};
   use sui::transfer;
@@ -7,16 +8,22 @@ module protocol::borrow {
   use sui::tx_context::{Self ,TxContext};
   use sui::object::{Self, ID};
   use sui::clock::{Self, Clock};
+  use sui::balance;
+  use sui::dynamic_field;
+
   use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::market::{Self, Market};
   use protocol::version::{Self, Version};
   use protocol::borrow_withdraw_evaluator;
   use protocol::interest_model;
   use protocol::error;
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey};
+
   use x_oracle::x_oracle::XOracle;
   use whitelist::whitelist;
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
-  
+
+
   struct BorrowEvent has copy, drop {
     borrower: address,
     obligation: ID,
@@ -24,7 +31,17 @@ module protocol::borrow {
     amount: u64,
     time: u64,
   }
-  
+
+  struct BorrowEventV2 has copy, drop {
+    borrower: address,
+    obligation: ID,
+    asset: TypeName,
+    amount: u64,
+    borrow_fee: u64,
+    time: u64,
+  }
+
+
   public entry fun borrow_entry<T>(
     version: &Version,
     obligation: &mut Obligation,
@@ -97,14 +114,33 @@ module protocol::borrow {
     assert!(borrow_amount <= max_borrow_amount, error::borrow_too_much_error());
     // increase the debt for obligation
     obligation::increase_debt(obligation, coin_type, borrow_amount);
-    
-    emit(BorrowEvent {
+
+    // Deduct borrow fee
+    let borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
+    let borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), borrow_fee_key);
+    let borrow_fee_amount = fixed_point32::multiply_u64(borrow_amount, *borrow_fee_rate);
+
+    // transfer the borrow fee to the recipient if borrow fee is not zero
+    if (borrow_fee_amount > 0) {
+      // Get the borrow fee recipient
+      let borrow_fee_recipient_key = market_dynamic_keys::borrow_fee_recipient_key();
+      let borrow_fee_recipient = dynamic_field::borrow<BorrowFeeRecipientKey, address>(market::uid(market), borrow_fee_recipient_key);
+
+      // Transfer the borrow fee
+      let borrow_fee = balance::split(&mut borrowed_balance, borrow_fee_amount);
+      let borrow_fee_coin = coin::from_balance(borrow_fee, ctx);
+      transfer::public_transfer(borrow_fee_coin, *borrow_fee_recipient);
+    };
+
+    emit(BorrowEventV2 {
       borrower: tx_context::sender(ctx),
       obligation: object::id(obligation),
       asset: coin_type,
       amount: borrow_amount,
+      borrow_fee: borrow_fee_amount,
       time: now,
     });
+
     coin::from_balance(borrowed_balance, ctx)
   }
 }

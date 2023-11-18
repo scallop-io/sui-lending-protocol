@@ -35,6 +35,11 @@ export type IncentiveRewardFactor = {
   scale: number,
 }
 
+export type BorrowFee = {
+  numerator: number,
+  denominator: number,
+}
+
 export class ProtocolTxBuilder {
   constructor(
     public packageId: string,
@@ -351,6 +356,37 @@ export class ProtocolTxBuilder {
         this.obligationAccessStoreId,
       ],
       [keyType]
+    );
+  }
+
+  updateBorrowFee(
+    suiTxBlock: SuiTxBlock,
+    borrowFee: BorrowFee,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::update_borrow_fee`,
+      [
+        this.adminCapId,
+        this.marketId,
+        borrowFee.numerator,
+        borrowFee.denominator,
+      ],
+      [coinType]
+    );
+  }
+
+  updateBorrowFeeRecipient(
+    suiTxBlock: SuiTxBlock,
+    recipient: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::update_borrow_fee_recipient`,
+      [
+        this.adminCapId,
+        this.marketId,
+        suiTxBlock.pure(recipient, 'address'),
+      ],
     );
   }
 }

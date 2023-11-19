@@ -1,15 +1,17 @@
 module protocol_query::market_query {
 
   use std::vector;
-  use x::wit_table;
-  use x::ac_table;
-  use protocol::market::{Self, Market};
-  use sui::event::emit;
   use std::fixed_point32::FixedPoint32;
   use std::type_name::TypeName;
+  use sui::event::emit;
+  use sui::dynamic_field;
+  use x::wit_table;
+  use x::ac_table;
+  use protocol::market::{ Self, Market };
   use protocol::borrow_dynamics;
   use protocol::interest_model;
   use protocol::collateral_stats;
+  use protocol::market_dynamic_keys::{ Self, BorrowFeeKey };
   use protocol::reserve;
   use protocol::risk_model;
 
@@ -28,6 +30,7 @@ module protocol_query::market_query {
     maxBorrowRate: FixedPoint32,
     reserveFactor: FixedPoint32,
     borrowWeight: FixedPoint32,
+    borrowFeeRate: FixedPoint32,
     minBorrowAmount: u64,
     cash: u64,
     debt: u64,
@@ -73,6 +76,9 @@ module protocol_query::market_query {
       let interestModel = ac_table::borrow(interestModels, assetType);
       let balanceSheet = wit_table::borrow(balanceSheets, assetType);
 
+      let borrow_fee_key = market_dynamic_keys::borrow_fee_key(assetType);
+      let borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), borrow_fee_key);
+
       let (cash, debt, market, marketCoinSupply) = reserve::balance_sheet(balanceSheet);
       let poolData = PoolData {
         interestRate: borrow_dynamics::interest_rate(borrowDynamic),
@@ -89,6 +95,7 @@ module protocol_query::market_query {
         reserveFactor: interest_model::revenue_factor(interestModel),
         minBorrowAmount: interest_model::min_borrow_amount(interestModel),
         borrowWeight: interest_model::borrow_weight(interestModel),
+        borrowFeeRate: *borrow_fee_rate,
         cash,
         debt,
         reserve: market,

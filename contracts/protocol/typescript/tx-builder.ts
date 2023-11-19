@@ -46,6 +46,7 @@ export class ProtocolTxBuilder {
     public adminCapId: string,
     public marketId: string,
     public versionId: string,
+    public versionCapId: string,
     public obligationAccessStoreId: string,
   ) { }
 
@@ -386,6 +387,18 @@ export class ProtocolTxBuilder {
         this.adminCapId,
         this.marketId,
         suiTxBlock.pure(recipient, 'address'),
+      ],
+    );
+  }
+
+  incrementVersion(
+    suiTxBlock: SuiTxBlock,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::version::upgrade`,
+      [
+        this.versionId,
+        this.versionCapId,
       ],
     );
   }

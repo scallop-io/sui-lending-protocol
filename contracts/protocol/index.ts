@@ -11,5 +11,6 @@ export const protocolTxBuilder = new ProtocolTxBuilder(
   publishResult.adminCapId,
   publishResult.marketId,
   publishResult.versionId,
+  publishResult.versionCapId,
   publishResult.obligationAccessStoreId,
 );

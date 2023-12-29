@@ -2,7 +2,7 @@
 
 [move]
 version = 0
-manifest_digest = "236F2F17AA2E1AC0658A06E60440CDB6D3B39122897CAC420378E08ED293CFBC"
+manifest_digest = "7018171C5F92C835552DB2D8D4D17B1FCCE90EA07517477E8E58B4ACC420D94E"
 deps_digest = "F9B494B64F0615AED0E98FC12A85B85ECD2BC5185C22D30E7F67786BB52E507C"
 
 dependencies = [
@@ -33,7 +33,7 @@ dependencies = [
 
 [[move.package]]
 name = "CoinDecimalsRegistry"
-source = { local = "../../../../scallop-lending/contracts/libs/coin_decimals_registry" }
+source = { local = "../../../../sui-lending-protocol/contracts/libs/coin_decimals_registry" }
 
 dependencies = [
   { name = "Sui" },
@@ -49,7 +49,7 @@ dependencies = [
 
 [[move.package]]
 name = "Math"
-source = { local = "../../../../scallop-lending/contracts/libs/math" }
+source = { local = "../../../../sui-lending-protocol/contracts/libs/math" }
 
 dependencies = [
   { name = "Sui" },
@@ -69,7 +69,7 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdi
 
 [[move.package]]
 name = "ScallopProtocol"
-source = { local = "../../../../scallop-lending/contracts/protocol" }
+source = { local = "../../../../sui-lending-protocol/contracts/protocol" }
 
 dependencies = [
   { name = "CoinDecimalsRegistry" },
@@ -90,7 +90,7 @@ dependencies = [
 
 [[move.package]]
 name = "Whitelist"
-source = { local = "../../../../scallop-lending/contracts/libs/whitelist" }
+source = { local = "../../../../sui-lending-protocol/contracts/libs/whitelist" }
 
 dependencies = [
   { name = "Sui" },
@@ -98,7 +98,7 @@ dependencies = [
 
 [[move.package]]
 name = "X"
-source = { local = "../../../../scallop-lending/contracts/libs/x" }
+source = { local = "../../../../sui-lending-protocol/contracts/libs/x" }
 
 dependencies = [
   { name = "Sui" },
@@ -106,7 +106,7 @@ dependencies = [
 
 [[move.package]]
 name = "XOracle"
-source = { local = "../../../../scallop-lending/contracts/sui_x_oracle/x_oracle" }
+source = { local = "../../../../sui-lending-protocol/contracts/sui_x_oracle/x_oracle" }
 
 dependencies = [
   { name = "Sui" },
@@ -114,7 +114,7 @@ dependencies = [
 
 [[move.package]]
 name = "borrow_incentive"
-source = { local = "../../../../scallop/spool/borrow_incentive" }
+source = { local = "../../../../spool/borrow_incentive" }
 
 dependencies = [
   { name = "ScallopProtocol" },

@@ -28,7 +28,7 @@ const protocolPkgPath = path.join(__dirname, "../contracts/protocol");
 /**
  * Incentive related dependencies
  */
-const borrowIncentivePkgPath = path.join(__dirname, "../../scallop/spool/borrow_incentive");
+const borrowIncentivePkgPath = path.join(__dirname, "../../spool/borrow_incentive");
 
 /**
  * For liquidation related contracts

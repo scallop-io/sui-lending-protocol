@@ -6,6 +6,7 @@ module scallop_liquidator::liquidator {
 
   use std::vector;
   use std::type_name::get;
+  use std::option;
 
   use sui::clock::Clock;
   use sui::coin;
@@ -63,6 +64,9 @@ module scallop_liquidator::liquidator {
   ) {
     if (!is_eligible_to_be_liquidated(obligation, market, coin_decimals_registry, x_oracle, clock))
       return;    
+
+    if (option::is_none(&obligation::lock_key(obligation)))
+      return;
     
     user::force_unstake_unhealthy<RewardType>(
       incentive_pools,

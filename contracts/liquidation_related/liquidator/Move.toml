@@ -18,7 +18,7 @@ override = true
 local = "../cetus_adaptor"
 
 [dependencies.borrow_incentive]
-local = "../../../../scallop/spool/borrow_incentive"
+local = "../../../../spool/borrow_incentive"
 
 [addresses]
 scallop_liquidator = "0x0"

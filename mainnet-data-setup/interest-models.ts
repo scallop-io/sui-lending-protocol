@@ -20,7 +20,7 @@ export const suiInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
   borrowRateOnHighKink: getRatePerSec(100), // 100%
   maxBorrowRate: getRatePerSec(300), // 300%
 
@@ -37,7 +37,7 @@ export const cetusInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
   borrowRateOnHighKink: getRatePerSec(100), // 100%
   maxBorrowRate: getRatePerSec(300), // 300%
 
@@ -54,7 +54,7 @@ export const wormholeEthInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
   borrowRateOnHighKink: getRatePerSec(100), // 100%
   maxBorrowRate: getRatePerSec(300), // 300%
 
@@ -71,7 +71,7 @@ export const wormholeUsdcInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(8), // 8%
+  borrowRateOnMidKink: getRatePerSec(6), // 6%
   borrowRateOnHighKink: getRatePerSec(50), // 50%
   maxBorrowRate: getRatePerSec(150), // 150%
 
@@ -88,7 +88,7 @@ export const wormholeUsdtInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(8), // 8%
+  borrowRateOnMidKink: getRatePerSec(6), // 6%
   borrowRateOnHighKink: getRatePerSec(50), // 50%
   maxBorrowRate: getRatePerSec(150), // 150%
 
@@ -105,7 +105,7 @@ export const afSuiInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
   borrowRateOnHighKink: getRatePerSec(100), // 100%
   maxBorrowRate: getRatePerSec(300), // 300%
 
@@ -122,7 +122,7 @@ export const haSuiInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
   borrowRateOnHighKink: getRatePerSec(100), // 100%
   maxBorrowRate: getRatePerSec(300), // 300%
 
@@ -139,7 +139,7 @@ export const vSuiInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
   borrowRateOnHighKink: getRatePerSec(100), // 100%
   maxBorrowRate: getRatePerSec(300), // 300%
 

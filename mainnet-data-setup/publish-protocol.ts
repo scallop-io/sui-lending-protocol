@@ -23,10 +23,10 @@ export const protocolPackageList: PackageBatch = [
   { packagePath: whitelistPkgPath, option: { enforce: false } },
   { packagePath: coinDecimalsRegistryPath, option: { publishResultParser: decimalsRegistryParser, enforce: false } },
   { packagePath: protocolPkgPath, option: { publishResultParser: protocolParser, enforce: false } },
-  { packagePath: protocolQueryPkgPath, option: { enforce: false } },
+  { packagePath: protocolQueryPkgPath, option: { enforce: true } },
   { packagePath: protocolWhitelistPkgPath, option: { enforce: false } },
-  { packagePath: borrowIncentivePkgPath, option: { enforce: true } },
-  { packagePath: borrowIncentiveQueryPkgPath, option: { enforce: true } },
+  { packagePath: borrowIncentivePkgPath, option: { enforce: false } },
+  { packagePath: borrowIncentiveQueryPkgPath, option: { enforce: false } },
 ];
 export const publishProtocol = async (
   signer: RawSigner

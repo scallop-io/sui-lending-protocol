@@ -12,6 +12,9 @@ function updateInterestModels() {
     { type: coinTypes.wormholeUsdc, interestModel: interestModels.wormholeUsdc },
     { type: coinTypes.wormholeUsdt, interestModel: interestModels.wormholeUsdt },
     { type: coinTypes.wormholeEth, interestModel: interestModels.wormholeEth },
+    { type: coinTypes.afSui, interestModel: interestModels.afSui },
+    { type: coinTypes.haSui, interestModel: interestModels.haSui },
+    { type: coinTypes.vSui, interestModel: interestModels.vSui },
   ];
   for(const pair of interestModelPairs) {
     protocolTxBuilder.updateInterestModel(tx, pair.interestModel, pair.type);

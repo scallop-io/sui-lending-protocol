@@ -17,6 +17,18 @@ module protocol::obligation_debts {
   public(friend) fun new(ctx: &mut TxContext): WitTable<ObligationDebts, TypeName, Debt> {
     wit_table::new(ObligationDebts{}, true, ctx)
   }
+
+  public(friend) fun has_coin_x_as_debt(
+    debts: &WitTable<ObligationDebts, TypeName, Debt>,
+    coin_type: TypeName,
+  ): bool {
+    if (wit_table::contains(debts, coin_type)) {
+      let (debt_amount, _debt_borrow_index) = debt(debts, coin_type);
+      debt_amount > 0
+    } else {
+      false
+    }
+  }
   
   public(friend) fun init_debt(
     debts: &mut WitTable<ObligationDebts, TypeName, Debt>,

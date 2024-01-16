@@ -22,6 +22,19 @@ module protocol_test::app_t {
       test_scenario::ctx(scenario)
     );
 
+    app::update_borrow_fee<USDC>(
+      &adminCap,
+      &mut market,
+      0,
+      1
+    );
+
+    app::update_borrow_fee_recipient(
+      &adminCap,
+      &mut market,
+      sender
+    );
+
     whitelist::allow_all(app::ext(&adminCap, &mut market));
 
     (market, adminCap)

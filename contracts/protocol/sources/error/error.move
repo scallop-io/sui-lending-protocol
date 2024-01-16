@@ -26,6 +26,7 @@ module protocol::error {
   public fun borrow_too_much_error(): u64 { 0x0000501 }
   public fun borrow_too_small_error(): u64 { 0x0000502 }
   public fun flash_loan_repay_not_enough_error(): u64 { 0x0000503 }
+  public fun unable_to_borrow_a_collateral_coin(): u64 { 0x0000504 }
 
   // liquidation
   public fun unable_to_liquidate_error(): u64 { 0x0000601 }
@@ -34,6 +35,7 @@ module protocol::error {
   public fun max_collateral_reached_error(): u64 { 0x0000701 }
   public fun invalid_collateral_type_error(): u64 { 0x0000702 }
   public fun withdraw_collateral_too_much_error(): u64 { 0x0000703 }
+  public fun unable_to_deposit_a_borrowed_coin(): u64 { 0x0000704 }
 
   // market coin error
   public fun mint_market_coin_too_small_error(): u64 { 0x0000801 }

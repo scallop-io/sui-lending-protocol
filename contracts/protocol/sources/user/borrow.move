@@ -93,6 +93,8 @@ module protocol::borrow {
 
     let now = clock::timestamp_ms(clock) / 1000;
     obligation::assert_key_match(obligation, obligation_key);
+
+    assert!(!obligation::has_coin_x_as_collateral(obligation, coin_type), error::unable_to_borrow_a_collateral_coin());
   
     let interest_model = market::interest_model(market, coin_type);
     let min_borrow_amount = interest_model::min_borrow_amount(interest_model);

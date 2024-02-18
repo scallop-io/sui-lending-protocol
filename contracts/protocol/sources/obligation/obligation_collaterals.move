@@ -45,6 +45,18 @@ module protocol::obligation_collaterals {
       wit_table::remove(ObligationCollaterals{}, collaterals, type_name);
     }
   }
+
+  public(friend) fun has_coin_x_as_collateral(
+    collaterals: &WitTable<ObligationCollaterals, TypeName, Collateral>,
+    coin_type: TypeName,
+  ): bool {
+    if (wit_table::contains(collaterals, coin_type)) {
+      let collateral_amount = collateral(collaterals, coin_type);
+      collateral_amount > 0
+    } else {
+      false
+    }
+  }
   
   public fun collateral(
     collaterals: &WitTable<ObligationCollaterals, TypeName, Collateral>,

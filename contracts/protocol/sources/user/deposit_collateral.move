@@ -47,6 +47,8 @@ module protocol::deposit_collateral {
 
     let has_risk_model = market::has_risk_model(market, coin_type);
     assert!(has_risk_model == true, error::invalid_collateral_type_error());
+
+    assert!(!obligation::has_coin_x_as_debt(obligation, coin_type), error::unable_to_deposit_a_borrowed_coin());
     
     emit(CollateralDepositEvent{
       provider: tx_context::sender(ctx),

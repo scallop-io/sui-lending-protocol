@@ -30,7 +30,7 @@ Let's take the `test_coin` package as an example:
 
 - `typescript` folder usually contains the typescript code that will be used to deploy & interact with the contract.
 
-- `ids.${networkType}.json` contains the important object ids of the contracts for each network type.
+- `publish-result.${networkType}.json` contains the important object ids of the contracts for each network type.
 
 - `index.ts` export the typescript code in the `typescript` folder.
 
@@ -40,38 +40,14 @@ Let's take the `test_coin` package as an example:
 
 - `README.md` description of the package, explain the usage of the package.
 
-## Publish move package
-We use typescript to publish the move package.
-The following steps will show you how to publish the `test_coin` package.
+## Use Scallop SDK to interact with the contracts
 
-1. Make a new file `publish.ts` in the `typescript` folder for the package.:
+It's recommended to use the Scallop SDK to interact with the contracts, see the official documentation: [How to use Scallop SDK](https://github.com/scallop-io/sui-scallop-sdk)
 
-```typescript
-import * as path from "path"
-import { suiKit, networkType } from "sui-elements"
-import { publishPackageWithCache, writeAsJson } from "contract-deployment"
+## Integrate with Scallop Protocol in SUI Move
 
-/**
- * 
- * If there's no `Move.${networkType}.toml` file in the package folder, it will
- * 1. publish the package with the default `Move.testnet.toml` file
- * 2. Write the object ids to the `ids.${networkType}.json` file
- * 3. And then, generate the `Move.${networkType}.toml` file based on the `Move.testnet.toml` file
- * 4. Make a backup of the `Move.testnet.toml` file as `Move.testnet.toml.bak`
- * 5. Replace the `Move.testnet.toml` file with the `Move.${networkType}.toml` file
+The protocol is designed to be simple, efficient, and secure.
 
- * Otherwise, it will:
- * 1. Replace the `Move.testnet.toml` file with the `Move.${networkType}.toml` file
- */
-export const publishPackage = async () => {
-  const pkgPath = path.join(__dirname, "../");
-  // If the package has already been published, it will return undefined
-  const res = await publishPackageWithCache(pkgPath, suiKit.getSigner(), networkType)
-  if (!res) return;
+Moreover, the protocol is designed to be composable, meaning that other protocols can easily integrate with it.
 
-  // Write your own `parseObjectIds` function to parse the necessary object ids from the publish result
-  const parsedJson = parseObjectIds(res);
-
-  writeAsJson(parsedJson, path.join(__dirname, `./ids.${networkType}.json`));
-}
-```
+[Contract integration guide](contract-integration.md)

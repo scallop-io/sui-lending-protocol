@@ -2,14 +2,82 @@
 
 [move]
 version = 0
-manifest_digest = "7018171C5F92C835552DB2D8D4D17B1FCCE90EA07517477E8E58B4ACC420D94E"
-deps_digest = "F9B494B64F0615AED0E98FC12A85B85ECD2BC5185C22D30E7F67786BB52E507C"
+manifest_digest = "3DCAE1A6EA766C56698F071345396B07E82115B954C00F3775684323BE368678"
+deps_digest = "59CF4C5FBF9CA9498217B3AC2BED47AD5D49696CE64F735BE1226EDCEF529664"
 
 dependencies = [
+  { name = "AfSui" },
+  { name = "AfSuiReferralVault" },
+  { name = "AftermathAmm" },
+  { name = "AftermathLSD" },
   { name = "CetusAdaptor" },
+  { name = "InsuranceFund" },
   { name = "MoveStdlib" },
+  { name = "ProtocolFeeVault" },
+  { name = "ReferralVault" },
+  { name = "Safe" },
   { name = "Sui" },
+  { name = "Treasury" },
   { name = "borrow_incentive" },
+]
+
+[[move.package]]
+name = "AfSui"
+source = { local = "../aftermath/packages/afsui/afsui" }
+
+dependencies = [
+  { name = "Safe" },
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "AfSuiReferralVault"
+source = { local = "../aftermath/packages/afsui/afsui-referral-vault" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "AfSuiTreasury"
+source = { local = "../aftermath/packages/afsui/afsui-treasury" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "AftermathAmm"
+source = { local = "../aftermath/packages/amm/amm" }
+
+dependencies = [
+  { name = "AmmMath" },
+  { name = "ProtocolFeeVault" },
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "AftermathLSD"
+source = { local = "../aftermath/packages/afsui/afsui-staked-sui-vault" }
+
+dependencies = [
+  { name = "AfSui" },
+  { name = "AfSuiReferralVault" },
+  { name = "AfSuiTreasury" },
+  { name = "LinkedSet" },
+  { name = "Safe" },
+  { name = "Sui" },
+  { name = "SuiSystem" },
+  { name = "SuiSystemUtils" },
+  { name = "utilities" },
+]
+
+[[move.package]]
+name = "AmmMath"
+source = { local = "../aftermath/packages/amm/amm-math" }
+
+dependencies = [
+  { name = "Sui" },
 ]
 
 [[move.package]]
@@ -40,8 +108,24 @@ dependencies = [
 ]
 
 [[move.package]]
+name = "InsuranceFund"
+source = { local = "../aftermath/packages/amm/amm-insurance-fund" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
 name = "IntegerMate"
 source = { git = "https://github.com/CetusProtocol/integer-mate.git", rev = "sui-v1.1.0", subdir = "sui" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "LinkedSet"
+source = { local = "../aftermath/packages/utility/linked-set" }
 
 dependencies = [
   { name = "Sui" },
@@ -68,6 +152,34 @@ name = "MoveStdlib"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
+name = "ProtocolFeeVault"
+source = { local = "../aftermath/packages/amm/amm-protocol-fee-vault" }
+
+dependencies = [
+  { name = "InsuranceFund" },
+  { name = "ReferralVault" },
+  { name = "Sui" },
+  { name = "Treasury" },
+  { name = "utilities" },
+]
+
+[[move.package]]
+name = "ReferralVault"
+source = { local = "../aftermath/packages/amm/amm-referral-vault" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "Safe"
+source = { local = "../aftermath/packages/utility/safe" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
 name = "ScallopProtocol"
 source = { local = "../../../../sui-lending-protocol/contracts/protocol" }
 
@@ -86,6 +198,32 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdi
 
 dependencies = [
   { name = "MoveStdlib" },
+]
+
+[[move.package]]
+name = "SuiSystem"
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/mainnet", subdir = "crates/sui-framework/packages/sui-system" }
+
+dependencies = [
+  { name = "MoveStdlib" },
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "SuiSystemUtils"
+source = { local = "../aftermath/packages/utility/sui-system-utils" }
+
+dependencies = [
+  { name = "Sui" },
+  { name = "SuiSystem" },
+]
+
+[[move.package]]
+name = "Treasury"
+source = { local = "../aftermath/packages/amm/amm-treasury" }
+
+dependencies = [
+  { name = "Sui" },
 ]
 
 [[move.package]]
@@ -118,5 +256,13 @@ source = { local = "../../../../spool/borrow_incentive" }
 
 dependencies = [
   { name = "ScallopProtocol" },
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "utilities"
+source = { local = "../aftermath/packages/utility/utilities" }
+
+dependencies = [
   { name = "Sui" },
 ]

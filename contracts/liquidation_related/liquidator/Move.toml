@@ -17,6 +17,33 @@ override = true
 [dependencies.CetusAdaptor]
 local = "../cetus_adaptor"
 
+[dependencies.AftermathLSD]
+local = "../aftermath/packages/afsui/afsui-staked-sui-vault"
+
+[dependencies.Safe]
+local = "../aftermath/packages/utility/safe"
+
+[dependencies.AfSui]
+local = "../aftermath/packages/afsui/afsui"
+
+[dependencies.AfSuiReferralVault]
+local = "../aftermath/packages/afsui/afsui-referral-vault"
+
+[dependencies.AftermathAmm]
+local = "../aftermath/packages/amm/amm"
+
+[dependencies.ProtocolFeeVault]
+local = "../aftermath/packages/amm/amm-protocol-fee-vault"
+
+[dependencies.Treasury]
+local = "../aftermath/packages/amm/amm-treasury"
+
+[dependencies.InsuranceFund]
+local = "../aftermath/packages/amm/amm-insurance-fund"
+
+[dependencies.ReferralVault]
+local = "../aftermath/packages/amm/amm-referral-vault"
+
 [dependencies.borrow_incentive]
 local = "../../../../spool/borrow_incentive"
 

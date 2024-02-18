@@ -1,7 +1,7 @@
 [package]
 name = "ScallopLiquidator"
 version = "0.0.1"
-published-at = "0x2c59185b1adff41b82458ec38a863616ffcdc99949c2ad51c8b6fbe29260bf0c"
+published-at = "0x60cce9054185bfcc5d811bc146e646cd11f2bd04512a8eb517f72257a15e4290"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -18,8 +18,35 @@ override = true
 [dependencies.CetusAdaptor]
 local = "../cetus_adaptor"
 
+[dependencies.AftermathLSD]
+local = "../aftermath/packages/afsui/afsui-staked-sui-vault"
+
+[dependencies.Safe]
+local = "../aftermath/packages/utility/safe"
+
+[dependencies.AfSui]
+local = "../aftermath/packages/afsui/afsui"
+
+[dependencies.AfSuiReferralVault]
+local = "../aftermath/packages/afsui/afsui-referral-vault"
+
+[dependencies.AftermathAmm]
+local = "../aftermath/packages/amm/amm"
+
+[dependencies.ProtocolFeeVault]
+local = "../aftermath/packages/amm/amm-protocol-fee-vault"
+
+[dependencies.Treasury]
+local = "../aftermath/packages/amm/amm-treasury"
+
+[dependencies.InsuranceFund]
+local = "../aftermath/packages/amm/amm-insurance-fund"
+
+[dependencies.ReferralVault]
+local = "../aftermath/packages/amm/amm-referral-vault"
+
 [dependencies.borrow_incentive]
 local = "../../../../spool/borrow_incentive"
 
 [addresses]
-scallop_liquidator = "0x2c59185b1adff41b82458ec38a863616ffcdc99949c2ad51c8b6fbe29260bf0c"
+scallop_liquidator = "0x60cce9054185bfcc5d811bc146e646cd11f2bd04512a8eb517f72257a15e4290"

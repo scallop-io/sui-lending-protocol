@@ -1,7 +1,7 @@
 module scallop_liquidator::cetus_util {
 
-  use cetus_clmm::pool::{ Pool, calculate_swap_result, calculated_swap_result_amount_in, fee_rate };
-  use cetus_clmm::clmm_math::fee_rate_denominator;
+  use cetus_clmm::pool::{ Pool, calculate_swap_result, calculated_swap_result_amount_in };
+  // use cetus_clmm::clmm_math::fee_rate_denominator;
 
   /// Check if liquidation would be profitable when using the cetus pool with single swap.
   ///
@@ -38,6 +38,23 @@ module scallop_liquidator::cetus_util {
     collateral_amount_in <= collateral_amount
   }
 
+  public fun calculate_swap_amount_in<A ,B>(
+    pool: &Pool<A, B>,
+    a2b: bool,
+    amount: u64,
+  ): u64 {
+    let by_amount_in = false;
+    let swap_result = calculate_swap_result(
+      pool,
+      a2b,
+      by_amount_in,
+      amount,
+    );
+    calculated_swap_result_amount_in(&swap_result)
+  }
+
+  /// ==== DEPRECATED
+  /// 
   /// Check if liquidation would be profitable when using the cetus pool with double swap.
   /// This is used when DebtType = CollateralType when liquidating.
   ///
@@ -56,15 +73,16 @@ module scallop_liquidator::cetus_util {
   /// if it requires 115 debt to exchange for 100 debt, then it is not profitable.
   ///
   public fun is_liquidation_profitable_with_double_swap<A ,B>(
-    pool: &Pool<A, B>,
-    debt_amount: u64,
-    collateral_amount: u64,
+    _pool: &Pool<A, B>,
+    _debt_amount: u64,
+    _collateral_amount: u64,
   ): bool {
-    let fee_rate = (fee_rate(pool) as u128);
-    let fee_rate_denominator = (fee_rate_denominator() as u128);
-    let debt_amount = (debt_amount as u128);
-    // Because there're 2 fees when swapping, the least collateral amount is calculated as below.
-    let least_collateral_amount = debt_amount * fee_rate * 2 / fee_rate_denominator + debt_amount;
-    collateral_amount > (least_collateral_amount as u64)
+    // let fee_rate = (fee_rate(pool) as u128);
+    // let fee_rate_denominator = (fee_rate_denominator() as u128);
+    // let debt_amount = (debt_amount as u128);
+    // // Because there're 2 fees when swapping, the least collateral amount is calculated as below.
+    // let least_collateral_amount = debt_amount * fee_rate * 2 / fee_rate_denominator + debt_amount;
+    // collateral_amount > (least_collateral_amount as u64)
+    true
   }
 }

@@ -346,6 +346,37 @@ export class ProtocolTxBuilder {
     );
   }
 
+  createLimiterLimitChange(
+    suiTxBlock: SuiTxBlock,
+    outflowLimit: number,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::create_limiter_limit_change`,
+      [
+        this.adminCapId,
+        suiTxBlock.pure(outflowLimit),
+      ],
+      [coinType]
+    );
+  }
+
+  applyLimiterLimitChange(
+    suiTxBlock: SuiTxBlock,
+    oneTimeLockValue: SuiTxArg,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::apply_limiter_limit_change`,
+      [
+        this.adminCapId,
+        this.marketId,
+        oneTimeLockValue,
+      ],
+      [coinType]
+    );
+  }
+
   addLockKey(
     suiTxBlock: SuiTxBlock,
     keyType: string,

@@ -26,6 +26,11 @@ const coinDecimalsRegistryPath = path.join(__dirname, "../contracts/libs/coin_de
 const protocolPkgPath = path.join(__dirname, "../contracts/protocol");
 
 /**
+ * Incentive related dependencies
+ */
+const borrowIncentivePkgPath = path.join(__dirname, "../../spool/borrow_incentive");
+
+/**
  * For liquidation related contracts
  * TODO: Move the liquidation contracts to a separate repo when the contracts are stable
  */
@@ -46,13 +51,17 @@ export const protocolPackageList: PackageBatch = [
   { packagePath: coinDecimalsRegistryPath },
   { packagePath: protocolPkgPath },
 
+  // Incentive dependencies
+  { packagePath: borrowIncentivePkgPath },
+
   // Liquidation packages
-  { packagePath: cetusAdaptorPkgPath, option: { enforce: true } },
+  { packagePath: cetusAdaptorPkgPath },
   { packagePath: liquidatorPkgPath, option: { enforce: true } },
 ];
 export const publishProtocol = async (
   signer: RawSigner
 ) => {
+  console.log(await signer.getAddress())
   return packagePublisher.publishPackageBatch(protocolPackageList, signer);
 }
 

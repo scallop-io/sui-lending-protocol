@@ -1,6 +1,7 @@
 [package]
-name="ScallopLiquidator"
-version="0.0.1"
+name = "ScallopLiquidator"
+version = "0.0.1"
+published-at = "0x60cce9054185bfcc5d811bc146e646cd11f2bd04512a8eb517f72257a15e4290"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -48,4 +49,4 @@ local = "../aftermath/packages/amm/amm-referral-vault"
 local = "../../../../spool/borrow_incentive"
 
 [addresses]
-scallop_liquidator = "0x0"
+scallop_liquidator = "0x60cce9054185bfcc5d811bc146e646cd11f2bd04512a8eb517f72257a15e4290"

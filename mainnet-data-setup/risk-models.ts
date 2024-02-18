@@ -50,12 +50,12 @@ export const wormholeUsdtRiskModel: RiskModel = {
 }
 
 export const afSuiRiskModel: RiskModel = {
-  collateralFactor: 60,
+  collateralFactor: 65,
   liquidationFactor: 70,
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.afSui + 3), // 1k afSUI
+  maxCollateralAmount: 2_000_000 * (10 ** coinDecimals.afSui), // 2 million afSUI
 }
 
 export const haSuiRiskModel: RiskModel = {

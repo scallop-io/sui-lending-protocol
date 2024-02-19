@@ -24,6 +24,7 @@ module protocol::borrow {
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
 
 
+  #[allow(unused_field)]
   struct BorrowEvent has copy, drop {
     borrower: address,
     obligation: ID,

@@ -12,6 +12,7 @@ module protocol::reserve {
   use x::wit_table::{Self, WitTable};
   use math::u64;
   use protocol::error;
+  use protocol::ticket_accesses::{Self, TicketForFlashLoanFeeDiscount};
 
   friend protocol::market;
 
@@ -213,6 +214,27 @@ module protocol::reserve {
     amount: u64,
     ctx: &mut TxContext,
   ): (Coin<T>, FlashLoan<T>) {
+    let (loan, receipt) = borrow_flash_loan_internal(self, amount, 0, 1); // fee discount is none
+    (coin::from_balance(loan, ctx), receipt)
+  }
+
+  public(friend) fun borrow_flash_loan_with_ticket<T>(
+    self: &mut Reserve,
+    ticket: TicketForFlashLoanFeeDiscount,
+    amount: u64,
+    ctx: &mut TxContext,
+  ): (Coin<T>, FlashLoan<T>) {
+    let (fee_discount_numerator, fee_discount_denominator) = ticket_accesses::get_flash_loan_fee_discount(&ticket);
+    let (loan, receipt) = borrow_flash_loan_internal<T>(self, amount, fee_discount_numerator, fee_discount_denominator);
+    (coin::from_balance(loan, ctx), receipt)
+  }
+
+  fun borrow_flash_loan_internal<T>(
+    self: &mut Reserve,
+    amount: u64,
+    fee_discount_numerator: u64,
+    fee_discount_denominator: u64,
+  ): (Balance<T>, FlashLoan<T>) {
     let balance = balance_bag::split<T>(&mut self.underlying_balances, amount);
     let fee_rate = *wit_table::borrow(&self.flash_loan_fees, get<T>());
     let fee = if (fee_rate > 0) {
@@ -221,8 +243,10 @@ module protocol::reserve {
     } else {
       0
     };
+    let fee_discount = u64::mul_div(fee, fee_discount_numerator, fee_discount_denominator);
+    let fee = fee - fee_discount;
     let flash_loan = FlashLoan<T> { loan_amount: amount, fee };
-    (coin::from_balance(balance, ctx), flash_loan)
+    (balance, flash_loan)
   }
 
   public(friend) fun repay_flash_loan<T>(

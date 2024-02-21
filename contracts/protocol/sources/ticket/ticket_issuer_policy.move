@@ -41,7 +41,7 @@ module protocol::ticket_issuer_policy {
         };
     }
 
-    public(friend) fun is_witness_can_issue_ticket<Ticket, Witness: drop>(
+    public fun is_witness_can_issue_ticket<Ticket, Witness: drop>(
         ticket_issuer_policy: &TicketIssuerPolicy,
         _: &Witness,
     ): bool {

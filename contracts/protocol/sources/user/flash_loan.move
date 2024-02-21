@@ -100,7 +100,7 @@ module protocol::flash_loan {
       error::base_asset_not_active_error()
     );
 
-    let (fee_discount_numerator, fee_discount_denominator) = (0, 0);
+    let (fee_discount_numerator, fee_discount_denominator) = (0, 1);
     let (coin, receipt) = if (option::is_some(&ticket_opt)) {
       let fee_discount_ticket = option::extract(&mut ticket_opt);
       (fee_discount_numerator, fee_discount_denominator) = ticket_accesses::get_flash_loan_fee_discount(&fee_discount_ticket);

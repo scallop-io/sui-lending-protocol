@@ -9,7 +9,7 @@ module protocol::ticket_accesses {
         denominator: u64,
     }
 
-    struct TicketForBorrowFeeDiscount has drop {
+    struct TicketForBorrowingFeeDiscount has drop {
         numerator: u64,
         denominator: u64,
     }
@@ -36,7 +36,7 @@ module protocol::ticket_accesses {
         }
     }
 
-    public fun get_borrowing_fee_discount(ticket: &TicketForBorrowFeeDiscount): (u64, u64) {
+    public fun get_borrowing_fee_discount(ticket: &TicketForBorrowingFeeDiscount): (u64, u64) {
         (ticket.numerator, ticket.denominator)
     }
 
@@ -46,13 +46,13 @@ module protocol::ticket_accesses {
         witness: Witness,
         numerator: u64,
         denominator: u64,
-    ): TicketForBorrowFeeDiscount {
+    ): TicketForBorrowingFeeDiscount {
         version::assert_current_version(version);
-        assert!(ticket_issuer_policy::is_witness_can_issue_ticket<TicketForBorrowFeeDiscount, Witness>(ticket_issuer_policy, &witness), error::witness_cant_issue_ticket());
+        assert!(ticket_issuer_policy::is_witness_can_issue_ticket<TicketForBorrowingFeeDiscount, Witness>(ticket_issuer_policy, &witness), error::witness_cant_issue_ticket());
 
         assert!(numerator <= denominator, error::numerator_cant_be_greater_than_denominator());
 
-        TicketForBorrowFeeDiscount {
+        TicketForBorrowingFeeDiscount {
             numerator,
             denominator,
         }

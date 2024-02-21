@@ -19,7 +19,7 @@ module protocol::borrow {
   use protocol::interest_model;
   use protocol::error;
   use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey};
-  use protocol::ticket_accesses::{Self, TicketForBorrowFeeDiscount};
+  use protocol::ticket_accesses::{Self, TicketForBorrowingFeeDiscount};
 
   use x_oracle::x_oracle::XOracle;
   use math::u64;
@@ -68,7 +68,7 @@ module protocol::borrow {
     market: &mut Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     borrow_amount: u64,
-    ticket: TicketForBorrowFeeDiscount,
+    ticket: TicketForBorrowingFeeDiscount,
     x_oracle: &XOracle,
     clock: &Clock,
     ctx: &mut TxContext,
@@ -126,7 +126,7 @@ module protocol::borrow {
     market: &mut Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     borrow_amount: u64,
-    ticket_opt: Option<TicketForBorrowFeeDiscount>,
+    ticket_opt: Option<TicketForBorrowingFeeDiscount>,
     x_oracle: &XOracle,
     clock: &Clock,
     ctx: &mut TxContext,

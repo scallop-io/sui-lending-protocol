@@ -2,13 +2,14 @@ module protocol::borrow {
 
   use std::fixed_point32::{Self, FixedPoint32};
   use std::type_name::{Self, TypeName};
+  use std::option::{Self, Option};
   use sui::coin::{Self, Coin};
   use sui::transfer;
   use sui::event::emit;
   use sui::tx_context::{Self ,TxContext};
   use sui::object::{Self, ID};
   use sui::clock::{Self, Clock};
-  use sui::balance;
+  use sui::balance::{Self, Balance};
   use sui::dynamic_field;
 
   use protocol::obligation::{Self, Obligation, ObligationKey};
@@ -18,8 +19,10 @@ module protocol::borrow {
   use protocol::interest_model;
   use protocol::error;
   use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey};
+  use protocol::ticket_accesses::{Self, TicketForBorrowFeeDiscount};
 
   use x_oracle::x_oracle::XOracle;
+  use math::u64;
   use whitelist::whitelist;
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
 
@@ -54,8 +57,38 @@ module protocol::borrow {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
-    let borrowedCoin = borrow<T>(version, obligation, obligation_key, market, coin_decimals_registry, borrow_amount, x_oracle, clock, ctx);
-    transfer::public_transfer(borrowedCoin, tx_context::sender(ctx));
+    let borrowed_coin = borrow<T>(version, obligation, obligation_key, market, coin_decimals_registry, borrow_amount, x_oracle, clock, ctx);
+    transfer::public_transfer(borrowed_coin, tx_context::sender(ctx));
+  }
+
+  public fun borrow_with_ticket<T>(
+    version: &Version,
+    obligation: &mut Obligation,
+    obligation_key: &ObligationKey,
+    market: &mut Market,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    borrow_amount: u64,
+    ticket: TicketForBorrowFeeDiscount,
+    x_oracle: &XOracle,
+    clock: &Clock,
+    ctx: &mut TxContext,
+  ): Coin<T> {
+    // check if version is supported
+    version::assert_current_version(version);
+
+    let borrowed_balance = borrow_internal<T>(
+      obligation, 
+      obligation_key, 
+      market, 
+      coin_decimals_registry, 
+      borrow_amount, 
+      option::some(ticket), 
+      x_oracle, 
+      clock, 
+      ctx
+    );
+
+    coin::from_balance(borrowed_balance, ctx)
   }
   
   public fun borrow<T>(
@@ -72,6 +105,32 @@ module protocol::borrow {
     // check if version is supported
     version::assert_current_version(version);
 
+    let borrowed_balance = borrow_internal<T>(
+      obligation, 
+      obligation_key, 
+      market, 
+      coin_decimals_registry, 
+      borrow_amount, 
+      option::none(), 
+      x_oracle, 
+      clock, 
+      ctx
+    );
+
+    coin::from_balance(borrowed_balance, ctx)
+  }
+
+  fun borrow_internal<T>(
+    obligation: &mut Obligation,
+    obligation_key: &ObligationKey,
+    market: &mut Market,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    borrow_amount: u64,
+    ticket_opt: Option<TicketForBorrowFeeDiscount>,
+    x_oracle: &XOracle,
+    clock: &Clock,
+    ctx: &mut TxContext,
+  ): Balance<T> {
     // check if sender is in whitelist
     assert!(
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
@@ -119,9 +178,17 @@ module protocol::borrow {
     obligation::increase_debt(obligation, coin_type, borrow_amount);
 
     // Deduct borrow fee
-    let borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
-    let borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), borrow_fee_key);
-    let borrow_fee_amount = fixed_point32::multiply_u64(borrow_amount, *borrow_fee_rate);
+    let base_borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
+    let base_borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), base_borrow_fee_key);
+    let base_borrow_fee_amount = fixed_point32::multiply_u64(borrow_amount, *base_borrow_fee_rate);
+
+    let borrow_fee_amount = if (option::is_some(&ticket_opt)) {
+      let ticket = option::extract(&mut ticket_opt);
+      let (borrowing_fee_discount_numerator, borrowing_fee_discount_denominator) = ticket_accesses::get_borrowing_fee_discount(&ticket);
+      base_borrow_fee_amount - u64::mul_div(base_borrow_fee_amount, borrowing_fee_discount_numerator, borrowing_fee_discount_denominator)
+    } else {
+      base_borrow_fee_amount
+    };
 
     // transfer the borrow fee to the recipient if borrow fee is not zero
     if (borrow_fee_amount > 0) {
@@ -144,6 +211,6 @@ module protocol::borrow {
       time: now,
     });
 
-    coin::from_balance(borrowed_balance, ctx)
+    borrowed_balance
   }
 }

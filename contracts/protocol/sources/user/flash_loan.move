@@ -64,8 +64,8 @@ module protocol::flash_loan {
   public fun borrow_flash_loan_with_ticket<T>(
     version: &Version,
     market: &mut Market,
-    ticket: TicketForFlashLoanFeeDiscount,
     amount: u64,
+    ticket: TicketForFlashLoanFeeDiscount,
     ctx: &mut TxContext,
   ): (Coin<T>, FlashLoan<T>) {
     // check if version is supported

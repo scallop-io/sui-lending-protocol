@@ -19,6 +19,7 @@ module protocol::market {
   use protocol::collateral_stats::{Self, CollateralStats, CollateralStat};
   use protocol::asset_active_state::{Self, AssetActiveStates};
   use protocol::error;
+  use protocol::ticket_accesses::TicketForFlashLoanFeeDiscount;
   use math::fixed_point32_empower;
 
   friend protocol::app;
@@ -264,6 +265,15 @@ module protocol::market {
     ctx: &mut TxContext,
   ): (Coin<T>, FlashLoan<T>) {
     reserve::borrow_flash_loan<T>(&mut self.vault, amount, ctx)
+  }
+
+  public(friend) fun borrow_flash_loan_with_ticket<T>(
+    self: &mut Market,
+    ticket: TicketForFlashLoanFeeDiscount,
+    amount: u64,
+    ctx: &mut TxContext,
+  ): (Coin<T>, FlashLoan<T>) {
+    reserve::borrow_flash_loan_with_ticket<T>(&mut self.vault, ticket, amount, ctx)
   }
 
   public(friend) fun repay_flash_loan<T>(

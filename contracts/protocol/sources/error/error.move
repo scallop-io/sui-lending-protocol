@@ -60,4 +60,9 @@ module protocol::error {
 
   // pool liquidity errors
   public fun pool_liquidity_not_enough_error(): u64 { 0x0014001 }
+
+  // ticket errors
+  public fun access_is_not_exist(): u64 { 0x0015001 }
+  public fun witness_cant_issue_ticket(): u64 { 0x0015002 }
+  public fun numerator_cant_be_greater_than_denominator(): u64 { 0x0015003 }
 }

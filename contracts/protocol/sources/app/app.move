@@ -18,7 +18,7 @@ module protocol::app {
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey};
 
   /// OTW
   struct APP has drop {}
@@ -394,5 +394,17 @@ module protocol::app {
 
     dynamic_field::remove_if_exists<BorrowFeeRecipientKey, address>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, recipient);
+  }
+
+  public entry fun update_supply_limit<T: drop>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    limit_amount: u64,
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::supply_limit_key(type_name::get<T>());
+
+    dynamic_field::remove_if_exists<SupplyLimitKey, u64>(market_uid_mut, key);
+    dynamic_field::add(market_uid_mut, key, limit_amount);
   }
 }

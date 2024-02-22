@@ -5,12 +5,15 @@ module protocol::mint {
   use sui::clock::{Self, Clock};
   use sui::event::emit;
   use sui::balance;
+  use sui::dynamic_field as df;
   use protocol::market::{Self, Market};
   use protocol::version::{Self, Version};
-  use protocol::reserve::MarketCoin;
+  use protocol::reserve::{Self, MarketCoin};
+  use protocol::market_dynamic_keys::{Self, SupplyLimitKey};
   use sui::transfer;
   use whitelist::whitelist;
   use protocol::error;
+  use x::wit_table;
 
   struct MintEvent has copy, drop {
     minter: address,
@@ -57,6 +60,16 @@ module protocol::mint {
 
     let now = clock::timestamp_ms(clock) / 1000;
     let deposit_amount = coin::value(&coin);
+
+    // check supply limit
+    let supply_limit_key = market_dynamic_keys::supply_limit_key(coin_type);
+    let supply_limit = *df::borrow<SupplyLimitKey, u64>(market::uid(market), supply_limit_key);
+
+    let balance_sheets = reserve::balance_sheets(market::vault(market));
+    let balance_sheet = wit_table::borrow(balance_sheets, coin_type);
+    let (balance_sheet_cash, balance_sheet_debt, balance_sheet_revenue, _) = reserve::balance_sheet(balance_sheet);
+    assert!(balance_sheet_cash + balance_sheet_debt - balance_sheet_revenue + deposit_amount <= supply_limit, error::supply_limit_reached());
+
     let mint_balance = market::handle_mint(market, coin::into_balance(coin), now);
     
     let sender = tx_context::sender(ctx);

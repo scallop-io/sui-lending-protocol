@@ -5,7 +5,7 @@ import {
 } from './chain-data';
 
 export const suiRiskModel: RiskModel = {
-  collateralFactor: 70,
+  collateralFactor: 75,
   liquidationFactor: 80,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
@@ -23,7 +23,7 @@ export const cetusRiskModel: RiskModel = {
 }
 
 export const wormholeEthRiskModel: RiskModel = {
-  collateralFactor: 70,
+  collateralFactor: 75,
   liquidationFactor: 80,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
@@ -32,7 +32,7 @@ export const wormholeEthRiskModel: RiskModel = {
 }
 
 export const wormholeUsdcRiskModel: RiskModel = {
-  collateralFactor: 80,
+  collateralFactor: 85,
   liquidationFactor: 90,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
@@ -41,7 +41,7 @@ export const wormholeUsdcRiskModel: RiskModel = {
 }
 
 export const wormholeUsdtRiskModel: RiskModel = {
-  collateralFactor: 80,
+  collateralFactor: 85,
   liquidationFactor: 90,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
@@ -50,8 +50,8 @@ export const wormholeUsdtRiskModel: RiskModel = {
 }
 
 export const afSuiRiskModel: RiskModel = {
-  collateralFactor: 65,
-  liquidationFactor: 70,
+  collateralFactor: 70,
+  liquidationFactor: 75,
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,

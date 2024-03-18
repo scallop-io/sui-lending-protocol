@@ -1,6 +1,7 @@
 module protocol::liquidate {
   
   use std::type_name::{Self, TypeName};
+  use std::fixed_point32::FixedPoint32;
   use sui::clock::{Self, Clock};
   use sui::object::{Self, ID};
   use sui::coin::{Self, Coin};
@@ -14,10 +15,12 @@ module protocol::liquidate {
   use protocol::version::{Self, Version};
   use protocol::liquidation_evaluator::liquidation_amounts;
   use protocol::error;
+  use protocol::price;
   use x_oracle::x_oracle::XOracle;
   use whitelist::whitelist;
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
 
+  #[allow(unused_field)]
   struct LiquidateEvent has copy, drop {
     liquidator: address,
     obligation: ID,
@@ -26,6 +29,18 @@ module protocol::liquidate {
     repay_on_behalf: u64,
     repay_revenue: u64,
     liq_amount: u64,
+  }
+
+  struct LiquidateEventV2 has copy, drop {
+    liquidator: address,
+    obligation: ID,
+    debt_type: TypeName,
+    collateral_type: TypeName,
+    repay_on_behalf: u64,
+    repay_revenue: u64,
+    liq_amount: u64,
+    collateral_price: FixedPoint32,
+    debt_price: FixedPoint32,
   }
   
   public entry fun liquidate_entry<DebtType, CollateralType>(
@@ -93,7 +108,7 @@ module protocol::liquidate {
     let revenue_balance = balance::split(&mut available_repay_balance, repay_revenue);
     market::handle_liquidation<DebtType, CollateralType>(market, repay_on_behalf_balance, revenue_balance, liq_amount);
 
-    emit(LiquidateEvent {
+    emit(LiquidateEventV2 {
       liquidator: tx_context::sender(ctx),
       obligation: object::id(obligation),
       debt_type: type_name::get<DebtType>(),
@@ -101,6 +116,8 @@ module protocol::liquidate {
       repay_on_behalf,
       repay_revenue,
       liq_amount,
+      collateral_price: price::get_price(x_oracle, type_name::get<CollateralType>(), clock),
+      debt_price: price::get_price(x_oracle, type_name::get<DebtType>(), clock),
     });
 
     // Send the remaining balance, and collateral balance to liquidator

@@ -1,3 +1,6 @@
+/// @title Module for handling the liquidation request
+/// @author Scallop Labs
+/// @notice Scallop adopts soft liquidation. Liquidation amount should be no bigger than the amount that would drecrease the risk level of obligation to 1.
 module protocol::liquidate {
   
   use std::type_name::{Self, TypeName};
@@ -42,7 +45,17 @@ module protocol::liquidate {
     collateral_price: FixedPoint32,
     debt_price: FixedPoint32,
   }
-  
+
+  /// @notice Liquidate the obligation if possible, transfer the remainning base asset and liquidated collateral to the liquidator
+  /// @dev This is a wrapper of `liquidate`, meant to be called by frontend.
+  /// @param version The version control object, contract version must match with this
+  /// @param obligation The obligation to be liquidated
+  /// @param market The Scallop market object, it contains base assets, and related protocol configs
+  /// @param available_repay_coin The base asset used to repay the debt for the obligation
+  /// @param coin_decimals_registry The registry object which contains the decimal information of coins
+  /// @param x_oracle The oracle object, used to get the price of the collateral and debt
+  /// @param clock The SUI system clock object, used to get the current timestamp
+  /// @param ctx The SUI transaction context object
   public entry fun liquidate_entry<DebtType, CollateralType>(
     version: &Version,
     obligation: &mut Obligation,
@@ -53,11 +66,26 @@ module protocol::liquidate {
     clock: &Clock,
     ctx: &mut TxContext,
   ) {
+
+    // Try to liquidate the obligation
     let (remain_coin, collateral_coin) = liquidate<DebtType, CollateralType>(version, obligation, market, available_repay_coin, coin_decimals_registry, x_oracle, clock, ctx);
+    // Transfer the remaining base asset back to the sender
     transfer::public_transfer(remain_coin, tx_context::sender(ctx));
+    // Transfer the liquiated collateral to the sender
     transfer::public_transfer(collateral_coin, tx_context::sender(ctx));
   }
-  
+
+  /// @notice Liquidate the obligation if possible, return the remaining base asset and liquidated collateral
+  /// @dev It's best to call `liquidation_evaluator::max_liquidation_amounts` to get the max liquidable amount before calling this function
+  /// @param version The version control object, contract version must match with this
+  /// @param obligation The obligation to be liquidated
+  /// @param market The Scallop market object, it contains base assets, and related protocol configs
+  /// @param available_repay_coin The base asset used to repay the debt for the obligation
+  /// @param coin_decimals_registry The registry object which contains the decimal information of coins
+  /// @param x_oracle The oracle object, used to get the price of the collateral and debt
+  /// @param clock The SUI system clock object, used to get the current timestamp
+  /// @param ctx The SUI transaction context object
+  /// @return the remaining base asset and liquidated collateral
   public fun liquidate<DebtType, CollateralType>(
     version: &Version,
     obligation: &mut Obligation,

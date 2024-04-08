@@ -1,3 +1,5 @@
+/// @title Module for flash loan from Scallop base asset pools
+/// @author Scallop Labs
 module protocol::flash_loan {
 
   use std::type_name::{Self, TypeName};
@@ -42,6 +44,14 @@ module protocol::flash_loan {
     fee: u64,
   }
 
+  /// @notice Borrow flash loan from Scallop market
+  /// @dev Flash loan is a loan that is borrowed and repaid in the same transaction
+  /// @param version The version control object, contract version must match with this
+  /// @param market The Scallop market object, it contains base assets, and related protocol configs
+  /// @param amount The amount of flash loan to borrow
+  /// @param ctx The SUI transaction context object
+  /// @return The borrowed coin object and the flash loan hot potato object
+  /// @custom:T The type of asset to borrow
   public fun borrow_flash_loan<T>(
     version: &Version,
     market: &mut Market,
@@ -61,6 +71,15 @@ module protocol::flash_loan {
     (coin, receipt)
   }
 
+  /// @notice Borrow flash loan from Scallop market
+  /// @dev This should be called by contracts which have access to issue flash loan fee discount tickets
+  /// @param version The version control object, contract version must match with this
+  /// @param market The Scallop market object, it contains base assets, and related protocol configs
+  /// @param amount The amount of flash loan to borrow
+  /// @param ticket The flash loan fee discount ticket
+  /// @param ctx The SUI transaction context object
+  /// @return The borrowed coin object and the flash loan hot potato object
+  /// @custom:T The type of asset to borrow
   public fun borrow_flash_loan_with_ticket<T>(
     version: &Version,
     market: &mut Market,
@@ -101,6 +120,8 @@ module protocol::flash_loan {
     );
 
     let (fee_discount_numerator, fee_discount_denominator) = (0, 1);
+
+    // Borrow the assets from market, and apply fee discount if any
     let (coin, receipt) = if (option::is_some(&ticket_opt)) {
       let fee_discount_ticket = option::extract(&mut ticket_opt);
       (fee_discount_numerator, fee_discount_denominator) = ticket_accesses::get_flash_loan_fee_discount(&fee_discount_ticket);
@@ -109,6 +130,7 @@ module protocol::flash_loan {
       market::borrow_flash_loan(market, amount, ctx)
     };
 
+    // Emit the borrow flash loan event
     emit(BorrowFlashLoanV2Event {
       borrower: tx_context::sender(ctx),
       asset: coin_type,
@@ -118,9 +140,18 @@ module protocol::flash_loan {
       fee_discount_denominator: fee_discount_denominator,
     });
 
+    // Return the borrowed coin object and the flash loan hot potato object
     (coin, receipt)
   }
 
+  /// @notice Repay flash loan to Scallop market
+  /// @dev This is the only method to repay flash loan, consume the flash loan hot potato object
+  /// @param version The version control object, contract version must match with this
+  /// @param market The Scallop market object, it contains base assets, and related protocol configs
+  /// @param coin The coin object to repay
+  /// @param loan The flash loan hot potato object, which contains the borrowed amount and fee
+  /// @ctx The SUI transaction context object
+  /// @custom:T The type of asset to repay
   public fun repay_flash_loan<T>(
     version: &Version,
     market: &mut Market,
@@ -131,6 +162,7 @@ module protocol::flash_loan {
     // check if version is supported
     version::assert_current_version(version);
 
+    // Emit the repay flash loan event
     emit(RepayFlashLoanV2Event {
       borrower: tx_context::sender(ctx),
       asset: type_name::get<T>(),
@@ -138,6 +170,7 @@ module protocol::flash_loan {
       fee: reserve::flash_loan_fee(&loan),
     });
 
+    // Put the asset back to the market and consume the flash loan hot potato object
     market::repay_flash_loan(market, coin, loan)
   }
 }

@@ -1,3 +1,5 @@
+/// @title A module dedicated for handling the borrow request from user
+/// @author Scallop Labs
 module protocol::borrow {
 
   use std::fixed_point32::{Self, FixedPoint32};
@@ -46,6 +48,18 @@ module protocol::borrow {
   }
 
 
+  /// @notice Borrow a certain amount of asset from the protocol and transfer it to the sender
+  /// @dev This function is not composable, and is intended to be called by the frontend
+  /// @param version The version control object, contract version must match with this
+  /// @param obligation The obligation object which contains the collateral and debt information
+  /// @param obligation_key The key to prove the ownership the obligation object
+  /// @param market The Scallop market object, it contains base assets, and related protocol configs
+  /// @param coin_decimals_registry The registry object which contains the decimal information of coins
+  /// @param borrow_amount The amount of asset to borrow
+  /// @param x_oracle The x-oracle object which provides the price of assets
+  /// @param clock The SUI system Clock object, 0x6
+  /// @param ctx The SUI transaction context object
+  /// @custom:T The type of the asset to borrow, such as 0x2::sui::SUI for SUI
   public entry fun borrow_entry<T>(
     version: &Version,
     obligation: &mut Obligation,
@@ -61,6 +75,20 @@ module protocol::borrow {
     transfer::public_transfer(borrowed_coin, tx_context::sender(ctx));
   }
 
+  /// @notice Borrow a certain amount of asset from the protocol with ticket for discount of borrowing fee
+  /// @dev This function is intended to be called by other contracts which have the access to issue TicketForBorrowingFeeDiscount
+  /// @param version The version control object, contract version must match with this
+  /// @param obligation The obligation object which contains the collateral and debt information
+  /// @param obligation_key The key to prove the ownership the obligation object
+  /// @param market The Scallop market object, it contains base assets, and related protocol configs
+  /// @param coin_decimals_registry The registry object which contains the decimal information of coins
+  /// @param borrow_amount The amount of asset to borrow
+  /// @param ticket The ticket object which contains the borrowing fee discount information
+  /// @param x_oracle The x-oracle object which provides the price of assets
+  /// @param clock The SUI system Clock object
+  /// @param ctx The SUI transaction context object
+  /// @custom:T The type of the asset to borrow, such as 0x2::sui::SUI for SUI
+  /// @return borrowed assets
   public fun borrow_with_ticket<T>(
     version: &Version,
     obligation: &mut Obligation,
@@ -90,7 +118,20 @@ module protocol::borrow {
 
     coin::from_balance(borrowed_balance, ctx)
   }
-  
+
+  /// @notice Borrow a certain amount of asset from the protocol
+  /// @dev This function is composable, third party contract call this method to borrow from Scallop
+  /// @param version The version control object, contract version must match with this
+  /// @param obligation The obligation object which contains the collateral and debt information
+  /// @param obligation_key The key to prove the ownership the obligation object
+  /// @param market The Scallop market object, it contains base assets, and related protocol configs
+  /// @param coin_decimals_registry The registry object which contains the decimal information of coins
+  /// @param borrow_amount The amount of asset to borrow
+  /// @param x_oracle The x-oracle object which provides the price of assets
+  /// @param clock The SUI system Clock object, 0x6
+  /// @param ctx The SUI transaction context object
+  /// @custom:T The type of the asset to borrow, such as 0x2::sui::SUI for SUI
+  /// @return borrowed assets
   public fun borrow<T>(
     version: &Version,
     obligation: &mut Obligation,
@@ -137,7 +178,8 @@ module protocol::borrow {
       error::whitelist_error()
     );
 
-    // check if obligation is locked
+    // check if obligation is locked, if locked, unlock operation is required before calling this function
+    // This is a mechanism to enforce some operations before calling the function
     assert!(
       obligation::borrow_locked(obligation) == false,
       error::obligation_locked()
@@ -152,14 +194,19 @@ module protocol::borrow {
     );
 
     let now = clock::timestamp_ms(clock) / 1000;
+
+    // Check the ownership of the obligation
     obligation::assert_key_match(obligation, obligation_key);
 
+    // Avoid the loop of collateralize and borrow of same assets
     assert!(!obligation::has_coin_x_as_collateral(obligation, coin_type), error::unable_to_borrow_a_collateral_coin());
-  
+
+    // Make sure the borrow amount is bigger than the minimum borrow amount
     let interest_model = market::interest_model(market, coin_type);
     let min_borrow_amount = interest_model::min_borrow_amount(interest_model);
     assert!(borrow_amount > min_borrow_amount, error::borrow_too_small_error());
-    
+
+    // Add borrow amount to the outflow limiter, if limit is reached then abort
     market::handle_outflow<T>(market, borrow_amount, now);
 
     // Always update market state first
@@ -168,8 +215,10 @@ module protocol::borrow {
     
     // init debt if borrow for the first time
     obligation::init_debt(obligation, market, coin_type);
+
     // accure interests & rewards for obligation
     obligation::accrue_interests_and_rewards(obligation, market);
+
     // calc the maximum borrow amount
     // If borrow too much, abort
     let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);
@@ -177,11 +226,12 @@ module protocol::borrow {
     // increase the debt for obligation
     obligation::increase_debt(obligation, coin_type, borrow_amount);
 
-    // Deduct borrow fee
+    // Calculate the base borrow fee
     let base_borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
     let base_borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), base_borrow_fee_key);
     let base_borrow_fee_amount = fixed_point32::multiply_u64(borrow_amount, *base_borrow_fee_rate);
 
+    // Apply the borrow fee discount if nay
     let borrow_fee_amount = if (option::is_some(&ticket_opt)) {
       let ticket = option::extract(&mut ticket_opt);
       let (borrowing_fee_discount_numerator, borrowing_fee_discount_denominator) = ticket_accesses::get_borrowing_fee_discount(&ticket);
@@ -190,18 +240,21 @@ module protocol::borrow {
       base_borrow_fee_amount
     };
 
-    // transfer the borrow fee to the recipient if borrow fee is not zero
+    // transfer the borrow fee to the fee collector address if borrow fee is not zero
     if (borrow_fee_amount > 0) {
-      // Get the borrow fee recipient
+      // Get the borrow fee collector address
       let borrow_fee_recipient_key = market_dynamic_keys::borrow_fee_recipient_key();
       let borrow_fee_recipient = dynamic_field::borrow<BorrowFeeRecipientKey, address>(market::uid(market), borrow_fee_recipient_key);
 
-      // Transfer the borrow fee
+      // Split the borrow fee from borrowed asset
       let borrow_fee = balance::split(&mut borrowed_balance, borrow_fee_amount);
       let borrow_fee_coin = coin::from_balance(borrow_fee, ctx);
+
+      // transfer fee to the collector address
       transfer::public_transfer(borrow_fee_coin, *borrow_fee_recipient);
     };
 
+    // Emit the borrow event
     emit(BorrowEventV2 {
       borrower: tx_context::sender(ctx),
       obligation: object::id(obligation),
@@ -211,6 +264,7 @@ module protocol::borrow {
       time: now,
     });
 
+    // Return the borrowed asset
     borrowed_balance
   }
 }

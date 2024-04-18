@@ -59,12 +59,12 @@ export const afSuiRiskModel: RiskModel = {
 }
 
 export const haSuiRiskModel: RiskModel = {
-  collateralFactor: 60,
-  liquidationFactor: 70,
+  collateralFactor: 70,
+  liquidationFactor: 75,
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.haSui + 3), // 1k haSUI
+  maxCollateralAmount: 10 ** (coinDecimals.haSui + 5), // 100k haSUI
 }
 
 export const vSuiRiskModel: RiskModel = {

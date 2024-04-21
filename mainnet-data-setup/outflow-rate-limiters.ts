@@ -28,6 +28,11 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  sca: {
+    outflowLimit: 10 ** (6 + coinDecimals.sca), // 1 million SCA per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
   cetus: {
     outflowLimit: 10 ** (6 + coinDecimals.cetus), // 1 million CETUS per day
     outflowCycleDuration,

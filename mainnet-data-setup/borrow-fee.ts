@@ -3,6 +3,7 @@ import type { BorrowFee } from 'contracts/protocol';
 
 export const borrowFees: Record<SupportedBaseAssets, BorrowFee> = {
   sui: { numerator: 1, denominator: 1000 },
+  sca: { numerator: 1, denominator: 1000 },
   cetus: { numerator: 1, denominator: 1000 },
   afSui: { numerator: 1, denominator: 1000 },
   haSui: { numerator: 1, denominator: 1000 },

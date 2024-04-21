@@ -33,6 +33,23 @@ export const suiInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.sui - 2), // 0.01 SUI
 };
 
+export const scaInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 60%
+  highKink, // 90%
+
+  revenueFactor, // 10%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.sca - 1), // 0.1 SCA
+}
+
 export const cetusInterestModel: InterestModel = {
   baseBorrowRatePerSec: 0,
   interestRateScale,
@@ -154,6 +171,7 @@ export const vSuiInterestModel: InterestModel = {
 
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sui: suiInterestModel,
+  sca: scaInterestModel,
   afSui: afSuiInterestModel,
   haSui: haSuiInterestModel,
   vSui: vSuiInterestModel,

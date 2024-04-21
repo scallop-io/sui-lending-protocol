@@ -3,6 +3,7 @@ import { SUI_TYPE_ARG } from '@mysten/sui.js';
 
 export type SupportedCollaterals =
   | 'sui'
+  | 'sca'
   | 'cetus'
   | 'afSui'
   | 'haSui'
@@ -14,6 +15,7 @@ export type SupportedCollaterals =
 
 export type SupportedBaseAssets =
   | 'sui'
+  | 'sca'
   | 'cetus'
   | 'afSui'
   | 'haSui'
@@ -25,6 +27,7 @@ export type SupportedBaseAssets =
 
 export const coinTypes = {
   sui: SUI_TYPE_ARG,
+  sca: '0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6::sca::SCA',
   cetus: '0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS',
   afSui: '0xf325ce1300e8dac124071d3152c5c5ee6174914f8bc2161e88329cf579246efc::afsui::AFSUI',
   haSui: '0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d::hasui::HASUI',
@@ -39,6 +42,7 @@ export const coinTypes = {
 
 export const coinMetadataIds = {
   sui: '0x9258181f5ceac8dbffb7030890243caed69a9599d2886d957a9cb7656af3bdb3',
+  sca: '0x5d26a1e9a55c88147ac870bfa31b729d7f49f8804b8b3adfdf3582d301cca844',
   cetus: '0x4c0dce55eff2db5419bbd2d239d1aa22b4a400c01bbb648b058a9883989025da',
   afSui: '0x2f9217f533e51334873a39b8026a4aa6919497b47f49d0986a4f1aec66f8a34d',
   haSui: '0x2c5f33af93f6511df699aaaa5822d823aac6ed99d4a0de2a4a50b3afa0172e24',
@@ -53,6 +57,7 @@ export const coinMetadataIds = {
 
 export const coinDecimals = {
   sui: 9,
+  sca: 9,
   cetus: 9,
   afSui: 9,
   haSui: 9,

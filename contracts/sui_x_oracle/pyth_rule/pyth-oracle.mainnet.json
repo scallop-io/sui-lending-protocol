@@ -20,6 +20,10 @@
       "priceFeedId": "2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
       "priceFeedObjectId": "0x985e3db9f93f76ee8bace7c3dd5cc676a096accd5d9e09e9ae0fb6e492b14572"
     },
+    "sca_usd": {
+      "priceFeedId": "7e17f0ac105abe9214deb9944c30264f5986bf292869c6bd8e8da3ccd92d79bc",
+      "priceFeedObjectId": "0xf6de1d3279a269a597d813cbaca59aa906543ab9a8c64e84a4722f1a20863985"
+    },
     "sui_usd": {
       "priceFeedId": "23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744",
       "priceFeedObjectId": "0x801dbc2f0053d34734814b2d6df491ce7807a725fe9a01ad74a07e9c51396c37"

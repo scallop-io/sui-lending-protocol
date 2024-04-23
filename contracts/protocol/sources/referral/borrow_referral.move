@@ -5,7 +5,7 @@
 ///         Later in the authorized package will be responsible for distributing the referral revenue to the referrer.
 module protocol::borrow_referral {
 
-  use std::type_name::TypeName;
+  use std::type_name::{Self, TypeName};
   use sui::balance;
   use sui::object::{Self, UID};
   use sui::vec_set::{Self, VecSet};
@@ -14,6 +14,8 @@ module protocol::borrow_referral {
   use sui::tx_context::TxContext;
   use sui::transfer;
   use math::u64;
+  use sui::dynamic_field;
+  use sui::dynamic_object_field;
 
   // This is the base for calculating the fee for borrowing and referral
   const BASE_FOR_FEE: u64 = 100;
@@ -23,13 +25,17 @@ module protocol::borrow_referral {
   const ERROR_FEE_DISCOUNT_TOO_HIGH: u64 = 712;
 
   // This is a hot potato object, which can only be consumed by the authorized package
-  struct BorrowReferral<phantom CoinType, Witness> has key, store, drop {
+  struct BorrowReferral<phantom CoinType, Witness> {
     id: UID,
     borrow_fee_discount: u64, // The percentage of the borrow fee that will be discounted for the borrower
     referral_share: u64, // The percentage of the borrow fee that will be shared with the referrer
     referral_fee: Balance<CoinType>,
     witness: Witness
   }
+
+  // This is the dynamic field key to store the config data on the borrow referral object
+  // Usually, the authorized package needs to store some custom data on the borrow referral object
+  struct BorrowReferralCfgKey<phantom Cfg> has copy, store, drop {}
 
   // This object manages the list of authorized package types
   struct AuthorizedWitnessList has key {
@@ -56,9 +62,9 @@ module protocol::borrow_referral {
   /// @param ctx The SUI transaction context object
   /// @custom:CoinType The type of the coin to borrow
   /// @custom:Witness The type of the witness issued by the authorized package
-  public fun create_borrow_referral<CoinType, Witness: store + drop>(
+  public fun create_borrow_referral<CoinType, Witness: drop>(
     witness: Witness,
-    authorized_witness_list: AuthorizedWitnessList,
+    authorized_witness_list: &AuthorizedWitnessList,
     borrow_fee_discount: u64,
     referral_share: u64,
     ctx: &mut TxContext
@@ -86,11 +92,11 @@ module protocol::borrow_referral {
   /// @return The discounted borrow fee amount
   /// @custom:CoinType The type of the coin to borrow
   /// @custom:Witness The type of the witness issued by the authorized package
-  public fun calc_discounted_borrow_fee<CoinType, Witness: store + drop>(
-    borrow_referral: BorrowReferral<CoinType, Witness>,
+  public fun calc_discounted_borrow_fee<CoinType, Witness: drop>(
+    borrow_referral: &BorrowReferral<CoinType, Witness>,
     original_borrow_fee: u64,
   ): u64 {
-    u64::mul_div(original_borrow_fee, borrow_referral.borrow_fee_discount, BASE_FOR_FEE);
+    u64::mul_div(original_borrow_fee, borrow_referral.borrow_fee_discount, BASE_FOR_FEE)
   }
 
   /// @notice Calculate the referral fee, which is the share of the borrow fee that will be shared with the referrer
@@ -100,8 +106,8 @@ module protocol::borrow_referral {
   /// @return The referral fee amount
   /// @custom:CoinType The type of the coin to borrow
   /// @custom:Witness The type of the witness issued by the authorized package
-  public fun calc_referral_fee<CoinType, Witness: store + drop>(
-    borrow_referral: BorrowReferral<CoinType, Witness>,
+  public fun calc_referral_fee<CoinType, Witness: drop>(
+    borrow_referral: &BorrowReferral<CoinType, Witness>,
     original_borrow_fee: u64,
   ): u64 {
     u64::mul_div(original_borrow_fee, borrow_referral.referral_share, BASE_FOR_FEE)
@@ -113,11 +119,38 @@ module protocol::borrow_referral {
   /// @param referral_fee The referral fee
   /// @custom:CoinType The type of the coin to borrow
   /// @custom:Witness The type of the witness issued by the authorized package
-  public fun put_referral_fee<CoinType, Witness: store + drop>(
-    borrow_referral: BorrowReferral<CoinType, Witness>,
+  public fun put_referral_fee<CoinType, Witness: drop>(
+    borrow_referral: &mut BorrowReferral<CoinType, Witness>,
     referral_fee: Balance<CoinType>,
   ) {
     balance::join(&mut borrow_referral.referral_fee, referral_fee);
+  }
+
+  /// @notice Add a custom config data to the borrow referral object
+  /// @dev This is meant to be called by the authorized package to add custom config data to the borrow referral object
+  /// @param borrow_referral The borrow referral object
+  /// @param cfg The custom config data
+  /// @custom:CoinType The type of the coin to borrow
+  /// @custom:Witness The type of the witness issued by the authorized package
+  /// @custom:Cfg The type of the custom config data
+  public fun add_referral_cfg<CoinType, Witness: drop, Cfg: store + drop>(
+    borrow_referral: &mut BorrowReferral<CoinType, Witness>,
+    cfg: Cfg
+  ) {
+    dynamic_field::add(&mut borrow_referral.id, BorrowReferralCfgKey<Cfg> {}, cfg);
+  }
+
+  /// @notice Get the custom config data from the borrow referral object
+  /// @dev This is meant to be called by the authorized package to get the custom config data from the borrow referral object
+  /// @param borrow_referral The borrow referral object
+  /// @return The custom config data
+  /// @custom:CoinType The type of the coin to borrow
+  /// @custom:Witness The type of the witness issued by the authorized package
+  /// @custom:Cfg The type of the custom config data
+  public fun get_referral_cfg<CoinType, Witness: drop, Cfg: store + drop>(
+    borrow_referral: &BorrowReferral<CoinType, Witness>,
+  ): &Cfg {
+    dynamic_field::borrow(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {})
   }
 
   /// @notice Destroy the borrow referral object
@@ -127,21 +160,21 @@ module protocol::borrow_referral {
   /// @return The referral fee
   /// @custom:CoinType The type of the coin to borrow
   /// @custom:Witness The type of the witness issued by the authorized package
-  public fun destroy_borrow_referral<CoinType, Witness: store + drop>(
+  public fun destroy_borrow_referral<CoinType, Witness: drop>(
     _: Witness,
-    borrow_fee_referral: BorrowFeeReferral<CoinType, Witness>,
+    borrow_fee_referral: BorrowReferral<CoinType, Witness>,
   ): Balance<CoinType> {
     // Delete the object
-    let BorrowFeeReferral { id, borrower_discount: _, referral_revenue, authorized_witness: _ } = borrow_fee_referral;
+    let BorrowReferral { id, borrow_fee_discount: _, referral_share: _, referral_fee, witness: _ } = borrow_fee_referral;
     object::delete(id);
 
-    referral_revenue
+    referral_fee
   }
 
   /// @notice Make sure the caller is an authorized package
   /// @custom:Witness The type of the witness issued by the authorized package
-  public fun assert_authorized_witness<Witness: store + drop>(
-    authorized_witness_list: AuthorizedWitnessList,
+  public fun assert_authorized_witness<Witness: drop>(
+    authorized_witness_list: &AuthorizedWitnessList,
   ) {
     let is_authorized = vec_set::contains(&authorized_witness_list.witness_list, &type_name::get<Witness>());
     assert!(is_authorized, ERROR_NOT_AUTHORIZED)

@@ -187,6 +187,30 @@ export class ProtocolTxBuilder {
     );
   }
 
+  updateOutflowLimit(
+    suiTxBlock: SuiTxBlock,
+    outflowLimiterModel: OutflowLimiterModel,
+    coinType: string,
+  ) {
+    const limitChange = suiTxBlock.moveCall(
+      `${this.packageId}::app::create_limiter_limit_change`,
+      [
+        this.adminCapId,
+        outflowLimiterModel.outflowLimit,
+      ],
+      [coinType],
+    );
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::apply_limiter_limit_change`,
+      [
+        this.adminCapId,
+        this.marketId,
+        limitChange,
+      ],
+      [coinType],
+    );
+  }
+
   addWhitelistAddress(
     suiTxBlock: SuiTxBlock,
     address: string,

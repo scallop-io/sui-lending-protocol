@@ -10,7 +10,7 @@ export const suiRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 3 * 10 ** (coinDecimals.sui), // 30 million SUI
+  maxCollateralAmount: 3 * 10 ** (coinDecimals.sui + 7), // 30 million SUI
 };
 
 export const cetusRiskModel: RiskModel = {

@@ -10,7 +10,7 @@ export const suiRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 3 * 10 ** (coinDecimals.sui + 7), // 30 million SUI
+  maxCollateralAmount: 10 ** (coinDecimals.sui + 8), // 100 million SUI
 };
 
 export const cetusRiskModel: RiskModel = {
@@ -37,7 +37,7 @@ export const wormholeUsdcRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 3 * 10 ** (coinDecimals.wormholeUsdc + 7), // 30 million USDC
+  maxCollateralAmount: 10 ** (coinDecimals.wormholeUsdc + 8), // 100 million USDC
 }
 
 export const wormholeUsdtRiskModel: RiskModel = {
@@ -46,7 +46,7 @@ export const wormholeUsdtRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 3 * 10 ** (coinDecimals.wormholeUsdt + 7), // 30 million USDT
+  maxCollateralAmount: 10 ** (coinDecimals.wormholeUsdt + 8), // 100 million USDT
 }
 
 export const scaRiskModel: RiskModel = {
@@ -64,7 +64,7 @@ export const afSuiRiskModel: RiskModel = {
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.afSui + 7), // 10 million afSUI
+  maxCollateralAmount: 2 * 10 ** (coinDecimals.afSui + 7), // 20 million afSUI
 }
 
 export const haSuiRiskModel: RiskModel = {
@@ -73,7 +73,7 @@ export const haSuiRiskModel: RiskModel = {
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,
-  maxCollateralAmount: 5 * 10 ** (coinDecimals.haSui + 6), // 5 million haSUI
+  maxCollateralAmount: 2 * 10 ** (coinDecimals.haSui + 7), // 20 million haSUI
 }
 
 export const vSuiRiskModel: RiskModel = {

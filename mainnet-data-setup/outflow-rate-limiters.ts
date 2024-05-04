@@ -9,27 +9,27 @@ const outflowSegmentDuration = 60 * 30 // 30 minutes
 
 export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterModel> = {
   sui: {
-    outflowLimit: 4 * 10 ** (7 + coinDecimals.sui), // 40 million SUI per day
+    outflowLimit: 3 * 10 ** (6 + coinDecimals.sui), // 3 million SUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   afSui: {
-    outflowLimit: 5 * 10 ** (6 + coinDecimals.afSui), // 5 million afSUI per day
+    outflowLimit: 10 ** (6 + coinDecimals.afSui), // 1 million afSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   haSui: {
-    outflowLimit: 5 * 10 ** (6 + coinDecimals.haSui), // 5 million haSUI per day
+    outflowLimit: 5 * 10 ** (5 + coinDecimals.haSui), // 500K haSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   vSui: {
-    outflowLimit: 5 * 10 ** (6 + coinDecimals.vSui), // 5 million vSUI per day
+    outflowLimit: 5 * 10 ** (5 + coinDecimals.vSui), // 500K vSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   sca: {
-    outflowLimit: 10 ** (6 + coinDecimals.sca), // 1 million SCA per day
+    outflowLimit: 2 * 10 ** (5 + coinDecimals.sca), // 200k SCA per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
@@ -39,17 +39,17 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   wormholeEth: {
-    outflowLimit: 2 * 10 ** (4 + coinDecimals.wormholeEth), // 20,000 ETH per day
+    outflowLimit: 5 * 10 ** (2 + coinDecimals.wormholeEth), // 500 ETH per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   wormholeUsdc: {
-    outflowLimit: 4 * 10 ** (7 + coinDecimals.wormholeUsdc), // 40 million USDC per day
+    outflowLimit: 3 * 10 ** (6 + coinDecimals.wormholeUsdc), // 3 million USDC per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   wormholeUsdt: {
-    outflowLimit: 4 * 10 ** (7 + coinDecimals.wormholeUsdt), // 40 million USDT per day
+    outflowLimit: 3 * 10 ** (6 + coinDecimals.wormholeUsdt), // 3 million USDT per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },

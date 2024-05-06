@@ -21,10 +21,8 @@ module protocol::borrow {
   use protocol::interest_model;
   use protocol::error;
   use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey};
-  use protocol::ticket_accesses::{Self, TicketForBorrowingFeeDiscount};
 
   use x_oracle::x_oracle::XOracle;
-  use math::u64;
   use whitelist::whitelist;
   use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
 
@@ -75,50 +73,6 @@ module protocol::borrow {
     transfer::public_transfer(borrowed_coin, tx_context::sender(ctx));
   }
 
-  /// @notice Borrow a certain amount of asset from the protocol with ticket for discount of borrowing fee
-  /// @dev This function is intended to be called by other contracts which have the access to issue TicketForBorrowingFeeDiscount
-  /// @param version The version control object, contract version must match with this
-  /// @param obligation The obligation object which contains the collateral and debt information
-  /// @param obligation_key The key to prove the ownership the obligation object
-  /// @param market The Scallop market object, it contains base assets, and related protocol configs
-  /// @param coin_decimals_registry The registry object which contains the decimal information of coins
-  /// @param borrow_amount The amount of asset to borrow
-  /// @param ticket The ticket object which contains the borrowing fee discount information
-  /// @param x_oracle The x-oracle object which provides the price of assets
-  /// @param clock The SUI system Clock object
-  /// @param ctx The SUI transaction context object
-  /// @custom:T The type of the asset to borrow, such as 0x2::sui::SUI for SUI
-  /// @return borrowed assets
-  public fun borrow_with_ticket<T>(
-    version: &Version,
-    obligation: &mut Obligation,
-    obligation_key: &ObligationKey,
-    market: &mut Market,
-    coin_decimals_registry: &CoinDecimalsRegistry,
-    borrow_amount: u64,
-    ticket: TicketForBorrowingFeeDiscount,
-    x_oracle: &XOracle,
-    clock: &Clock,
-    ctx: &mut TxContext,
-  ): Coin<T> {
-    // check if version is supported
-    version::assert_current_version(version);
-
-    let borrowed_balance = borrow_internal<T>(
-      obligation, 
-      obligation_key, 
-      market, 
-      coin_decimals_registry, 
-      borrow_amount, 
-      option::some(ticket), 
-      x_oracle, 
-      clock, 
-      ctx
-    );
-
-    coin::from_balance(borrowed_balance, ctx)
-  }
-
   /// @notice Borrow a certain amount of asset from the protocol
   /// @dev This function is composable, third party contract call this method to borrow from Scallop
   /// @param version The version control object, contract version must match with this
@@ -152,8 +106,7 @@ module protocol::borrow {
       market, 
       coin_decimals_registry, 
       borrow_amount, 
-      option::none(), 
-      x_oracle, 
+      x_oracle,
       clock, 
       ctx
     );
@@ -167,7 +120,6 @@ module protocol::borrow {
     market: &mut Market,
     coin_decimals_registry: &CoinDecimalsRegistry,
     borrow_amount: u64,
-    ticket_opt: Option<TicketForBorrowingFeeDiscount>,
     x_oracle: &XOracle,
     clock: &Clock,
     ctx: &mut TxContext,
@@ -231,23 +183,14 @@ module protocol::borrow {
     let base_borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), base_borrow_fee_key);
     let base_borrow_fee_amount = fixed_point32::multiply_u64(borrow_amount, *base_borrow_fee_rate);
 
-    // Apply the borrow fee discount if nay
-    let borrow_fee_amount = if (option::is_some(&ticket_opt)) {
-      let ticket = option::extract(&mut ticket_opt);
-      let (borrowing_fee_discount_numerator, borrowing_fee_discount_denominator) = ticket_accesses::get_borrowing_fee_discount(&ticket);
-      base_borrow_fee_amount - u64::mul_div(base_borrow_fee_amount, borrowing_fee_discount_numerator, borrowing_fee_discount_denominator)
-    } else {
-      base_borrow_fee_amount
-    };
-
     // transfer the borrow fee to the fee collector address if borrow fee is not zero
-    if (borrow_fee_amount > 0) {
+    if (base_borrow_fee_amount > 0) {
       // Get the borrow fee collector address
       let borrow_fee_recipient_key = market_dynamic_keys::borrow_fee_recipient_key();
       let borrow_fee_recipient = dynamic_field::borrow<BorrowFeeRecipientKey, address>(market::uid(market), borrow_fee_recipient_key);
 
       // Split the borrow fee from borrowed asset
-      let borrow_fee = balance::split(&mut borrowed_balance, borrow_fee_amount);
+      let borrow_fee = balance::split(&mut borrowed_balance, base_borrow_fee_amount);
       let borrow_fee_coin = coin::from_balance(borrow_fee, ctx);
 
       // transfer fee to the collector address
@@ -255,12 +198,11 @@ module protocol::borrow {
     };
 
     // Emit the borrow event
-    emit(BorrowEventV2 {
+    emit(BorrowEvent {
       borrower: tx_context::sender(ctx),
       obligation: object::id(obligation),
       asset: coin_type,
       amount: borrow_amount,
-      borrow_fee: borrow_fee_amount,
       time: now,
     });
 

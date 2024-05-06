@@ -29,6 +29,7 @@ module protocol::borrow_referral {
     id: UID,
     borrow_fee_discount: u64, // The percentage of the borrow fee that will be discounted for the borrower
     referral_share: u64, // The percentage of the borrow fee that will be shared with the referrer
+    borrowed: u64, // The amount of coin borrowed using this referral object
     referral_fee: Balance<CoinType>,
     witness: Witness
   }
@@ -41,6 +42,23 @@ module protocol::borrow_referral {
   struct AuthorizedWitnessList has key {
     id: UID,
     witness_list: VecSet<TypeName>
+  }
+
+  // ================= Read methods =============== //
+  public fun  borrow_fee_discount<CoinType, Witness>(borrow_referral: &BorrowReferral<CoinType, Witness>): u64 {
+    borrow_referral.borrow_fee_discount
+  }
+
+  public fun borrowed<CoinType, Witness>(borrow_referral: &BorrowReferral<CoinType, Witness>): u64 {
+    borrow_referral.borrowed
+  }
+
+  public fun referral_share<CoinType, Witness>(borrow_referral: &BorrowReferral<CoinType, Witness>): u64 {
+    borrow_referral.referral_share
+  }
+
+  public fun fee_rate_base(): u64 {
+    BASE_FOR_FEE
   }
 
 
@@ -78,6 +96,7 @@ module protocol::borrow_referral {
     // Create the referral object
     BorrowReferral {
       id: object::new(ctx),
+      borrowed: 0,
       borrow_fee_discount,
       referral_share,
       referral_fee: balance::zero<CoinType>(),
@@ -165,7 +184,14 @@ module protocol::borrow_referral {
     borrow_fee_referral: BorrowReferral<CoinType, Witness>,
   ): Balance<CoinType> {
     // Delete the object
-    let BorrowReferral { id, borrow_fee_discount: _, referral_share: _, referral_fee, witness: _ } = borrow_fee_referral;
+    let BorrowReferral {
+      id,
+      borrowed: _,
+      borrow_fee_discount: _,
+      referral_share: _,
+      witness: _,
+      referral_fee,
+    } = borrow_fee_referral;
     object::delete(id);
 
     referral_fee

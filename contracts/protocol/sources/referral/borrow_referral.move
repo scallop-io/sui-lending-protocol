@@ -10,12 +10,10 @@ module protocol::borrow_referral {
   use sui::object::{Self, UID};
   use sui::vec_set::{Self, VecSet};
   use sui::balance::Balance;
-  use sui::coin::balance;
   use sui::tx_context::TxContext;
   use sui::transfer;
   use math::u64;
   use sui::dynamic_field;
-  use sui::dynamic_object_field;
 
   // This is the base for calculating the fee for borrowing and referral
   const BASE_FOR_FEE: u64 = 100;
@@ -143,6 +141,14 @@ module protocol::borrow_referral {
     referral_fee: Balance<CoinType>,
   ) {
     balance::join(&mut borrow_referral.referral_fee, referral_fee);
+  }
+
+  /// @notice Set the borrowed amount for this referral object
+  public fun set_borrowed<CoinType, Witness: drop>(
+    borrow_referral: &mut BorrowReferral<CoinType, Witness>,
+    borrowed: u64
+  ) {
+    borrow_referral.borrowed = borrowed;
   }
 
   /// @notice Add a custom config data to the borrow referral object

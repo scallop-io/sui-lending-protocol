@@ -264,11 +264,13 @@ module protocol::borrow {
     transfer::public_transfer(final_borrow_fee_coin, *borrow_fee_recipient);
 
     // Emit the borrow event
-    emit(BorrowEvent {
+    emit(BorrowEventV2 {
       borrower: tx_context::sender(ctx),
       obligation: object::id(obligation),
       asset: coin_type,
       amount: borrow_amount,
+      // borrow fee that protocol received
+      borrow_fee: final_borrow_fee_amount,
       time: now,
     });
 

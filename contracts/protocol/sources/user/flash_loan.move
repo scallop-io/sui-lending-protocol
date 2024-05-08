@@ -31,6 +31,7 @@ module protocol::flash_loan {
     asset: TypeName,
     amount: u64,
     fee: u64,
+    // reserved
     fee_discount_numerator: u64,
     fee_discount_denominator: u64,
   }
@@ -89,9 +90,12 @@ module protocol::flash_loan {
     let (coin, receipt) = market::borrow_flash_loan<T>(market, amount, ctx);
 
     // Emit the borrow flash loan event
-    emit(BorrowFlashLoanEvent {
+    emit(BorrowFlashLoanV2Event {
       borrower: tx_context::sender(ctx),
       asset: coin_type,
+      fee: reserve::flash_loan_fee(&receipt),
+      fee_discount_denominator: 0,
+      fee_discount_numerator: 0,
       amount,
     });
 

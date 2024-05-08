@@ -19,17 +19,17 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   haSui: {
-    outflowLimit: 10 ** (6 + coinDecimals.haSui), // 1 million haSUI per day
+    outflowLimit: 5 * 10 ** (5 + coinDecimals.haSui), // 500K haSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   vSui: {
-    outflowLimit: 10 ** (4 + coinDecimals.vSui), // 10k vSUI per day
+    outflowLimit: 5 * 10 ** (5 + coinDecimals.vSui), // 500K vSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   sca: {
-    outflowLimit: 10 ** (6 + coinDecimals.sca), // 1 million SCA per day
+    outflowLimit: 2 * 10 ** (5 + coinDecimals.sca), // 200k SCA per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
@@ -39,7 +39,7 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   wormholeEth: {
-    outflowLimit: 5 * 10 ** (3 + coinDecimals.wormholeEth), // 5000 ETH per day
+    outflowLimit: 5 * 10 ** (2 + coinDecimals.wormholeEth), // 500 ETH per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },

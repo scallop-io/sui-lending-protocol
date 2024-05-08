@@ -20,6 +20,7 @@ export const updateBorrowFee = () => {
     {type: coinTypes.wormholeUsdc, borrowFee: borrowFees.wormholeUsdc},
     {type: coinTypes.wormholeUsdt, borrowFee: borrowFees.wormholeUsdt},
     {type: coinTypes.wormholeEth, borrowFee: borrowFees.wormholeEth},
+    {type: coinTypes.sca, borrowFee: borrowFees.sca},
   ];
 
   borrowFeePairs.forEach(pair => {

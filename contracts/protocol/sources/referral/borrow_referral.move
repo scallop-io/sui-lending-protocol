@@ -15,6 +15,8 @@ module protocol::borrow_referral {
   use math::u64;
   use sui::dynamic_field;
 
+  friend protocol::app;
+
   // This is the base for calculating the fee for borrowing and referral
   const BASE_FOR_FEE: u64 = 100;
 
@@ -210,5 +212,48 @@ module protocol::borrow_referral {
   ) {
     let is_authorized = vec_set::contains(&authorized_witness_list.witness_list, &type_name::get<Witness>());
     assert!(is_authorized, ERROR_NOT_AUTHORIZED)
+  }
+
+  // ================ For managing the witness of referral =============== //
+
+  /// @notice Adding authorized referral package
+  /// @dev This is meant to be called by the admin of Scallop
+  /// @custom:Witness The type of the witness issued by the authorized package
+  public(friend) fun add_witness<Witness: drop>(
+    authorized_witness_list: &mut AuthorizedWitnessList,
+  ) {
+    let witness_type = type_name::get<Witness>();
+    if (vec_set::contains(&authorized_witness_list.witness_list, &witness_type) == false) {
+      vec_set::insert(
+        &mut authorized_witness_list.witness_list,
+        witness_type
+      );
+    };
+  }
+
+  /// @notice Removing authorized referral package
+  /// @dev This is meant to be called by the admin of Scallop
+  /// @custom:Witness The type of the witness issued by the authorized package
+  public(friend) fun remove_witness<Witness: drop>(
+    authorized_witness_list: &mut AuthorizedWitnessList,
+  ) {
+    let witness_type = type_name::get<Witness>();
+    if (vec_set::contains(&authorized_witness_list.witness_list, &witness_type) == true) {
+      vec_set::remove(
+        &mut authorized_witness_list.witness_list,
+        &witness_type
+      );
+    };
+  }
+
+  /// @notice Creating the witness list
+  /// @dev The admin need to make sure only call this function for once
+  /// @custom:Witness The type of the witness issued by the authorized package
+  public(friend) fun create_witness_list(ctx: &mut TxContext) {
+    let witness_list = AuthorizedWitnessList {
+      id: object::new(ctx),
+      witness_list: vec_set::empty()
+    };
+    transfer::share_object(witness_list);
   }
 }

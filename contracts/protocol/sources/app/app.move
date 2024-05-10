@@ -19,6 +19,7 @@ module protocol::app {
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
   use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey};
+  use protocol::borrow_referral::{Self, AuthorizedWitnessList};
 
   /// OTW
   struct APP has drop {}
@@ -406,5 +407,30 @@ module protocol::app {
 
     dynamic_field::remove_if_exists<SupplyLimitKey, u64>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, limit_amount);
+  }
+
+  /// notice This is for admin to init the referral witness list
+  /// dev Make sure only call this function once to have only 1 witness list
+  public entry fun create_referral_witness_list<T: drop>(
+    _admin_cap: &AdminCap,
+    ctx: &mut TxContext
+  ) {
+    borrow_referral::create_witness_list(ctx);
+  }
+
+  /// notice This is for admin to authorize external referral program package
+  public entry fun add_referral_witness_list<T: drop>(
+    _admin_cap: &AdminCap,
+    witness_list: &mut AuthorizedWitnessList
+  ) {
+    borrow_referral::add_witness<T>(witness_list);
+  }
+
+  /// notice This is for admin to remove the authorization of external referral program
+  public entry fun remove_referral_witness_list<T: drop>(
+    _admin_cap: &AdminCap,
+    witness_list: &mut AuthorizedWitnessList
+  ) {
+    borrow_referral::remove_witness<T>(witness_list);
   }
 }

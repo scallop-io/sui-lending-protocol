@@ -61,4 +61,9 @@ module protocol::error {
   // pool liquidity errors
   public fun pool_liquidity_not_enough_error(): u64 { 0x0014001 }
   public fun supply_limit_reached(): u64 { 0x0014002 }
+  public fun collateral_not_enough(): u64 { 0x0014003 }
+  public fun reserve_not_enough_error(): u64 { 0x0014004 }
+
+  // repay
+  public fun zero_repay_amount_error(): u64 { 0x0015001 }
 }

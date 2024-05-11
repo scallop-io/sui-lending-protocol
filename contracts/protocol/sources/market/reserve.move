@@ -123,6 +123,7 @@ module protocol::reserve {
     amount: u64
   ): Balance<T> {
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    assert!(balance_sheet.cash >= amount, error::reserve_not_enough_error());
     balance_sheet.cash = balance_sheet.cash - amount;
     balance_sheet.debt = balance_sheet.debt + amount;
 
@@ -187,6 +188,8 @@ module protocol::reserve {
       balance_sheet.cash + balance_sheet.debt - balance_sheet.revenue,
       balance_sheet.market_coin_supply
     );
+
+    assert!(balance_sheet.cash >= redeem_amount, error::reserve_not_enough_error());
 
     // Update balance sheet
     balance_sheet.cash = balance_sheet.cash - redeem_amount;

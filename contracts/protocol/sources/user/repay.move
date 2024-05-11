@@ -46,6 +46,8 @@ module protocol::repay {
     // Check contract version
     version::assert_current_version(version);
 
+    assert!(coin::value(&user_coin) > 0, error::zero_repay_amount_error());
+
     // check if sender is in whitelist
     assert!(
       whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),

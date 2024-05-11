@@ -43,6 +43,7 @@ module protocol::error {
   // admin
   public fun interest_model_type_not_match_error(): u64 { 0x0000901 }
   public fun risk_model_type_not_match_error(): u64 { 0x0000902 }
+  public fun invalid_params_error(): u64 { 0x0000903 }
 
   // misc
   public fun outflow_reach_limit_error(): u64 { 0x0001001 }

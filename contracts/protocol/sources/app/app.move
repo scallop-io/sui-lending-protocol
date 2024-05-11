@@ -15,6 +15,7 @@ module protocol::app {
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
   use protocol::incentive_rewards;
+  use protocol::error;
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
@@ -377,6 +378,8 @@ module protocol::app {
     fee_numerator: u64,
     fee_denominator: u64,
   ) {
+    assert!(fee_numerator <= fee_denominator, error::invalid_params_error());
+
     let market_uid_mut = market::uid_mut(market);
     let key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
     let fee = fixed_point32::create_from_rational(fee_numerator, fee_denominator);

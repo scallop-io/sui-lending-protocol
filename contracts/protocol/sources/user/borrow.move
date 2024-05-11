@@ -246,9 +246,19 @@ module protocol::borrow {
     let base_borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), base_borrow_fee_key);
     let base_borrow_fee_amount = fixed_point32::multiply_u64(borrow_amount, *base_borrow_fee_rate);
 
+    let referral_fee_amount = if (borrow_fee_referral_share > 0) {
+      u64::mul_div(base_borrow_fee_amount, borrow_fee_referral_share, 100)
+    } else {
+      0
+    };
+
+    let deducted_borrow_fee_amount = if (borrow_fee_discount > 0) {
+      u64::mul_div(base_borrow_fee_amount, borrow_fee_discount, 100)
+    } else {
+      0
+    };
+
     // Calculate the referral fee and deducted fee
-    let referral_fee_amount = u64::mul_div(base_borrow_fee_amount, borrow_fee_referral_share, 100);
-    let deducted_borrow_fee_amount = u64::mul_div(base_borrow_fee_amount, borrow_fee_discount, 100);
     let final_borrow_fee_amount = base_borrow_fee_amount - referral_fee_amount - deducted_borrow_fee_amount;
     // Get the borrow fee collector address
     let borrow_fee_recipient_key = market_dynamic_keys::borrow_fee_recipient_key();

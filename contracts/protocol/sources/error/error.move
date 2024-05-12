@@ -39,6 +39,7 @@ module protocol::error {
 
   // market coin error
   public fun mint_market_coin_too_small_error(): u64 { 0x0000801 }
+  public fun redeem_market_coin_too_small_error(): u64 { 0x0000802 }
 
   // admin
   public fun interest_model_type_not_match_error(): u64 { 0x0000901 }

@@ -189,6 +189,7 @@ module protocol::reserve {
       balance_sheet.market_coin_supply
     );
 
+    assert!(redeem_amount > 0, error::redeem_market_coin_too_small_error());
     assert!(balance_sheet.cash >= redeem_amount, error::reserve_not_enough_error());
 
     // Update balance sheet

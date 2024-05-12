@@ -43,6 +43,7 @@ module protocol::error {
   // admin
   public fun interest_model_type_not_match_error(): u64 { 0x0000901 }
   public fun risk_model_type_not_match_error(): u64 { 0x0000902 }
+  public fun invalid_params_error(): u64 { 0x0000903 }
 
   // misc
   public fun outflow_reach_limit_error(): u64 { 0x0001001 }
@@ -61,9 +62,9 @@ module protocol::error {
   // pool liquidity errors
   public fun pool_liquidity_not_enough_error(): u64 { 0x0014001 }
   public fun supply_limit_reached(): u64 { 0x0014002 }
+  public fun collateral_not_enough(): u64 { 0x0014003 }
+  public fun reserve_not_enough_error(): u64 { 0x0014004 }
 
-  // ticket errors
-  public fun access_is_not_exist(): u64 { 0x0015001 }
-  public fun witness_cant_issue_ticket(): u64 { 0x0015002 }
-  public fun numerator_cant_be_greater_than_denominator(): u64 { 0x0015003 }
+  // repay
+  public fun zero_repay_amount_error(): u64 { 0x0015001 }
 }

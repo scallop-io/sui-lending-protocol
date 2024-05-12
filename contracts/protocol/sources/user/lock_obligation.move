@@ -42,6 +42,9 @@ module protocol::lock_obligation {
         clock: &Clock,
         key: T
     ) {
+        // Unlock the obligation, this also does the necessary check if the witness is correct
+        obligation::set_unlock(obligation, key);
+
         // accrue all interest before any action
         let now = clock::timestamp_ms(clock) / 1000;
         market::accrue_all_interests(market, now);
@@ -69,9 +72,6 @@ module protocol::lock_obligation {
 
         // Make sure the debt value is bigger than collateral value in context of liquidation
         assert!(fixed_point32_empower::gt(weighted_debts_value, collaterals_value), error::obligation_cant_forcely_unlocked());
-
-        // Unlock the obligation
-        obligation::set_unlock(obligation, key);
 
         // Emit the unlock event
         emit(ObligationUnhealthyUnlocked {

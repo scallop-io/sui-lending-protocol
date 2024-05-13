@@ -44,6 +44,7 @@ module protocol::liquidate {
     liq_amount: u64,
     collateral_price: FixedPoint32,
     debt_price: FixedPoint32,
+    timestamp: u64,
   }
 
   /// @notice Liquidate the obligation if possible, transfer the remainning base asset and liquidated collateral to the liquidator
@@ -146,6 +147,7 @@ module protocol::liquidate {
       liq_amount,
       collateral_price: price::get_price(x_oracle, type_name::get<CollateralType>(), clock),
       debt_price: price::get_price(x_oracle, type_name::get<DebtType>(), clock),
+      timestamp: now,
     });
 
     // Send the remaining balance, and collateral balance to liquidator

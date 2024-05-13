@@ -145,12 +145,12 @@ module protocol::borrow_referral {
     balance::join(&mut borrow_referral.referral_fee, referral_fee);
   }
 
-  /// @notice Set the borrowed amount for this referral object
-  public fun set_borrowed<CoinType, Witness: drop>(
+  /// @notice Increase the borrowed amount for this referral object
+  public fun increase_borrowed<CoinType, Witness: drop>(
     borrow_referral: &mut BorrowReferral<CoinType, Witness>,
     borrowed: u64
   ) {
-    borrow_referral.borrowed = borrowed;
+    borrow_referral.borrowed = borrow_referral.borrowed + borrowed;
   }
 
   /// @notice Add a custom config data to the borrow referral object

@@ -47,6 +47,17 @@ module protocol::borrow {
     time: u64,
   }
 
+  struct BorrowEventV3 has copy, drop {
+    borrower: address,
+    obligation: ID,
+    asset: TypeName,
+    amount: u64,
+    borrow_fee: u64,
+    borrow_fee_discount: u64,
+    borrow_referral_fee: u64,
+    time: u64,
+  }
+
 
   /// @notice Borrow a certain amount of asset from the protocol and transfer it to the sender
   /// @dev This function is not composable, and is intended to be called by the frontend
@@ -120,7 +131,7 @@ module protocol::borrow {
     );
 
     // Put the referral fee into the referral program
-    borrow_referral::set_borrowed(borrow_referral, borrow_amount);
+    borrow_referral::increase_borrowed(borrow_referral, borrow_amount);
     borrow_referral::put_referral_fee(borrow_referral, referral_fee);
 
     coin::from_balance(borrowed_balance, ctx)
@@ -274,13 +285,15 @@ module protocol::borrow {
     transfer::public_transfer(final_borrow_fee_coin, *borrow_fee_recipient);
 
     // Emit the borrow event
-    emit(BorrowEventV2 {
+    emit(BorrowEventV3 {
       borrower: tx_context::sender(ctx),
       obligation: object::id(obligation),
       asset: coin_type,
       amount: borrow_amount,
       // borrow fee that protocol received
       borrow_fee: final_borrow_fee_amount,
+      borrow_fee_discount,
+      borrow_referral_fee: referral_fee_amount,
       time: now,
     });
 

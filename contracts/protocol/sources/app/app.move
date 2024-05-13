@@ -414,7 +414,7 @@ module protocol::app {
 
   /// notice This is for admin to init the referral witness list
   /// dev Make sure only call this function once to have only 1 witness list
-  public entry fun create_referral_witness_list<T: drop>(
+  public entry fun create_referral_witness_list(
     _admin_cap: &AdminCap,
     ctx: &mut TxContext
   ) {

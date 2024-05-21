@@ -1,6 +1,7 @@
 [package]
 name = "PythRule"
 version = "0.0.1"
+published-at = "0x910f30cbc7f601f75a5141a01265cd47c62d468707c5e1aecb32a18f448cb25a"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -15,4 +16,4 @@ local = "./vendors/pyth"
 local = "../x_oracle"
 
 [addresses]
-pyth_rule = "0x0"
+pyth_rule = "0x910f30cbc7f601f75a5141a01265cd47c62d468707c5e1aecb32a18f448cb25a"

@@ -1,7 +1,7 @@
 [package]
 name = "ScallopProtocol"
 version = "0.0.1"
-published-at = "0x38fe42a5a69f7eb3635404389e8003be9457b1a5c873f133184648c7e9bd47b7"
+published-at = "0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"

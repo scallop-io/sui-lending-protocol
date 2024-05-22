@@ -29,4 +29,4 @@ export const updateSupplyLimits = () => {
   return buildMultiSigTx(suiTxBlock);
 }
 
-updateBorrowFee().then(console.log).catch(console.error).finally(() => process.exit(0));
+updateSupplyLimits().then(console.log).catch(console.error).finally(() => process.exit(0));

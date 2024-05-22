@@ -3,10 +3,10 @@ import { protocolTxBuilder } from 'contracts/protocol';
 import { buildMultiSigTx } from './multi-sig';
 import { suiKit } from 'sui-elements';
 
-function createBorrowReferralWitnessList(witnessType: string) {
+function createBorrowReferralWitnessList() {
   const tx = new SuiTxBlock();
-  protocolTxBuilder.createReferralWitnessList(tx, witnessType);
+  protocolTxBuilder.createReferralWitnessList(tx);
   return buildMultiSigTx(tx);
 }
 
-createBorrowReferralWitnessList(witnessType).then(console.log);
+createBorrowReferralWitnessList().then(console.log);

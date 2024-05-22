@@ -48,6 +48,7 @@ export class ProtocolTxBuilder {
     public versionId: string,
     public versionCapId: string,
     public obligationAccessStoreId: string,
+    public borrowReferralWitnessList: string,
   ) { }
 
   addRiskModel(
@@ -456,5 +457,16 @@ export class ProtocolTxBuilder {
         this.versionCapId,
       ],
     );
+  }
+
+  addBorrowReferralWitness(
+    suiTxBlock: SuiTxBlock,
+    witnessType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::add_referral_witness_list`,
+      [ this.adminCapId, this.borrowReferralWitnessList ],
+      [ witnessType ]
+    )
   }
 }

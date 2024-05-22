@@ -29,7 +29,7 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   sca: {
-    outflowLimit: 10 ** (6 + coinDecimals.sca), // 1 million SCA per day
+    outflowLimit: 2 * 10 ** (5 + coinDecimals.sca), // 200k SCA per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },

@@ -13,4 +13,5 @@ export const protocolTxBuilder = new ProtocolTxBuilder(
   publishResult.versionId,
   publishResult.versionCapId,
   publishResult.obligationAccessStoreId,
+  publishResult.borrowReferralWitnessList
 );

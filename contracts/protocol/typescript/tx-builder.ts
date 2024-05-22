@@ -48,6 +48,7 @@ export class ProtocolTxBuilder {
     public versionId: string,
     public versionCapId: string,
     public obligationAccessStoreId: string,
+    public borrowReferralWitnessList: string,
   ) { }
 
   addRiskModel(
@@ -456,5 +457,64 @@ export class ProtocolTxBuilder {
         this.versionCapId,
       ],
     );
+  }
+
+  createReferralWitnessList(
+    suiTxBlock: SuiTxBlock,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::create_referral_witness_list`,
+      [
+        this.adminCapId,
+      ],
+    );
+  }
+
+  addReferralWitness(
+    suiTxBlock: SuiTxBlock,
+    witnessType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::add_referral_witness_list`,
+      [
+        this.adminCapId,
+        this.borrowReferralWitnessList,
+      ],
+      [
+        witnessType
+      ]
+    );
+  }
+
+  removeReferralWitness(
+    suiTxBlock: SuiTxBlock,
+    witnessType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::remove_referral_witness_list`,
+      [
+        this.adminCapId,
+        this.borrowReferralWitnessList,
+      ],
+      [
+        witnessType
+      ]
+    );
+  }
+
+  setSupplyLimit(
+    suiTxBlock: SuiTxBlock,
+    limit: number,
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::update_supply_limit`,
+      [
+        this.adminCapId,
+        this.marketId,
+        limit
+      ],
+      [ coinType ]
+    )
   }
 }

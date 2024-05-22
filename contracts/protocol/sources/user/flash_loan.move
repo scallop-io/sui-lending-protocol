@@ -3,12 +3,10 @@
 module protocol::flash_loan {
 
   use std::type_name::{Self, TypeName};
-  use std::option::{Self, Option};
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self ,TxContext};
   use sui::event::emit;
   use whitelist::whitelist;
-  use protocol::ticket_accesses::{Self, TicketForFlashLoanFeeDiscount};
   use protocol::market::{Self, Market};
   use protocol::version::{Self, Version};
   use protocol::error;
@@ -33,6 +31,7 @@ module protocol::flash_loan {
     asset: TypeName,
     amount: u64,
     fee: u64,
+    // reserved
     fee_discount_numerator: u64,
     fee_discount_denominator: u64,
   }
@@ -64,36 +63,6 @@ module protocol::flash_loan {
     let (coin, receipt) = borrow_flash_loan_internal<T>(
       market,
       amount,
-      option::none(),
-      ctx,
-    );
-
-    (coin, receipt)
-  }
-
-  /// @notice Borrow flash loan from Scallop market
-  /// @dev This should be called by contracts which have access to issue flash loan fee discount tickets
-  /// @param version The version control object, contract version must match with this
-  /// @param market The Scallop market object, it contains base assets, and related protocol configs
-  /// @param amount The amount of flash loan to borrow
-  /// @param ticket The flash loan fee discount ticket
-  /// @param ctx The SUI transaction context object
-  /// @return The borrowed coin object and the flash loan hot potato object
-  /// @custom:T The type of asset to borrow
-  public fun borrow_flash_loan_with_ticket<T>(
-    version: &Version,
-    market: &mut Market,
-    amount: u64,
-    ticket: TicketForFlashLoanFeeDiscount,
-    ctx: &mut TxContext,
-  ): (Coin<T>, FlashLoan<T>) {
-    // check if version is supported
-    version::assert_current_version(version);
-
-    let (coin, receipt) = borrow_flash_loan_internal<T>(
-      market,
-      amount,
-      option::some(ticket),
       ctx,
     );
 
@@ -103,7 +72,6 @@ module protocol::flash_loan {
   fun borrow_flash_loan_internal<T>(
     market: &mut Market,
     amount: u64,
-    ticket_opt: Option<TicketForFlashLoanFeeDiscount>,
     ctx: &mut TxContext,
   ): (Coin<T>, FlashLoan<T>) {
     // check if sender is in whitelist
@@ -119,25 +87,16 @@ module protocol::flash_loan {
       error::base_asset_not_active_error()
     );
 
-    let (fee_discount_numerator, fee_discount_denominator) = (0, 1);
-
-    // Borrow the assets from market, and apply fee discount if any
-    let (coin, receipt) = if (option::is_some(&ticket_opt)) {
-      let fee_discount_ticket = option::extract(&mut ticket_opt);
-      (fee_discount_numerator, fee_discount_denominator) = ticket_accesses::get_flash_loan_fee_discount(&fee_discount_ticket);
-      market::borrow_flash_loan_with_ticket(market, fee_discount_ticket, amount, ctx)
-    } else {
-      market::borrow_flash_loan(market, amount, ctx)
-    };
+    let (coin, receipt) = market::borrow_flash_loan<T>(market, amount, ctx);
 
     // Emit the borrow flash loan event
     emit(BorrowFlashLoanV2Event {
       borrower: tx_context::sender(ctx),
       asset: coin_type,
-      amount,
       fee: reserve::flash_loan_fee(&receipt),
-      fee_discount_numerator: fee_discount_numerator,
-      fee_discount_denominator: fee_discount_denominator,
+      fee_discount_denominator: 0,
+      fee_discount_numerator: 0,
+      amount,
     });
 
     // Return the borrowed coin object and the flash loan hot potato object

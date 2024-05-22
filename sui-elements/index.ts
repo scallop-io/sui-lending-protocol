@@ -11,4 +11,6 @@ const fullNode = 'https://api.shinami.com/node/v1/sui_mainnet_8a6507ca04e7ba4cdc
 
 export const suiKit = new SuiKit({ secretKey, networkType, fullnodeUrls: [fullNode] });
 
+console.log(suiKit.currentAddress());
+
 export const packagePublisher = new SuiAdvancePackagePublisher({ networkType });

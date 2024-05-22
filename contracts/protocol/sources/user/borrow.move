@@ -258,13 +258,13 @@ module protocol::borrow {
     let base_borrow_fee_amount = fixed_point32::multiply_u64(borrow_amount, *base_borrow_fee_rate);
 
     let referral_fee_amount = if (borrow_fee_referral_share > 0) {
-      u64::mul_div(base_borrow_fee_amount, borrow_fee_referral_share, 100)
+      u64::mul_div(base_borrow_fee_amount, borrow_fee_referral_share, borrow_referral::fee_rate_base())
     } else {
       0
     };
 
     let deducted_borrow_fee_amount = if (borrow_fee_discount > 0) {
-      u64::mul_div(base_borrow_fee_amount, borrow_fee_discount, 100)
+      u64::mul_div(base_borrow_fee_amount, borrow_fee_discount, borrow_referral::fee_rate_base())
     } else {
       0
     };

@@ -63,6 +63,7 @@ module protocol::app {
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
+    assert!(delay <= 1, error::invalid_params_error()); // can only extend 1 epoch per change
     admin_cap.interest_model_change_delay = admin_cap.interest_model_change_delay + delay;
   }
 

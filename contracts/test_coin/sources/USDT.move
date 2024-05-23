@@ -16,14 +16,14 @@ module test_coin::usdt {
     cap: TreasuryCap<USDT>
   }
   
-  fun init(wtiness: USDT, ctx: &mut TxContext) {
+  fun init(witness: USDT, ctx: &mut TxContext) {
     let decimals = 9u8;
     let symbol = b"USDT";
     let name = b"USDT";
     let description = b"Test USDT";
     let icon_url_option = option::none();
     let (treasuryCap, coinMeta) = coin::create_currency(
-      wtiness,
+      witness,
       decimals,
       symbol,
       name,

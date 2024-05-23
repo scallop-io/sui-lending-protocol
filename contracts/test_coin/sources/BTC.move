@@ -16,14 +16,14 @@ module test_coin::btc {
     cap: TreasuryCap<BTC>
   }
   
-  fun init(wtiness: BTC, ctx: &mut TxContext) {
+  fun init(witness: BTC, ctx: &mut TxContext) {
     let decimals = 9u8;
     let symbol = b"BTC";
     let name = b"BTC";
     let description = b"Test Bitcoin";
     let icon_url_option = option::none();
     let (treasuryCap, coinMeta) = coin::create_currency(
-      wtiness,
+      witness,
       decimals,
       symbol,
       name,

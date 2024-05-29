@@ -16,6 +16,7 @@ module protocol::borrow_referral {
   use sui::dynamic_field;
 
   friend protocol::app;
+  friend protocol::borrow;
 
   // This is the base for calculating the fee for borrowing and referral
   const BASE_FOR_FEE: u64 = 100;
@@ -29,14 +30,22 @@ module protocol::borrow_referral {
     id: UID,
     borrow_fee_discount: u64, // The percentage of the borrow fee that will be discounted for the borrower
     referral_share: u64, // The percentage of the borrow fee that will be shared with the referrer
-    borrowed: u64, // The amount of coin borrowed using this referral object
-    referral_fee: Balance<CoinType>,
+    borrowed: u64, // This field is abandoned, use the dynamic field `BorrowedKey`
+    referral_fee: Balance<CoinType>, // This field is abandoned, use the dynamic field `ReferralFeeKey`
     witness: Witness
   }
 
   // This is the dynamic field key to store the config data on the borrow referral object
   // Usually, the authorized package needs to store some custom data on the borrow referral object
   struct BorrowReferralCfgKey<phantom Cfg> has copy, store, drop {}
+
+  // This is the dynamic field key to store the borrowed amount on the borrow referral object
+  // The original borrowed field is discarded because of the `increase_borrowed` method security issue
+  struct BorrowedKey has copy, store, drop {}
+
+  // This is the dynamic field key to store the referral fe on the borrow referral object
+  // The
+  struct ReferralFeeKey has copy, store, drop {}
 
   // This object manages the list of authorized package types
   struct AuthorizedWitnessList has key {
@@ -94,14 +103,21 @@ module protocol::borrow_referral {
     assert!(borrow_fee_discount + referral_share < BASE_FOR_FEE, ERROR_FEE_DISCOUNT_TOO_HIGH);
 
     // Create the referral object
-    BorrowReferral {
+    let borrow_referral = BorrowReferral {
       id: object::new(ctx),
       borrowed: 0,
       borrow_fee_discount,
       referral_share,
       referral_fee: balance::zero<CoinType>(),
       witness
-    }
+    };
+
+    // Attach the dynamic fields: borrowed, referralFee.
+    dynamic_field::add(&mut borrow_referral.id, BorrowedKey {}, 0);
+    dynamic_field::add(&mut borrow_referral.id, ReferralFeeKey {}, balance::zero<CoinType>());
+
+    // Return the borrow referral object
+    borrow_referral
   }
 
   /// @notice Calculate the borrow fee after applying the discount, if discount is 90, the fee will be 90% of the original fee
@@ -132,25 +148,36 @@ module protocol::borrow_referral {
     u64::mul_div(original_borrow_fee, borrow_referral.referral_share, BASE_FOR_FEE)
   }
 
-  /// @notice Put the referral fee into the borrow referral object
-  /// @dev This is meant to called by the borrow function to put the referral fee into the borrow referral object
-  /// @param borrow_referral The borrow referral object
-  /// @param referral_fee The referral fee
-  /// @custom:CoinType The type of the coin to borrow
-  /// @custom:Witness The type of the witness issued by the authorized package
+  /// @deprecated This function should be protected.
   public fun put_referral_fee<CoinType, Witness: drop>(
     borrow_referral: &mut BorrowReferral<CoinType, Witness>,
     referral_fee: Balance<CoinType>,
   ) {
-    balance::join(&mut borrow_referral.referral_fee, referral_fee);
+    abort 0;
   }
 
-  /// @notice Increase the borrowed amount for this referral object
+  public(friend) fun put_referral_fee_patch<CoinType, Witness: drop>(
+    borrow_referral: &mut BorrowReferral<CoinType, Witness>,
+    referral_fee: Balance<CoinType>,
+  ) {
+    let borrow_referral_fee_mut = dynamic_field::borrow_mut<ReferralFeeKey, Balance<CoinType>>(&mut borrow_referral.id, ReferralFeeKey {});
+    balance::join(borrow_referral_fee_mut, referral_fee);
+  }
+
+  /// @deprecated This function should be protected.
   public fun increase_borrowed<CoinType, Witness: drop>(
     borrow_referral: &mut BorrowReferral<CoinType, Witness>,
     borrowed: u64
   ) {
-    borrow_referral.borrowed = borrow_referral.borrowed + borrowed;
+    abort 0;
+  }
+
+  public(friend) fun increase_borrowed_patch<CoinType, Witness: drop>(
+    borrow_referral: &mut BorrowReferral<CoinType, Witness>,
+    borrowed: u64
+  ) {
+    let borrowed_mut = dynamic_field::borrow_mut<BorrowedKey, u64>(&mut borrow_referral.id, BorrowedKey {});
+    *borrowed_mut = *borrowed_mut + borrowed;
   }
 
   /// @notice Add a custom config data to the borrow referral object
@@ -191,18 +218,29 @@ module protocol::borrow_referral {
     _: Witness,
     borrow_fee_referral: BorrowReferral<CoinType, Witness>,
   ): Balance<CoinType> {
+    // Get referral fee from dynamic fields
+    let patched_referral_fee = dynamic_field::remove<ReferralFeeKey, Balance<CoinType>>(&mut borrow_fee_referral.id, ReferralFeeKey {});
+
     // Delete the object
     let BorrowReferral {
       id,
-      borrowed: _,
+      borrowed: abandoned_borrowed,
       borrow_fee_discount: _,
       referral_share: _,
       witness: _,
-      referral_fee,
+      referral_fee: abandoned_referral_fee,
     } = borrow_fee_referral;
     object::delete(id);
 
-    referral_fee
+    // Make sure the abandoned fields are not touched
+    if (balance::value(&abandoned_referral_fee) > 0 || abandoned_borrowed > 0) {
+      abort 0
+    };
+    // Destroy the abandoned referral fee value
+    balance::destroy_zero(abandoned_referral_fee);
+
+    // Return the referral fee getting from the dynamic field
+    patched_referral_fee
   }
 
   /// @notice Make sure the caller is an authorized package

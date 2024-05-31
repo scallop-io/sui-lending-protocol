@@ -24,6 +24,8 @@ module protocol::borrow_referral {
   // Error codes
   const ERROR_NOT_AUTHORIZED: u64 = 711;
   const ERROR_FEE_DISCOUNT_TOO_HIGH: u64 = 712;
+  const ERROR_CFG_ALREADY_EXIST: u64 = 713;
+  const ERROR_CFG_ISNT_EXIST: u64 = 714;
 
   // This is a hot potato object, which can only be consumed by the authorized package
   struct BorrowReferral<phantom CoinType, Witness> {
@@ -191,6 +193,7 @@ module protocol::borrow_referral {
     borrow_referral: &mut BorrowReferral<CoinType, Witness>,
     cfg: Cfg
   ) {
+    assert!(dynamic_field::exists_(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}) == false, ERROR_CFG_ALREADY_EXIST);
     dynamic_field::add(&mut borrow_referral.id, BorrowReferralCfgKey<Cfg> {}, cfg);
   }
 
@@ -204,6 +207,7 @@ module protocol::borrow_referral {
   public fun get_referral_cfg<CoinType, Witness: drop, Cfg: store + drop>(
     borrow_referral: &BorrowReferral<CoinType, Witness>,
   ): &Cfg {
+    assert!(dynamic_field::exists_(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}), ERROR_CFG_ISNT_EXIST);
     dynamic_field::borrow(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {})
   }
 

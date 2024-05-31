@@ -156,7 +156,7 @@ module protocol::borrow_referral {
     abort 0;
   }
 
-  public(friend) fun put_referral_fee_patch<CoinType, Witness: drop>(
+  public(friend) fun put_referral_fee_v2<CoinType, Witness: drop>(
     borrow_referral: &mut BorrowReferral<CoinType, Witness>,
     referral_fee: Balance<CoinType>,
   ) {
@@ -172,7 +172,7 @@ module protocol::borrow_referral {
     abort 0;
   }
 
-  public(friend) fun increase_borrowed_patch<CoinType, Witness: drop>(
+  public(friend) fun increase_borrowed_v2<CoinType, Witness: drop>(
     borrow_referral: &mut BorrowReferral<CoinType, Witness>,
     borrowed: u64
   ) {

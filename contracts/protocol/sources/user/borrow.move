@@ -131,8 +131,8 @@ module protocol::borrow {
     );
 
     // Put the referral fee into the referral program
-    borrow_referral::increase_borrowed_patch(borrow_referral, borrow_amount);
-    borrow_referral::put_referral_fee_patch(borrow_referral, referral_fee);
+    borrow_referral::increase_borrowed_v2(borrow_referral, borrow_amount);
+    borrow_referral::put_referral_fee_v2(borrow_referral, referral_fee);
 
     coin::from_balance(borrowed_balance, ctx)
   }

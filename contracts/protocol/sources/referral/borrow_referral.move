@@ -123,7 +123,6 @@ module protocol::borrow_referral {
   }
 
   /// @notice Calculate the borrow fee after applying the discount, if discount is 90, the fee will be 90% of the original fee
-  /// @dev This is meant to called by the borrow function to calculate the discounted borrow fee
   /// @param borrow_referral The borrow referral object
   /// @param original_borrow_fee The original borrow fee before discount
   /// @return The discounted borrow fee amount
@@ -137,7 +136,6 @@ module protocol::borrow_referral {
   }
 
   /// @notice Calculate the referral fee, which is the share of the borrow fee that will be shared with the referrer
-  /// @dev This is meant to called by the borrow function to calculate the referral fee
   /// @param borrow_referral The borrow referral object
   /// @param original_borrow_fee The original borrow fee before discount
   /// @return The referral fee amount

@@ -235,7 +235,11 @@ module protocol::reserve {
     } else {
       0
     };
-    let fee_discount = u64::mul_div(base_fee, fee_discount_numerator, fee_discount_denominator);
+    let fee_discount = if (fee_discount_numerator > 0 && fee_discount_denominator > 0) {
+      u64::mul_div(base_fee, fee_discount_numerator, fee_discount_denominator)
+    } else {
+      0
+    };
     let fee = base_fee - fee_discount;
     let flash_loan = FlashLoan<T> { loan_amount: amount, fee };
     (balance, flash_loan)

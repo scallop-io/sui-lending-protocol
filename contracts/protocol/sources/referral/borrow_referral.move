@@ -150,10 +150,10 @@ module protocol::borrow_referral {
 
   /// @deprecated This function should be protected.
   public fun put_referral_fee<CoinType, Witness: drop>(
-    borrow_referral: &mut BorrowReferral<CoinType, Witness>,
-    referral_fee: Balance<CoinType>,
+    _borrow_referral: &mut BorrowReferral<CoinType, Witness>,
+    _referral_fee: Balance<CoinType>,
   ) {
-    abort 0;
+    abort 0
   }
 
   public(friend) fun put_referral_fee_v2<CoinType, Witness: drop>(
@@ -166,10 +166,10 @@ module protocol::borrow_referral {
 
   /// @deprecated This function should be protected.
   public fun increase_borrowed<CoinType, Witness: drop>(
-    borrow_referral: &mut BorrowReferral<CoinType, Witness>,
-    borrowed: u64
+    _borrow_referral: &mut BorrowReferral<CoinType, Witness>,
+    _borrowed: u64
   ) {
-    abort 0;
+    abort 0
   }
 
   public(friend) fun increase_borrowed_v2<CoinType, Witness: drop>(

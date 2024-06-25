@@ -266,6 +266,7 @@ module protocol::app {
     one_time_lock_value
   }
 
+  #[allow(unused_type_parameter)]
   public entry fun apply_limiter_limit_change<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
@@ -280,6 +281,7 @@ module protocol::app {
     );
   }
 
+  #[allow(unused_type_parameter)]
   public entry fun apply_limiter_params_change<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,

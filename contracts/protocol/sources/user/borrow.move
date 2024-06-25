@@ -38,6 +38,7 @@ module protocol::borrow {
     time: u64,
   }
 
+  #[allow(unused_field)]
   struct BorrowEventV2 has copy, drop {
     borrower: address,
     obligation: ID,

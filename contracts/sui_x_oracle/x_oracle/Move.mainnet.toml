@@ -6,7 +6,7 @@ published-at = "0x1478a432123e4b3d61878b629f2c692969fdb375644f1251cd278a4b1e7d7c
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
 subdir = "crates/sui-framework/packages/sui-framework"
-rev = "testnet"
+rev = "mainnet"
 
 [addresses]
 x_oracle = "0x1478a432123e4b3d61878b629f2c692969fdb375644f1251cd278a4b1e7d7cd6"

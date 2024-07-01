@@ -517,4 +517,20 @@ export class ProtocolTxBuilder {
       [ coinType ]
     )
   }
+
+  setFlashloanFee(
+    suiTxBlock: SuiTxBlock,
+    fee: number, // 10000 base, 6 is 0.06%
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::set_flash_loan_fee`,
+      [
+        this.adminCapId,
+        this.marketId,
+        fee
+      ],
+      [ coinType ]
+    )
+  }
 }

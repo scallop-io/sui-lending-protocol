@@ -15,10 +15,12 @@ module protocol::app {
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
   use protocol::incentive_rewards;
+  use protocol::error;
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey};
+  use protocol::borrow_referral::{Self, AuthorizedWitnessList};
 
   /// OTW
   struct APP has drop {}
@@ -61,6 +63,7 @@ module protocol::app {
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
+    assert!(delay <= 1, error::invalid_params_error()); // can only extend 1 epoch per change
     admin_cap.interest_model_change_delay = admin_cap.interest_model_change_delay + delay;
   }
 
@@ -263,6 +266,7 @@ module protocol::app {
     one_time_lock_value
   }
 
+  #[allow(unused_type_parameter)]
   public entry fun apply_limiter_limit_change<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
@@ -277,6 +281,7 @@ module protocol::app {
     );
   }
 
+  #[allow(unused_type_parameter)]
   public entry fun apply_limiter_params_change<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
@@ -376,6 +381,8 @@ module protocol::app {
     fee_numerator: u64,
     fee_denominator: u64,
   ) {
+    assert!(fee_numerator <= fee_denominator, error::invalid_params_error());
+
     let market_uid_mut = market::uid_mut(market);
     let key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
     let fee = fixed_point32::create_from_rational(fee_numerator, fee_denominator);
@@ -394,5 +401,42 @@ module protocol::app {
 
     dynamic_field::remove_if_exists<BorrowFeeRecipientKey, address>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, recipient);
+  }
+
+  public entry fun update_supply_limit<T: drop>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    limit_amount: u64,
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::supply_limit_key(type_name::get<T>());
+
+    dynamic_field::remove_if_exists<SupplyLimitKey, u64>(market_uid_mut, key);
+    dynamic_field::add(market_uid_mut, key, limit_amount);
+  }
+
+  /// notice This is for admin to init the referral witness list
+  /// dev Make sure only call this function once to have only 1 witness list
+  public entry fun create_referral_witness_list(
+    _admin_cap: &AdminCap,
+    ctx: &mut TxContext
+  ) {
+    borrow_referral::create_witness_list(ctx);
+  }
+
+  /// notice This is for admin to authorize external referral program package
+  public entry fun add_referral_witness_list<T: drop>(
+    _admin_cap: &AdminCap,
+    witness_list: &mut AuthorizedWitnessList
+  ) {
+    borrow_referral::add_witness<T>(witness_list);
+  }
+
+  /// notice This is for admin to remove the authorization of external referral program
+  public entry fun remove_referral_witness_list<T: drop>(
+    _admin_cap: &AdminCap,
+    witness_list: &mut AuthorizedWitnessList
+  ) {
+    borrow_referral::remove_witness<T>(witness_list);
   }
 }

@@ -5,6 +5,7 @@ module protocol::collateral_stats {
   use std::type_name::TypeName;
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
+  use protocol::error;
   
   friend protocol::market;
   
@@ -41,6 +42,7 @@ module protocol::collateral_stats {
     amount: u64,
   ) {
     let collateral = wit_table::borrow_mut(CollateralStats{}, collaterals, type_name);
+    assert!(collateral.amount >= amount, error::collateral_not_enough());
     collateral.amount = collateral.amount - amount;
   }
   

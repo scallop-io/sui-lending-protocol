@@ -1,12 +1,12 @@
 [package]
 name = "ScallopProtocol"
 version = "0.0.1"
-published-at = "0x38fe42a5a69f7eb3635404389e8003be9457b1a5c873f133184648c7e9bd47b7"
+published-at = "0x157854718810185bd2400b7bf19ef7a86ad8dd87be2515576ae32b5ede32201b"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
 subdir = "crates/sui-framework/packages/sui-framework"
-rev = "testnet"
+rev = "mainnet"
 
 [dependencies.Math]
 local = "../libs/math"

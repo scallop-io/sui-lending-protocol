@@ -93,7 +93,9 @@ module protocol_test::redeem_test {
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let mint_time = 400;
     clock::set_for_testing(&mut clock, mint_time * 1000);
+    let expected_mint = calc_coin_to_scoin(&version, &mut market, type_name::get<USDC>(), &clock, usdc_amount);
     let lender_b_market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
+    assert!(coin::value(&lender_b_market_coin) == expected_mint, 0);
 
     let current_revenue = 0;
     let growth_interest_rate = calc_growth_interest<USDC>(
@@ -122,7 +124,11 @@ module protocol_test::redeem_test {
     let redeem_time = 500;
     clock::set_for_testing(&mut clock, 500 * 1000);
     let current_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
+
+
+    let expected_redeem = calc_scoin_to_coin(&version, &mut market, type_name::get<USDC>(), &clock, lender_a_market_coin_amount);
     let redeemed_coin = redeem::redeem(&version, &mut market, lender_a_market_coin, &clock, test_scenario::ctx(scenario));
+    assert!(expected_redeem == coin::value(&redeemed_coin), 0);
 
     let current_debt = borrow_amount + increased_debt;
     let current_cash = usdc_amount + usdc_amount - borrow_amount;
@@ -158,5 +164,100 @@ module protocol_test::redeem_test {
     test_scenario::return_to_address(admin, x_oracle_policy_cap);
     test_scenario::return_to_address(borrower, obligation_key);
     test_scenario::end(scenario_value);
+  }
+
+  fun conversion_rate_coin_to_scoin(
+    version: &protocol::version::Version,
+    market: &mut protocol::market::Market, 
+    coin_type: std::type_name::TypeName, 
+    clock: &sui::clock::Clock,
+  ): std::fixed_point32::FixedPoint32 {
+    let (cash, debt, revenue, market_coin_supply) = get_reserve_stats(version, market, coin_type, clock);
+
+    if (market_coin_supply > 0) {
+      std::fixed_point32::create_from_rational(market_coin_supply, cash + debt - revenue)
+    } else {
+      std::fixed_point32::create_from_rational(1, 1)
+    }
+  }
+
+  fun conversion_rate_scoin_to_coin(
+    version: &protocol::version::Version,
+    market: &mut protocol::market::Market, 
+    coin_type: std::type_name::TypeName, 
+    clock: &sui::clock::Clock,
+  ): std::fixed_point32::FixedPoint32 {
+    let (cash, debt, revenue, market_coin_supply) = get_reserve_stats(version, market, coin_type, clock);
+
+    std::fixed_point32::create_from_rational(cash + debt - revenue, market_coin_supply)
+  }
+
+  #[test_only]
+  fun calc_coin_to_scoin(
+    version: &protocol::version::Version,
+    market: &mut protocol::market::Market, 
+    coin_type: std::type_name::TypeName, 
+    clock: &sui::clock::Clock,
+    coin_amount: u64
+  ): u64 {
+    let (cash, debt, revenue, market_coin_supply) = get_reserve_stats(version, market, coin_type, clock);
+
+    let scoin_amount = if (market_coin_supply > 0) {
+      math::u64::mul_div(
+        coin_amount,
+        market_coin_supply,
+        cash + debt - revenue
+      )
+    } else {
+      coin_amount
+    };
+
+    // if the coin is too less, just throw error
+    assert!(scoin_amount > 0, 1);
+    
+    scoin_amount
+  }
+
+  #[test_only]
+  fun calc_scoin_to_coin(
+    version: &protocol::version::Version,
+    market: &mut protocol::market::Market, 
+    coin_type: std::type_name::TypeName, 
+    clock: &sui::clock::Clock,
+    scoin_amount: u64
+  ): u64 {
+    let (cash, debt, revenue, market_coin_supply) = get_reserve_stats(version, market, coin_type, clock);
+    
+    let coin_amount = math::u64::mul_div(
+      scoin_amount,
+      cash + debt - revenue,
+      market_coin_supply
+    );
+
+    coin_amount
+  }
+
+
+  #[test_only]
+  fun get_reserve_stats(
+    version: &protocol::version::Version,
+    market: &mut protocol::market::Market,
+    coin_type: std::type_name::TypeName,
+    clock: &sui::clock::Clock,
+  ): (u64, u64, u64, u64) {
+    // update to the latest reserve stats
+    // NOTE: this function needs to be called to get an accurate data
+    protocol::accrue_interest::accrue_interest_for_market(
+      version,
+      market,
+      clock
+    );
+
+    let vault = protocol::market::vault(market);
+    let balance_sheets = protocol::reserve::balance_sheets(vault);
+
+    let balance_sheet = x::wit_table::borrow(balance_sheets, coin_type);
+    let (cash, debt, revenue, market_coin_supply) = protocol::reserve::balance_sheet(balance_sheet);
+    (cash, debt, revenue, market_coin_supply)
   }
 }

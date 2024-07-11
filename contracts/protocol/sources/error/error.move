@@ -39,10 +39,12 @@ module protocol::error {
 
   // market coin error
   public fun mint_market_coin_too_small_error(): u64 { 0x0000801 }
+  public fun redeem_market_coin_too_small_error(): u64 { 0x0000802 }
 
   // admin
   public fun interest_model_type_not_match_error(): u64 { 0x0000901 }
   public fun risk_model_type_not_match_error(): u64 { 0x0000902 }
+  public fun invalid_params_error(): u64 { 0x0000903 }
 
   // misc
   public fun outflow_reach_limit_error(): u64 { 0x0001001 }
@@ -60,4 +62,10 @@ module protocol::error {
 
   // pool liquidity errors
   public fun pool_liquidity_not_enough_error(): u64 { 0x0014001 }
+  public fun supply_limit_reached(): u64 { 0x0014002 }
+  public fun collateral_not_enough(): u64 { 0x0014003 }
+  public fun reserve_not_enough_error(): u64 { 0x0014004 }
+
+  // repay
+  public fun zero_repay_amount_error(): u64 { 0x0015001 }
 }

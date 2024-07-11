@@ -11,6 +11,7 @@ type OracleData = {
 }
 export const oracles: Record<SupportedBaseAssets | SupportedCollaterals, OracleData> = {
   sui: { pythPriceObjectId: pythOracleData.priceFeeds.sui_usd.priceFeedObjectId },
+  sca: { pythPriceObjectId: pythOracleData.priceFeeds.sca_usd.priceFeedObjectId },
   cetus: { pythPriceObjectId: pythOracleData.priceFeeds.cetus_usd.priceFeedObjectId },
   afSui: { pythPriceObjectId: pythOracleData.priceFeeds.sui_usd.priceFeedObjectId },
   haSui: { pythPriceObjectId: pythOracleData.priceFeeds.sui_usd.priceFeedObjectId },

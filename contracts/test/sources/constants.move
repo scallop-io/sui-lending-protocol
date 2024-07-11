@@ -70,6 +70,17 @@ module protocol_test::constants {
       max_collateral_amount: math::pow(10, 9 + 7)
     }
   }
+
+  public fun usdc_risk_model_params(): RiskModelParams<USDC> {
+    RiskModelParams {
+      collateral_factor: 80,
+      liquidation_factor: 90,
+      liquidation_penalty: 8,
+      liquidation_discount: 5,
+      scale: 100,
+      max_collateral_amount: math::pow(10, 9 + 7)
+    }
+  }
   
   public fun usdc_interest_model_params(): InterestModelParams<USDC> {
     let interest_rate_scale = math::pow(10, 7);
@@ -90,6 +101,29 @@ module protocol_test::constants {
       revenue_factor: u64::mul_div(2, scale, 100),
       scale,
       min_borrow_amount: math::pow(10, 8),
+      borrow_weight: 1 * scale,
+    }
+  }
+
+  public fun eth_interest_model_params(): InterestModelParams<ETH> {
+    let interest_rate_scale = math::pow(10, 7);
+    let scale = math::pow(10, 12);
+    let secs_per_year = 365 * 24 * 60 * 60;
+
+    let borrow_rate_on_mid_kink = 8 * u64::mul_div(scale, interest_rate_scale, secs_per_year) / 100;
+    let borrow_rate_on_high_kink = 50 * u64::mul_div(scale, interest_rate_scale, secs_per_year) / 100;
+    let max_borrow_rate = 300 * u64::mul_div(scale, interest_rate_scale, secs_per_year) / 100;
+    InterestModelParams {
+      base_rate_per_sec: 0,
+      interest_rate_scale,
+      borrow_rate_on_mid_kink,
+      borrow_rate_on_high_kink,
+      max_borrow_rate,
+      mid_kink: u64::mul_div(60, scale, 100),
+      high_kink: u64::mul_div(90, scale, 100),
+      revenue_factor: u64::mul_div(2, scale, 100),
+      scale,
+      min_borrow_amount: math::pow(10, 5),
       borrow_weight: 1 * scale,
     }
   }

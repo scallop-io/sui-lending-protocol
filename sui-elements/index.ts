@@ -7,7 +7,11 @@ dotenv.config();
 export const secretKey = process.env.SECRET_KEY || '';
 export const networkType = (process.env.SUI_NETWORK_TYPE || 'testnet') as NetworkType;
 
-const shinamiNode = 'https://api.shinami.com/node/v1/sui_mainnet_5107e0492f9ce6b16da708ca72aafc2c';
-export const suiKit = new SuiKit({ secretKey, networkType, fullnodeUrls: [shinamiNode] });
+const fullNode = 'https://api.shinami.com/node/v1/sui_mainnet_8a6507ca04e7ba4cdc713a9d66e9d54a';
+
+export const suiKit = new SuiKit({ secretKey, networkType, fullnodeUrls: [fullNode] });
+
+console.log(networkType);
+console.log(suiKit.currentAddress());
 
 export const packagePublisher = new SuiAdvancePackagePublisher({ networkType });

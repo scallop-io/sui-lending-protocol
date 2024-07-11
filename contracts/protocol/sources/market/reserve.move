@@ -42,6 +42,9 @@ module protocol::reserve {
     balance_sheets: WitTable<BalanceSheets, TypeName, BalanceSheet>,
     flash_loan_fees: WitTable<FlashLoanFees, TypeName, u64>,
   }
+
+  public fun flash_loan_loan_amount<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.loan_amount }
+  public fun flash_loan_fee<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.fee }
   
   public fun market_coin_supplies(vault: &Reserve): &SupplyBag { &vault.market_coin_supplies }
   public fun underlying_balances(vault: &Reserve): &BalanceBag { &vault.underlying_balances }
@@ -120,6 +123,7 @@ module protocol::reserve {
     amount: u64
   ): Balance<T> {
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    assert!(balance_sheet.cash >= amount, error::reserve_not_enough_error());
     balance_sheet.cash = balance_sheet.cash - amount;
     balance_sheet.debt = balance_sheet.debt + amount;
 
@@ -185,6 +189,9 @@ module protocol::reserve {
       balance_sheet.market_coin_supply
     );
 
+    assert!(redeem_amount > 0, error::redeem_market_coin_too_small_error());
+    assert!(balance_sheet.cash >= redeem_amount, error::reserve_not_enough_error());
+
     // Update balance sheet
     balance_sheet.cash = balance_sheet.cash - redeem_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply - market_coin_amount;
@@ -210,16 +217,32 @@ module protocol::reserve {
     amount: u64,
     ctx: &mut TxContext,
   ): (Coin<T>, FlashLoan<T>) {
+    let (loan, receipt) = borrow_flash_loan_internal(self, amount, 0, 1); // fee discount is none
+    (coin::from_balance(loan, ctx), receipt)
+  }
+
+  fun borrow_flash_loan_internal<T>(
+    self: &mut Reserve,
+    amount: u64,
+    fee_discount_numerator: u64,
+    fee_discount_denominator: u64,
+  ): (Balance<T>, FlashLoan<T>) {
     let balance = balance_bag::split<T>(&mut self.underlying_balances, amount);
     let fee_rate = *wit_table::borrow(&self.flash_loan_fees, get<T>());
-    let fee = if (fee_rate > 0) {
+    let base_fee = if (fee_rate > 0) {
       // charge at least 1 unit of coin when fee_rate is not 0
       amount * fee_rate / FlashloanFeeScale + 1
     } else {
       0
     };
+    let fee_discount = if (fee_discount_numerator > 0 && fee_discount_denominator > 0) {
+      u64::mul_div(base_fee, fee_discount_numerator, fee_discount_denominator)
+    } else {
+      0
+    };
+    let fee = base_fee - fee_discount;
     let flash_loan = FlashLoan<T> { loan_amount: amount, fee };
-    (coin::from_balance(balance, ctx), flash_loan)
+    (balance, flash_loan)
   }
 
   public(friend) fun repay_flash_loan<T>(

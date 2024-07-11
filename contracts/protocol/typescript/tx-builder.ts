@@ -48,6 +48,7 @@ export class ProtocolTxBuilder {
     public versionId: string,
     public versionCapId: string,
     public obligationAccessStoreId: string,
+    public borrowReferralWitnessList: string,
   ) { }
 
   addRiskModel(
@@ -182,6 +183,30 @@ export class ProtocolTxBuilder {
         outflowLimiterModel.outflowLimit,
         outflowLimiterModel.outflowCycleDuration,
         outflowLimiterModel.outflowSegmentDuration,
+      ],
+      [coinType],
+    );
+  }
+
+  updateOutflowLimit(
+    suiTxBlock: SuiTxBlock,
+    outflowLimiterModel: OutflowLimiterModel,
+    coinType: string,
+  ) {
+    const limitChange = suiTxBlock.moveCall(
+      `${this.packageId}::app::create_limiter_limit_change`,
+      [
+        this.adminCapId,
+        outflowLimiterModel.outflowLimit,
+      ],
+      [coinType],
+    );
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::apply_limiter_limit_change`,
+      [
+        this.adminCapId,
+        this.marketId,
+        limitChange,
       ],
       [coinType],
     );
@@ -346,6 +371,37 @@ export class ProtocolTxBuilder {
     );
   }
 
+  createLimiterLimitChange(
+    suiTxBlock: SuiTxBlock,
+    outflowLimit: number,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::create_limiter_limit_change`,
+      [
+        this.adminCapId,
+        suiTxBlock.pure(outflowLimit),
+      ],
+      [coinType]
+    );
+  }
+
+  applyLimiterLimitChange(
+    suiTxBlock: SuiTxBlock,
+    oneTimeLockValue: SuiTxArg,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::apply_limiter_limit_change`,
+      [
+        this.adminCapId,
+        this.marketId,
+        oneTimeLockValue,
+      ],
+      [coinType]
+    );
+  }
+
   addLockKey(
     suiTxBlock: SuiTxBlock,
     keyType: string,
@@ -401,5 +457,80 @@ export class ProtocolTxBuilder {
         this.versionCapId,
       ],
     );
+  }
+
+  createReferralWitnessList(
+    suiTxBlock: SuiTxBlock,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::create_referral_witness_list`,
+      [
+        this.adminCapId,
+      ],
+    );
+  }
+
+  addReferralWitness(
+    suiTxBlock: SuiTxBlock,
+    witnessType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::add_referral_witness_list`,
+      [
+        this.adminCapId,
+        this.borrowReferralWitnessList,
+      ],
+      [
+        witnessType
+      ]
+    );
+  }
+
+  removeReferralWitness(
+    suiTxBlock: SuiTxBlock,
+    witnessType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::remove_referral_witness_list`,
+      [
+        this.adminCapId,
+        this.borrowReferralWitnessList,
+      ],
+      [
+        witnessType
+      ]
+    );
+  }
+
+  setSupplyLimit(
+    suiTxBlock: SuiTxBlock,
+    limit: number,
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::update_supply_limit`,
+      [
+        this.adminCapId,
+        this.marketId,
+        limit
+      ],
+      [ coinType ]
+    )
+  }
+
+  setFlashloanFee(
+    suiTxBlock: SuiTxBlock,
+    fee: number, // 10000 base, 6 is 0.06%
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::set_flash_loan_fee`,
+      [
+        this.adminCapId,
+        this.marketId,
+        fee
+      ],
+      [ coinType ]
+    )
   }
 }

@@ -61,7 +61,8 @@ module protocol::borrow_referral {
   }
 
   public fun borrowed<CoinType, Witness>(borrow_referral: &BorrowReferral<CoinType, Witness>): u64 {
-    borrow_referral.borrowed
+    let borrowed = dynamic_field::borrow<BorrowedKey, u64>(&borrow_referral.id, BorrowedKey {});
+    *borrowed
   }
 
   public fun referral_share<CoinType, Witness>(borrow_referral: &BorrowReferral<CoinType, Witness>): u64 {

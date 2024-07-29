@@ -1,13 +1,14 @@
 module protocol::app {
   use std::fixed_point32;
   use std::fixed_point32::FixedPoint32;
-  use std::type_name;
+  use std::type_name::{Self, TypeName};
   use sui::tx_context::{Self, TxContext};
-  use sui::object::{Self, UID};
+  use sui::object::{Self, UID, ID};
   use sui::clock::{Self, Clock};
   use sui::dynamic_field;
   use sui::transfer;
   use sui::package;
+  use sui::event;
   use x::ac_table::AcTableCap;
   use x::one_time_lock_value::OneTimeLockValue;
   use protocol::market::{Self, Market};
@@ -32,6 +33,13 @@ module protocol::app {
     risk_model_cap: AcTableCap<RiskModels>,
     risk_model_change_delay: u64,
     limiter_change_delay: u64,
+  }
+
+  struct TakeRevenueEvent has copy, drop {
+    market: ID,
+    amount: u64,
+    coin_type: TypeName,
+    sender: address,
   }
   
   fun init(otw: APP, ctx: &mut TxContext) {
@@ -342,6 +350,13 @@ module protocol::app {
     amount: u64,
     ctx: &mut TxContext
   ) {
+    event::emit(TakeRevenueEvent {
+      market: object::id(market),
+      amount,
+      coin_type: type_name::get<T>(),
+      sender: tx_context::sender(ctx),
+    });
+
     let coin = market::take_revenue<T>(market, amount, ctx);
     transfer::public_transfer(coin, tx_context::sender(ctx));
   }

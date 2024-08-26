@@ -533,4 +533,20 @@ export class ProtocolTxBuilder {
       [ coinType ]
     )
   }
+
+  takeRevenue(
+    suiTxBlock: SuiTxBlock,
+    amount: number,
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::take_revenue`,
+      [
+        this.adminCapId,
+        this.marketId,
+        amount,
+      ],
+      [ coinType ]
+    );
+  }
 }

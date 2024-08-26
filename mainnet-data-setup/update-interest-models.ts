@@ -8,6 +8,7 @@ function updateInterestModels() {
   const tx = new SuiTxBlock();
   const interestModelPairs: { type: string, interestModel: InterestModel }[] = [
     { type: coinTypes.sui, interestModel: interestModels.sui },
+    { type: coinTypes.sca, interestModel: interestModels.sca },
     { type: coinTypes.cetus, interestModel: interestModels.cetus },
     { type: coinTypes.wormholeUsdc, interestModel: interestModels.wormholeUsdc },
     { type: coinTypes.wormholeUsdt, interestModel: interestModels.wormholeUsdt },

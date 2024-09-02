@@ -381,4 +381,14 @@ module protocol::obligation {
     obligation_debts::init_debt(&mut self.debts, type_name, sui::math::pow(10, 9));
     increase_debt(self, type_name, amount);
   }
+
+  #[test_only]
+  public fun add_collateral_test(
+    self: &mut Obligation,
+    type_name: TypeName,
+    amount: u64,
+  ) {
+    obligation_collaterals::init_collateral_if_none(&mut self.collaterals, type_name);
+    obligation_collaterals::increase(&mut self.collaterals, type_name, amount);
+  }
 }

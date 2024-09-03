@@ -391,4 +391,13 @@ module protocol::obligation {
     obligation_collaterals::init_collateral_if_none(&mut self.collaterals, type_name);
     obligation_collaterals::increase(&mut self.collaterals, type_name, amount);
   }
+
+  #[test_only]
+  public fun remove_collateral_test(
+    self: &mut Obligation,
+    type_name: TypeName,
+    amount: u64,
+  ) {
+    obligation_collaterals::decrease(&mut self.collaterals, type_name, amount);
+  }
 }

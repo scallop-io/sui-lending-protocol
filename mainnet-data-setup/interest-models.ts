@@ -166,7 +166,41 @@ export const vSuiInterestModel: InterestModel = {
   revenueFactor, // 10%
   borrowWeight, // 1
   scale,
-  minBorrowAmount: 10 ** (coinDecimals.haSui - 2), // 0.01 haSUI
+  minBorrowAmount: 10 ** (coinDecimals.haSui - 2), // 0.01 vSUI
+};
+
+export const wormholeSolInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 70%
+  highKink, // 90%
+
+  revenueFactor, // 10%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.haSui - 3), // 0.001 Sol
+};
+
+export const wormholeBtcInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 70%
+  highKink, // 90%
+
+  revenueFactor, // 10%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.wormholeBtc - 6), // 0.000001 Btc
 };
 
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
@@ -179,4 +213,6 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   wormholeEth: wormholeEthInterestModel,
   wormholeUsdc: wormholeUsdcInterestModel,
   wormholeUsdt: wormholeUsdtInterestModel,
+  wormholeBtc: wormholeBtcInterestModel,
+  wormholeSol: wormholeSolInterestModel,
 }

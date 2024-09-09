@@ -11,6 +11,8 @@ export type SupportedCollaterals =
   | 'wormholeUsdc'
   | 'wormholeUsdt'
   | 'wormholeEth'
+  | 'wormholeSol'
+  | 'wormholeBtc'
 ;
 
 export type SupportedBaseAssets =
@@ -23,6 +25,8 @@ export type SupportedBaseAssets =
   | 'wormholeUsdc'
   | 'wormholeUsdt'
   | 'wormholeEth'
+  | 'wormholeSol'
+  | 'wormholeBtc'
 ;
 
 export const coinTypes = {

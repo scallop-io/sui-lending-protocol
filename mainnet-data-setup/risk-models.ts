@@ -86,12 +86,12 @@ export const vSuiRiskModel: RiskModel = {
 }
 
 export const wormholeBtcRiskModel: RiskModel = {
-  collateralFactor: 70,
+  collateralFactor: 75,
   liquidationFactor: 80,
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.wormholeBtc + 2), // 100 Btc
+  maxCollateralAmount: 10 ** (coinDecimals.wormholeBtc + 1), // 10 Btc
 }
 
 export const wormholeSolRiskModel: RiskModel = {

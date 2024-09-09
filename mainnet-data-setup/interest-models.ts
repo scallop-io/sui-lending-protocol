@@ -183,7 +183,7 @@ export const wormholeSolInterestModel: InterestModel = {
   revenueFactor, // 10%
   borrowWeight, // 1
   scale,
-  minBorrowAmount: 10 ** (coinDecimals.haSui - 3), // 0.001 Sol
+  minBorrowAmount: 10 ** (coinDecimals.wormholeSol - 3), // 0.001 Sol
 };
 
 export const wormholeBtcInterestModel: InterestModel = {

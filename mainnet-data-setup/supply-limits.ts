@@ -14,4 +14,6 @@ export const SupplyLimits: Record<SupportedBaseAssets, number> = {
   vSui: 1e7 * Math.pow(10, coinDecimals.vSui),
   cetus: 2e6 * Math.pow(10, coinDecimals.cetus),
   wormholeEth: 1e4 * Math.pow(10, coinDecimals.wormholeEth),
+  wormholeBtc: 1e3 * Math.pow(10, coinDecimals.wormholeBtc),
+  wormholeSol: 1e4 * Math.pow(10, coinDecimals.wormholeSol),
 }

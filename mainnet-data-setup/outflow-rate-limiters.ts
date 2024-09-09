@@ -53,4 +53,14 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  wormholeBtc: {
+    outflowLimit: 1 * 10 ** (1 + coinDecimals.wormholeBtc), // 10 BTC per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  wormholeSol: {
+    outflowLimit: 1 * 10 ** (3 + coinDecimals.wormholeSol), // 1000 SOL per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
 }

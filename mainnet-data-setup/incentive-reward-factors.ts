@@ -32,4 +32,6 @@ export const incentiveRewardFactors: Record<SupportedBaseAssets, IncentiveReward
   wormholeEth: calculateRewardFactor(2000, coinDecimals.wormholeEth),
   wormholeUsdc: calculateRewardFactor(1, coinDecimals.wormholeUsdc),
   wormholeUsdt: calculateRewardFactor(1, coinDecimals.wormholeUsdt),
+  wormholeBtc: calculateRewardFactor(50000, coinDecimals.wormholeBtc),
+  wormholeSol: calculateRewardFactor(150, coinDecimals.wormholeSol),
 };

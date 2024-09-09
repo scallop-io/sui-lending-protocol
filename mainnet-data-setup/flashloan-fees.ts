@@ -14,4 +14,6 @@ export const FlashloanFees: Record<SupportedBaseAssets, number> = {
   vSui: 6,
   cetus: 6,
   wormholeEth: 6,
+  wormholeBtc: 6,
+  wormholeSol: 6,
 }

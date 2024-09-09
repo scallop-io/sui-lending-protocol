@@ -19,6 +19,8 @@ export const update = () => {
     {type: coinTypes.wormholeUsdc, fee: FlashloanFees.wormholeUsdc},
     {type: coinTypes.wormholeUsdt, fee: FlashloanFees.wormholeUsdt},
     {type: coinTypes.wormholeEth, fee: FlashloanFees.wormholeEth},
+    {type: coinTypes.wormholeBtc, fee: FlashloanFees.wormholeBtc},
+    {type: coinTypes.wormholeSol, fee: FlashloanFees.wormholeSol},
     {type: coinTypes.sca, fee: FlashloanFees.sca},
   ];
 

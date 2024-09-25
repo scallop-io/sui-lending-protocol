@@ -91,7 +91,7 @@ export const wormholeBtcRiskModel: RiskModel = {
   liquidationPanelty: 10,
   liquidationDiscount: 8,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.wormholeBtc + 1), // 10 Btc
+  maxCollateralAmount: 2 * 10 ** (coinDecimals.wormholeBtc + 1), // 20 Btc
 }
 
 export const wormholeSolRiskModel: RiskModel = {

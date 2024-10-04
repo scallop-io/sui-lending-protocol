@@ -61,8 +61,8 @@ export const scaRiskModel: RiskModel = {
 export const afSuiRiskModel: RiskModel = {
   collateralFactor: 70,
   liquidationFactor: 75,
-  liquidationPanelty: 10,
-  liquidationDiscount: 8,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
   scale: 100,
   maxCollateralAmount: 2 * 10 ** (coinDecimals.afSui + 7), // 20 million afSUI
 }
@@ -70,8 +70,8 @@ export const afSuiRiskModel: RiskModel = {
 export const haSuiRiskModel: RiskModel = {
   collateralFactor: 70,
   liquidationFactor: 75,
-  liquidationPanelty: 10,
-  liquidationDiscount: 8,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
   scale: 100,
   maxCollateralAmount: 2 * 10 ** (coinDecimals.haSui + 7), // 20 million haSUI
 }
@@ -79,8 +79,8 @@ export const haSuiRiskModel: RiskModel = {
 export const vSuiRiskModel: RiskModel = {
   collateralFactor: 60,
   liquidationFactor: 70,
-  liquidationPanelty: 10,
-  liquidationDiscount: 8,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
   scale: 100,
   maxCollateralAmount: 10 ** (coinDecimals.vSui + 3), // 1k haSUI
 }
@@ -88,8 +88,8 @@ export const vSuiRiskModel: RiskModel = {
 export const wormholeBtcRiskModel: RiskModel = {
   collateralFactor: 75,
   liquidationFactor: 80,
-  liquidationPanelty: 10,
-  liquidationDiscount: 8,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
   scale: 100,
   maxCollateralAmount: 2 * 10 ** (coinDecimals.wormholeBtc + 1), // 20 Btc
 }
@@ -97,8 +97,8 @@ export const wormholeBtcRiskModel: RiskModel = {
 export const wormholeSolRiskModel: RiskModel = {
   collateralFactor: 70,
   liquidationFactor: 80,
-  liquidationPanelty: 10,
-  liquidationDiscount: 8,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
   scale: 100,
   maxCollateralAmount: 10 ** (coinDecimals.wormholeSol + 4), // 10k Sol
 }

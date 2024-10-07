@@ -13,6 +13,7 @@ export type SupportedCollaterals =
   | 'wormholeEth'
   | 'wormholeSol'
   | 'wormholeBtc'
+  | 'nativeUsdc'
 ;
 
 export type SupportedBaseAssets =
@@ -27,6 +28,7 @@ export type SupportedBaseAssets =
   | 'wormholeEth'
   | 'wormholeSol'
   | 'wormholeBtc'
+  | 'nativeUsdc'
 ;
 
 export const coinTypes = {
@@ -42,6 +44,7 @@ export const coinTypes = {
   wormholeSol: '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8::coin::COIN',
   wormholeApt: '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37::coin::COIN',
   wormholeBtc: '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881::coin::COIN',
+  nativeUsdc: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
 };
 
 export const coinMetadataIds = {
@@ -57,6 +60,7 @@ export const coinMetadataIds = {
   wormholeSol: '0x4d2c39082b4477e3e79dc4562d939147ab90c42fc5f3e4acf03b94383cd69b6e',
   wormholeApt: '0xc969c5251f372c0f34c32759f1d315cf1ea0ee5e4454b52aea08778eacfdd0a8',
   wormholeBtc: '0x5d3c6e60eeff8a05b693b481539e7847dfe33013e7070cdcb387f5c0cac05dfd',
+  nativeUsdc: '0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6',
 };
 
 export const coinDecimals = {
@@ -72,4 +76,5 @@ export const coinDecimals = {
   wormholeSol: 8,
   wormholeApt: 8,
   wormholeBtc: 8,
+  nativeUsdc: 6,
 }

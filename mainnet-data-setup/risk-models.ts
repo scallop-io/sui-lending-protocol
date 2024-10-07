@@ -103,6 +103,15 @@ export const wormholeSolRiskModel: RiskModel = {
   maxCollateralAmount: 10 ** (coinDecimals.wormholeSol + 4), // 10k Sol
 }
 
+export const nativeUsdcRiskModel: RiskModel = {
+  collateralFactor: 85,
+  liquidationFactor: 90,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
+  scale: 100,
+  maxCollateralAmount: 10 ** (coinDecimals.nativeUsdc + 7), // 10 million USDC
+}
+
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   sui: suiRiskModel,
   sca: scaRiskModel,
@@ -115,4 +124,5 @@ export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   wormholeUsdt: wormholeUsdtRiskModel,
   wormholeBtc: wormholeBtcRiskModel,
   wormholeSol: wormholeSolRiskModel,
+  nativeUsdc: nativeUsdcRiskModel,
 }

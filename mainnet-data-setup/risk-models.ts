@@ -109,7 +109,7 @@ export const nativeUsdcRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.nativeUsdc + 5), // 100k USDC
+  maxCollateralAmount: 10 ** (coinDecimals.nativeUsdc + 6), // 1M USDC
 }
 
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {

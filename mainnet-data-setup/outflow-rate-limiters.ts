@@ -64,7 +64,7 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   nativeUsdc: {
-    outflowLimit: 5 * 10 ** (6 + coinDecimals.nativeUsdc), // 5 million USDC per day
+    outflowLimit: 1 * 10 ** (7 + coinDecimals.nativeUsdc), // 10 million USDC per day
     outflowCycleDuration,
     outflowSegmentDuration,
   }

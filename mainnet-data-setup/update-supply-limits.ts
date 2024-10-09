@@ -11,15 +11,7 @@ export const updateSupplyLimits = () => {
   const suiTxBlock = new SuiTxBlock();
 
   const supplyLimitList: { type: string, limit: number }[] = [
-    {type: coinTypes.sui, limit: SupplyLimits.sui},
-    {type: coinTypes.afSui, limit: SupplyLimits.afSui},
-    {type: coinTypes.haSui, limit: SupplyLimits.haSui},
-    {type: coinTypes.vSui, limit: SupplyLimits.vSui},
-    {type: coinTypes.cetus, limit: SupplyLimits.cetus},
-    {type: coinTypes.wormholeUsdc, limit: SupplyLimits.wormholeUsdc},
-    {type: coinTypes.wormholeUsdt, limit: SupplyLimits.wormholeUsdt},
-    {type: coinTypes.wormholeEth, limit: SupplyLimits.wormholeEth},
-    {type: coinTypes.sca, limit: SupplyLimits.sca},
+    {type: coinTypes.nativeUsdc, limit: SupplyLimits.nativeUsdc},
   ];
 
   supplyLimitList.forEach(pair => {

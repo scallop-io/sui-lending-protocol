@@ -2,7 +2,7 @@
 
 [move]
 version = 0
-manifest_digest = "5A1E49A5089AFEFE44C16507A4DBEBDAE34425D7D756075C32FF93513586245D"
+manifest_digest = "F912FF5A8A295C69E09BEFEDA25E24197B25BA641D0A3B121C21034226B36688"
 deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 
 dependencies = [
@@ -28,7 +28,7 @@ dependencies = [
 
 [[move.package]]
 name = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
 name = "ScallopProtocol"
@@ -45,7 +45,7 @@ dependencies = [
 
 [[move.package]]
 name = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { name = "MoveStdlib" },
@@ -74,3 +74,16 @@ source = { local = "../sui_x_oracle/x_oracle" }
 dependencies = [
   { name = "Sui" },
 ]
+
+[move.toolchain-version]
+compiler-version = "1.32.4"
+edition = "2024.beta"
+flavor = "sui"
+
+[env]
+
+[env.mainnet]
+chain-id = "35834a8a"
+original-published-id = "0x3c838ad10d71a87bd5d894122bbad27a16c38c6efd2b97c4c0e863adffa62ebb"
+latest-published-id = "0x3c838ad10d71a87bd5d894122bbad27a16c38c6efd2b97c4c0e863adffa62ebb"
+published-version = "1"

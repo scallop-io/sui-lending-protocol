@@ -1,12 +1,15 @@
 module protocol_query::obligation_query {
   
   use std::vector;
+  use sui::clock::Clock;
   use std::type_name::TypeName;
   use sui::event::emit;
   use x::wit_table;
   use protocol::obligation::{Self, Obligation};
   use protocol::obligation_collaterals;
   use protocol::obligation_debts;
+  use protocol::version::Version;
+  use protocol::market::Market;
 
   struct CollateralData has copy, store, drop {
     type: TypeName,
@@ -24,7 +27,9 @@ module protocol_query::obligation_query {
     debts: vector<DebtData>
   }
 
-  public fun obligation_data(obligation: &Obligation) {
+  public fun obligation_data(version: &Version, market: &mut Market, obligation: &mut Obligation, clock: &Clock) {
+    protocol::accrue_interest::accrue_interest_for_market_and_obligation(version, market, obligation, clock);
+
     let collaterals = collateral_data(obligation);
     let debts = debt_data(obligation);
     let obligationData =  ObligationData { collaterals, debts };

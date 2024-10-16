@@ -8,7 +8,8 @@ import {
 
 function updateRiskModels() {
   const tx = new SuiTxBlock();
-  protocolTxBuilder.updateRiskModel(tx, riskModels.nativeUsdc, coinTypes.nativeUsdc);
+  protocolTxBuilder.updateRiskModel(tx, riskModels.sca, coinTypes.sca);
+  protocolTxBuilder.updateRiskModel(tx, riskModels.cetus, coinTypes.cetus);
   return buildMultiSigTx(tx);
 }
 

@@ -69,7 +69,7 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   sbEth: {
-    outflowLimit: 5 * 10 ** (1 + coinDecimals.sbEth), // 50 ETH per day
+    outflowLimit: 25 * 10 ** (1 + coinDecimals.sbEth), // 250 ETH per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },

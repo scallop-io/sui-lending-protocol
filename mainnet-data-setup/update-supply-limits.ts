@@ -11,7 +11,7 @@ export const updateSupplyLimits = () => {
   const suiTxBlock = new SuiTxBlock();
 
   const supplyLimitList: { type: string, limit: number }[] = [
-    {type: coinTypes.nativeUsdc, limit: SupplyLimits.nativeUsdc},
+    {type: coinTypes.sbEth, limit: SupplyLimits.sbEth},
   ];
 
   supplyLimitList.forEach(pair => {

@@ -13,6 +13,6 @@ export const borrowFees: Record<SupportedBaseAssets, BorrowFee> = {
   wormholeUsdt: { numerator: 3, denominator: 1000 },
   wormholeBtc: { numerator: 3, denominator: 1000 },
   wormholeSol: { numerator: 3, denominator: 1000 },
-  nativeUsdc: { numerator: 0, denominator: 1000 },
+  nativeUsdc: { numerator: 3, denominator: 1000 },
   sbEth: { numerator: 3, denominator: 1000 },
 }

@@ -20,7 +20,7 @@ module protocol::app {
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, BorrowLimitKey, IsolatedAssetKey};
   use protocol::borrow_referral::{Self, AuthorizedWitnessList};
 
   /// OTW
@@ -429,6 +429,30 @@ module protocol::app {
     dynamic_field::remove_if_exists<SupplyLimitKey, u64>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, limit_amount);
   }
+
+  public entry fun update_borrow_limit<T: drop>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    limit_amount: u64,
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::borrow_limit_key(type_name::get<T>());
+
+    dynamic_field::remove_if_exists<BorrowLimitKey, u64>(market_uid_mut, key);
+    dynamic_field::add(market_uid_mut, key, limit_amount);
+  }  
+
+  public entry fun update_isolated_asset_status<PoolType: drop>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    is_isolated: bool,
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::isolated_asset_key(type_name::get<PoolType>());
+
+    dynamic_field::remove_if_exists<IsolatedAssetKey, bool>(market_uid_mut, key);
+    dynamic_field::add(market_uid_mut, key, is_isolated);
+  }  
 
   /// notice This is for admin to init the referral witness list
   /// dev Make sure only call this function once to have only 1 witness list

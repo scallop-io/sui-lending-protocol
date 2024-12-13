@@ -4,6 +4,7 @@ module protocol_test::constants {
   use test_coin::eth::ETH;
   use test_coin::btc::BTC;
   use test_coin::usdc::USDC;
+  use test_coin::usdt::USDT;  
   
   struct RiskModelParams<phantom T> has copy, drop {
     collateral_factor: u64,
@@ -104,6 +105,29 @@ module protocol_test::constants {
       borrow_weight: 1 * scale,
     }
   }
+
+  public fun usdt_interest_model_params(): InterestModelParams<USDT> {
+    let interest_rate_scale = math::pow(10, 7);
+    let scale = math::pow(10, 12);
+    let secs_per_year = 365 * 24 * 60 * 60;
+
+    let borrow_rate_on_mid_kink = 8 * u64::mul_div(scale, interest_rate_scale, secs_per_year) / 100;
+    let borrow_rate_on_high_kink = 50 * u64::mul_div(scale, interest_rate_scale, secs_per_year) / 100;
+    let max_borrow_rate = 100 * u64::mul_div(scale, interest_rate_scale, secs_per_year) / 100;
+    InterestModelParams {
+      base_rate_per_sec: 0,
+      interest_rate_scale,
+      borrow_rate_on_mid_kink,
+      borrow_rate_on_high_kink,
+      max_borrow_rate,
+      mid_kink: u64::mul_div(60, scale, 100),
+      high_kink: u64::mul_div(90, scale, 100),
+      revenue_factor: u64::mul_div(2, scale, 100),
+      scale,
+      min_borrow_amount: math::pow(10, 8),
+      borrow_weight: 1 * scale,
+    }
+  }  
 
   public fun eth_interest_model_params(): InterestModelParams<ETH> {
     let interest_rate_scale = math::pow(10, 7);

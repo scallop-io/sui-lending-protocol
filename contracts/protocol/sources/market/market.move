@@ -7,9 +7,11 @@ module protocol::market {
   use sui::balance::Balance;
   use sui::object::{Self, UID};
   use sui::coin::Coin;
+  use sui::dynamic_field as df;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
   use x::witness::Witness;
+  use protocol::market_dynamic_keys::{Self, IsolatedAssetKey};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::limiter::{Self, Limiters, Limiter};
   use protocol::incentive_rewards::{Self, RewardFactors, RewardFactor};
@@ -56,6 +58,12 @@ module protocol::market {
   public fun reward_factors(market: &Market): &WitTable<RewardFactors, TypeName, RewardFactor> { &market.reward_factors }
   public fun collateral_stats(market: &Market): &WitTable<CollateralStats, TypeName, CollateralStat> { &market.collateral_stats }
   
+  public fun total_global_debt(market: &Market, pool_type: TypeName): u64 {
+    let balance_sheet = wit_table::borrow(reserve::balance_sheets(&market.vault), pool_type);
+    let (_, debt, _, _) = reserve::balance_sheet(balance_sheet);
+    debt
+  }
+
   public fun borrow_index(self: &Market, type_name: TypeName): u64 {
     borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type_name)
   }
@@ -80,6 +88,15 @@ module protocol::market {
   public fun is_collateral_active(self: &Market, type_name: TypeName): bool {
     asset_active_state::is_collateral_active(&self.asset_active_states, type_name)
   }
+
+  public fun is_isolated_asset(self: &Market, pool_type: TypeName): bool {
+    let isolated_asset_key = market_dynamic_keys::isolated_asset_key(pool_type);
+    if (!df::exists_<IsolatedAssetKey>(&self.id, isolated_asset_key)) {
+      return false
+    };
+
+    *df::borrow<IsolatedAssetKey, bool>(&self.id, isolated_asset_key)
+  }  
   
   public(friend) fun new(ctx: &mut TxContext)
   : (Market, AcTableCap<InterestModels>, AcTableCap<RiskModels>)

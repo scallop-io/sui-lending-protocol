@@ -4,6 +4,7 @@ module protocol::borrow {
 
   use std::fixed_point32::{Self, FixedPoint32};
   use std::type_name::{Self, TypeName};
+  use std::vector;
   use sui::coin::{Self, Coin};
   use sui::transfer;
   use sui::event::emit;
@@ -19,7 +20,7 @@ module protocol::borrow {
   use protocol::borrow_withdraw_evaluator;
   use protocol::interest_model;
   use protocol::error;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowLimitKey, BorrowFeeRecipientKey};
 
   use math::u64;
 
@@ -187,6 +188,48 @@ module protocol::borrow {
     coin::from_balance(borrowed_balance, ctx)
   }
 
+  // check whether the borrowed asset is isolated
+  // if isolated, then check the entire obligation debts should not have any other debt
+  fun assert_isolated_asset(market: &Market, obligation: &Obligation, borrow_coin_type: TypeName) {
+    let ok = true;
+    if (market::is_isolated_asset(market, borrow_coin_type)) {
+      // if borrowed coin is an isolated asset, then the obligation should not have any other debt
+      let debts = obligation::debt_types(obligation);
+      let (i, debts_length) = (0, vector::length(&debts));
+      while (i < debts_length) {
+        let debt_type = *vector::borrow(&debts, i);
+        if (debt_type != borrow_coin_type) {
+          let (debt_amount, _) = obligation::debt(obligation, debt_type);
+          if (debt_amount > 0) {
+            ok = false;
+            break;
+          }
+        };
+
+        i = i + 1;
+      };
+    } else {
+      // if borrowed coin is NOT an isolated asset, then the obligation SHOULD NOT HAVE an isolated asset debt
+      let debts = obligation::debt_types(obligation);
+      let (i, debts_length) = (0, vector::length(&debts));
+      while (i < debts_length) {
+        let debt_type = *vector::borrow(&debts, i);
+        if (market::is_isolated_asset(market, debt_type)) {
+          let (debt_amount, _) = obligation::debt(obligation, debt_type);
+          if (debt_amount > 0) {
+            ok = false;
+            break;
+          }
+        };
+        
+        i = i + 1;
+      };
+    };
+
+    assert!(ok, error::unable_to_borrow_other_coin_with_isolated_asset());
+  }  
+
+  // @TODO: borrow fee store in an object
   fun borrow_internal<T>(
     obligation: &mut Obligation,
     obligation_key: &ObligationKey,
@@ -228,10 +271,19 @@ module protocol::borrow {
     // Avoid the loop of collateralize and borrow of same assets
     assert!(!obligation::has_coin_x_as_collateral(obligation, coin_type), error::unable_to_borrow_a_collateral_coin());
 
+    // make sure the borrow action, follow the isolated asset rules
+    assert_isolated_asset(market, obligation, coin_type);    
+
     // Make sure the borrow amount is bigger than the minimum borrow amount
     let interest_model = market::interest_model(market, coin_type);
     let min_borrow_amount = interest_model::min_borrow_amount(interest_model);
     assert!(borrow_amount > min_borrow_amount, error::borrow_too_small_error());
+
+    // assert borrow limit
+    let borrow_limit_key = market_dynamic_keys::borrow_limit_key(coin_type);
+    let borrow_limit = *dynamic_field::borrow<BorrowLimitKey, u64>(market::uid(market), borrow_limit_key);
+    let current_total_global_debt = market::total_global_debt(market, coin_type);
+    assert!(current_total_global_debt + borrow_amount <= borrow_limit, error::borrow_limit_reached_error());    
 
     // Add borrow amount to the outflow limiter, if limit is reached then abort
     market::handle_outflow<T>(market, borrow_amount, now);

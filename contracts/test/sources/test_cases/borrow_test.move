@@ -237,4 +237,87 @@ module protocol_test::borrow_test {
     test_scenario::return_to_address(borrower, obligation_key);
     test_scenario::end(scenario_value);
   }
+
+  #[test, expected_failure(abort_code = 0x0014005, location = protocol::borrow)]
+  public fun borrow_reached_borrow_limit_test() {
+    let usdc_decimals = 9;
+    let eth_decimals = 9;
+    
+    let admin = @0xAD;
+    let lender = @0xAA;
+    let borrower = @0xBB;
+    let scenario_value = test_scenario::begin(admin);
+    let scenario = &mut scenario_value;
+    let clock = clock::create_for_testing(test_scenario::ctx(scenario));
+    let version = version::create_for_testing(test_scenario::ctx(scenario));
+    let (market, admin_cap) = app_init(scenario);
+    let usdc_interest_params = usdc_interest_model_params();
+    let eth_interest_params = eth_interest_model_params();
+
+    let (x_oracle, x_oracle_policy_cap) = oracle_t::init_t(scenario);
+
+    test_scenario::next_tx(scenario, admin);
+    
+    clock::set_for_testing(&mut clock, 100 * 1000);
+    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
+    add_interest_model_t<ETH>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &eth_interest_params, &clock);
+    let eth_risk_params = eth_risk_model_params();
+    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
+    let usdc_risk_params = usdc_risk_model_params();
+    add_risk_model_t<USDC>(scenario, &mut market, &admin_cap, &usdc_risk_params);
+    let coin_decimals_registry = coin_decimals_registry_init(scenario);
+    coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
+    coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
+
+    // global borrow limit is only 500 USDC
+    protocol::app::update_borrow_limit<USDC>(
+      &admin_cap,
+      &mut market,
+      500 * sui::math::pow(10, 9),
+    );
+    
+    test_scenario::next_tx(scenario, lender);
+    let usdc_amount = math::pow(10, usdc_decimals + 4);
+    clock::set_for_testing(&mut clock, 200 * 1000);
+    let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
+    let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
+    assert!(coin::value(&market_coin) == usdc_amount, 0);
+    coin::burn_for_testing(market_coin);
+
+    let eth_amount = math::pow(10, eth_decimals);
+    let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
+    let market_coin = mint::mint(&version, &mut market, eth_coin, &clock, test_scenario::ctx(scenario));
+    assert!(coin::value(&market_coin) == eth_amount, 0);
+    coin::burn_for_testing(market_coin);
+
+    test_scenario::next_tx(scenario, borrower);
+    let eth_amount = math::pow(10, eth_decimals);
+    let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
+    let (obligation, obligation_key) = open_obligation_t(scenario, &version);
+    deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
+  
+    clock::set_for_testing(&mut clock, 300 * 1000);
+    x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
+
+    test_scenario::next_tx(scenario, borrower);
+    // NOTE: this should be failed
+    // because the borrow limit is only 500 USDC
+    let borrow_amount = 699 * math::pow(10, usdc_decimals);
+    let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
+    assert!(coin::value(&borrowed) == borrow_amount, 0);
+    coin::burn_for_testing(borrowed);
+
+    clock::destroy_for_testing(clock);
+    version::destroy_for_testing(version);
+
+    test_scenario::return_shared(x_oracle);
+    test_scenario::return_shared(coin_decimals_registry);
+    test_scenario::return_shared(market);
+    test_scenario::return_shared(obligation);
+    test_scenario::return_to_address(admin, x_oracle_policy_cap);
+    test_scenario::return_to_address(admin, admin_cap);
+    test_scenario::return_to_address(borrower, obligation_key);
+    test_scenario::end(scenario_value);
+  }  
 }

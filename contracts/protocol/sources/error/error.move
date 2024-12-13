@@ -27,6 +27,7 @@ module protocol::error {
   public fun borrow_too_small_error(): u64 { 0x0000502 }
   public fun flash_loan_repay_not_enough_error(): u64 { 0x0000503 }
   public fun unable_to_borrow_a_collateral_coin(): u64 { 0x0000504 }
+  public fun unable_to_borrow_other_coin_with_isolated_asset(): u64 { 0x0000505 }
 
   // liquidation
   public fun unable_to_liquidate_error(): u64 { 0x0000601 }
@@ -65,6 +66,7 @@ module protocol::error {
   public fun supply_limit_reached(): u64 { 0x0014002 }
   public fun collateral_not_enough(): u64 { 0x0014003 }
   public fun reserve_not_enough_error(): u64 { 0x0014004 }
+  public fun borrow_limit_reached_error(): u64 { 0x0014005 }
 
   // repay
   public fun zero_repay_amount_error(): u64 { 0x0015001 }

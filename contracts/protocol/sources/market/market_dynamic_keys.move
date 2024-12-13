@@ -12,6 +12,14 @@ module protocol::market_dynamic_keys {
     type: TypeName
   }
 
+  struct BorrowLimitKey has copy, store, drop {
+    type: TypeName
+  } 
+
+  struct IsolatedAssetKey has copy, store, drop {
+    type: TypeName
+  }  
+
   public fun borrow_fee_key(type: TypeName): BorrowFeeKey {
     BorrowFeeKey{ type }
   }
@@ -23,4 +31,12 @@ module protocol::market_dynamic_keys {
   public fun supply_limit_key(type: TypeName): SupplyLimitKey {
     SupplyLimitKey { type }
   }
+
+  public fun isolated_asset_key(type: TypeName): IsolatedAssetKey {
+    IsolatedAssetKey { type }
+  }
+
+  public fun borrow_limit_key(type: TypeName): BorrowLimitKey {
+    BorrowLimitKey { type }
+  }  
 }

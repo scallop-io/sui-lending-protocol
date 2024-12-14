@@ -31,7 +31,7 @@ module protocol::version {
   // ======= version control ==========
   public fun value(v: &Version): u64 { v.value }
   public fun upgrade(v: &mut Version, _: &VersionCap) {
-    v.value = current_version() + 1;
+    v.value = v.value + 1;
   }
   public fun is_current_version(v: &Version): bool {
     v.value == current_version()

@@ -518,6 +518,38 @@ export class ProtocolTxBuilder {
     )
   }
 
+  setBorrowLimit(
+    suiTxBlock: SuiTxBlock,
+    limit: number,
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+    `${this.packageId}::app::update_borrow_limit`,
+      [
+        this.adminCapId,
+        this.marketId,
+        limit
+      ],
+      [ coinType ]
+    )
+  }
+
+  updateIsolatedAssetStatus(
+    suiTxBlock: SuiTxBlock,
+    isIsolated: boolean,
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+    `${this.packageId}::app::update_isolated_asset_status`,
+      [
+        this.adminCapId,
+        this.marketId,
+        isIsolated
+      ],
+      [ coinType ]
+    )
+  }
+
   setFlashloanFee(
     suiTxBlock: SuiTxBlock,
     fee: number, // 10000 base, 6 is 0.06%

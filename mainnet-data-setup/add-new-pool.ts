@@ -15,6 +15,7 @@ import { decimalsRegistryTxBuilder } from 'contracts/libs/coin_decimals_registry
 
 import { coinTypes, coinMetadataIds } from './chain-data';
 import { buildMultiSigTx } from './multi-sig';
+import { BorrowLimits } from './borrow-limits';
 
 async function addNewPool_DEEP() {
   const tx = new SuiTxBlock();
@@ -24,6 +25,8 @@ async function addNewPool_DEEP() {
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
+  protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
+  protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
   protocolTxBuilder.setIncentiveRewardFactor(tx, incentiveRewardFactors[coin], coinType);
@@ -48,6 +51,8 @@ async function addNewPool_FUD() {
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
+  protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
+  protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
   protocolTxBuilder.setIncentiveRewardFactor(tx, incentiveRewardFactors[coin], coinType);

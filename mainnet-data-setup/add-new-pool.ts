@@ -37,8 +37,9 @@ async function addNewPool_DEEP() {
 
   // Burn dust to keep a minimum amount of the coin in the pool
   const dustToBurn = protocolTxBuilder.supplyBaseAsset(tx, dustCoinId, coinType);
-  const voidAddress = '0x0';
+  const voidAddress = '0x0000000000000000000000000000000000000000000000000000000000000000';
   tx.transferObjects([dustToBurn], voidAddress);
+
 
   return buildMultiSigTx(tx);
 }
@@ -63,7 +64,7 @@ async function addNewPool_FUD() {
 
   // Burn dust to keep a minimum amount of the coin in the pool
   const dustToBurn = protocolTxBuilder.supplyBaseAsset(tx, dustCoinId, coinType);
-  const voidAddress = '0x0';
+  const voidAddress = '0x0000000000000000000000000000000000000000000000000000000000000000';
   tx.transferObjects([dustToBurn], voidAddress);
 
   return buildMultiSigTx(tx);

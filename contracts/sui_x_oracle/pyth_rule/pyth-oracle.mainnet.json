@@ -42,11 +42,11 @@
     },
     "deep_usd": {
       "priceFeedId": "0x29bdd5248234e33bd93d3b81100b5fa32eaa5997843847e2c2cb16d7c6d9f7ff",
-      "priceFeedObjectId": ""
+      "priceFeedObjectId": "0x8c7f3a322b94cc69db2a2ac575cbd94bf5766113324c3a3eceac91e3e88a51ed"
     },
     "fud_usd": {
       "priceFeedId": "0x6a4090703da959247727f2b490eb21aea95c8684ecfac675f432008830890c75",
-      "priceFeedObjectId": ""
+      "priceFeedObjectId": "0x4531c3ed0d22f21f5fce882905372006c9aafa30f01db03b789e95a6c50de7b2"
     }
   }
 }

@@ -73,4 +73,14 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  deep: {
+    outflowLimit: 5 * 10 ** (6 + coinDecimals.deep), // 5M DEEP per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  fud: {
+    outflowLimit: 1 * 10 ** (12 + coinDecimals.fud), // 1T FUD per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
 }

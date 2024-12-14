@@ -39,6 +39,14 @@
     "apt_usd": {
       "priceFeedId": "03ae4db29ed4ae33d323568895aa00337e658e348b37509f5372ae51f0af00d5",
       "priceFeedObjectId": "0x7c5b7837c44a69b469325463ac0673ac1aa8435ff44ddb4191c9ae380463647f"
+    },
+    "deep_usd": {
+      "priceFeedId": "0x29bdd5248234e33bd93d3b81100b5fa32eaa5997843847e2c2cb16d7c6d9f7ff",
+      "priceFeedObjectId": ""
+    },
+    "fud_usd": {
+      "priceFeedId": "0x6a4090703da959247727f2b490eb21aea95c8684ecfac675f432008830890c75",
+      "priceFeedObjectId": ""
     }
   }
 }

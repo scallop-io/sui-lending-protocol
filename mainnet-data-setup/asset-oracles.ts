@@ -23,4 +23,6 @@ export const oracles: Record<SupportedBaseAssets | SupportedCollaterals, OracleD
   wormholeSol: { pythPriceObjectId: pythOracleData.priceFeeds.sol_usd.priceFeedObjectId },
   nativeUsdc: { pythPriceObjectId: pythOracleData.priceFeeds.usdc_usd.priceFeedObjectId },
   sbEth: { pythPriceObjectId: pythOracleData.priceFeeds.eth_usd.priceFeedObjectId },
+  deep: { pythPriceObjectId: pythOracleData.priceFeeds.deep_usd.priceFeedObjectId },
+  fud: { pythPriceObjectId: pythOracleData.priceFeeds.fud_usd.priceFeedObjectId },
 };

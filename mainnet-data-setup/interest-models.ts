@@ -237,6 +237,40 @@ export const sbEthInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.sbEth - 3), // 0.001 ETH
 };
 
+export const deepInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 70%
+  highKink, // 90%
+
+  revenueFactor, // 10%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.deep + 1), // 10 DEEP
+};
+
+export const fudInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(8), // 8%
+  borrowRateOnHighKink: getRatePerSec(100), // 100%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 70%
+  highKink, // 90%
+
+  revenueFactor, // 10%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.fud + 7), // 10M FUD
+};
+
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sui: suiInterestModel,
   sca: scaInterestModel,
@@ -251,4 +285,6 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   wormholeSol: wormholeSolInterestModel,
   nativeUsdc: nativeUsdcInterestModel,
   sbEth: sbEthInterestModel,
+  deep: deepInterestModel,
+  fud: fudInterestModel,
 }

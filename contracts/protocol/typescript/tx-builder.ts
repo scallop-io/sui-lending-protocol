@@ -250,8 +250,8 @@ export class ProtocolTxBuilder {
     coinId: SuiTxArg,
     coinType: string,
   ) {
-    suiTxBlock.moveCall(
-      `${this.packageId}::mint::mint_entry`,
+    return suiTxBlock.moveCall(
+      `${this.packageId}::mint::mint`,
       [this.versionId, this.marketId, coinId, SUI_CLOCK_OBJECT_ID],
       [coinType]
     );

@@ -12,7 +12,6 @@ export const updateSupplyLimits = () => {
 
   const supplyLimitList: { type: string, limit: number }[] = [
     {type: coinTypes.deep, limit: SupplyLimits.deep},
-    {type: coinTypes.fud, limit: SupplyLimits.fud},
   ];
 
   supplyLimitList.forEach(pair => {

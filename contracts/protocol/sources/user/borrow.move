@@ -300,10 +300,15 @@ module protocol::borrow {
 
     // calc the maximum borrow amount
     // If borrow too much, abort
-    let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);
-    assert!(borrow_amount <= max_borrow_amount, error::borrow_too_much_error());
+    // let max_borrow_amount = borrow_withdraw_evaluator::max_borrow_amount<T>(obligation, market, coin_decimals_registry, x_oracle, clock);
+    // assert!(borrow_amount <= max_borrow_amount, error::borrow_too_much_error());
     // increase the debt for obligation
     obligation::increase_debt(obligation, coin_type, borrow_amount);
+
+    // make sure that their obligation still healthy, so users aren't borrowing over their collateral
+    let collaterals_value = protocol::collateral_value::collaterals_value_usd_for_borrow(obligation, market, coin_decimals_registry, x_oracle, clock);
+    let debts_value = protocol::debt_value::debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle, clock);
+    assert!(math::fixed_point32_empower::gt(collaterals_value, debts_value), error::borrow_too_much_error());
 
     // Calculate the base borrow fee
     let base_borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());

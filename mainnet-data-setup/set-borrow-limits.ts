@@ -12,19 +12,7 @@ export const updateBorrowLimits = async () => {
     const suiTxBlock = new SuiTxBlock();
 
     const borrowLimitList: { type: string, limit: number }[] = [
-        { type: coinTypes.sui, limit: BorrowLimits.sui },
-        { type: coinTypes.afSui, limit: BorrowLimits.afSui },
-        { type: coinTypes.vSui, limit: BorrowLimits.vSui },
-        { type: coinTypes.haSui, limit: BorrowLimits.haSui },
-        { type: coinTypes.nativeUsdc, limit: BorrowLimits.nativeUsdc },
-        { type: coinTypes.sbEth, limit: BorrowLimits.sbEth },
-        { type: coinTypes.wormholeEth, limit: BorrowLimits.wormholeEth },
-        { type: coinTypes.cetus, limit: BorrowLimits.cetus },
-        { type: coinTypes.wormholeSol, limit: BorrowLimits.wormholeSol },
-        { type: coinTypes.wormholeBtc, limit: BorrowLimits.wormholeBtc },
-        { type: coinTypes.wormholeUsdc, limit: BorrowLimits.wormholeUsdc },
-        { type: coinTypes.wormholeUsdt, limit: BorrowLimits.wormholeUsdt },
-        { type: coinTypes.sca, limit: BorrowLimits.sca },
+        { type: coinTypes.deep, limit: BorrowLimits.deep },
     ];
 
     borrowLimitList.forEach(pair => {

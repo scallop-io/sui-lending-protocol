@@ -51,6 +51,7 @@ module protocol::app {
     init_internal(APP {}, ctx)
   }
   
+  #[allow(lint(self_transfer, share_owned))]
   fun init_internal(otw: APP, ctx: &mut TxContext) {
     let (market, interest_model_cap, risk_model_cap) = market::new(ctx);
     let adminCap = AdminCap {

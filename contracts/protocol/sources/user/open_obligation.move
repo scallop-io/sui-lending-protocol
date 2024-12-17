@@ -30,6 +30,7 @@ module protocol::open_obligation {
   /// @dev the obaligation object will be a shared object, object key is the proof of ownership for the obligation
   /// @param version The version control object, contract version must match with this
   /// @param ctx The SUI transaction context object
+  #[allow(lint(share_owned))]
   public entry fun open_obligation_entry(version: &Version, ctx: &mut TxContext) {
     // Check version
     version::assert_current_version(version);
@@ -79,6 +80,7 @@ module protocol::open_obligation {
   /// @param version The version control object, contract version must match with this
   /// @param obligation the obligation to be shared
   /// @param obligation_hot_potato the hot potato object created together with the obligation
+  #[allow(lint(share_owned))]
   public fun return_obligation(version: &Version, obligation: Obligation, obligation_hot_potato: ObligationHotPotato) {
     // Check contract version
     version::assert_current_version(version);

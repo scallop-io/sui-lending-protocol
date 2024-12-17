@@ -28,6 +28,7 @@ module protocol::borrow_referral {
   const ERROR_CFG_ISNT_EXIST: u64 = 714;
 
   // This is a hot potato object, which can only be consumed by the authorized package
+  #[allow(lint(missing_key))]
   struct BorrowReferral<phantom CoinType, Witness> {
     id: UID, // this is supposed to be a hot potato object, `id` field here just to help adding a dynamic_field
     borrow_fee_discount: u64, // The percentage of the borrow fee that will be discounted for the borrower

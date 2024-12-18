@@ -8,7 +8,7 @@ import {
 
 function updateOutflowLimits() {
   const tx = new SuiTxBlock();
-  protocolTxBuilder.updateOutflowLimit(tx, outflowRateLimiters.nativeUsdc, coinTypes.nativeUsdc);
+  protocolTxBuilder.updateOutflowLimit(tx, outflowRateLimiters.deep, coinTypes.deep);
   return buildMultiSigTx(tx);
 }
 

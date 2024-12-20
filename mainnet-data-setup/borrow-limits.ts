@@ -18,6 +18,6 @@ export const BorrowLimits: Record<SupportedBaseAssets, number> = {
     wormholeSol: 2e4 * Math.pow(10, coinDecimals.wormholeSol),
     nativeUsdc: 5e7 * Math.pow(10, coinDecimals.nativeUsdc),
     sbEth: 5e3 * Math.pow(10, coinDecimals.sbEth),
-    deep: 24_000_000 * Math.pow(10, coinDecimals.deep),
+    deep: 48_000_000 * Math.pow(10, coinDecimals.deep),
     fud: 900_000_000_000 * Math.pow(10, coinDecimals.fud),
 }

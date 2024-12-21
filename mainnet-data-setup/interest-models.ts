@@ -112,7 +112,7 @@ export const wormholeUsdtInterestModel: InterestModel = {
   midKink, // 70%
   highKink, // 90%
 
-  revenueFactor, // 20%
+  revenueFactor: 30 * (scale / 100), // 30%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.wormholeUsdt - 2), // 0.01 USDT
@@ -214,7 +214,7 @@ export const nativeUsdcInterestModel: InterestModel = {
   midKink, // 70%
   highKink, // 90%
 
-  revenueFactor, // 20%
+  revenueFactor: 30 * (scale / 100), // 30%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.nativeUsdc - 2), // 0.01 USDC

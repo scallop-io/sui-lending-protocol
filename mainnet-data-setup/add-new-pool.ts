@@ -17,12 +17,13 @@ import { coinTypes, coinMetadataIds } from './chain-data';
 import { buildMultiSigTx } from './multi-sig';
 import { BorrowLimits } from './borrow-limits';
 
-async function addNewPool_DEEP() {
+async function addNewPool_FDUSD() {
   const tx = new SuiTxBlock();
-  const coin = 'deep';
-  const dustCoinId = '0x186ee7ad0a9a8668fa62e4d524d8738303463b6d03b30f106c54594f0ed9263b'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'fdusd';
+  const dustCoinId = ''; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
+  protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
   protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
@@ -44,30 +45,4 @@ async function addNewPool_DEEP() {
   return buildMultiSigTx(tx);
 }
 
-async function addNewPool_FUD() {
-  const tx = new SuiTxBlock();
-  const coin = 'fud';
-  const dustCoinId = '0x5a968bd1dcf38f0e13ede7da9af7de0e8d92f63952f017b5f5ed7ac86726b882'; // This is used to keep a minimum amount of the coin in the pool
-  const coinType = coinTypes[coin];
-  protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
-  protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
-  protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
-  protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
-  protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
-  protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
-  protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
-  protocolTxBuilder.setIncentiveRewardFactor(tx, incentiveRewardFactors[coin], coinType);
-
-  pythRuleTxBuilder.registerPythPriceInfoObject(tx, oracles[coin].pythPriceObjectId, coinType);
-
-  decimalsRegistryTxBuilder.registerDecimals(tx, coinMetadataIds[coin], coinType);
-
-  // Burn dust to keep a minimum amount of the coin in the pool
-  const dustToBurn = protocolTxBuilder.supplyBaseAsset(tx, dustCoinId, coinType);
-  const voidAddress = '0x0000000000000000000000000000000000000000000000000000000000000000';
-  tx.transferObjects([dustToBurn], voidAddress);
-
-  return buildMultiSigTx(tx);
-}
-
-addNewPool_DEEP().then(console.log);
+addNewPool_FDUSD().then(console.log);

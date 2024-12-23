@@ -25,4 +25,5 @@ export const oracles: Record<SupportedBaseAssets | SupportedCollaterals, OracleD
   sbEth: { pythPriceObjectId: pythOracleData.priceFeeds.eth_usd.priceFeedObjectId },
   deep: { pythPriceObjectId: pythOracleData.priceFeeds.deep_usd.priceFeedObjectId },
   fud: { pythPriceObjectId: pythOracleData.priceFeeds.fud_usd.priceFeedObjectId },
+  fdusd: { pythPriceObjectId: pythOracleData.priceFeeds.fdusd_usd.priceFeedObjectId },
 };

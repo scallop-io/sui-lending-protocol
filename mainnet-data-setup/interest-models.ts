@@ -271,6 +271,23 @@ export const fudInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.fud + 7), // 10M FUD
 };
 
+export const fdusdInterestModel: InterestModel = {
+  baseBorrowRatePerSec: 0,
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(6), // 6%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(150), // 150%
+
+  midKink, // 70%
+  highKink, // 90%
+
+  revenueFactor: 30 * (scale / 100), // 30%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.fdusd - 2), // 0.01 FDUSD
+}
+
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sui: suiInterestModel,
   sca: scaInterestModel,
@@ -287,4 +304,5 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sbEth: sbEthInterestModel,
   deep: deepInterestModel,
   fud: fudInterestModel,
+  fdusd: fdusdInterestModel,
 }

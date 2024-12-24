@@ -47,6 +47,10 @@
     "fud_usd": {
       "priceFeedId": "0x6a4090703da959247727f2b490eb21aea95c8684ecfac675f432008830890c75",
       "priceFeedObjectId": "0x4531c3ed0d22f21f5fce882905372006c9aafa30f01db03b789e95a6c50de7b2"
+    },
+    "fdusd_usd": {
+      "priceFeedId": "0xccdc1a08923e2e4f4b1e6ea89de6acbc5fe1948e9706f5604b8cb50bc1ed3979",
+      "priceFeedObjectId": "0x5f6583b2b0fe1ecf94aaffeaab8a838794693960cea48c0da282d5f4a24be027"
     }
   }
 }

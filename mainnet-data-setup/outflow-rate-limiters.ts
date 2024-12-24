@@ -83,4 +83,9 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  fdusd: {
+    outflowLimit: 5 * 10 ** (6 + coinDecimals.fdusd), // 5 million FDUSD per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
 }

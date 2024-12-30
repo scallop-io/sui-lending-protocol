@@ -20,7 +20,7 @@ import { BorrowLimits } from './borrow-limits';
 async function addNewPool_SbUSDT() {
   const tx = new SuiTxBlock();
   const coin = 'sbUsdt';
-  const dustCoinId = ''; // This is used to keep a minimum amount of the coin in the pool
+  const dustCoinId = '0x7c6fefa5340b4b57affbcff9a25af6e1184d33c664b27708268151a0803f90d2'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
   protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);

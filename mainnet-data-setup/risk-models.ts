@@ -130,6 +130,15 @@ export const fdusdRiskModel: RiskModel = {
   maxCollateralAmount: 10 ** (coinDecimals.fdusd + 6), // 1 million FDUSD
 }
 
+export const sbUsdtRiskModel: RiskModel = {
+  collateralFactor: 85,
+  liquidationFactor: 90,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
+  scale: 100,
+  maxCollateralAmount: 5 * 10 ** (coinDecimals.sbUsdt + 6), // 5 million USDT
+}
+
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   sui: suiRiskModel,
   sca: scaRiskModel,
@@ -145,4 +154,5 @@ export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   nativeUsdc: nativeUsdcRiskModel,
   sbEth: sbEthRiskModel,
   fdusd: fdusdRiskModel,
+  sbUsdt: sbUsdtRiskModel,
 }

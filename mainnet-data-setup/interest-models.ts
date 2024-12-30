@@ -302,7 +302,7 @@ export const sbUsdtInterestModel: InterestModel = {
   revenueFactor: 30 * (scale / 100), // 30%
   borrowWeight, // 1
   scale,
-  minBorrowAmount: 10 ** (coinDecimals.wormholeUsdt - 2), // 0.01 USDT
+  minBorrowAmount: 10 ** (coinDecimals.sbUsdt - 2), // 0.01 USDT
 }
 
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {

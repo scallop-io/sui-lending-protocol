@@ -136,7 +136,7 @@ export const sbUsdtRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.sbUsdt + 8), // 100 million USDT
+  maxCollateralAmount: 5 * 10 ** (coinDecimals.sbUsdt + 6), // 5 million USDT
 }
 
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {

@@ -21,5 +21,5 @@ export const BorrowLimits: Record<SupportedBaseAssets, number> = {
     deep: 48_000_000 * Math.pow(10, coinDecimals.deep),
     fud: 2_400_000_000_000 * Math.pow(10, coinDecimals.fud),
     fdusd: 950_000 * Math.pow(10, coinDecimals.fdusd),
-    sbUsdt: 1e8 * Math.pow(10, coinDecimals.sbUsdt),
+    sbUsdt: 1e7 * Math.pow(10, coinDecimals.sbUsdt),
 }

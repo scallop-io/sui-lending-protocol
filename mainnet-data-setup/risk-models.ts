@@ -5,8 +5,8 @@ import {
 } from './chain-data';
 
 export const suiRiskModel: RiskModel = {
-  collateralFactor: 75,
-  liquidationFactor: 80,
+  collateralFactor: 80,
+  liquidationFactor: 85,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
@@ -59,8 +59,8 @@ export const scaRiskModel: RiskModel = {
 }
 
 export const afSuiRiskModel: RiskModel = {
-  collateralFactor: 70,
-  liquidationFactor: 75,
+  collateralFactor: 75,
+  liquidationFactor: 80,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
@@ -68,8 +68,8 @@ export const afSuiRiskModel: RiskModel = {
 }
 
 export const haSuiRiskModel: RiskModel = {
-  collateralFactor: 70,
-  liquidationFactor: 75,
+  collateralFactor: 75,
+  liquidationFactor: 80,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,

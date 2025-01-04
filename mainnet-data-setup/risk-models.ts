@@ -118,7 +118,7 @@ export const sbEthRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 2 * 10 ** (coinDecimals.sbEth + 3), // 2000 ETH
+  maxCollateralAmount: 5 * 10 ** (coinDecimals.sbEth + 3), // 5000 ETH
 }
 
 export const fdusdRiskModel: RiskModel = {

@@ -28,7 +28,7 @@ export const wormholeEthRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 5 * 10 ** (coinDecimals.wormholeEth + 4), // 50,000 ETH
+  maxCollateralAmount: 3 * 10 ** (coinDecimals.wormholeEth + 3), // 3,000 ETH
 }
 
 export const wormholeUsdcRiskModel: RiskModel = {

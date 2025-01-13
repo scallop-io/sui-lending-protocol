@@ -13,6 +13,8 @@ function updateInterestModels() {
     { type: coinTypes.wormholeUsdc, interestModel: interestModels.wormholeUsdc },
     { type: coinTypes.nativeUsdc, interestModel: interestModels.nativeUsdc },
     { type: coinTypes.wormholeUsdt, interestModel: interestModels.wormholeUsdt },
+    { type: coinTypes.sbUsdt, interestModel: interestModels.sbUsdt },
+    { type: coinTypes.fdusd, interestModel: interestModels.fdusd },
     { type: coinTypes.wormholeEth, interestModel: interestModels.wormholeEth },
     { type: coinTypes.sbEth, interestModel: interestModels.sbEth },
     { type: coinTypes.wormholeSol, interestModel: interestModels.wormholeSol },

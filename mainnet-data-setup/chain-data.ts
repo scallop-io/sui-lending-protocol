@@ -37,6 +37,7 @@ export type SupportedBaseAssets =
   | 'fud'
   | 'fdusd'
   | 'sbUsdt'
+  | 'blub'
 ;
 
 export const coinTypes = {
@@ -58,6 +59,7 @@ export const coinTypes = {
   fud: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD',
   fdusd: '0xf16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a::fdusd::FDUSD',
   sbUsdt: '0x375f70cf2ae4c00bf37117d0c85a2c71545e6ee05c4a5c7d282cd66a4504b068::usdt::USDT',
+  blub: '0xfa7ac3951fdca92c5200d468d31a365eb03b2be9936fde615e69f0c1274ad3a0::BLUB::BLUB',
 };
 
 export const coinMetadataIds = {
@@ -79,6 +81,7 @@ export const coinMetadataIds = {
   fud: '0x01087411ef48aaac1eb6e24803213e3a60a03b147dac930e5e341f17a85e524e',
   fdusd: '0xdebee5265a67c186ed87fe93303d33dfe1de53e3b4fd7d9329c2852860acd3e7',
   sbUsdt: '0xda61b33ac61ed4c084bbda65a2229459ed4eb2185729e70498538f0688bec3cc',
+  blub: '0xac32b519790cae96c3317457d903d61d04f1bc8f7710096d80fcba72c7a53703',
 };
 
 export const coinDecimals = {
@@ -100,4 +103,5 @@ export const coinDecimals = {
   fud: 5,
   fdusd: 6,
   sbUsdt: 6,
+  blub: 2,
 }

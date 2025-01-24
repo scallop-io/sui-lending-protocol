@@ -305,6 +305,23 @@ export const sbUsdtInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.sbUsdt - 2), // 0.01 USDT
 }
 
+export const blubInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(20),
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(300), // 300%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor: 40 * (scale / 100), // 40%
+  borrowWeight: (scale * 2), // 2
+  scale,
+  minBorrowAmount: 13 * 10 ** (coinDecimals.blub + 6), // 13M BLUB
+};
+
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sui: suiInterestModel,
   sca: scaInterestModel,
@@ -323,4 +340,5 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   fud: fudInterestModel,
   fdusd: fdusdInterestModel,
   sbUsdt: sbUsdtInterestModel,
+  blub: blubInterestModel,
 }

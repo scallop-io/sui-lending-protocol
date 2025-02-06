@@ -17,6 +17,7 @@ export type SupportedCollaterals =
   | 'sbEth'
   | 'fdusd'
   | 'sbUsdt'
+  | 'sbwBTC'
 ;
 
 export type SupportedBaseAssets =
@@ -38,6 +39,7 @@ export type SupportedBaseAssets =
   | 'fdusd'
   | 'sbUsdt'
   | 'blub'
+  | 'sbwBTC'
 ;
 
 export const coinTypes = {
@@ -60,6 +62,7 @@ export const coinTypes = {
   fdusd: '0xf16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a::fdusd::FDUSD',
   sbUsdt: '0x375f70cf2ae4c00bf37117d0c85a2c71545e6ee05c4a5c7d282cd66a4504b068::usdt::USDT',
   blub: '0xfa7ac3951fdca92c5200d468d31a365eb03b2be9936fde615e69f0c1274ad3a0::BLUB::BLUB',
+  sbwBTC: '0xaafb102dd0902f5055cadecd687fb5b71ca82ef0e0285d90afde828ec58ca96b::btc::BTC',
 };
 
 export const coinMetadataIds = {
@@ -82,6 +85,7 @@ export const coinMetadataIds = {
   fdusd: '0xdebee5265a67c186ed87fe93303d33dfe1de53e3b4fd7d9329c2852860acd3e7',
   sbUsdt: '0xda61b33ac61ed4c084bbda65a2229459ed4eb2185729e70498538f0688bec3cc',
   blub: '0xac32b519790cae96c3317457d903d61d04f1bc8f7710096d80fcba72c7a53703',
+  sbwBTC: '0x53e1cae1ad70a778d0b450d36c7c2553314ca029919005aad26945d65a8fb784',
 };
 
 export const coinDecimals = {
@@ -104,4 +108,5 @@ export const coinDecimals = {
   fdusd: 6,
   sbUsdt: 6,
   blub: 2,
+  sbwBTC: 8,
 }

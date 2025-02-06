@@ -203,6 +203,23 @@ export const wormholeBtcInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.wormholeBtc - 6), // 0.000001 Btc
 };
 
+export const sbwBtcInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(5), // 5%
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(30), // 30%
+  maxBorrowRate: getRatePerSec(150), // 150%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor, // 20%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.sbwBTC - 6), // 0.000001 Btc
+};
+
 export const nativeUsdcInterestModel: InterestModel = {
   baseBorrowRatePerSec: getRatePerSec(3), // 3%
   interestRateScale,
@@ -341,4 +358,5 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   fdusd: fdusdInterestModel,
   sbUsdt: sbUsdtInterestModel,
   blub: blubInterestModel,
+  sbwBTC: sbwBtcInterestModel,
 }

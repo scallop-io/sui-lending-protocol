@@ -94,6 +94,15 @@ export const wormholeBtcRiskModel: RiskModel = {
   maxCollateralAmount: 2 * 10 ** (coinDecimals.wormholeBtc + 1), // 20 Btc
 }
 
+export const sbwBtcRiskModel: RiskModel = {
+  collateralFactor: 75,
+  liquidationFactor: 80,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
+  scale: 100,
+  maxCollateralAmount: 1 * 10 ** (coinDecimals.sbwBTC), // 1 Btc
+}
+
 export const wormholeSolRiskModel: RiskModel = {
   collateralFactor: 70,
   liquidationFactor: 80,
@@ -155,4 +164,5 @@ export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   sbEth: sbEthRiskModel,
   fdusd: fdusdRiskModel,
   sbUsdt: sbUsdtRiskModel,
+  sbwBTC: sbwBtcRiskModel,
 }

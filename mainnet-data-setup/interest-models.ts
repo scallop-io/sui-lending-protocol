@@ -322,6 +322,23 @@ export const sbUsdtInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.sbUsdt - 2), // 0.01 USDT
 }
 
+export const mUsdInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(10), // 10%
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(15), // 15%
+  borrowRateOnHighKink: getRatePerSec(35), // 35%
+  maxBorrowRate: getRatePerSec(250), // 250%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor: 30 * (scale / 100), // 30%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.mUsd - 2), // 0.01 MUSD
+}
+
 export const blubInterestModel: InterestModel = {
   baseBorrowRatePerSec: getRatePerSec(20),
   interestRateScale,
@@ -359,4 +376,5 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sbUsdt: sbUsdtInterestModel,
   blub: blubInterestModel,
   sbwBTC: sbwBtcInterestModel,
+  mUsd: mUsdInterestModel,
 }

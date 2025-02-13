@@ -12,6 +12,7 @@ module x_oracle::x_oracle {
   use x_oracle::price_feed::{Self, PriceFeed};
 
   const PRIMARY_PRICE_NOT_QUALIFIED: u64 = 720;
+  const ONLY_SUPPORT_ONE_PRIMARY: u64 = 721;
 
   struct X_ORACLE has drop {}
 
@@ -40,8 +41,10 @@ module x_oracle::x_oracle {
 
   // === init ===
 
+  #[allow(lint(share_owned))]
   fun init(otw: X_ORACLE, ctx: &mut TxContext) {
     let (x_oracle, x_oracle_policy_cap) = new(ctx);
+    init_rules_df_if_not_exist(&x_oracle_policy_cap, &mut x_oracle, ctx);
     transfer::share_object(x_oracle);
     transfer::transfer(x_oracle_policy_cap, tx_context::sender(ctx));
     package::claim_and_keep(otw, ctx);
@@ -65,7 +68,32 @@ module x_oracle::x_oracle {
     (x_oracle, x_oracle_update_policy)
   }
 
+  public fun init_rules_df_if_not_exist(policy_cap: &XOraclePolicyCap, x_oracle: &mut XOracle, ctx: &mut TxContext) {
+    price_update_policy::init_rules_df_if_not_exist(&policy_cap.primary_price_update_policy_cap, &mut x_oracle.primary_price_update_policy, ctx);
+    price_update_policy::init_rules_df_if_not_exist(&policy_cap.secondary_price_update_policy_cap, &mut x_oracle.secondary_price_update_policy, ctx);
+  }
+
   // === Price Update Policy ===
+
+  public fun add_primary_price_update_rule_v2<CoinType, Rule: drop>(
+    self: &mut XOracle,
+    cap: &XOraclePolicyCap,
+  ) {
+    price_update_policy::add_rule_v2<CoinType, Rule>(
+      &mut self.primary_price_update_policy,
+      &cap.primary_price_update_policy_cap
+    );
+  }
+
+  public fun remove_primary_price_update_rule_v2<CoinType, Rule: drop>(
+    self: &mut XOracle,
+    cap: &XOraclePolicyCap,
+  ) {
+    price_update_policy::remove_rule_v2<CoinType, Rule>(
+      &mut self.primary_price_update_policy,
+      &cap.primary_price_update_policy_cap
+    );
+  }
 
   public fun add_primary_price_update_rule<Rule: drop>(
     self: &mut XOracle,
@@ -86,6 +114,26 @@ module x_oracle::x_oracle {
       &cap.primary_price_update_policy_cap
     );
   }
+
+  public fun add_secondary_price_update_rule_v2<CoinType, Rule: drop>(
+    self: &mut XOracle,
+    cap: &XOraclePolicyCap,
+  ) {
+    price_update_policy::add_rule_v2<CoinType, Rule>(
+      &mut self.secondary_price_update_policy,
+      &cap.secondary_price_update_policy_cap
+    );
+  }
+
+  public fun remove_secondary_price_update_rule_v2<CoinType, Rule: drop>(
+    self: &mut XOracle,
+    cap: &XOraclePolicyCap,
+  ) {
+    price_update_policy::remove_rule_v2<CoinType, Rule>(
+      &mut self.secondary_price_update_policy,
+      &cap.secondary_price_update_policy_cap
+    );
+  }  
 
   public fun add_secondary_price_update_rule<Rule: drop>(
     self: &mut XOracle,
@@ -170,7 +218,8 @@ module x_oracle::x_oracle {
     primary_price_feeds: vector<PriceFeed>,
     secondary_price_feeds: vector<PriceFeed>,
   ): PriceFeed {
-    // current we only have one primary price feed
+    // current we only support one primary price feed
+    assert!(vector::length(&primary_price_feeds) == 1, ONLY_SUPPORT_ONE_PRIMARY);
     let primary_price_feed = vector::pop_back(&mut primary_price_feeds);
     let secondary_price_feed_num = vector::length(&secondary_price_feeds);
 

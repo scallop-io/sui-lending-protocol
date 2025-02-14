@@ -10,8 +10,9 @@ module pyth_rule::pyth_registry {
 
   const ERR_ILLEGAL_PYTH_PRICE_OBJECT: u64 = 0x11205;
   const ERR_ILLEGAL_REGISTRY_CAP: u64 = 0x11206;
+  const ERR_INVALID_CONF_TOLERANCE: u64 = 0x11207;
 
-  const CONF_TOLERANCE_SCALE: u64 = 10_000;
+  const CONF_TOLERANCE_DENOMINATOR: u64 = 10_000;
 
   struct PythFeedData has store, drop {
     feed: ID,
@@ -26,8 +27,8 @@ module pyth_rule::pyth_registry {
     for: ID,
   }
 
-  public fun conf_tolerance_scale(): u64 {
-    CONF_TOLERANCE_SCALE
+  public fun conf_tolerance_denominator(): u64 {
+    CONF_TOLERANCE_DENOMINATOR
   }
 
   fun init(ctx: &mut TxContext) {
@@ -64,6 +65,7 @@ module pyth_rule::pyth_registry {
     pyth_info_object: &PriceInfoObject,
     pyth_feed_confidence_tolerance: u64, // per 10,000. so 1 = 0.01%
   ) {
+    assert!(pyth_feed_confidence_tolerance <= conf_tolerance_denominator(), ERR_INVALID_CONF_TOLERANCE);
     assert!(object::id(pyth_registry) == pyth_registry_cap.for, ERR_ILLEGAL_REGISTRY_CAP);
     let coin_type = type_name::get<CoinType>();
     if (table::contains(&pyth_registry.table, coin_type)) {

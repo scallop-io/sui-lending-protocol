@@ -53,7 +53,7 @@ module pyth_rule::pyth_adaptor {
   fun assert_price_conf_within_range(price_value: u64, price_conf: u64, price_conf_tolerance: u64) {
     // Check price confidence is within range
     let base = 10000;
-    let price_conf_range = price_conf_tolerance * base * 100 / pyth_registry::conf_tolerance_scale(); // multiply by 100, to make it in percentage format
+    let price_conf_range = price_conf_tolerance * base * 100 / pyth_registry::conf_tolerance_denominator(); // multiply by 100, to make it in percentage format
     let price_conf_diff = (price_conf * base * 100 as u128) / (price_value as u128);
     assert!((price_conf_diff as u64) <= price_conf_range, PYTH_PRICE_CONF_TOO_LARGE);
   }

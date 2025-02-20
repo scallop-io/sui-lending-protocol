@@ -1,6 +1,5 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { protocolTxBuilder } from 'contracts/protocol';
-import { riskModels } from './risk-models';
 import { interestModels } from './interest-models';
 import { outflowRateLimiters } from './outflow-rate-limiters';
 import { SupplyLimits } from './supply-limits';
@@ -16,17 +15,18 @@ import { decimalsRegistryTxBuilder } from 'contracts/libs/coin_decimals_registry
 import { coinTypes, coinMetadataIds } from './chain-data';
 import { buildMultiSigTx } from './multi-sig';
 import { BorrowLimits } from './borrow-limits';
+import { suiKit } from 'sui-elements';
 
-async function addNewPool_sbwBTC() {
+async function addNewPool_mUSD() {
   const tx = new SuiTxBlock();
-  const coin = 'sbwBTC';
-  const dustCoinId = '0xf253530b013ca9a56ff7e03e5807927578989289e0529760d6b95aa0a7622994'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'mUsd';
+  const dustCoinId = '0xb4cf297cad4a6ce1f35452c573a614d42d4d529496a7deda1e4b900bc049cdb3'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
-  protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
   protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
+  protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
   protocolTxBuilder.setIncentiveRewardFactor(tx, incentiveRewardFactors[coin], coinType);
@@ -35,12 +35,19 @@ async function addNewPool_sbwBTC() {
 
   decimalsRegistryTxBuilder.registerDecimals(tx, coinMetadataIds[coin], coinType);
 
-  // Burn dust to keep a minimum amount of the coin in the pool
+  // // Burn dust to keep a minimum amount of the coin in the pool
   const dustToBurn = protocolTxBuilder.supplyBaseAsset(tx, dustCoinId, coinType);
   const voidAddress = '0x0000000000000000000000000000000000000000000000000000000000000000';
   tx.transferObjects([dustToBurn], voidAddress);
 
-  return buildMultiSigTx(tx);
+  const txBytes = await buildMultiSigTx(tx);
+  const resp = await suiKit.provider().dryRunTransactionBlock({
+      transactionBlock: txBytes
+  })
+  console.log(resp.effects.status);
+  console.log(resp.balanceChanges);
+
+  return txBytes;
 }
 
-addNewPool_sbwBTC().then(console.log);
+addNewPool_mUSD().then(console.log);

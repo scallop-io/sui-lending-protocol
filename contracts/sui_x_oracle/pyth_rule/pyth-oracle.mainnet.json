@@ -55,6 +55,10 @@
     "blub_usd": {
       "priceFeedId": "0x5fc11ffe4975b624be495be038da30e30bee2004d8ae6282b5364577ef4ca92c",
       "priceFeedObjectId": "0x246658c3324f2477568c78cca622518fbc6969a004b841d81409d24a7ec39b18"
+    },
+    "musd_usd": {
+      "priceFeedId": "0x2ee09cdb656959379b9262f89de5ff3d4dfed0dd34c072b3e22518496a65249c",
+      "priceFeedObjectId": "0x72fbf053d6009a40cff74d9708592bd7b86673a0e7b252077e1aa53390976584"
     }
   }
 }

@@ -1,0 +1,19 @@
+[package]
+name = "PythRule"
+version = "0.0.1"
+published-at = "0xe622909f9252d4ef1737c41ea430ef44203d8f5dc8e01e1b3950a31405bc54eb"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "mainnet"
+override = true
+
+[dependencies.Pyth]
+local = "./vendors/pyth"
+
+[dependencies.XOracle]
+local = "../x_oracle"
+
+[addresses]
+pyth_rule = "0xe622909f9252d4ef1737c41ea430ef44203d8f5dc8e01e1b3950a31405bc54eb"

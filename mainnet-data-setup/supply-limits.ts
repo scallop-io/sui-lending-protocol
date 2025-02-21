@@ -25,4 +25,5 @@ export const SupplyLimits: Record<SupportedBaseAssets, number> = {
   sbUsdt: 1e7 * Math.pow(10, coinDecimals.sbUsdt), // 10M
   blub: 25e12 * Math.pow(10, coinDecimals.blub), // 25T
   mUsd: 2e6 * Math.pow(10, coinDecimals.mUsd), // 2M
+  ns: 5e6 * Math.pow(10, coinDecimals.ns), // 5M
 }

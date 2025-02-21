@@ -17,10 +17,10 @@ import { buildMultiSigTx } from './multi-sig';
 import { BorrowLimits } from './borrow-limits';
 import { suiKit } from 'sui-elements';
 
-async function addNewPool_mUSD() {
+async function addNewPool_ns() {
   const tx = new SuiTxBlock();
-  const coin = 'mUsd';
-  const dustCoinId = '0xb4cf297cad4a6ce1f35452c573a614d42d4d529496a7deda1e4b900bc049cdb3'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'ns';
+  const dustCoinId = '0x2fa4529092e9a8683b58b23b106ae3351b87e5c79f5335aca943711f747647bc'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
@@ -50,4 +50,4 @@ async function addNewPool_mUSD() {
   return txBytes;
 }
 
-addNewPool_mUSD().then(console.log);
+addNewPool_ns().then(console.log);

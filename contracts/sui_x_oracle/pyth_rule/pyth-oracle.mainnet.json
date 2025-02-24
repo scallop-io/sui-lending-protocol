@@ -63,6 +63,10 @@
     "ns_usd": {
       "priceFeedId": "0xbb5ff26e47a3a6cc7ec2fce1db996c2a145300edc5acaabe43bf9ff7c5dd5d32",
       "priceFeedObjectId": "0xc6352e1ea55d7b5acc3ed690cc3cdf8007978071d7bfd6a189445018cfb366e0"
+    },
+    "usdy_rr_usd": {
+      "priceFeedId": "0xe3d1723999820435ebab53003a542ff26847720692af92523eea613a9a28d500",
+      "priceFeedObjectId": "0x773cb390165e227cbd5bd924edaeff7d33b1b78aac045c4903ed9be7e711741a"
     }
   }
 }

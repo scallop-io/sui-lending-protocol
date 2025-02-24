@@ -103,6 +103,11 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  usdy: {
+    outflowLimit: 10 ** (6 + coinDecimals.usdy), // 1 million USDY per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
   blub: {
     outflowLimit: 2 * 10 ** (12 + coinDecimals.blub), // 2T BLUB per day
     outflowCycleDuration,

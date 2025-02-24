@@ -16,17 +16,18 @@ import { coinTypes, coinMetadataIds } from './chain-data';
 import { buildMultiSigTx } from './multi-sig';
 import { BorrowLimits } from './borrow-limits';
 import { suiKit } from 'sui-elements';
+import { riskModels } from './risk-models';
 
-async function addNewPool_ns() {
+async function addNewPool_usdy() {
   const tx = new SuiTxBlock();
-  const coin = 'ns';
-  const dustCoinId = '0x2fa4529092e9a8683b58b23b106ae3351b87e5c79f5335aca943711f747647bc'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'usdy';
+  const dustCoinId = '0xb88904f9fadd9b6c6d36d4e97ea733f342262d1ab04a8e7c01f7b20d1a0960ae'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
+  protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
   protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
-  protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
   protocolTxBuilder.setIncentiveRewardFactor(tx, incentiveRewardFactors[coin], coinType);
@@ -50,4 +51,4 @@ async function addNewPool_ns() {
   return txBytes;
 }
 
-addNewPool_ns().then(console.log);
+addNewPool_usdy().then(console.log);

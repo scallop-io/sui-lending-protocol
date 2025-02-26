@@ -8,6 +8,10 @@ module pyth_rule::pyth_adaptor {
   use pyth::state::{State as PythState};
   use pyth::price_info::{PriceInfoObject};
 
+  friend pyth_rule::rule;
+
+  use pyth_rule::pyth_registry::{Self, PythFeedData};
+
   const U8_MAX: u64 = 255;
 
   const PYTH_PRICE_DECIMALS_TOO_LARGE: u64 = 0x11201;
@@ -15,9 +19,10 @@ module pyth_rule::pyth_adaptor {
   const PYTH_PRICE_TOO_NEW: u64 = 0x11203;
   const PYTH_PRICE_CONF_TOO_LARGE: u64 = 0x11299;
 
-  public fun get_pyth_price(
+  public(friend) fun get_pyth_price(
     pyth_state: &PythState,
     pyth_price_info_object: &PriceInfoObject,
+    pyth_feed_data: &PythFeedData,
     clock: &Clock,
   ): (u64, u64, u8, u64) {
     let pyth_price = pyth::get_price(pyth_state, pyth_price_info_object, clock);
@@ -31,7 +36,8 @@ module pyth_rule::pyth_adaptor {
     // Make sure price is fresh
     assert_price_not_stale(&pyth_price, clock);
     // Make sure price confidence is within range
-    assert_price_conf_within_range(price_value, price_conf);
+    let price_conf_tolerance = pyth_registry::price_conf_tolerance(pyth_feed_data);
+    assert_price_conf_within_range(price_value, price_conf, price_conf_tolerance);
     let price_decimals = (price_decimals as u8);
     let now = clock::timestamp_ms(clock) /1000;
     (price_value, price_conf, price_decimals, now)
@@ -44,10 +50,10 @@ module pyth_rule::pyth_adaptor {
     assert!(price_updated_time >= now - 30, PYTH_PRICE_TOO_OLD);
   }
 
-  fun assert_price_conf_within_range(price_value: u64, price_conf: u64) {
+  fun assert_price_conf_within_range(price_value: u64, price_conf: u64, price_conf_tolerance: u64) {
     // Check price confidence is within range
     let base = 10000;
-    let price_conf_range = 2 * base; // 2% of price
+    let price_conf_range = price_conf_tolerance * base * 100 / pyth_registry::conf_tolerance_denominator(); // multiply by 100, to make it in percentage format
     let price_conf_diff = (price_conf * base * 100 as u128) / (price_value as u128);
     assert!((price_conf_diff as u64) <= price_conf_range, PYTH_PRICE_CONF_TOO_LARGE);
   }

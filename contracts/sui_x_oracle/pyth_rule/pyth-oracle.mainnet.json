@@ -55,6 +55,18 @@
     "blub_usd": {
       "priceFeedId": "0x5fc11ffe4975b624be495be038da30e30bee2004d8ae6282b5364577ef4ca92c",
       "priceFeedObjectId": "0x246658c3324f2477568c78cca622518fbc6969a004b841d81409d24a7ec39b18"
+    },
+    "musd_usd": {
+      "priceFeedId": "0x2ee09cdb656959379b9262f89de5ff3d4dfed0dd34c072b3e22518496a65249c",
+      "priceFeedObjectId": "0x72fbf053d6009a40cff74d9708592bd7b86673a0e7b252077e1aa53390976584"
+    },
+    "ns_usd": {
+      "priceFeedId": "0xbb5ff26e47a3a6cc7ec2fce1db996c2a145300edc5acaabe43bf9ff7c5dd5d32",
+      "priceFeedObjectId": "0xc6352e1ea55d7b5acc3ed690cc3cdf8007978071d7bfd6a189445018cfb366e0"
+    },
+    "usdy_rr_usd": {
+      "priceFeedId": "0xe3d1723999820435ebab53003a542ff26847720692af92523eea613a9a28d500",
+      "priceFeedObjectId": "0x773cb390165e227cbd5bd924edaeff7d33b1b78aac045c4903ed9be7e711741a"
     }
   }
 }

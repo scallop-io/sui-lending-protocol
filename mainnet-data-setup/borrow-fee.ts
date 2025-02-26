@@ -22,4 +22,6 @@ export const borrowFees: Record<SupportedBaseAssets, BorrowFee> = {
   sbUsdt: { numerator: 3, denominator: 1000 },
   blub: { numerator: 10, denominator: 1000 },
   mUsd: { numerator: 10, denominator: 1000 },
+  ns: { numerator: 10, denominator: 1000 },
+  usdy: { numerator: 3, denominator: 1000 },
 }

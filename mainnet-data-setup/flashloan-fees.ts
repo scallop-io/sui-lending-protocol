@@ -25,4 +25,6 @@ export const FlashloanFees: Record<SupportedBaseAssets, number> = {
   sbUsdt: 10,
   blub: 10,
   mUsd: 10,
+  ns: 10,
+  usdy: 10,
 }

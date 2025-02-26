@@ -43,4 +43,6 @@ export const incentiveRewardFactors: Record<SupportedBaseAssets, IncentiveReward
   sbUsdt: calculateRewardFactor(1, coinDecimals.sbUsdt),
   blub: calculateRewardFactor(1e-8, coinDecimals.blub),
   mUsd: calculateRewardFactor(1, coinDecimals.mUsd),
+  ns: calculateRewardFactor(0.2, coinDecimals.ns),
+  usdy: calculateRewardFactor(1, coinDecimals.usdy),
 };

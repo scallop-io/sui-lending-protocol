@@ -44,7 +44,7 @@ module protocol::reserve {
     flash_loan_fees: WitTable<FlashLoanFees, TypeName, u64>,
   }
 
-  struct NonIntrestRevenueKey has copy, store, drop {}
+  struct BorrowFeeVaultKey has copy, store, drop {}
 
   public fun flash_loan_loan_amount<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.loan_amount }
   public fun flash_loan_fee<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.fee }
@@ -286,22 +286,22 @@ module protocol::reserve {
     coin::from_balance(balance, ctx)
   }
 
-  /// Add non-intrest revenue to the reserve, such as borrowing fee
-  public(friend) fun add_non_intrest_revenue<T>(
+  /// Add borrow fee to the reserve
+  public(friend) fun add_borrow_fee<T>(
     self: &mut Reserve,
     balance: Balance<T>,
     ctx: &mut TxContext,
   ) {
     // Check if the balance bag exists for the revenue
-    let key = NonIntrestRevenueKey{};
-    let has_record = dynamic_field::exists_with_type<NonIntrestRevenueKey, BalanceBag>(&self.id, key);
+    let key = BorrowFeeVaultKey{};
+    let has_record = dynamic_field::exists_with_type<BorrowFeeVaultKey, BalanceBag>(&self.id, key);
     // If not exists, create a new one
     if (!has_record) {
       dynamic_field::add(&mut self.id, key, balance_bag::new(ctx));
     };
 
     // Retrieve the balance bag
-    let balances = dynamic_field::borrow_mut<NonIntrestRevenueKey, BalanceBag>(&mut self.id, key);
+    let balances = dynamic_field::borrow_mut<BorrowFeeVaultKey, BalanceBag>(&mut self.id, key);
     // Create a balance record if not exists
     if (!balance_bag::contains<T>(balances)) {
       balance_bag::init_balance<T>(balances);
@@ -310,16 +310,16 @@ module protocol::reserve {
     balance_bag::join<T>(balances, balance);
   }
 
-  /// Take non-intrest revenue from the reserve
+  /// Take borrow fee from the reserve
   /// Dev: since this function is meant for admin only, we don't do the checks of existence
-  public(friend) fun take_non_intrest_revenue<T>(
+  public(friend) fun take_borrow_fee<T>(
     self: &mut Reserve,
     amount: u64,
     ctx: &mut TxContext,
   ): Coin<T> {
     // Retrieve the balance bag
-    let key = NonIntrestRevenueKey{};
-    let balances = dynamic_field::borrow_mut<NonIntrestRevenueKey, BalanceBag>(&mut self.id, key);
+    let key = BorrowFeeVaultKey{};
+    let balances = dynamic_field::borrow_mut<BorrowFeeVaultKey, BalanceBag>(&mut self.id, key);
     // Take the revenue from the balance
     let balance = balance_bag::split<T>(balances, amount);
     coin::from_balance(balance, ctx)

@@ -42,7 +42,7 @@ module protocol::app {
     sender: address,
   }
 
-  struct TakeNonIntrestRevenueEvent has copy, drop {
+  struct TakeBorrowFeeEvent has copy, drop {
     market: ID,
     amount: u64,
     coin_type: TypeName,
@@ -369,21 +369,21 @@ module protocol::app {
     transfer::public_transfer(coin, tx_context::sender(ctx));
   }
 
-  /// ======= take non intrest revenue, such as borrow fee =======
-  public entry fun take_non_intrest_revenue<T>(
+  /// ======= take borrow fee =======
+  public entry fun take_borrow_fee<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
     amount: u64,
     ctx: &mut TxContext
   ) {
-    event::emit(TakeNonIntrestRevenueEvent {
+    event::emit(TakeBorrowFeeEvent {
       market: object::id(market),
       amount,
       coin_type: type_name::get<T>(),
       sender: tx_context::sender(ctx),
     });
 
-    let coin = market::take_non_intrest_revenue<T>(market, amount, ctx);
+    let coin = market::take_borrow_fee<T>(market, amount, ctx);
     transfer::public_transfer(coin, tx_context::sender(ctx));
   }
 

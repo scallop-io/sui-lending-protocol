@@ -339,7 +339,7 @@ module protocol::borrow {
     let referral_fee = balance::split(&mut borrowed_balance, referral_fee_amount);
 
     // Add the borrow fee to the market
-    market::add_non_intrest_revenue<T>(market, final_borrow_fee, ctx);
+    market::add_borrow_fee<T>(market, final_borrow_fee, ctx);
 
     // Emit the borrow event
     emit(BorrowEventV3 {

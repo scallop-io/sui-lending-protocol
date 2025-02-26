@@ -335,12 +335,11 @@ module protocol::borrow {
 
     // Split the borrow fee from borrowed asset
     let final_borrow_fee = balance::split(&mut borrowed_balance, final_borrow_fee_amount);
-    let final_borrow_fee_coin = coin::from_balance(final_borrow_fee, ctx);
 
     let referral_fee = balance::split(&mut borrowed_balance, referral_fee_amount);
 
-    // transfer fee to the collector address
-    transfer::public_transfer(final_borrow_fee_coin, *borrow_fee_recipient);
+    // Add the borrow fee to the market
+    market::add_non_intrest_revenue<T>(market, final_borrow_fee, ctx);
 
     // Emit the borrow event
     emit(BorrowEventV3 {

@@ -307,6 +307,22 @@ module protocol::market {
     reserve::take_revenue<T>(&mut self.vault, amount, ctx)
   }
 
+  public(friend) fun take_non_intrest_revenue<T>(
+    self: &mut Market,
+    amount: u64,
+    ctx: &mut TxContext,
+  ): Coin<T> {
+    reserve::take_non_intrest_revenue<T>(&mut self.vault, amount, ctx)
+  }
+
+  public(friend) fun add_non_intrest_revenue<T>(
+    self: &mut Market,
+    balance: Balance<T>,
+    ctx: &mut TxContext,
+  ) {
+    reserve::add_non_intrest_revenue<T>(&mut self.vault, balance, ctx);
+  }
+
   // accure interest for all markets
   public(friend) fun accrue_all_interests(
     self: &mut Market,

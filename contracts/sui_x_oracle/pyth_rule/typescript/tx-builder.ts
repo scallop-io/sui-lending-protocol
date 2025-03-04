@@ -10,32 +10,28 @@ export class PythRuleTxBuilder {
     public pythStateId: string,
   ) {}
 
-  registerPythPriceInfoObject(tx: SuiTxBlock, pythInfoObjectId: SuiTxArg, coinType: string) {
+  // @dev `priceConfidenceTolerance` is a percentage value, the denominator is 10,000
+  registerPythFeed(tx: SuiTxBlock, pythInfoObjectId: SuiTxArg, priceConfidenceTolerance: number, coinType: string) {
     tx.moveCall(
-      `${this.packageId}::pyth_registry::register_pyth_price_info_object`,
-      [this.pythRegistryId, this.pythRegistryCapId, pythInfoObjectId],
+      `${this.packageId}::pyth_registry::register_pyth_feed`,
+      [this.pythRegistryId, this.pythRegistryCapId, pythInfoObjectId, priceConfidenceTolerance],
       [coinType]
     );
   }
 
-  setPrice(
+  setPriceAsPrimary(
     tx: SuiTxBlock,
     request: SuiTxArg,
     pythPriceInfoObject: SuiTxArg,
-    vaaBuf: SuiTxArg,
     coinType: string,
   ) {
-    let [updateFee] = tx.splitSUIFromGas([1]);
     tx.moveCall(
-      `${this.packageId}::rule::set_price`,
+      `${this.packageId}::rule::set_price_as_primary`,
       [
         request,
-        this.wormholeStateId,
         this.pythStateId,
         pythPriceInfoObject,
         this.pythRegistryId,
-        vaaBuf,
-        updateFee,
         SUI_CLOCK_OBJECT_ID
       ],
       [coinType]

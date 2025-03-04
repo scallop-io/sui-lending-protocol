@@ -7,35 +7,43 @@ export class XOracleTxBuilder {
     public xOracleCapId: string,
   ) {}
 
-  addPrimaryPriceUpdateRule(tx: SuiTxBlock, ruleType: string) {
+  initRulesV2DF(tx: SuiTxBlock) {
     tx.moveCall(
-      `${this.packageId}::x_oracle::add_primary_price_update_rule`,
-      [this.xOracleId, this.xOracleCapId],
-      [ruleType]
+      `${this.packageId}::x_oracle::init_rules_df_if_not_exist`,
+      [this.xOracleCapId, this.xOracleId],
+      []
     );
   }
 
-  removePrimaryPriceUpdateRule(tx: SuiTxBlock, ruleType: string) {
+  addPrimaryPriceUpdateRuleV2(tx: SuiTxBlock, coinType: string, ruleType: string) {
     tx.moveCall(
-      `${this.packageId}::x_oracle::remove_primary_price_update_rule`,
+      `${this.packageId}::x_oracle::add_primary_price_update_rule_v2`,
       [this.xOracleId, this.xOracleCapId],
-      [ruleType]
+      [coinType, ruleType]
     );
   }
 
-  addSecondaryPriceUpdateRule(tx: SuiTxBlock, ruleType: string) {
+  removePrimaryPriceUpdateRuleV2(tx: SuiTxBlock, coinType: string, ruleType: string) {
     tx.moveCall(
-      `${this.packageId}::x_oracle::add_secondary_price_update_rule`,
+      `${this.packageId}::x_oracle::remove_primary_price_update_rule_v2`,
       [this.xOracleId, this.xOracleCapId],
-      [ruleType]
+      [coinType, ruleType]
     );
   }
 
-  removeSecondaryPriceUpdateRule(tx: SuiTxBlock, ruleType: string) {
+  addSecondaryPriceUpdateRuleV2(tx: SuiTxBlock, coinType: string, ruleType: string) {
     tx.moveCall(
-      `${this.packageId}::x_oracle::remove_secondary_price_update_rule`,
+      `${this.packageId}::x_oracle::add_secondary_price_update_rule_v2`,
       [this.xOracleId, this.xOracleCapId],
-      [ruleType]
+      [coinType, ruleType]
+    );
+  }
+
+  removeSecondaryPriceUpdateRuleV2(tx: SuiTxBlock, coinType: string, ruleType: string) {
+    tx.moveCall(
+      `${this.packageId}::x_oracle::remove_secondary_price_update_rule_v2`,
+      [this.xOracleId, this.xOracleCapId],
+      [coinType, ruleType]
     );
   }
 

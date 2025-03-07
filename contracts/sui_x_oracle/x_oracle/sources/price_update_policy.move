@@ -5,8 +5,12 @@ module x_oracle::price_update_policy {
   use sui::vec_set::{Self, VecSet};
   use sui::object::{Self, UID, ID};
   use sui::tx_context::TxContext;
+  use sui::table::{Self, Table};
+  use sui::dynamic_field;
 
   use x_oracle::price_feed::PriceFeed;
+
+  friend x_oracle::x_oracle;
 
   const REQUIRE_ALL_RULES_FOLLOWED: u64 = 721;
   const REQUST_NOT_FOR_THIS_POLICY: u64 = 722;
@@ -28,6 +32,8 @@ module x_oracle::price_update_policy {
     for: ID,
   }
 
+  struct PriceUpdatePolicyRulesKey has copy, drop, store {}
+
   public fun new(ctx: &mut TxContext): (PriceUpdatePolicy, PriceUpdatePolicyCap) {
     let policy = PriceUpdatePolicy {
       id: object::new(ctx),
@@ -48,6 +54,49 @@ module x_oracle::price_update_policy {
     }
   }
 
+  public(friend) fun init_rules_df_if_not_exist(_policy_cap: &PriceUpdatePolicyCap, policy: &mut PriceUpdatePolicy, ctx: &mut TxContext) {
+    if(!dynamic_field::exists_<PriceUpdatePolicyRulesKey>(
+        &policy.id,
+        PriceUpdatePolicyRulesKey {},
+    )) {
+      dynamic_field::add<PriceUpdatePolicyRulesKey, Table<TypeName, VecSet<TypeName>>>(&mut policy.id, PriceUpdatePolicyRulesKey {}, table::new(ctx));
+    }
+  }
+
+  public fun get_price_update_policy<CoinType>(policy: &PriceUpdatePolicy): VecSet<TypeName> {
+    let rules_table = dynamic_field::borrow<PriceUpdatePolicyRulesKey, Table<TypeName, VecSet<TypeName>>>(
+        &policy.id,
+        PriceUpdatePolicyRulesKey {},
+    );
+    let coin_type = type_name::get<CoinType>();
+    if (!table::contains(rules_table, coin_type)) {
+      return vec_set::empty()
+    };
+    
+    let rules = table::borrow(rules_table, coin_type);
+    *rules
+  }
+
+  public(friend) fun add_rule_v2<CoinType, Rule>(
+    policy: &mut PriceUpdatePolicy,
+    cap: &PriceUpdatePolicyCap,
+  ) {
+    assert!(object::id(policy) == cap.for, WRONG_POLICY_CAP);
+    let rules_table = dynamic_field::borrow_mut<PriceUpdatePolicyRulesKey, Table<TypeName, VecSet<TypeName>>>(
+        &mut policy.id,
+        PriceUpdatePolicyRulesKey {},
+    );
+
+    let coin_type = type_name::get<CoinType>();
+    // add record if not exist
+    if (!table::contains(rules_table, coin_type)) {
+      table::add(rules_table, coin_type, vec_set::empty());
+    };
+
+    let rules = table::borrow_mut(rules_table, coin_type);
+    vec_set::insert(rules, type_name::get<Rule>());
+  }
+
   public fun add_rule<Rule>(
     policy: &mut PriceUpdatePolicy,
     cap: &PriceUpdatePolicyCap,
@@ -55,6 +104,26 @@ module x_oracle::price_update_policy {
     assert!(object::id(policy) == cap.for, WRONG_POLICY_CAP);
     vec_set::insert(&mut policy.rules, type_name::get<Rule>());
   }
+
+  public(friend) fun remove_rule_v2<CoinType, Rule>(
+    policy: &mut PriceUpdatePolicy,
+    cap: &PriceUpdatePolicyCap,
+  ) {
+    assert!(object::id(policy) == cap.for, WRONG_POLICY_CAP);
+    let rules_table = dynamic_field::borrow_mut<PriceUpdatePolicyRulesKey, Table<TypeName, VecSet<TypeName>>>(
+        &mut policy.id,
+        PriceUpdatePolicyRulesKey {},
+    );
+
+    let coin_type = type_name::get<CoinType>();
+    // skip if not exist
+    if (!table::contains(rules_table, coin_type)) {
+      return
+    };
+
+    let rules = table::borrow_mut(rules_table, coin_type);
+    vec_set::remove<TypeName>(rules, &type_name::get<Rule>());
+  }  
 
   public fun remove_rule<Rule>(
     policy: &mut PriceUpdatePolicy,
@@ -79,11 +148,12 @@ module x_oracle::price_update_policy {
 
     let receipts = vec_set::into_keys(receipts);
     let completed = vector::length(&receipts);
-    assert!(completed == vec_set::size(&policy.rules), REQUIRE_ALL_RULES_FOLLOWED);
+    let rules = get_price_update_policy<CoinType>(policy);
+    assert!(completed == vec_set::size(&rules), REQUIRE_ALL_RULES_FOLLOWED);
     let i = 0;
     while(i < completed) {
       let receipt = vector::pop_back(&mut receipts);
-      assert!(vec_set::contains(&policy.rules, &receipt), REQUIRE_ALL_RULES_FOLLOWED);
+      assert!(vec_set::contains(&rules, &receipt), REQUIRE_ALL_RULES_FOLLOWED);
       i = i + 1;
     };
     price_feeds

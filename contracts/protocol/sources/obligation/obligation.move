@@ -18,7 +18,6 @@ module protocol::obligation {
   use protocol::obligation_debts::{Self, ObligationDebts, Debt};
   use protocol::obligation_collaterals::{Self, ObligationCollaterals, Collateral};
   use protocol::market::{Self, Market};
-  use protocol::incentive_rewards;
   use protocol::obligation_access::{Self, ObligationAccessStore};
   use protocol::error;
 
@@ -136,12 +135,13 @@ module protocol::obligation {
     while (i < n) {
       let type = *vector::borrow(&debt_types, i);
       let new_borrow_index = market::borrow_index(market, type);
-      // accrue interest first, and then accrue the incentive_rewards to get the latest borrow amount
-      let accrued_interest = obligation_debts::accrue_interest(&mut obligation.debts, type, new_borrow_index);
+      // accrue interest first, to get the latest borrow amount
+      obligation_debts::accrue_interest(&mut obligation.debts, type, new_borrow_index);
       
-      let reward_factor = incentive_rewards::reward_factor(market::reward_factor(market, type));
-      let accrued_rewards_point = fixed_point32::multiply_u64(accrued_interest, reward_factor);
-      obligation.rewards_point = obligation.rewards_point + accrued_rewards_point;
+      // @deprecated: this feature is no longer used
+      // let reward_factor = incentive_rewards::reward_factor(market::reward_factor(market, type));
+      // let accrued_rewards_point = fixed_point32::multiply_u64(accrued_interest, reward_factor);
+      // obligation.rewards_point = obligation.rewards_point + accrued_rewards_point;
 
       i = i + 1;
     };

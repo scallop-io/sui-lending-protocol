@@ -1,6 +1,5 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { protocolTxBuilder } from 'contracts/protocol';
-import { riskModels } from './risk-models';
 import { interestModels } from './interest-models';
 import { outflowRateLimiters } from './outflow-rate-limiters';
 import { SupplyLimits } from './supply-limits';
@@ -16,17 +15,19 @@ import { decimalsRegistryTxBuilder } from 'contracts/libs/coin_decimals_registry
 import { coinTypes, coinMetadataIds } from './chain-data';
 import { buildMultiSigTx } from './multi-sig';
 import { BorrowLimits } from './borrow-limits';
+import { suiKit } from 'sui-elements';
+import { riskModels } from './risk-models';
 
-async function addNewPool_DEEP() {
+async function addNewPool_usdy() {
   const tx = new SuiTxBlock();
-  const coin = 'deep';
-  const dustCoinId = '0x186ee7ad0a9a8668fa62e4d524d8738303463b6d03b30f106c54594f0ed9263b'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'usdy';
+  const dustCoinId = '0xb88904f9fadd9b6c6d36d4e97ea733f342262d1ab04a8e7c01f7b20d1a0960ae'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
+  protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
   protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
-  protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
   protocolTxBuilder.setIncentiveRewardFactor(tx, incentiveRewardFactors[coin], coinType);
@@ -35,39 +36,19 @@ async function addNewPool_DEEP() {
 
   decimalsRegistryTxBuilder.registerDecimals(tx, coinMetadataIds[coin], coinType);
 
-  // Burn dust to keep a minimum amount of the coin in the pool
+  // // Burn dust to keep a minimum amount of the coin in the pool
   const dustToBurn = protocolTxBuilder.supplyBaseAsset(tx, dustCoinId, coinType);
   const voidAddress = '0x0000000000000000000000000000000000000000000000000000000000000000';
   tx.transferObjects([dustToBurn], voidAddress);
 
+  const txBytes = await buildMultiSigTx(tx);
+  const resp = await suiKit.provider().dryRunTransactionBlock({
+      transactionBlock: txBytes
+  })
+  console.log(resp.effects.status);
+  console.log(resp.balanceChanges);
 
-  return buildMultiSigTx(tx);
+  return txBytes;
 }
 
-async function addNewPool_FUD() {
-  const tx = new SuiTxBlock();
-  const coin = 'fud';
-  const dustCoinId = '0x5a968bd1dcf38f0e13ede7da9af7de0e8d92f63952f017b5f5ed7ac86726b882'; // This is used to keep a minimum amount of the coin in the pool
-  const coinType = coinTypes[coin];
-  protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
-  protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
-  protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
-  protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
-  protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
-  protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
-  protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
-  protocolTxBuilder.setIncentiveRewardFactor(tx, incentiveRewardFactors[coin], coinType);
-
-  pythRuleTxBuilder.registerPythPriceInfoObject(tx, oracles[coin].pythPriceObjectId, coinType);
-
-  decimalsRegistryTxBuilder.registerDecimals(tx, coinMetadataIds[coin], coinType);
-
-  // Burn dust to keep a minimum amount of the coin in the pool
-  const dustToBurn = protocolTxBuilder.supplyBaseAsset(tx, dustCoinId, coinType);
-  const voidAddress = '0x0000000000000000000000000000000000000000000000000000000000000000';
-  tx.transferObjects([dustToBurn], voidAddress);
-
-  return buildMultiSigTx(tx);
-}
-
-addNewPool_DEEP().then(console.log);
+addNewPool_usdy().then(console.log);

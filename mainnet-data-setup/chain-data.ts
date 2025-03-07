@@ -15,6 +15,10 @@ export type SupportedCollaterals =
   | 'wormholeBtc'
   | 'nativeUsdc'
   | 'sbEth'
+  | 'fdusd'
+  | 'sbUsdt'
+  | 'sbwBTC'
+  | 'usdy'
 ;
 
 export type SupportedBaseAssets =
@@ -33,6 +37,13 @@ export type SupportedBaseAssets =
   | 'sbEth'
   | 'deep'
   | 'fud'
+  | 'fdusd'
+  | 'sbUsdt'
+  | 'blub'
+  | 'sbwBTC'
+  | 'mUsd'
+  | 'ns'
+  | 'usdy'
 ;
 
 export const coinTypes = {
@@ -52,6 +63,13 @@ export const coinTypes = {
   sbEth: '0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29::eth::ETH',
   deep: '0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP',
   fud: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD',
+  fdusd: '0xf16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a::fdusd::FDUSD',
+  sbUsdt: '0x375f70cf2ae4c00bf37117d0c85a2c71545e6ee05c4a5c7d282cd66a4504b068::usdt::USDT',
+  blub: '0xfa7ac3951fdca92c5200d468d31a365eb03b2be9936fde615e69f0c1274ad3a0::BLUB::BLUB',
+  sbwBTC: '0xaafb102dd0902f5055cadecd687fb5b71ca82ef0e0285d90afde828ec58ca96b::btc::BTC',
+  mUsd: '0xe44df51c0b21a27ab915fa1fe2ca610cd3eaa6d9666fe5e62b988bf7f0bd8722::musd::MUSD',
+  ns: '0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178::ns::NS',
+  usdy: '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY',
 };
 
 export const coinMetadataIds = {
@@ -71,6 +89,13 @@ export const coinMetadataIds = {
   sbEth: '0x89b04ba87f8832d4d76e17a1c9dce72eb3e64d372cf02012b8d2de5384faeef0',
   deep: '0x6e60b051a08fa836f5a7acd7c464c8d9825bc29c44657fe170fe9b8e1e4770c0',
   fud: '0x01087411ef48aaac1eb6e24803213e3a60a03b147dac930e5e341f17a85e524e',
+  fdusd: '0xdebee5265a67c186ed87fe93303d33dfe1de53e3b4fd7d9329c2852860acd3e7',
+  sbUsdt: '0xda61b33ac61ed4c084bbda65a2229459ed4eb2185729e70498538f0688bec3cc',
+  blub: '0xac32b519790cae96c3317457d903d61d04f1bc8f7710096d80fcba72c7a53703',
+  sbwBTC: '0x53e1cae1ad70a778d0b450d36c7c2553314ca029919005aad26945d65a8fb784',
+  mUsd: '0xc154abd271b24032a2c80d96c1b82109490bb600ed189ef881d8c9467ed44a4f',
+  ns: '0x279adec041f8ec5c2d419abf2c32713ae7930a9a3a1ff244c88e5ceced40db6e',
+  usdy: '0xd8dd6cf839e2367de6e6107da4b4361f44798dd6cf26d094058d94e4cee25e36',
 };
 
 export const coinDecimals = {
@@ -90,4 +115,11 @@ export const coinDecimals = {
   sbEth: 8,
   deep: 6,
   fud: 5,
+  fdusd: 6,
+  sbUsdt: 6,
+  blub: 2,
+  sbwBTC: 8,
+  mUsd: 9,
+  ns: 6,
+  usdy: 6,
 }

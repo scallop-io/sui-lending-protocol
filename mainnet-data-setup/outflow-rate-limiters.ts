@@ -14,17 +14,17 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   afSui: {
-    outflowLimit: 10 ** (6 + coinDecimals.afSui), // 1 million afSUI per day
+    outflowLimit: 10 ** (5 + coinDecimals.afSui), // 100k afSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   haSui: {
-    outflowLimit: 5 * 10 ** (5 + coinDecimals.haSui), // 500K haSUI per day
+    outflowLimit: 10 ** (5 + coinDecimals.haSui), // 100K haSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   vSui: {
-    outflowLimit: 5 * 10 ** (5 + coinDecimals.vSui), // 500K vSUI per day
+    outflowLimit: 10 ** (4 + coinDecimals.vSui), // 10k vSUI per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
@@ -39,12 +39,12 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   wormholeEth: {
-    outflowLimit: 5 * 10 ** (2 + coinDecimals.wormholeEth), // 500 ETH per day
+    outflowLimit: 25 * 10 ** coinDecimals.wormholeEth, // 25 ETH per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   wormholeUsdc: {
-    outflowLimit: 3 * 10 ** (6 + coinDecimals.wormholeUsdc), // 3 million USDC per day
+    outflowLimit: 5 * 10 ** (5 + coinDecimals.wormholeUsdc), // 500k USDC per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
@@ -55,6 +55,11 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
   },
   wormholeBtc: {
     outflowLimit: 2 * 10 ** (0 + coinDecimals.wormholeBtc), // 2 BTC per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  sbwBTC: {
+    outflowLimit: 2 * 10 ** (0 + coinDecimals.sbwBTC), // 2 BTC per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
@@ -74,12 +79,42 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   deep: {
-    outflowLimit: 50 * 10 ** (6 + coinDecimals.deep), // 50M DEEP per day
+    outflowLimit: 20 * 10 ** (6 + coinDecimals.deep), // 20M DEEP per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   fud: {
     outflowLimit: 1 * 10 ** (12 + coinDecimals.fud), // 1T FUD per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  fdusd: {
+    outflowLimit: 5 * 10 ** (6 + coinDecimals.fdusd), // 5 million FDUSD per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  mUsd: {
+    outflowLimit: 5 * 10 ** (5 + coinDecimals.mUsd), // 500k MUSD per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },  
+  sbUsdt: {
+    outflowLimit: 3 * 10 ** (6 + coinDecimals.sbUsdt), // 3 million USDT per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  usdy: {
+    outflowLimit: 10 ** (6 + coinDecimals.usdy), // 1 million USDY per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  blub: {
+    outflowLimit: 2 * 10 ** (12 + coinDecimals.blub), // 2T BLUB per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
+  ns: {
+    outflowLimit: 5 * 10 ** (5 + coinDecimals.ns), // 500k NS per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },

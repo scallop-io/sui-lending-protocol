@@ -1,13 +1,13 @@
 {
-  "packageId": "0x87ddec2984645dbbe2403a509cc6edf393a43acdba9b77d45da2bcbefcf733c1",
-  "upgradeCapId": "0x2a93a1afb89c1af451d106b39ce03db5e514ae472dbc874326555887b84d5f01",
+  "packageId": "0xb03fa00e2d9f17d78a9d48bd94d8852abec68c19d55e819096b1e062e69bfad1",
+  "upgradeCapId": "0x7248a48d6e3b350919222423a357235ef5757402994c704bcc870446bbe51a8e",
   "publisherIds": [
-    "0xb53fa986d7d6cede26501676699fa3e91f3c8d8baa4e549e1eb11ee3d92af844"
+    "0x925126ee059770422e3261af274151a03a34d47b3076f3d98a22ac0bdd7a2784"
   ],
-  "marketId": "0x8606ed145cc887985b8ed793f7753ff5dc762a42c379dac035f568e1bac58490",
-  "adminCapId": "0xac2678082239c8c4e14fcf54a505ffb60a0aeeafe86969364a200074ef820a04",
-  "versionId": "0x6156d5cd1538bec8a167a40fe1209a4ec9cf8137921fe0a697f191ac561f0b09",
-  "versionCapId": "0x7fb6e7b5fef766b28d4b8fb6b88101f41fbac063ff2bff73628785da87f73258",
-  "obligationAccessStoreId": "0x48b472d68ca910c45f7f3b6c26836b6aa6d2569810d94b1b939023da05ae0a23",
-  "borrowReferralWitnessList": "0x9d6223dc52015b8a3986a573590ef2af8f1b8f3e4685513888c052f001b87e7f"
+  "marketId": "0xa7f41efe3b551c20ad6d6cea6ccd0fd68d2e2eaaacdca5e62d956209f6a51312",
+  "adminCapId": "0x51c92963019430346baab71c3c0b83399bba7f2ee20c3fcfeb46c6abb7eed185",
+  "versionId": "0xee15d07800e2ad4852505c57cd86afea774af02c17388f8bd907de75f915b4f4",
+  "versionCapId": "0x6dd3a8146b88a13cb6dacc8f64b968e73dc1d0b0d0251d492c6c6bbbf6fb49d3",
+  "obligationAccessStoreId": "0xb7d7e1464936fbdcdd4913308b40335e662401029635289bdb317c7dde9d6c68",
+  "borrowReferralWitnessList": ""
 }

@@ -17,6 +17,7 @@
     "@pythnetwork/price-service-client": "^1.4.1",
     "@scallop-io/sui-kit": "^0.38.1",
     "@scallop-io/sui-package-kit": "^0.38.1",
+    "@switchboard-xyz/sui-sdk": "0.0.15",
     "fs": "0.0.1-security",
     "path": "^0.12.7"
   },

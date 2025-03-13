@@ -5,7 +5,7 @@ module switchboard_on_demand_rule::rule {
   use switchboard::aggregator::Aggregator;
 
   use x_oracle::x_oracle::{Self, XOraclePriceUpdateRequest};
-  use x_oracle::price_feed;
+  use x_oracle::price_feed::{Self, PriceFeed};
 
   use switchboard_on_demand_rule::switchboard_adaptor;
   use switchboard_on_demand_rule::switchboard_registry::{Self, SwitchboardRegistry};
@@ -20,12 +20,27 @@ module switchboard_on_demand_rule::rule {
 
   struct Rule has drop {}
 
-  public fun set_price<CoinType>(
+  public fun set_as_primary_price<CoinType>(
     request: &mut XOraclePriceUpdateRequest<CoinType>,
     aggregator: &Aggregator,
     switchboard_registry: &SwitchboardRegistry,
     clock: &Clock
   ) {
+    let price_feed = get_switchboard_price(aggregator, switchboard_registry, clock);
+    x_oracle::set_primary_price(Rule {}, request, price_feed);
+  }
+
+  public fun set_as_secondary_price<CoinType>(
+    request: &mut XOraclePriceUpdateRequest<CoinType>,
+    aggregator: &Aggregator,
+    switchboard_registry: &SwitchboardRegistry,
+    clock: &Clock
+  ) {
+    let price_feed = get_switchboard_price(aggregator, switchboard_registry, clock);
+    x_oracle::set_secondary_price(Rule {}, request, price_feed);
+  }
+
+  fun get_switchboard_price(aggregator: &Aggregator, switchboard_registry: &SwitchboardRegistry, clock: &Clock): PriceFeed {
     // Make sure the aggregator is registered in the switchboard registry for the coin type
     switchboard_registry::assert_switchboard_aggregator<CoinType>(switchboard_registry, aggregator);
 
@@ -37,8 +52,7 @@ module switchboard_on_demand_rule::rule {
     assert!(price_value_formatted > 0 && price_value_formatted < U64_MAX, ERR_BAD_SWITCHBOARD_PRICE);
     assert_price_not_stale(updated_time, clock);
     let price_value_formatted = (price_value_formatted as u64);
-    let price_feed = price_feed::new(price_value_formatted, updated_time);
-    x_oracle::set_secondary_price(Rule {}, request, price_feed);
+    price_feed::new(price_value_formatted, updated_time)
   }
 
   fun assert_price_not_stale(updated_time: u64, clock: &Clock) {

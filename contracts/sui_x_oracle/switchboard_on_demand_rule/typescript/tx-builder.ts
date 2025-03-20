@@ -1,5 +1,4 @@
-import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js";
-import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
+import { SuiTxBlock, SuiTxArg, SUI_CLOCK_OBJECT_ID } from "@scallop-io/sui-kit";
 import { addSwitchboardUpdateInTx } from "./get_switchboard-client";
 
 export class SwitchboardOnDemandRuleTxBuilder {
@@ -7,7 +6,7 @@ export class SwitchboardOnDemandRuleTxBuilder {
     public packageId: string,
     public registryId: string,
     public registryCapId: string
-  ) {}
+  ) { }
 
   async updateAggregator(
     tx: SuiTxBlock,
@@ -29,14 +28,14 @@ export class SwitchboardOnDemandRuleTxBuilder {
     );
   }
 
-  setPrice(
+  setPriceAsPrimary(
     tx: SuiTxBlock,
     request: SuiTxArg,
     aggregator: SuiTxArg,
     coinType: string
   ) {
     tx.moveCall(
-      `${this.packageId}::rule::set_price`,
+      `${this.packageId}::rule::set_price_as_primary`,
       [request, aggregator, this.registryId, SUI_CLOCK_OBJECT_ID],
       [coinType]
     );

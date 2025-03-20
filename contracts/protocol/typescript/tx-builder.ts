@@ -1,5 +1,4 @@
-import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js";
-import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
+import { SuiTxBlock, SuiTxArg, SUI_CLOCK_OBJECT_ID } from "@scallop-io/sui-kit";
 
 export type RiskModel = {
   collateralFactor: number,
@@ -57,7 +56,7 @@ export class ProtocolTxBuilder {
     coinType: string,
   ) {
     const createRiskModelChangeTarget = `${this.packageId}::app::create_risk_model_change`;
-    let riskModelChange= suiTxBlock.moveCall(
+    let riskModelChange = suiTxBlock.moveCall(
       createRiskModelChangeTarget,
       [
         this.adminCapId,
@@ -84,7 +83,7 @@ export class ProtocolTxBuilder {
     coinType: string,
   ) {
     const createRiskModelChangeTarget = `${this.packageId}::app::create_risk_model_change`;
-    let riskModelChange= suiTxBlock.moveCall(
+    let riskModelChange = suiTxBlock.moveCall(
       createRiskModelChangeTarget,
       [
         this.adminCapId,
@@ -111,7 +110,7 @@ export class ProtocolTxBuilder {
     coinType: string,
   ) {
     const createInterestModelChangeTarget = `${this.packageId}::app::create_interest_model_change`;
-    let interestModelChange= suiTxBlock.moveCall(
+    let interestModelChange = suiTxBlock.moveCall(
       createInterestModelChangeTarget,
       [
         this.adminCapId,
@@ -136,14 +135,14 @@ export class ProtocolTxBuilder {
       [coinType],
     );
   }
-  
+
   updateInterestModel(
     suiTxBlock: SuiTxBlock,
     interestModel: InterestModel,
     coinType: string,
   ) {
     const createInterestModelChangeTarget = `${this.packageId}::app::create_interest_model_change`;
-    let interestModelChange= suiTxBlock.moveCall(
+    let interestModelChange = suiTxBlock.moveCall(
       createInterestModelChangeTarget,
       [
         this.adminCapId,
@@ -222,7 +221,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        suiTxBlock.pure(address),
+        suiTxBlock.pure.address(address),
       ],
     );
   }
@@ -247,7 +246,7 @@ export class ProtocolTxBuilder {
 
   supplyBaseAsset(
     suiTxBlock: SuiTxBlock,
-    coinId: SuiTxArg,
+    coinId: string | SuiTxArg,
     coinType: string,
   ) {
     return suiTxBlock.moveCall(
@@ -349,7 +348,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        suiTxBlock.pure(isActive),
+        suiTxBlock.pure.bool(isActive),
       ],
       [coinType]
     );
@@ -365,7 +364,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        suiTxBlock.pure(isActive),
+        suiTxBlock.pure.bool(isActive),
       ],
       [coinType]
     );
@@ -380,7 +379,7 @@ export class ProtocolTxBuilder {
       `${this.packageId}::app::create_limiter_limit_change`,
       [
         this.adminCapId,
-        suiTxBlock.pure(outflowLimit),
+        suiTxBlock.pure.u64(outflowLimit),
       ],
       [coinType]
     );
@@ -442,7 +441,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        suiTxBlock.pure(recipient, 'address'),
+        suiTxBlock.pure.address(recipient),
       ],
     );
   }
@@ -514,7 +513,7 @@ export class ProtocolTxBuilder {
         this.marketId,
         limit
       ],
-      [ coinType ]
+      [coinType]
     )
   }
 
@@ -524,13 +523,13 @@ export class ProtocolTxBuilder {
     coinType: string
   ) {
     suiTxBlock.moveCall(
-    `${this.packageId}::app::update_borrow_limit`,
+      `${this.packageId}::app::update_borrow_limit`,
       [
         this.adminCapId,
         this.marketId,
         limit
       ],
-      [ coinType ]
+      [coinType]
     )
   }
 
@@ -540,13 +539,13 @@ export class ProtocolTxBuilder {
     coinType: string
   ) {
     suiTxBlock.moveCall(
-    `${this.packageId}::app::update_isolated_asset_status`,
+      `${this.packageId}::app::update_isolated_asset_status`,
       [
         this.adminCapId,
         this.marketId,
         isIsolated
       ],
-      [ coinType ]
+      [coinType]
     )
   }
 
@@ -562,7 +561,7 @@ export class ProtocolTxBuilder {
         this.marketId,
         fee
       ],
-      [ coinType ]
+      [coinType]
     )
   }
 
@@ -578,7 +577,7 @@ export class ProtocolTxBuilder {
         this.marketId,
         amount,
       ],
-      [ coinType ]
+      [coinType]
     );
   }
 }

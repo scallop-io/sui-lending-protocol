@@ -20,27 +20,27 @@ module switchboard_on_demand_rule::rule {
 
   struct Rule has drop {}
 
-  public fun set_as_primary_price<CoinType>(
+  public fun set_price_as_primary<CoinType>(
     request: &mut XOraclePriceUpdateRequest<CoinType>,
     aggregator: &Aggregator,
     switchboard_registry: &SwitchboardRegistry,
     clock: &Clock
   ) {
-    let price_feed = get_switchboard_price(aggregator, switchboard_registry, clock);
+    let price_feed = get_switchboard_price<CoinType>(aggregator, switchboard_registry, clock);
     x_oracle::set_primary_price(Rule {}, request, price_feed);
   }
 
-  public fun set_as_secondary_price<CoinType>(
+  public fun set_price_as_secondary<CoinType>(
     request: &mut XOraclePriceUpdateRequest<CoinType>,
     aggregator: &Aggregator,
     switchboard_registry: &SwitchboardRegistry,
     clock: &Clock
   ) {
-    let price_feed = get_switchboard_price(aggregator, switchboard_registry, clock);
+    let price_feed = get_switchboard_price<CoinType>(aggregator, switchboard_registry, clock);
     x_oracle::set_secondary_price(Rule {}, request, price_feed);
   }
 
-  fun get_switchboard_price(aggregator: &Aggregator, switchboard_registry: &SwitchboardRegistry, clock: &Clock): PriceFeed {
+  fun get_switchboard_price<CoinType>(aggregator: &Aggregator, switchboard_registry: &SwitchboardRegistry, clock: &Clock): PriceFeed {
     // Make sure the aggregator is registered in the switchboard registry for the coin type
     switchboard_registry::assert_switchboard_aggregator<CoinType>(switchboard_registry, aggregator);
 

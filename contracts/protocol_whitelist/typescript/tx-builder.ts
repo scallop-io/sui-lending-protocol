@@ -14,7 +14,7 @@ export class ProtocolWhitelistTxBuilder {
     const target = `${this.packageId}::protocol_whitelist::add_whitelist_address`;
     txBlock.moveCall(
       target,
-      [this.scallopPublisherId, this.marketId, txBlock.pure(address)]
+      [this.scallopPublisherId, this.marketId, txBlock.pure.address(address)]
     );
   }
 
@@ -25,7 +25,7 @@ export class ProtocolWhitelistTxBuilder {
     const target = `${this.packageId}::protocol_whitelist::remove_whitelist_address`;
     txBlock.moveCall(
       target,
-      [this.scallopPublisherId, this.marketId, txBlock.pure(address)]
+      [this.scallopPublisherId, this.marketId, txBlock.pure.address(address)]
     );
   }
 

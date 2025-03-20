@@ -1,5 +1,4 @@
-import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js";
-import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
+import { SUI_CLOCK_OBJECT_ID, SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
 
 export class PythRuleTxBuilder {
   constructor(
@@ -11,12 +10,19 @@ export class PythRuleTxBuilder {
   ) {}
 
   // @dev `priceConfidenceTolerance` is a percentage value, the denominator is 10,000
-  registerPythFeed(tx: SuiTxBlock, pythInfoObjectId: SuiTxArg, priceConfidenceTolerance: number, coinType: string) {
+  registerPythFeed(tx: SuiTxBlock, pythInfoObjectId: string, priceConfidenceTolerance: number, coinType: string) {
     tx.moveCall(
       `${this.packageId}::pyth_registry::register_pyth_feed`,
       [this.pythRegistryId, this.pythRegistryCapId, pythInfoObjectId, priceConfidenceTolerance],
       [coinType]
     );
+  }
+
+  // @params: `tolerance` - percentage of tolerance
+  // example: tolerance = 2 => 2%
+  calculatePriceConfidenceTolerance(tolerance: number) {
+    const PriceConfidenceToleranceDenominator = 10_000;
+    return Math.floor(tolerance / 100 * PriceConfidenceToleranceDenominator);
   }
 
   setPriceAsPrimary(

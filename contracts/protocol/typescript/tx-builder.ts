@@ -179,9 +179,9 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        outflowLimiterModel.outflowLimit,
-        outflowLimiterModel.outflowCycleDuration,
-        outflowLimiterModel.outflowSegmentDuration,
+        suiTxBlock.pure.u64(outflowLimiterModel.outflowLimit),
+        suiTxBlock.pure.u32(outflowLimiterModel.outflowCycleDuration),
+        suiTxBlock.pure.u32(outflowLimiterModel.outflowSegmentDuration),
       ],
       [coinType],
     );
@@ -237,8 +237,8 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        incentiveRewardFactor.rewardFactor,
-        incentiveRewardFactor.scale
+        suiTxBlock.pure.u64(incentiveRewardFactor.rewardFactor),
+        suiTxBlock.pure.u64(incentiveRewardFactor.scale)
       ],
       [coinType],
     );
@@ -425,8 +425,8 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        borrowFee.numerator,
-        borrowFee.denominator,
+        suiTxBlock.pure.u64(borrowFee.numerator),
+        suiTxBlock.pure.u64(borrowFee.denominator),
       ],
       [coinType]
     );
@@ -509,9 +509,9 @@ export class ProtocolTxBuilder {
     suiTxBlock.moveCall(
       `${this.packageId}::app::update_supply_limit`,
       [
-        this.adminCapId,
-        this.marketId,
-        limit
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+        suiTxBlock.pure.u64(limit)
       ],
       [coinType]
     )
@@ -527,7 +527,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        limit
+        suiTxBlock.pure.u64(limit)
       ],
       [coinType]
     )
@@ -543,7 +543,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        isIsolated
+        suiTxBlock.pure.bool(isIsolated)
       ],
       [coinType]
     )
@@ -559,7 +559,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        fee
+        suiTxBlock.pure.u64(fee)
       ],
       [coinType]
     )
@@ -572,6 +572,22 @@ export class ProtocolTxBuilder {
   ) {
     suiTxBlock.moveCall(
       `${this.packageId}::app::take_revenue`,
+      [
+        this.adminCapId,
+        this.marketId,
+        amount,
+      ],
+      [coinType]
+    );
+  }
+  
+  takeBorrowFee(
+    suiTxBlock: SuiTxBlock,
+    amount: number,
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::take_borrow_fee`,
       [
         this.adminCapId,
         this.marketId,

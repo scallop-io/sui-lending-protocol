@@ -12,7 +12,7 @@ module switchboard_on_demand_rule::switchboard_adaptor {
     let decimal_result = aggregator::result(current_result);
     let price_value = decimal::value(decimal_result);
     assert!(decimal::neg(decimal_result) == false, ERR_NEGATIVE_SWITCHBOARD_PRICE);
-    let update_time = aggregator::timestamp_ms(current_result);
+    let update_time = aggregator::timestamp_ms(current_result) / 1000;
     (price_value, update_time)
   }
 }

@@ -12,13 +12,13 @@ export const publishResult = require(path.join(
 export const switchboardOnDemandRuleTxBuilder =
   new SwitchboardOnDemandRuleTxBuilder(
     publishResult.packageId,
-    publishResult.switchboardOnDemandRegistryId,
-    publishResult.switchboardOnDemandRegistryCapId
+    publishResult.switchboardRegistryId,
+    publishResult.switchboardRegistryCapId
   );
 
 export const switchboardOnDemandRuleStructType = `${publishResult.packageId}::rule::Rule`;
 
 export const switchboardOnDemandOracleData = require(path.join(
   __dirname,
-  `./switchboardOnDemand-on-demand-oracle.${networkType}.json`
+  `./switchboard-oracle.${networkType}.json`
 ));

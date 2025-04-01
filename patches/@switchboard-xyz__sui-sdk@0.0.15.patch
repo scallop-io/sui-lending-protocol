@@ -1,0 +1,21 @@
+diff --git a/package.json b/package.json
+index bd34d1f6eaaa20e68bc7a8ed6a632de8ba07f0ab..3035c1f8b0e094efd72bf5dcc6b1a0be8f54dec3 100644
+--- a/package.json
++++ b/package.json
+@@ -4,14 +4,14 @@
+   "description": "API wrapper for intergating with the Switchboard program on our Sui implementation",
+   "license": "MIT",
+   "type": "module",
+-  "main": "./dist/cjs/index.js",
++  "main": "./dist/cjs/src/index.js",
+   "module": "./dist/esm/index.js",
+   "types": "./dist/esm/index.d.ts",
+   "exports": {
+     ".": {
+       "types": "./dist/esm/index.d.ts",
+       "import": "./dist/esm/index.js",
+-      "require": "./dist/cjs/index.js"
++      "require": "./dist/cjs/src/index.js"
+     }
+   },
+   "files": [

@@ -1,5 +1,4 @@
-import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js";
-import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
+import { SUI_CLOCK_OBJECT_ID, SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
 
 export class SupraRuleTxBuilder {
   constructor(

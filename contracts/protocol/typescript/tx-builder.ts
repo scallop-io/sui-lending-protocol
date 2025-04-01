@@ -1,5 +1,4 @@
-import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js";
-import { SuiTxBlock, SuiTxArg } from "@scallop-io/sui-kit";
+import { SuiTxBlock, SuiTxArg, SUI_CLOCK_OBJECT_ID } from "@scallop-io/sui-kit";
 
 export type RiskModel = {
   collateralFactor: number,
@@ -57,7 +56,7 @@ export class ProtocolTxBuilder {
     coinType: string,
   ) {
     const createRiskModelChangeTarget = `${this.packageId}::app::create_risk_model_change`;
-    let riskModelChange= suiTxBlock.moveCall(
+    let riskModelChange = suiTxBlock.moveCall(
       createRiskModelChangeTarget,
       [
         this.adminCapId,
@@ -84,7 +83,7 @@ export class ProtocolTxBuilder {
     coinType: string,
   ) {
     const createRiskModelChangeTarget = `${this.packageId}::app::create_risk_model_change`;
-    let riskModelChange= suiTxBlock.moveCall(
+    let riskModelChange = suiTxBlock.moveCall(
       createRiskModelChangeTarget,
       [
         this.adminCapId,
@@ -111,7 +110,7 @@ export class ProtocolTxBuilder {
     coinType: string,
   ) {
     const createInterestModelChangeTarget = `${this.packageId}::app::create_interest_model_change`;
-    let interestModelChange= suiTxBlock.moveCall(
+    let interestModelChange = suiTxBlock.moveCall(
       createInterestModelChangeTarget,
       [
         this.adminCapId,
@@ -136,14 +135,14 @@ export class ProtocolTxBuilder {
       [coinType],
     );
   }
-  
+
   updateInterestModel(
     suiTxBlock: SuiTxBlock,
     interestModel: InterestModel,
     coinType: string,
   ) {
     const createInterestModelChangeTarget = `${this.packageId}::app::create_interest_model_change`;
-    let interestModelChange= suiTxBlock.moveCall(
+    let interestModelChange = suiTxBlock.moveCall(
       createInterestModelChangeTarget,
       [
         this.adminCapId,
@@ -180,9 +179,9 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        outflowLimiterModel.outflowLimit,
-        outflowLimiterModel.outflowCycleDuration,
-        outflowLimiterModel.outflowSegmentDuration,
+        suiTxBlock.pure.u64(outflowLimiterModel.outflowLimit),
+        suiTxBlock.pure.u32(outflowLimiterModel.outflowCycleDuration),
+        suiTxBlock.pure.u32(outflowLimiterModel.outflowSegmentDuration),
       ],
       [coinType],
     );
@@ -222,7 +221,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        suiTxBlock.pure(address),
+        suiTxBlock.pure.address(address),
       ],
     );
   }
@@ -238,8 +237,8 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        incentiveRewardFactor.rewardFactor,
-        incentiveRewardFactor.scale
+        suiTxBlock.pure.u64(incentiveRewardFactor.rewardFactor),
+        suiTxBlock.pure.u64(incentiveRewardFactor.scale)
       ],
       [coinType],
     );
@@ -247,7 +246,7 @@ export class ProtocolTxBuilder {
 
   supplyBaseAsset(
     suiTxBlock: SuiTxBlock,
-    coinId: SuiTxArg,
+    coinId: string | SuiTxArg,
     coinType: string,
   ) {
     return suiTxBlock.moveCall(
@@ -349,7 +348,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        suiTxBlock.pure(isActive),
+        suiTxBlock.pure.bool(isActive),
       ],
       [coinType]
     );
@@ -365,7 +364,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        suiTxBlock.pure(isActive),
+        suiTxBlock.pure.bool(isActive),
       ],
       [coinType]
     );
@@ -380,7 +379,7 @@ export class ProtocolTxBuilder {
       `${this.packageId}::app::create_limiter_limit_change`,
       [
         this.adminCapId,
-        suiTxBlock.pure(outflowLimit),
+        suiTxBlock.pure.u64(outflowLimit),
       ],
       [coinType]
     );
@@ -426,8 +425,8 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        borrowFee.numerator,
-        borrowFee.denominator,
+        suiTxBlock.pure.u64(borrowFee.numerator),
+        suiTxBlock.pure.u64(borrowFee.denominator),
       ],
       [coinType]
     );
@@ -442,7 +441,7 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        suiTxBlock.pure(recipient, 'address'),
+        suiTxBlock.pure.address(recipient),
       ],
     );
   }
@@ -510,11 +509,11 @@ export class ProtocolTxBuilder {
     suiTxBlock.moveCall(
       `${this.packageId}::app::update_supply_limit`,
       [
-        this.adminCapId,
-        this.marketId,
-        limit
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+        suiTxBlock.pure.u64(limit)
       ],
-      [ coinType ]
+      [coinType]
     )
   }
 
@@ -524,13 +523,13 @@ export class ProtocolTxBuilder {
     coinType: string
   ) {
     suiTxBlock.moveCall(
-    `${this.packageId}::app::update_borrow_limit`,
+      `${this.packageId}::app::update_borrow_limit`,
       [
         this.adminCapId,
         this.marketId,
-        limit
+        suiTxBlock.pure.u64(limit)
       ],
-      [ coinType ]
+      [coinType]
     )
   }
 
@@ -540,13 +539,13 @@ export class ProtocolTxBuilder {
     coinType: string
   ) {
     suiTxBlock.moveCall(
-    `${this.packageId}::app::update_isolated_asset_status`,
+      `${this.packageId}::app::update_isolated_asset_status`,
       [
         this.adminCapId,
         this.marketId,
-        isIsolated
+        suiTxBlock.pure.bool(isIsolated)
       ],
-      [ coinType ]
+      [coinType]
     )
   }
 
@@ -560,9 +559,9 @@ export class ProtocolTxBuilder {
       [
         this.adminCapId,
         this.marketId,
-        fee
+        suiTxBlock.pure.u64(fee)
       ],
-      [ coinType ]
+      [coinType]
     )
   }
 
@@ -578,7 +577,23 @@ export class ProtocolTxBuilder {
         this.marketId,
         amount,
       ],
-      [ coinType ]
+      [coinType]
+    );
+  }
+  
+  takeBorrowFee(
+    suiTxBlock: SuiTxBlock,
+    amount: number,
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::take_borrow_fee`,
+      [
+        this.adminCapId,
+        this.marketId,
+        amount,
+      ],
+      [coinType]
     );
   }
 }

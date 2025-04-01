@@ -13,10 +13,11 @@
   "license": "ISC",
   "dependencies": {
     "@iarna/toml": "^2.2.5",
-    "@mysten/sui.js": "^0.37.1",
+    "@mysten/sui": "^1.22.0",
     "@pythnetwork/price-service-client": "^1.4.1",
-    "@scallop-io/sui-kit": "^0.38.1",
-    "@scallop-io/sui-package-kit": "^0.38.1",
+    "@scallop-io/sui-kit": "^1.3.2",
+    "@scallop-io/sui-package-kit": "^1.21.2",
+    "@switchboard-xyz/sui-sdk": "0.0.15",
     "fs": "0.0.1-security",
     "path": "^0.12.7"
   },
@@ -25,5 +26,10 @@
     "dotenv": "^16.0.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@switchboard-xyz/sui-sdk@0.0.15": "patches/@switchboard-xyz__sui-sdk@0.0.15.patch"
+    }
   }
 }

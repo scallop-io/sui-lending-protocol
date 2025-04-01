@@ -15,7 +15,9 @@ rev = "mainnet"
 override = true
 
 [dependencies.Switchboard]
-local = "./vendors/on_demand"
+git = "https://github.com/switchboard-xyz/sui.git"
+subdir = "on_demand"
+rev = "main"
 
 [dependencies.XOracle]
 local = "../x_oracle"

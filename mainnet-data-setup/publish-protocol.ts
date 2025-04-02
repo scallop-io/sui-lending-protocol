@@ -1,9 +1,9 @@
 import * as path from "path";
-import { RawSigner } from "@mysten/sui.js";
 import { PackageBatch } from "@scallop-io/sui-package-kit";
 import { packagePublisher, suiKit } from "sui-elements";
 import { publishResultParser as decimalsRegistryParser } from "contracts/libs/coin_decimals_registry/typescript/publish-result-parser";
 import { publishResultParser as protocolParser } from "contracts/protocol/typescript/publish-result-parser";
+import { SuiKit } from "@scallop-io/sui-kit";
 
 const xOraclePath = path.join(__dirname, "../contracts/sui_x_oracle/x_oracle");
 const mathPkgPath = path.join(__dirname, "../contracts/libs/math");
@@ -29,9 +29,9 @@ export const protocolPackageList: PackageBatch = [
   { packagePath: borrowIncentiveQueryPkgPath, option: { enforce: false } },
 ];
 export const publishProtocol = async (
-  signer: RawSigner
+  suiKit: SuiKit
 ) => {
-  return packagePublisher.publishPackageBatch(protocolPackageList, signer);
+  return packagePublisher.publishPackageBatch(protocolPackageList, suiKit);
 }
 
-publishProtocol(suiKit.getSigner()).then(console.log).catch(console.error).finally(() => process.exit(0));
+publishProtocol(suiKit).then(console.log).catch(console.error).finally(() => process.exit(0));

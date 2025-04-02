@@ -67,6 +67,10 @@
     "usdy_rr_usd": {
       "priceFeedId": "0xe3d1723999820435ebab53003a542ff26847720692af92523eea613a9a28d500",
       "priceFeedObjectId": "0x773cb390165e227cbd5bd924edaeff7d33b1b78aac045c4903ed9be7e711741a"
+    },
+    "wal_usd": {
+      "priceFeedId": "0xeba0732395fae9dec4bae12e52760b35fc1c5671e2da8b449c9af4efe5d54341",
+      "priceFeedObjectId": "0xeb7e669f74d976c0b99b6ef9801e3a77716a95f1a15754e0f1399ce3fb60973d"
     }
   }
 }

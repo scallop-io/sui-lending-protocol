@@ -118,4 +118,9 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  wal: {
+    outflowLimit: 20 * 10 ** (6 + coinDecimals.wal), // 20M WAL per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
 }

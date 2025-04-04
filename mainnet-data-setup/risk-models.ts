@@ -145,7 +145,7 @@ export const sbUsdtRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 5 * 10 ** (coinDecimals.sbUsdt + 6), // 5 million USDT
+  maxCollateralAmount: 10 * 10 ** (coinDecimals.sbUsdt + 6), // 10 million USDT
 }
 
 export const usdyRiskModel: RiskModel = {

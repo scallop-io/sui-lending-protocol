@@ -89,7 +89,7 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   fdusd: {
-    outflowLimit: 5 * 10 ** (6 + coinDecimals.fdusd), // 5 million FDUSD per day
+    outflowLimit: 5 * 10 ** (5 + coinDecimals.fdusd), // 500k FDUSD per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
@@ -119,7 +119,7 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   wal: {
-    outflowLimit: 20 * 10 ** (6 + coinDecimals.wal), // 20M WAL per day
+    outflowLimit: 3 * 10 ** (6 + coinDecimals.wal), // 3M WAL per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },

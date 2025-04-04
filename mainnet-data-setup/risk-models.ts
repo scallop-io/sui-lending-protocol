@@ -131,11 +131,11 @@ export const sbEthRiskModel: RiskModel = {
 }
 
 export const fdusdRiskModel: RiskModel = {
-  collateralFactor: 0,
-  liquidationFactor: 90,
-  liquidationPanelty: 5,
-  liquidationDiscount: 4,
-  scale: 100,
+  collateralFactor: 0, // 0% 
+  liquidationFactor: 900, // 90%
+  liquidationPanelty: 20, // 2%
+  liquidationDiscount: 19, // 1.9%
+  scale: 1000,
   maxCollateralAmount: 0 * 10 ** (coinDecimals.fdusd + 6), // 15 million FDUSD
 }
 

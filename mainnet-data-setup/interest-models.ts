@@ -34,12 +34,12 @@ export const suiInterestModel: InterestModel = {
 };
 
 export const scaInterestModel: InterestModel = {
-  baseBorrowRatePerSec: getRatePerSec(10), // 10%
+  baseBorrowRatePerSec: getRatePerSec(20), // 20%
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(15), // 15%
-  borrowRateOnHighKink: getRatePerSec(35), // 35%
-  maxBorrowRate: getRatePerSec(250), // 250%
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(600), // 600%
 
   midKink, // 80%
   highKink, // 90%
@@ -51,12 +51,12 @@ export const scaInterestModel: InterestModel = {
 }
 
 export const cetusInterestModel: InterestModel = {
-  baseBorrowRatePerSec: getRatePerSec(10), // 10%
+  baseBorrowRatePerSec: getRatePerSec(20), // 20%
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(15), // 15%
-  borrowRateOnHighKink: getRatePerSec(35), // 35%
-  maxBorrowRate: getRatePerSec(250), // 250%
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(600), // 600%
 
   midKink, // 80%
   highKink, // 90%

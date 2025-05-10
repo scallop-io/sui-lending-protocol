@@ -283,7 +283,7 @@ export const fudInterestModel: InterestModel = {
   highKink, // 90%
 
   revenueFactor: 40 * (scale / 100), // 40%
-  borrowWeight: (scale * 2), // 2
+  borrowWeight: (scale * 1.25), // 125%
   scale,
   minBorrowAmount: 10 ** (coinDecimals.fud + 7), // 10M FUD
 };
@@ -323,12 +323,12 @@ export const sbUsdtInterestModel: InterestModel = {
 }
 
 export const mUsdInterestModel: InterestModel = {
-  baseBorrowRatePerSec: getRatePerSec(20), // 20%
+  baseBorrowRatePerSec: getRatePerSec(3), // 3%
   interestRateScale,
 
-  borrowRateOnMidKink: getRatePerSec(30), // 30%
-  borrowRateOnHighKink: getRatePerSec(50), // 50%
-  maxBorrowRate: getRatePerSec(600), // 600%
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(25), // 25%
+  maxBorrowRate: getRatePerSec(150), // 150%
 
   midKink, // 80%
   highKink, // 90%
@@ -368,7 +368,7 @@ export const blubInterestModel: InterestModel = {
   highKink, // 90%
 
   revenueFactor: 40 * (scale / 100), // 40%
-  borrowWeight: (scale * 2), // 2
+  borrowWeight: (scale * 1.25), // 125%
   scale,
   minBorrowAmount: 13 * 10 ** (coinDecimals.blub + 6), // 13M BLUB
 };
@@ -385,9 +385,26 @@ export const nsInterestModel: InterestModel = {
   highKink, // 90%
 
   revenueFactor: 40 * (scale / 100), // 40%
-  borrowWeight, // 1
+  borrowWeight: (scale * 1.25), // 125%
   scale,
   minBorrowAmount: 10 ** (coinDecimals.ns - 1), // 0.1 NS
+};
+
+export const haedalInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(20),
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(600), // 600%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor: 40 * (scale / 100), // 40%
+  borrowWeight: (scale * 1.25), // 125%
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.haedal - 1), // 0.1 NS
 };
 
 export const walInterestModel: InterestModel = {
@@ -431,4 +448,5 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   ns: nsInterestModel,
   usdy: usdyInterestModel,
   wal: walInterestModel,
+  haedal: haedalInterestModel,
 }

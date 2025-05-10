@@ -46,6 +46,7 @@ export type SupportedBaseAssets =
   | 'ns'
   | 'usdy'
   | 'wal'
+  | 'haedal'
 ;
 
 export const coinTypes = {
@@ -73,6 +74,7 @@ export const coinTypes = {
   ns: '0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178::ns::NS',
   usdy: '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY',
   wal: '0x356a26eb9e012a68958082340d4c4116e7f55615cf27affcff209cf0ae544f59::wal::WAL',
+  haedal: '0x3a304c7feba2d819ea57c3542d68439ca2c386ba02159c740f7b406e592c62ea::haedal::HAEDAL',
 };
 
 export const coinMetadataIds = {
@@ -100,6 +102,7 @@ export const coinMetadataIds = {
   ns: '0x279adec041f8ec5c2d419abf2c32713ae7930a9a3a1ff244c88e5ceced40db6e',
   usdy: '0xd8dd6cf839e2367de6e6107da4b4361f44798dd6cf26d094058d94e4cee25e36',
   wal: '0xcf8a31804ae40cb3e7183fe57320f87467a7750d4fa701bca1ffbb1edd37781e',
+  haedal: '0xcc89fcc22f0d13de3688b94fa16d64a22079186a941914280c67101ff754263c',
 };
 
 export const coinDecimals = {
@@ -127,4 +130,5 @@ export const coinDecimals = {
   ns: 6,
   usdy: 6,
   wal: 9,
+  haedal: 9,
 }

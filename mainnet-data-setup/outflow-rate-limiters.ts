@@ -123,4 +123,9 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  haedal: {
+    outflowLimit: 5 * 10 ** (6 + coinDecimals.haedal), // 5M HAEDAL per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },  
 }

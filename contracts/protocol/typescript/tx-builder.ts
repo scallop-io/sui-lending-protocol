@@ -196,7 +196,7 @@ export class ProtocolTxBuilder {
       `${this.packageId}::app::create_limiter_limit_change`,
       [
         this.adminCapId,
-        outflowLimiterModel.outflowLimit,
+        suiTxBlock.pure.u64(outflowLimiterModel.outflowLimit),
       ],
       [coinType],
     );

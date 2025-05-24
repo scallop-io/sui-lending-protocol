@@ -11,8 +11,7 @@ export const takeRevenue = () => {
 
 
 
-  protocolTxBuilder.takeRevenue(suiTxBlock, 50000e6, coinTypes.wormholeUsdc);
-  protocolTxBuilder.takeRevenue(suiTxBlock, 62500e9, coinTypes.sui);
+  protocolTxBuilder.takeRevenue(suiTxBlock, 89007e9, coinTypes.sui);
 
   return buildMultiSigTx(suiTxBlock);
 }

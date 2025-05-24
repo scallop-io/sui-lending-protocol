@@ -154,7 +154,8 @@ export const usdyRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 10 * 10 ** (coinDecimals.usdy + 6), // 10 million USDY
+  // maxCollateralAmount: 10 * 10 ** (coinDecimals.usdy + 6), // 10 million USDY
+  maxCollateralAmount: 5 * 10 ** (coinDecimals.usdy + 5), // 500k USDY
 }
 
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {

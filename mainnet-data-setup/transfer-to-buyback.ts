@@ -6,10 +6,9 @@ export const transferToBuyback = () => {
   const suiTxBlock = new SuiTxBlock();
 
   const objects = [
-    '0xf2b3c4c28b4054ceb096668c25853dcdaec6bd1977abb79376bb7bdce1f58b13',
-    '0xf055c01edfe9ba4dedeb2071f6b36926a79be004956f1213b4c6095e5cbf91fb'
+    '0x06bd46d0204b7faba458dc2342e08fc5008993d5bef84e0f1d87fa3e1728b319',
   ];
-  const BuyBackAddress = '0x5f0e70f77404a01e4437f850616d0a31e155fb14a2f276b8028d7423e26665e2';
+  const BuyBackAddress = '0x473c5b346a779b7d6271a94fccc4c0d75c380a9f478cd7afaec79127a715c519';
   suiTxBlock.transferObjects(objects, BuyBackAddress);
 
   return buildMultiSigTx(suiTxBlock);

@@ -1,0 +1,26 @@
+[package]
+name = "SwitchboardOnDemandRule"
+version = "0.0.1"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "mainnet"
+override = true
+
+[dependencies.MoveStdlib]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/move-stdlib"
+rev = "mainnet"
+override = true
+
+[dependencies.Switchboard]
+git = "https://github.com/switchboard-xyz/sui.git"
+subdir = "on_demand"
+rev = "main"
+
+[dependencies.XOracle]
+local = "../x_oracle"
+
+[addresses]
+switchboard_on_demand_rule = "0x0"

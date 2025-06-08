@@ -1,9 +1,9 @@
-import * as path from "path";
-import { RawSigner } from "@mysten/sui.js";
+import * as path from "path";;
 import { PackageBatch } from "@scallop-io/sui-package-kit";
 import { packagePublisher, suiKit } from "sui-elements";
 import { publishResultParser as xOracleParser } from "contracts/sui_x_oracle/x_oracle/typescript/publish-result-parser";
 import { publishResultParser as pythRuleParser } from "contracts/sui_x_oracle/pyth_rule/typescript/publish-result-parser";
+import { SuiKit } from "@scallop-io/sui-kit";
 
 const xOraclePath = path.join(__dirname, "../contracts/sui_x_oracle/x_oracle");
 
@@ -22,9 +22,9 @@ const xOraclePackageList: PackageBatch = [
 // publish packages for the protocol
 // the latter package could depend on the former one in the list, so the order matters
 export const publishXOracle = async (
-  signer: RawSigner
+  suiKit: SuiKit
 ) => {
-  return packagePublisher.publishPackageBatch(xOraclePackageList, signer);
+  return packagePublisher.publishPackageBatch(xOraclePackageList, suiKit);
 }
 
-publishXOracle(suiKit.getSigner()).then(console.log).catch(console.error).finally(() => process.exit(0));
+publishXOracle(suiKit).then(console.log).catch(console.error).finally(() => process.exit(0));

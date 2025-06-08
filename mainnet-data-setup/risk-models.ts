@@ -131,7 +131,7 @@ export const sbEthRiskModel: RiskModel = {
 }
 
 export const fdusdRiskModel: RiskModel = {
-  collateralFactor: 0, // 0% 
+  collateralFactor: 850, // 85% 
   liquidationFactor: 900, // 90%
   liquidationPanelty: 20, // 2%
   liquidationDiscount: 19, // 1.9%

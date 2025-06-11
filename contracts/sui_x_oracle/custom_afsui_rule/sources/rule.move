@@ -86,13 +86,13 @@ fun get_price(
 
     // Check exchange rate is within range
     assert!(
-        sui_to_afsui_exchange_rate.le(decimal::from_percent(112)),
+        sui_to_afsui_exchange_rate.le(oracle_config.max_exchange_rate()),
         INVALID_EXCHANGE_RATE_RANGE_ERR,
-    ); // < 112%
+    );
     assert!(
-        sui_to_afsui_exchange_rate.ge(decimal::from_percent(100)),
+        sui_to_afsui_exchange_rate.ge(oracle_config.min_exchange_rate()),
         INVALID_EXCHANGE_RATE_RANGE_ERR,
-    ); // > 100%
+    );
 
     let price_value = decimal::from(price_value);
     let price_value = decimal::mul(price_value, sui_to_afsui_exchange_rate);

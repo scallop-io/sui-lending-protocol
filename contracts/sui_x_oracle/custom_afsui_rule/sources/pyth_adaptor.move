@@ -7,6 +7,7 @@ use pyth::price_info::PriceInfoObject;
 use pyth::pyth;
 use pyth::state::State as PythState;
 use sui::clock::{Self, Clock};
+use decimal::decimal::{Self, Decimal};
 
 const U8_MAX: u64 = 255;
 
@@ -45,11 +46,35 @@ fun assert_price_not_stale(price: &Price, clock: &Clock) {
     assert!(price_updated_time >= now - 30, PYTH_PRICE_TOO_OLD);
 }
 
-fun assert_price_conf_within_range(price_value: u64, price_conf: u64, price_conf_tolerance: u64) {
-    // Check price confidence is within range
-    let base = 10000;
-    let price_conf_range =
-        price_conf_tolerance * base * 100 / oracle_config::conf_tolerance_denominator(); // multiply by 100, to make it in percentage format
-    let price_conf_diff = (price_conf * base * 100 as u128) / (price_value as u128);
-    assert!((price_conf_diff as u64) <= price_conf_range, PYTH_PRICE_CONF_TOO_LARGE);
+fun assert_price_conf_within_range(price_value: u64, price_conf: u64, price_conf_tolerance: Decimal) {
+    let price_value_in_decimal = decimal::from(price_value);
+    let price_conf_in_decimal = decimal::from(price_conf);
+    let price_conf_diff = price_conf_in_decimal.div(price_value_in_decimal);
+    assert!(price_conf_diff.le(price_conf_tolerance), PYTH_PRICE_CONF_TOO_LARGE);
+}
+
+#[test]
+fun assert_price_within_confidence_test() {
+    let price_value = 100_000_000; // scale with 10^8. = $1
+    let price_conf = 1_000_000; // scale with 10^8. = $0.01
+    let price_conf_tolerance = decimal::from_bps(100); // in bps. = 1%
+    assert_price_conf_within_range(price_value, price_conf, price_conf_tolerance);
+
+    let price_value = 100_000_000; // scale with 10^8. = $1
+    let price_conf = 2_000_000; // scale with 10^8. = $0.02
+    let price_conf_tolerance = decimal::from_bps(200); // in bps. = 2%
+    assert_price_conf_within_range(price_value, price_conf, price_conf_tolerance);
+
+    let price_value = 100_000_000; // scale with 10^8. = $1
+    let price_conf = 2_500_000; // scale with 10^8. = $0.025
+    let price_conf_tolerance = decimal::from_bps(250); // in bps. = 2.5%
+    assert_price_conf_within_range(price_value, price_conf, price_conf_tolerance);
+}
+
+#[test, expected_failure(abort_code = PYTH_PRICE_CONF_TOO_LARGE)]
+fun assert_price_out_confidence_err_test() {
+    let price_value = 100_000_000; // scale with 10^8. = $1
+    let price_conf = 1_500_000; // scale with 10^8. = $0.015
+    let price_conf_tolerance = decimal::from_bps(100); // in bps. = 1%
+    assert_price_conf_within_range(price_value, price_conf, price_conf_tolerance);
 }

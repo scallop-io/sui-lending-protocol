@@ -13,7 +13,7 @@ const CONF_TOLERANCE_DENOMINATOR: u64 = 10_000;
 public struct OracleConfig has key {
     id: UID,
     feed_id: Option<ID>,
-    conf_tolerance: Option<u64>,
+    conf_tolerance: Option<Decimal>,
     min_exchange_rate: Decimal,
     max_exchange_rate: Decimal,
 }
@@ -49,7 +49,7 @@ public fun price_feed_id(oracle_config: &OracleConfig): ID {
     *option::borrow(&oracle_config.feed_id)
 }
 
-public fun price_conf_tolerance(oracle_config: &OracleConfig): u64 {
+public fun price_conf_tolerance(oracle_config: &OracleConfig): Decimal {
     assert!(option::is_some(&oracle_config.conf_tolerance), ERR_CONFIG_HAVENT_INITIALIZED);
     *option::borrow(&oracle_config.conf_tolerance)
 }
@@ -66,16 +66,17 @@ public entry fun update_oracle_config(
     oracle_config: &mut OracleConfig,
     oracle_cap: &OracleAdminCap,
     pyth_info_object: &PriceInfoObject,
-    pyth_feed_confidence_tolerance: u64, // per 10,000. so 1 = 0.01%
+    pyth_feed_confidence_tolerance_bps: u64, // per 10,000. so 1 = 0.01%
 ) {
     assert!(
-        pyth_feed_confidence_tolerance <= conf_tolerance_denominator(),
+        pyth_feed_confidence_tolerance_bps <= conf_tolerance_denominator(),
         ERR_INVALID_CONF_TOLERANCE,
     );
     assert!(object::id(oracle_config) == oracle_cap.parent, ERR_INVALID_CAP);
 
     oracle_config.feed_id = option::some(object::id(pyth_info_object));
-    oracle_config.conf_tolerance = option::some(pyth_feed_confidence_tolerance);
+    oracle_config.conf_tolerance =
+        option::some(decimal::from_bps(pyth_feed_confidence_tolerance_bps));
 }
 
 public entry fun update_exchange_rate_constraint(

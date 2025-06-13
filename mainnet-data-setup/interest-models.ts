@@ -44,7 +44,7 @@ export const scaInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 0 * (scale / 100), // 0%
+  revenueFactor: 1 * (scale / 100), // 1%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.sca - 1), // 0.1 SCA

@@ -7,6 +7,10 @@ export {
   pythOracleData,
 } from "./pyth_rule";
 export {
+  customAfsuiRuleTxBuilder,
+  customAfsuiRuleStructType,
+} from "./custom_afsui_rule";
+export {
   switchboardOnDemandRuleTxBuilder,
   switchboardOnDemandRuleStructType,
   switchboardOnDemandOracleData,

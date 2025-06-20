@@ -4,7 +4,7 @@ use afsui::afsui::AFSUI;
 use custom_afsui_rule::oracle_config::{Self, OracleConfig};
 use custom_afsui_rule::pyth_adaptor;
 use decimal::decimal;
-use lsd::staked_sui_vault::{sui_to_afsui_exchange_rate, StakedSuiVault};
+use lsd::staked_sui_vault::{afsui_to_sui_exchange_rate, StakedSuiVault};
 use pyth::price_info::PriceInfoObject;
 use pyth::state::State as PythState;
 use safe::safe::Safe;
@@ -73,9 +73,9 @@ fun get_price(
     // Make sure the price info object is the registerred one for the coin type
     oracle_config::assert_pyth_price_info_object(oracle_config, pyth_price_info_object);
 
-    // sui_to_afsui_exchange_rate is on the scale of 10^18
-    let sui_to_afsui_exchange_rate = sui_to_afsui_exchange_rate(af_staked_sui_vault, af_safe);
-    let sui_to_afsui_exchange_rate = decimal::from_scaled_val((sui_to_afsui_exchange_rate as u256));
+    // afsui_to_sui_exchange_rate is on the scale of 10^18
+    let afsui_to_sui_exchange_rate = afsui_to_sui_exchange_rate(af_staked_sui_vault, af_safe);
+    let afsui_to_sui_exchange_rate = decimal::from_scaled_val((afsui_to_sui_exchange_rate as u256));
 
     let (price_value, _, price_decimals, updated_time) = pyth_adaptor::get_pyth_price(
         pyth_state,
@@ -86,16 +86,16 @@ fun get_price(
 
     // Check exchange rate is within range
     assert!(
-        sui_to_afsui_exchange_rate.le(oracle_config.max_exchange_rate()),
+        afsui_to_sui_exchange_rate.le(oracle_config.max_exchange_rate()),
         INVALID_EXCHANGE_RATE_RANGE_ERR,
     );
     assert!(
-        sui_to_afsui_exchange_rate.ge(oracle_config.min_exchange_rate()),
+        afsui_to_sui_exchange_rate.ge(oracle_config.min_exchange_rate()),
         INVALID_EXCHANGE_RATE_RANGE_ERR,
     );
 
     let price_value = decimal::from(price_value);
-    let price_value = decimal::mul(price_value, sui_to_afsui_exchange_rate);
+    let price_value = decimal::mul(price_value, afsui_to_sui_exchange_rate);
     let price_value = decimal::floor(price_value);
 
     let formatted_decimals = price_feed::decimals();

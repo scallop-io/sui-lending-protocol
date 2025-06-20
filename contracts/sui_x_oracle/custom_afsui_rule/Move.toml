@@ -10,9 +10,7 @@ rev = "framework/mainnet"
 override = true
 
 [dependencies.AftermathLSD]
-git = "https://github.com/AftermathFinance/move-interfaces.git"
-subdir = "packages/afsui/afsui-staked-sui-vault"
-rev = "main"
+local = "../../../../../aftermath/move-interfaces/packages/afsui/afsui-staked-sui-vault"
 
 [dependencies.Pyth]
 local = "../pyth_rule/vendors/pyth"

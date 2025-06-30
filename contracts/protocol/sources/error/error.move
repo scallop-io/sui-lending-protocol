@@ -70,4 +70,7 @@ module protocol::error {
 
   // repay
   public fun zero_repay_amount_error(): u64 { 0x0015001 }
+
+  // market coin price
+  public fun market_coin_price_cannot_decrease_error(): u64 { 0x0016001 }
 }

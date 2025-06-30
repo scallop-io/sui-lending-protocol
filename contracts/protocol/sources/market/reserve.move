@@ -83,6 +83,9 @@ module protocol::reserve {
     wit_table::add(FlashLoanFees{}, &mut self.flash_loan_fees, get<T>(), 0);
   }
 
+  /// Intialize a table to store market coin prices instead of purely relying on the balance sheet.
+  /// This is to make sure that the market coin price is always increasing or at least not decreasing.
+  /// It's to preventing the market coin price from being manipulated by unexpected behavior.
   public fun init_market_coin_price_table(
     self: &mut Reserve,
     ctx: &mut TxContext,
@@ -94,12 +97,20 @@ module protocol::reserve {
     dynamic_field::add(&mut self.id, MarketCoinPriceTableKey{}, price_table);
   }
 
+  /// This function do 2 things: first update the market coin price based on the balance sheet, and return the new price.
   fun update_and_get_market_coin_price(
     self: &mut Reserve,
     coin_type: TypeName,
   ): Decimal {
     let price_table = dynamic_field::borrow_mut<MarketCoinPriceTableKey, Table<TypeName, Decimal>>(&mut self.id);
+
+    // In the beginning, we assume the market coin price is 1, so we need to initialize it.
+    if (table::contains(price_table, coin_type) == false) {
+      table::add(price_table, coin_type, decimal::from(1));
+    };
+
     let price = table::borrow_mut<TypeName, Decimal>(price_table, coin_type);
+
     let old_price = *price;
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, coin_type);
     let new_price = if (balance_sheet.market_coin_supply > 0) {

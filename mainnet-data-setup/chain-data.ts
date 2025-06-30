@@ -20,6 +20,7 @@ export type SupportedCollaterals =
   | 'usdy'
   | 'wal'
   | 'deep'
+  | 'haedal'
 ;
 
 export type SupportedBaseAssets =

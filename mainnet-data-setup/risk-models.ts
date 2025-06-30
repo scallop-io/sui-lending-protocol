@@ -172,7 +172,16 @@ export const walRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 10 * 10 ** (coinDecimals.wal + 6), // 10M DEEP
+  maxCollateralAmount: 10 * 10 ** (coinDecimals.wal + 6), // 10M WAL
+}
+
+export const haedalRiskModel: RiskModel = {
+  collateralFactor: 0,
+  liquidationFactor: 70,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
+  scale: 100,
+  maxCollateralAmount: 0 * 10 ** (coinDecimals.haedal + 6), // 0 HAEDAL
 }
 
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {
@@ -195,4 +204,5 @@ export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   usdy: usdyRiskModel,
   wal: walRiskModel,
   deep: deepRiskModel,
+  haedal: haedalRiskModel,
 }

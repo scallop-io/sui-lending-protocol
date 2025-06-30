@@ -402,7 +402,7 @@ export const haedalInterestModel: InterestModel = {
   highKink, // 90%
 
   revenueFactor: 40 * (scale / 100), // 40%
-  borrowWeight: (scale * 1.25), // 125%
+  borrowWeight, // 100%
   scale,
   minBorrowAmount: 10 ** (coinDecimals.haedal - 1), // 0.1 NS
 };

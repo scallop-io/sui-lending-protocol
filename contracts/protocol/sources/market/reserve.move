@@ -115,8 +115,8 @@ module protocol::reserve {
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, coin_type);
     let new_price = if (balance_sheet.market_coin_supply > 0) {
       let potential_price = decimal::div(
-        decimal::from(balance_sheet.market_coin_supply),
-        decimal::from(balance_sheet.cash + balance_sheet.debt - balance_sheet.revenue)
+        decimal::from(balance_sheet.cash + balance_sheet.debt - balance_sheet.revenue),
+        decimal::from(balance_sheet.market_coin_supply)
       );
       assert!(decimal::ge(potential_price, old_price), error::market_coin_price_cannot_decrease_error());
       potential_price

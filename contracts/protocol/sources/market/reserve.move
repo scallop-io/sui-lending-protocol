@@ -90,7 +90,7 @@ module protocol::reserve {
     self: &mut Reserve,
     ctx: &mut TxContext,
   ) {
-    if (dynamic_field::exists_with_type<MarketCoinPriceTableKey, Table<TypeName, Decimal>>(&self.id)) {
+    if (dynamic_field::exists_with_type<MarketCoinPriceTableKey, Table<TypeName, Decimal>>(&self.id, MarketCoinPriceTableKey{})) {
       return; // already initialized
     };
     let price_table = table::new<TypeName, Decimal>(ctx);
@@ -102,7 +102,7 @@ module protocol::reserve {
     self: &mut Reserve,
     coin_type: TypeName,
   ): Decimal {
-    let price_table = dynamic_field::borrow_mut<MarketCoinPriceTableKey, Table<TypeName, Decimal>>(&mut self.id);
+    let price_table = dynamic_field::borrow_mut<MarketCoinPriceTableKey, Table<TypeName, Decimal>>(&mut self.id, MarketCoinPriceTableKey{});
 
     // In the beginning, we assume the market coin price is 1, so we need to initialize it.
     if (table::contains(price_table, coin_type) == false) {
@@ -123,7 +123,7 @@ module protocol::reserve {
     } else {
       decimal::from(1)
     };
-    price = new_price;
+    *price = new_price;
     new_price
   }
 
@@ -206,7 +206,6 @@ module protocol::reserve {
   ): Balance<MarketCoin<T>> {
     // Calculate how much market coin should be minted
     let underlying_amount = balance::value(&underlying_balance);
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     let price = update_and_get_market_coin_price(self, get<T>());
     let mint_amount_decimal = decimal::div(
       decimal::from(underlying_amount),
@@ -216,6 +215,7 @@ module protocol::reserve {
     assert!(mint_amount > 0, error::mint_market_coin_too_small_error());
 
     // Update balance sheet
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     balance_sheet.cash = balance_sheet.cash + underlying_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply + mint_amount;
 
@@ -230,7 +230,6 @@ module protocol::reserve {
   ): Balance<T> {
     // Calculate how much underlying coin should be redeemed
     let market_coin_amount = balance::value(&market_coin_balance);
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     let price = update_and_get_market_coin_price(self, get<T>());
     let redeem_amount_decimal = decimal::mul(
       decimal::from(market_coin_amount),
@@ -239,9 +238,10 @@ module protocol::reserve {
     let redeem_amount = decimal::floor(redeem_amount_decimal);
 
     assert!(redeem_amount > 0, error::redeem_market_coin_too_small_error());
-    assert!(balance_sheet.cash >= redeem_amount, error::reserve_not_enough_error());
 
     // Update balance sheet
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    assert!(balance_sheet.cash >= redeem_amount, error::reserve_not_enough_error());
     balance_sheet.cash = balance_sheet.cash - redeem_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply - market_coin_amount;
 

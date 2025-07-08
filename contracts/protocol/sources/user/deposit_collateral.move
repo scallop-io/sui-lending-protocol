@@ -7,11 +7,13 @@ module protocol::deposit_collateral {
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};
   use sui::event::emit;
+  use sui::dynamic_field as df;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
   use protocol::version::{Self, Version};
   use whitelist::whitelist;
   use protocol::error;
+  use protocol::market_dynamic_keys::{Self, MinCollateralAmountKey};
   
   struct CollateralDepositEvent has copy, drop {
     provider: address,
@@ -62,6 +64,11 @@ module protocol::deposit_collateral {
 
     // Avoid the loop of collateralize and borrow of same assets
     assert!(!obligation::has_coin_x_as_debt(obligation, coin_type), error::unable_to_deposit_a_borrowed_coin());
+
+    // Get the supply limit from the market
+    let min_collateral_amount_key = market_dynamic_keys::min_collateral_amount_key(coin_type);
+    let min_collateral_amount = *df::borrow<MinCollateralAmountKey, u64>(market::uid(market), min_collateral_amount_key);
+    assert!(coin::value(&coin) >= min_collateral_amount, error::min_collateral_amount_error());
 
     // Emit collateral deposit event
     emit(CollateralDepositEvent{

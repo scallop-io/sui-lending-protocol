@@ -20,7 +20,7 @@ module protocol::app {
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, BorrowLimitKey, IsolatedAssetKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey};
   use protocol::borrow_referral::{Self, AuthorizedWitnessList};
 
   /// OTW
@@ -455,6 +455,18 @@ module protocol::app {
     dynamic_field::remove_if_exists<SupplyLimitKey, u64>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, limit_amount);
   }
+
+  public entry fun update_min_collateral_amount<T: drop>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    min_amount: u64,
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::min_collateral_amount_key(type_name::get<T>());
+
+    dynamic_field::remove_if_exists<MinCollateralAmountKey, u64>(market_uid_mut, key);
+    dynamic_field::add(market_uid_mut, key, min_amount);
+  }  
 
   public entry fun update_borrow_limit<T: drop>(
     _admin_cap: &AdminCap,

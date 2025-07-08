@@ -88,6 +88,24 @@ module protocol_test::app_t {
       sender
     );
 
+    app::update_min_collateral_amount<USDC>(
+      &adminCap,
+      &mut market,
+       sui::math::pow(10, 9), // 1 USDC
+    );
+
+    app::update_min_collateral_amount<USDT>(
+      &adminCap,
+      &mut market,
+       sui::math::pow(10, 9), // 1 USDT
+    );
+
+    app::update_min_collateral_amount<ETH>(
+      &adminCap,
+      &mut market,
+       sui::math::pow(10, 9 - 3), // 0.001 ETH
+    );
+
     whitelist::allow_all(app::ext(&adminCap, &mut market));
 
     (market, adminCap)

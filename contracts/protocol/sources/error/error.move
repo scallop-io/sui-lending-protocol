@@ -67,6 +67,7 @@ module protocol::error {
   public fun collateral_not_enough(): u64 { 0x0014003 }
   public fun reserve_not_enough_error(): u64 { 0x0014004 }
   public fun borrow_limit_reached_error(): u64 { 0x0014005 }
+  public fun min_collateral_amount_error(): u64 { 0x0014006 }
 
   // repay
   public fun zero_repay_amount_error(): u64 { 0x0015001 }

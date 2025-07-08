@@ -12,6 +12,10 @@ module protocol::market_dynamic_keys {
     type: TypeName
   }
 
+  struct MinCollateralAmountKey has copy, store, drop {
+    type: TypeName
+  }  
+
   struct BorrowLimitKey has copy, store, drop {
     type: TypeName
   } 
@@ -30,6 +34,10 @@ module protocol::market_dynamic_keys {
 
   public fun supply_limit_key(type: TypeName): SupplyLimitKey {
     SupplyLimitKey { type }
+  }
+
+  public fun min_collateral_amount_key(type: TypeName): MinCollateralAmountKey {
+    MinCollateralAmountKey { type }
   }
 
   public fun isolated_asset_key(type: TypeName): IsolatedAssetKey {

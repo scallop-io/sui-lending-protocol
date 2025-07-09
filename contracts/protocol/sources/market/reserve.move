@@ -86,7 +86,7 @@ module protocol::reserve {
   /// Intialize a table to store market coin prices instead of purely relying on the balance sheet.
   /// This is to make sure that the market coin price is always increasing or at least not decreasing.
   /// It's to preventing the market coin price from being manipulated by unexpected behavior.
-  public fun init_market_coin_price_table(
+  public(friend) fun init_market_coin_price_table(
     self: &mut Reserve,
     ctx: &mut TxContext,
   ) {

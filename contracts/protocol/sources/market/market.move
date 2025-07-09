@@ -252,6 +252,13 @@ module protocol::market {
     collateral_stats::decrease(&mut self.collateral_stats, get<CollateralType>(), liquidate_amount);
     update_interest_rates(self);
   }
+
+  public(friend) fun init_market_coin_price_table(
+    self: &mut Market,
+    ctx: &mut TxContext,
+  ) {
+    reserve::init_market_coin_price_table(&mut self.vault, ctx);
+  }
   
   public(friend) fun handle_redeem<T>(
     self: &mut Market,

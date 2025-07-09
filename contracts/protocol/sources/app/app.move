@@ -516,4 +516,13 @@ module protocol::app {
   ) {
     borrow_referral::remove_witness<T>(witness_list);
   }
+
+  /// Initialize the market coin price table, only call it once
+  public fun init_market_coin_price_table(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    ctx: &mut TxContext
+  ) {
+    market::init_market_coin_price_table(market, ctx);
+  }
 }

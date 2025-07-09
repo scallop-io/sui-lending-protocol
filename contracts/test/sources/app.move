@@ -106,6 +106,12 @@ module protocol_test::app_t {
        sui::math::pow(10, 9 - 3), // 0.001 ETH
     );
 
+    app::init_market_coin_price_table(
+      &adminCap,
+      &mut market,
+      test_scenario::ctx(scenario)
+    );
+
     whitelist::allow_all(app::ext(&adminCap, &mut market));
 
     (market, adminCap)

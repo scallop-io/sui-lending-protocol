@@ -20,6 +20,9 @@ local = "../libs/whitelist"
 [dependencies.CoinDecimalsRegistry]
 local = "../libs/coin_decimals_registry"
 
+[dependencies.Decimal]
+local = "../libs/decimal"
+
 [dependencies.XOracle]
 local = "../sui_x_oracle/x_oracle"
 

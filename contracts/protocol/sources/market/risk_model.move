@@ -91,7 +91,7 @@ module protocol::risk_model {
     // Make sure liquidation factor is bigger than collateral factor
     assert!(fixed_point32_empower::gt(liquidation_factor, collateral_factor), error::risk_model_param_error());
     // Make sure liquidation penalty is bigger than liquidation discount
-    assert!(fixed_point32_empower::gt(liquidation_penalty, liquidation_discount), error::risk_model_param_error());
+    assert!(fixed_point32_empower::gte(liquidation_penalty, liquidation_discount), error::risk_model_param_error());
 
     let liquidation_revenue_factor = fixed_point32_empower::sub(liquidation_penalty, liquidation_discount);
     let risk_model = RiskModel {

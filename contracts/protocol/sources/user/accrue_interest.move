@@ -39,6 +39,6 @@ module protocol::accrue_interest {
     version::assert_current_version(version);
 
     accrue_interest_for_market(version, market, clock);
-    obligation::accrue_interests_and_rewards(obligation, market);
+    obligation::accrue_interests(obligation, market);
   }
 }

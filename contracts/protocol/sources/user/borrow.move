@@ -296,7 +296,7 @@ module protocol::borrow {
     obligation::init_debt(obligation, market, coin_type);
 
     // accure interests & rewards for obligation
-    obligation::accrue_interests_and_rewards(obligation, market);
+    obligation::accrue_interests(obligation, market);
 
     // calc the maximum borrow amount
     // If borrow too much, abort

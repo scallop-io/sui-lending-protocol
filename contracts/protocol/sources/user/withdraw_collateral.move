@@ -107,7 +107,7 @@ module protocol::withdraw_collateral {
     market::handle_withdraw_collateral<T>(market, withdraw_amount, now);
   
     // accure interests & rewards for obligation
-    obligation::accrue_interests_and_rewards(obligation, market);
+    obligation::accrue_interests(obligation, market);
     
     // If withdraw_amount bigger than max allowed withdraw amount, abort
     // Max withdarw amount is calculated according to the risk level of the obligation, if risk level is higher than 1, withdraw is not allowed

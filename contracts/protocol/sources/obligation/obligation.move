@@ -126,7 +126,7 @@ module protocol::obligation {
     ownership::is_owner(&key.ownership, obligation)
   }
   
-  public(friend) fun accrue_interests_and_rewards(
+  public(friend) fun accrue_interests(
     obligation: &mut Obligation,
     market: &Market,
   ) {
@@ -138,11 +138,6 @@ module protocol::obligation {
       // accrue interest first, to get the latest borrow amount
       obligation_debts::accrue_interest(&mut obligation.debts, type, new_borrow_index);
       
-      // @deprecated: this feature is no longer used
-      // let reward_factor = incentive_rewards::reward_factor(market::reward_factor(market, type));
-      // let accrued_rewards_point = fixed_point32::multiply_u64(accrued_interest, reward_factor);
-      // obligation.rewards_point = obligation.rewards_point + accrued_rewards_point;
-
       i = i + 1;
     };
   }

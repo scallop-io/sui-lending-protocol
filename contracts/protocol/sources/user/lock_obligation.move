@@ -48,7 +48,7 @@ module protocol::lock_obligation {
         // accrue all interest before any action
         let now = clock::timestamp_ms(clock) / 1000;
         market::accrue_all_interests(market, now);
-        obligation::accrue_interests_and_rewards(obligation, market);
+        obligation::accrue_interests(obligation, market);
 
         // calculate the value of collaterals in the context of liquidation
         // collateral value is discounted with liquidation factor

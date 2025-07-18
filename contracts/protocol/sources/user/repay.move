@@ -68,7 +68,7 @@ module protocol::repay {
     // always accrued all the interest before doing any actions
     // Because all actions should based on the latest state
     market::accrue_all_interests(market, now);
-    obligation::accrue_interests_and_rewards(obligation, market);
+    obligation::accrue_interests(obligation, market);
 
     // If the given coin is more than the debt, repay the debt only
     let (debt_amount, _) = obligation::debt(obligation, coin_type);

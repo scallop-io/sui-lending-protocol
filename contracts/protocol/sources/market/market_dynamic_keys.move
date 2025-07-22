@@ -24,6 +24,10 @@ module protocol::market_dynamic_keys {
     type: TypeName
   }  
 
+  struct BorrowDynamicsTableKey has copy, store, drop { }
+  
+  struct IsBorrowDynamicsMigratedKey has copy, store, drop { }
+
   public fun borrow_fee_key(type: TypeName): BorrowFeeKey {
     BorrowFeeKey{ type }
   }
@@ -47,4 +51,12 @@ module protocol::market_dynamic_keys {
   public fun borrow_limit_key(type: TypeName): BorrowLimitKey {
     BorrowLimitKey { type }
   }  
+
+  public fun borrow_dynamics_table_key(): BorrowDynamicsTableKey {
+    BorrowDynamicsTableKey {}
+  }
+
+  public fun is_borrow_dynamics_migrated_key(): IsBorrowDynamicsMigratedKey {
+    IsBorrowDynamicsMigratedKey {}
+  }
 }

@@ -112,6 +112,12 @@ module protocol_test::app_t {
       test_scenario::ctx(scenario)
     );
 
+    app::init_borrow_dynamics_v2_table(
+      &adminCap,
+      &mut market,
+      test_scenario::ctx(scenario)
+    );    
+
     whitelist::allow_all(app::ext(&adminCap, &mut market));
 
     (market, adminCap)

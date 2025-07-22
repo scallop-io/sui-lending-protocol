@@ -21,6 +21,8 @@ module protocol::obligation {
   use protocol::obligation_access::{Self, ObligationAccessStore};
   use protocol::error;
 
+  use decimal::decimal::{Self, Decimal};
+
   friend protocol::repay;
   friend protocol::borrow;
   friend protocol::withdraw_collateral;
@@ -134,9 +136,9 @@ module protocol::obligation {
     let (i, n) = (0, vector::length(&debt_types));
     while (i < n) {
       let type = *vector::borrow(&debt_types, i);
-      let new_borrow_index = market::borrow_index(market, type);
+      let new_borrow_index = market::borrow_index_decimal(market, type);
       // accrue interest first, to get the latest borrow amount
-      obligation_debts::accrue_interest(&mut obligation.debts, type, new_borrow_index);
+      obligation_debts::accrue_interest(&mut obligation.debts, type, ((decimal::to_scaled_val(new_borrow_index) / (protocol::borrow_dynamics::initial_borrow_index() as u256)) as u64));
       
       i = i + 1;
     };

@@ -1,5 +1,7 @@
 module decimal::decimal;
 
+use std::fixed_point32::{Self, FixedPoint32};
+
 const WAD: u256 = 1000000000000000000; // 10^18
 const U64_MAX: u256 = 18446744073709551615;
 
@@ -144,4 +146,29 @@ public fun max(a: Decimal, b: Decimal): Decimal {
     } else {
         b
     }
+}
+
+public fun from_fixed_point32(fp: FixedPoint32): Decimal {
+    div(
+        from(fp.get_raw_value()), 
+        pow(from(2), 32)
+    )
+}
+
+#[test]
+public fun from_fixed_point32_test() {
+    let a = fixed_point32::create_from_rational(1, 1);
+    let b = from_fixed_point32(a);
+
+    assert!(eq(b, from(1)));
+
+    let a = fixed_point32::create_from_rational(1, 2);
+    let b = from_fixed_point32(a);
+
+    assert!(eq(b, from_percent(50)));
+
+    let a = fixed_point32::create_from_rational(1, 4);
+    let b = from_fixed_point32(a);
+
+    assert!(eq(b, from_percent(25)));
 }

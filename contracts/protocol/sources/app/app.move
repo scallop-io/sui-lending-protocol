@@ -525,4 +525,12 @@ module protocol::app {
   ) {
     market::init_market_coin_price_table(market, ctx);
   }
+
+  public fun init_borrow_dynamics_v2_table(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    ctx: &mut TxContext,
+  ) {
+    market::init_borrow_dynamics_v2_table(market, ctx);
+  }
 }

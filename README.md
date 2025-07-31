@@ -18,6 +18,13 @@ See the official documentation: [How to install SUI cli](https://docs.sui.io/dev
   - `SECRET_KEY`: The secret key of the account that will be used to deploy the contracts, make sure the account has enough SUI to pay for the transaction fees
   - `SUI_NETWORK_TYPE`: The network type of the SUI network. It can be `devnet`, `testnet`, `mainnet` or `localnet`
 
+## Import to your Move package
+
+If you are using move registry, you can simply run 
+```bash
+mvr add lending@scallop/core
+``` 
+to import scallop lending to your package.
 
 ## Move package structure
 We use typescript to publish & interact with the contracts, and we make some improvements to the package structure to make it easier to use.

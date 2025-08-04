@@ -158,8 +158,8 @@ export const usdyRiskModel: RiskModel = {
 }
 
 export const deepRiskModel: RiskModel = {
-  collateralFactor: 40,
-  liquidationFactor: 70,
+  collateralFactor: 70,
+  liquidationFactor: 80,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
@@ -167,8 +167,8 @@ export const deepRiskModel: RiskModel = {
 }
 
 export const walRiskModel: RiskModel = {
-  collateralFactor: 40,
-  liquidationFactor: 70,
+  collateralFactor: 70,
+  liquidationFactor: 80,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,

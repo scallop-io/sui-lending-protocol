@@ -112,7 +112,7 @@ export const wormholeUsdtInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.wormholeUsdt - 2), // 0.01 USDT
@@ -231,7 +231,7 @@ export const nativeUsdcInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.nativeUsdc - 2), // 0.01 USDC
@@ -265,7 +265,7 @@ export const deepInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 40 * (scale / 100), // 40%
+  revenueFactor: 30 * (scale / 100), // 30%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.deep + 1), // 10 DEEP
@@ -299,7 +299,7 @@ export const fdusdInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.fdusd - 2), // 0.01 FDUSD
@@ -316,7 +316,7 @@ export const sbUsdtInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.sbUsdt - 2), // 0.01 USDT
@@ -350,7 +350,7 @@ export const usdyInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.usdy - 2), // 0.01 USDY
@@ -418,7 +418,7 @@ export const walInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 40 * (scale / 100), // 40%
+  revenueFactor: 30 * (scale / 100), // 30%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.wal - 2), // 0.01 WAL

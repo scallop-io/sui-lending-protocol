@@ -16,19 +16,20 @@ import { buildMultiSigTx } from './multi-sig';
 import { BorrowLimits } from './borrow-limits';
 import { suiKit } from 'sui-elements';
 import { xOracleTxBuilder } from 'contracts/sui_x_oracle';
+import { riskModels } from './risk-models';
 
-async function addNewPool_haedal() {
+async function addNewPool_haWal() {
   const tx = new SuiTxBlock();
-  const coin = 'haedal';
-  const dustCoinId = '0xd63a0ac2bf7bc0a79e5b2bada85a9eb9b7e3e88a1a8c6b8b692b86bd4d168ecb'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'haWal';
+  const dustCoinId = '0xd4be5cdd137a8b26a03c46de227d188c1e385edddf3743e465fc453323e0763e'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
+  protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
   protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
-  protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
 
   pythRuleTxBuilder.registerPythFeed(tx, oracles[coin].pythPriceObjectId, pythRuleTxBuilder.calculatePriceConfidenceTolerance(2), coinType);
   xOracleTxBuilder.addPrimaryPriceUpdateRuleV2(tx, coinType, pythRuleStructType);
@@ -50,4 +51,4 @@ async function addNewPool_haedal() {
   return txBytes;
 }
 
-addNewPool_haedal().then(console.log);
+addNewPool_haWal().then(console.log);

@@ -131,12 +131,12 @@ export const sbEthRiskModel: RiskModel = {
 }
 
 export const fdusdRiskModel: RiskModel = {
-  collateralFactor: 0, // 0% 
+  collateralFactor: 850, // 85% 
   liquidationFactor: 900, // 90%
   liquidationPanelty: 20, // 2%
   liquidationDiscount: 19, // 1.9%
   scale: 1000,
-  maxCollateralAmount: 0 * 10 ** (coinDecimals.fdusd + 6), // 15 million FDUSD
+  maxCollateralAmount: 5 * 10 ** (coinDecimals.fdusd + 5), // 500k FDUSD
 }
 
 export const sbUsdtRiskModel: RiskModel = {
@@ -184,6 +184,24 @@ export const haedalRiskModel: RiskModel = {
   maxCollateralAmount: 0 * 10 ** (coinDecimals.haedal + 6), // 0 HAEDAL
 }
 
+export const wWalRiskModel: RiskModel = {
+  collateralFactor: 70,
+  liquidationFactor: 80,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
+  scale: 100,
+  maxCollateralAmount: 2 * 10 ** (coinDecimals.wWal + 6), // 2M WAL
+}
+
+export const haWalRiskModel: RiskModel = {
+  collateralFactor: 70,
+  liquidationFactor: 80,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
+  scale: 100,
+  maxCollateralAmount: 2 * 10 ** (coinDecimals.haWal + 6), // 2M WAL
+}
+
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   sui: suiRiskModel,
   sca: scaRiskModel,
@@ -205,4 +223,6 @@ export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   wal: walRiskModel,
   deep: deepRiskModel,
   haedal: haedalRiskModel,
+  wWal: wWalRiskModel,
+  haWal: haWalRiskModel,
 }

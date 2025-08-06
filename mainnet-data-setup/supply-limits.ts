@@ -12,7 +12,7 @@ export const SupplyLimits: Record<SupportedBaseAssets, number> = {
   afSui: 1e6 * Math.pow(10, coinDecimals.afSui),
   haSui: 10e6 * Math.pow(10, coinDecimals.haSui), // 10M
   vSui: 0 * Math.pow(10, coinDecimals.vSui), // 0
-  cetus: 2e6 * Math.pow(10, coinDecimals.cetus),
+  cetus: 10e6 * Math.pow(10, coinDecimals.cetus),
   wormholeEth: 0 * Math.pow(10, coinDecimals.wormholeEth),
   wormholeBtc: 0 * Math.pow(10, coinDecimals.wormholeBtc),
   sbwBTC: 20 * Math.pow(10, coinDecimals.sbwBTC),
@@ -29,4 +29,6 @@ export const SupplyLimits: Record<SupportedBaseAssets, number> = {
   usdy: 5e6 * Math.pow(10, coinDecimals.usdy), // 5M
   wal: 25_000_000 * Math.pow(10, coinDecimals.wal), // 25M
   haedal: 20_000_000 * Math.pow(10, coinDecimals.haedal), // 20M
+  wWal: 10_000_000 * Math.pow(10, coinDecimals.wWal), // 10M
+  haWal: 10_000_000 * Math.pow(10, coinDecimals.haWal), // 10M
 }

@@ -424,6 +424,40 @@ export const walInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.wal - 2), // 0.01 WAL
 };
 
+export const wWalInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(20),
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(600), // 600%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor: 30 * (scale / 100), // 30%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.wWal - 2), // 0.01 wWAL
+};
+
+export const haWalInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(20),
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(600), // 600%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor: 30 * (scale / 100), // 30%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.haWal - 2), // 0.01 haWAL
+};
+
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sui: suiInterestModel,
   sca: scaInterestModel,
@@ -449,4 +483,6 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   usdy: usdyInterestModel,
   wal: walInterestModel,
   haedal: haedalInterestModel,
+  wWal: wWalInterestModel,
+  haWal: haWalInterestModel,
 }

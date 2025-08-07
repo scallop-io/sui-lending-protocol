@@ -1,6 +1,5 @@
 #[test_only]
 module protocol_test::oracle_t {
-    use sui::math;
     use sui::test_scenario::{Self, Scenario};
     use x_oracle::x_oracle::{Self, XOracle, XOraclePolicyCap};
 
@@ -15,6 +14,6 @@ module protocol_test::oracle_t {
     public fun calc_scaled_price(scaled_price: u64, decimals: u8): u64 {
         assert!(decimals <= 9, 1);
         // the oracle price_feed need a scaled price with 9 decimals
-        scaled_price * math::pow(10, 9 - decimals)
+        scaled_price * std::u64::pow(10, 9 - decimals)
     }
 }

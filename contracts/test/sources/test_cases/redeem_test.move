@@ -3,7 +3,6 @@ module protocol_test::redeem_test {
   
   use sui::test_scenario;
   use sui::coin;
-  use sui::math;
   use sui::clock;
   use std::fixed_point32;
   use std::type_name;
@@ -26,10 +25,12 @@ module protocol_test::redeem_test {
   use protocol_test::interest_model_t::add_interest_model_t;
   use protocol_test::oracle_t;
   use protocol_test::risk_model_t::add_risk_model_t;
+  use decimal::decimal;
   use test_coin::usdc::USDC;
   use test_coin::eth::ETH;
 
   #[test]
+  #[allow(deprecated_usage)]
   public fun redeem_test() {
     let usdc_decimals = 9;
     let eth_decimals = 9;
@@ -54,7 +55,7 @@ module protocol_test::redeem_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
 
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
@@ -64,7 +65,7 @@ module protocol_test::redeem_test {
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
     
     test_scenario::next_tx(scenario, lender_a);
-    let usdc_amount = math::pow(10, usdc_decimals + 4);
+    let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let lender_a_market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
@@ -72,7 +73,7 @@ module protocol_test::redeem_test {
     assert!(lender_a_market_coin_amount == usdc_amount, 0);
 
     test_scenario::next_tx(scenario, borrower);
-    let eth_amount = math::pow(10, eth_decimals + 5);
+    let eth_amount = std::u64::pow(10, eth_decimals + 5);
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let (obligation, obligation_key) = open_obligation_t(scenario, &version);
     deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
@@ -83,13 +84,13 @@ module protocol_test::redeem_test {
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
     test_scenario::next_tx(scenario, borrower);
-    let borrow_amount = 5 * math::pow(10, usdc_decimals + 3);
+    let borrow_amount = 5 * std::u64::pow(10, usdc_decimals + 3);
     let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&borrowed) == borrow_amount, 0);
     coin::burn_for_testing(borrowed);
 
     test_scenario::next_tx(scenario, lender_b);
-    let current_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
+    let current_borrow_index = market::borrow_index_decimal(&market, type_name::get<USDC>());
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let mint_time = 400;
     clock::set_for_testing(&mut clock, mint_time * 1000);
@@ -106,7 +107,12 @@ module protocol_test::redeem_test {
       current_borrow_index,
       mint_time - borrow_time,
     );
-    let increased_debt = fixed_point32::multiply_u64(borrow_amount, growth_interest_rate);
+    let increased_debt = decimal::floor(
+      decimal::mul(
+        decimal::from(borrow_amount),
+        growth_interest_rate
+      )
+    );
     let current_revenue = fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_mint_amount = calc_mint_amount(
@@ -123,7 +129,7 @@ module protocol_test::redeem_test {
     test_scenario::next_tx(scenario, lender_a);
     let redeem_time = 500;
     clock::set_for_testing(&mut clock, 500 * 1000);
-    let current_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
+    let current_borrow_index = market::borrow_index_decimal(&market, type_name::get<USDC>());
 
 
     let expected_redeem = calc_scoin_to_coin(&version, &mut market, type_name::get<USDC>(), &clock, lender_a_market_coin_amount);
@@ -140,7 +146,12 @@ module protocol_test::redeem_test {
       current_borrow_index,
       redeem_time - mint_time,
     );
-    let increased_debt = fixed_point32::multiply_u64(current_debt, growth_interest_rate);
+    let increased_debt = decimal::floor(
+      decimal::mul(
+        decimal::from(current_debt),
+        growth_interest_rate
+      )
+    );
     let current_revenue = current_revenue + fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_redeem_amount = calc_redeem_amount(
@@ -164,32 +175,6 @@ module protocol_test::redeem_test {
     test_scenario::return_to_address(admin, x_oracle_policy_cap);
     test_scenario::return_to_address(borrower, obligation_key);
     test_scenario::end(scenario_value);
-  }
-
-  fun conversion_rate_coin_to_scoin(
-    version: &protocol::version::Version,
-    market: &mut protocol::market::Market, 
-    coin_type: std::type_name::TypeName, 
-    clock: &sui::clock::Clock,
-  ): std::fixed_point32::FixedPoint32 {
-    let (cash, debt, revenue, market_coin_supply) = get_reserve_stats(version, market, coin_type, clock);
-
-    if (market_coin_supply > 0) {
-      std::fixed_point32::create_from_rational(market_coin_supply, cash + debt - revenue)
-    } else {
-      std::fixed_point32::create_from_rational(1, 1)
-    }
-  }
-
-  fun conversion_rate_scoin_to_coin(
-    version: &protocol::version::Version,
-    market: &mut protocol::market::Market, 
-    coin_type: std::type_name::TypeName, 
-    clock: &sui::clock::Clock,
-  ): std::fixed_point32::FixedPoint32 {
-    let (cash, debt, revenue, market_coin_supply) = get_reserve_stats(version, market, coin_type, clock);
-
-    std::fixed_point32::create_from_rational(cash + debt - revenue, market_coin_supply)
   }
 
   #[test_only]

@@ -34,7 +34,7 @@ module protocol_test::app_t {
     app::update_supply_limit<USDC>(
       &adminCap,
       &mut market,
-      1_000_000 * sui::math::pow(10, 9),
+      1_000_000 * std::u64::pow(10, 9),
     );
 
     app::set_incentive_reward_factor<USDT>(
@@ -55,31 +55,31 @@ module protocol_test::app_t {
     app::update_borrow_limit<USDT>(
       &adminCap,
       &mut market,
-      1_000_000 * sui::math::pow(10, 9),
+      1_000_000 * std::u64::pow(10, 9),
     );
 
     app::update_borrow_limit<USDC>(
       &adminCap,
       &mut market,
-      1_000_000 * sui::math::pow(10, 9),
+      1_000_000 * std::u64::pow(10, 9),
     );
 
     app::update_borrow_limit<ETH>(
       &adminCap,
       &mut market,
-      1_000 * sui::math::pow(10, 9),
+      1_000 * std::u64::pow(10, 9),
     );    
 
     app::update_supply_limit<USDT>(
       &adminCap,
       &mut market,
-      1_000_000 * sui::math::pow(10, 9),
+      1_000_000 * std::u64::pow(10, 9),
     );        
 
     app::update_supply_limit<ETH>(
       &adminCap,
       &mut market,
-      1_000 * sui::math::pow(10, 9),
+      1_000 * std::u64::pow(10, 9),
     );
 
     app::update_borrow_fee_recipient(
@@ -91,19 +91,19 @@ module protocol_test::app_t {
     app::update_min_collateral_amount<USDC>(
       &adminCap,
       &mut market,
-       sui::math::pow(10, 9), // 1 USDC
+       std::u64::pow(10, 9), // 1 USDC
     );
 
     app::update_min_collateral_amount<USDT>(
       &adminCap,
       &mut market,
-       sui::math::pow(10, 9), // 1 USDT
+       std::u64::pow(10, 9), // 1 USDT
     );
 
     app::update_min_collateral_amount<ETH>(
       &adminCap,
       &mut market,
-       sui::math::pow(10, 9 - 3), // 0.001 ETH
+       std::u64::pow(10, 9 - 3), // 0.001 ETH
     );
 
     app::init_market_coin_price_table(
@@ -111,12 +111,6 @@ module protocol_test::app_t {
       &mut market,
       test_scenario::ctx(scenario)
     );
-
-    app::init_borrow_dynamics_v2_table(
-      &adminCap,
-      &mut market,
-      test_scenario::ctx(scenario)
-    );    
 
     whitelist::allow_all(app::ext(&adminCap, &mut market));
 

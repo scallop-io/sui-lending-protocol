@@ -3,7 +3,6 @@ module protocol_test::liquidation_test {
   
   use sui::test_scenario;
   use sui::coin;
-  use sui::math;
   use sui::clock;
   use x_oracle::x_oracle;
   use coin_decimals_registry::coin_decimals_registry;
@@ -27,6 +26,7 @@ module protocol_test::liquidation_test {
   use std::fixed_point32::{Self, FixedPoint32};
   
   #[test]
+  #[allow(deprecated_usage)]
   public fun liquidation_test() {
     // Scenario:
     // 0. the price of USDC = $0.5 and the price of ETH = $1000
@@ -62,7 +62,7 @@ module protocol_test::liquidation_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
@@ -70,7 +70,7 @@ module protocol_test::liquidation_test {
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
     
     test_scenario::next_tx(scenario, lender);
-    let usdc_amount = math::pow(10, usdc_decimals + 4);
+    let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
@@ -78,7 +78,7 @@ module protocol_test::liquidation_test {
     coin::burn_for_testing(market_coin);
     
     test_scenario::next_tx(scenario, borrower);
-    let eth_amount = math::pow(10, eth_decimals);
+    let eth_amount = std::u64::pow(10, eth_decimals);
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let (obligation, obligation_key) = open_obligation_t(scenario, &version);
     deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
@@ -88,7 +88,7 @@ module protocol_test::liquidation_test {
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
     test_scenario::next_tx(scenario, borrower);
-    let borrow_amount = 850 * math::pow(10, usdc_decimals);
+    let borrow_amount = 850 * std::u64::pow(10, usdc_decimals);
     let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&borrowed) == borrow_amount, 0);
     coin::burn_for_testing(borrowed);
@@ -96,7 +96,7 @@ module protocol_test::liquidation_test {
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
 
     test_scenario::next_tx(scenario, liquidator);    
-    let usdc_amount = 900 * math::pow(10, usdc_decimals);
+    let usdc_amount = 900 * std::u64::pow(10, usdc_decimals);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
 
     let (coin_debt, coin_collateral) = liquidate::liquidate<USDC, ETH>(
@@ -146,6 +146,7 @@ module protocol_test::liquidation_test {
   }
 
   #[test]
+  #[allow(deprecated_usage)]
   public fun liquidation_with_borrow_weight_test() {
     // Scenario:
     // 0. the price of USDC = $0.25 and the price of ETH = $1000
@@ -183,7 +184,7 @@ module protocol_test::liquidation_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
@@ -191,7 +192,7 @@ module protocol_test::liquidation_test {
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
     
     test_scenario::next_tx(scenario, lender);
-    let usdc_amount = math::pow(10, usdc_decimals + 4);
+    let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
@@ -199,7 +200,7 @@ module protocol_test::liquidation_test {
     coin::burn_for_testing(market_coin);
     
     test_scenario::next_tx(scenario, borrower);
-    let eth_amount = math::pow(10, eth_decimals);
+    let eth_amount = std::u64::pow(10, eth_decimals);
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let (obligation, obligation_key) = open_obligation_t(scenario, &version);
     deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
@@ -209,7 +210,7 @@ module protocol_test::liquidation_test {
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
     test_scenario::next_tx(scenario, borrower);
-    let borrow_amount = 850 * math::pow(10, usdc_decimals);
+    let borrow_amount = 850 * std::u64::pow(10, usdc_decimals);
     let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&borrowed) == borrow_amount, 0);
     coin::burn_for_testing(borrowed);
@@ -217,7 +218,7 @@ module protocol_test::liquidation_test {
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(5, 1)); // $0.5
 
     test_scenario::next_tx(scenario, liquidator);    
-    let usdc_amount = 900 * math::pow(10, usdc_decimals);
+    let usdc_amount = 900 * std::u64::pow(10, usdc_decimals);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
 
     let (coin_debt, coin_collateral) = liquidate::liquidate<USDC, ETH>(
@@ -265,6 +266,7 @@ module protocol_test::liquidation_test {
     test_scenario::end(scenario_value);
   }
 
+  #[allow(deprecated_usage)]
   fun calc_liq_exchange_rate(
     liq_discount: FixedPoint32,
     debt_decimal: u8,
@@ -273,7 +275,7 @@ module protocol_test::liquidation_test {
     collateral_price: FixedPoint32,
   ): FixedPoint32 {
     let exchange_rate = fixed_point32_empower::mul(
-      fixed_point32::create_from_rational(math::pow(10, collateral_decimal), math::pow(10, debt_decimal)),
+      fixed_point32::create_from_rational(std::u64::pow(10, collateral_decimal), std::u64::pow(10, debt_decimal)),
       fixed_point32_empower::div(debt_price, collateral_price),
     );
     let liq_exchange_rate = fixed_point32_empower::div(

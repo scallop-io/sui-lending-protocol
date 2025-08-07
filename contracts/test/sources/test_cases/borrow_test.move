@@ -4,7 +4,6 @@ module protocol_test::borrow_test {
   use std::type_name;
   use sui::test_scenario;
   use sui::coin;
-  use sui::math;
   use sui::clock;
   use x_oracle::x_oracle;
   use x::wit_table;
@@ -56,8 +55,8 @@ module protocol_test::borrow_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    add_interest_model_t<ETH>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &eth_interest_params, &clock);
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
+    add_interest_model_t<ETH>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &eth_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let usdc_risk_params = usdc_risk_model_params();
@@ -67,21 +66,21 @@ module protocol_test::borrow_test {
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
     
     test_scenario::next_tx(scenario, lender);
-    let usdc_amount = math::pow(10, usdc_decimals + 4);
+    let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&market_coin) == usdc_amount, 0);
     coin::burn_for_testing(market_coin);
 
-    let eth_amount = math::pow(10, eth_decimals);
+    let eth_amount = std::u64::pow(10, eth_decimals);
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let market_coin = mint::mint(&version, &mut market, eth_coin, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&market_coin) == eth_amount, 0);
     coin::burn_for_testing(market_coin);
 
     test_scenario::next_tx(scenario, borrower);
-    let eth_amount = math::pow(10, eth_decimals);
+    let eth_amount = std::u64::pow(10, eth_decimals);
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let (obligation, obligation_key) = open_obligation_t(scenario, &version);
     deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
@@ -91,7 +90,7 @@ module protocol_test::borrow_test {
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
     test_scenario::next_tx(scenario, borrower);
-    let borrow_amount = 699 * math::pow(10, usdc_decimals);
+    let borrow_amount = 699 * std::u64::pow(10, usdc_decimals);
     let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&borrowed) == borrow_amount, 0);
     coin::burn_for_testing(borrowed);
@@ -149,7 +148,7 @@ module protocol_test::borrow_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
@@ -157,7 +156,7 @@ module protocol_test::borrow_test {
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
     
     test_scenario::next_tx(scenario, lender);
-    let usdc_amount = math::pow(10, usdc_decimals + 4);
+    let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
@@ -165,7 +164,7 @@ module protocol_test::borrow_test {
     coin::burn_for_testing(market_coin);
     
     test_scenario::next_tx(scenario, borrower);
-    let eth_amount = 2 * math::pow(10, eth_decimals);
+    let eth_amount = 2 * std::u64::pow(10, eth_decimals);
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let (obligation, obligation_key) = open_obligation_t(scenario, &version);
     deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
@@ -175,14 +174,14 @@ module protocol_test::borrow_test {
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
     test_scenario::next_tx(scenario, borrower);
-    let borrow_amount = 699 * math::pow(10, usdc_decimals);
+    let borrow_amount = 699 * std::u64::pow(10, usdc_decimals);
     let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&borrowed) == borrow_amount, 0);
     coin::burn_for_testing(borrowed);
 
     // mint more
     test_scenario::next_tx(scenario, lender);
-    let usdc_amount = math::pow(10, usdc_decimals + 4);
+    let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 666 * 1000);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
@@ -191,7 +190,7 @@ module protocol_test::borrow_test {
 
     // mint more
     test_scenario::next_tx(scenario, lender);
-    let usdc_amount = math::pow(10, usdc_decimals + 4);
+    let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 999 * 1000);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
@@ -204,7 +203,7 @@ module protocol_test::borrow_test {
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
     test_scenario::next_tx(scenario, borrower);
-    let borrow_amount = 699 * math::pow(10, usdc_decimals);
+    let borrow_amount = 699 * std::u64::pow(10, usdc_decimals);
     let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&borrowed) == borrow_amount, 0);
     coin::burn_for_testing(borrowed);
@@ -213,7 +212,7 @@ module protocol_test::borrow_test {
     let balance_sheets = reserve::balance_sheets(reserve);
     let balance_sheet = wit_table::borrow(balance_sheets, type_name::get<USDC>());
     let (_, reserve_debt_amount, _, _) = reserve::balance_sheet(balance_sheet);
-    let market_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
+    let market_borrow_index = market::get_current_market_borrow_index_and_round_up(&market, type_name::get<USDC>());
     
     let (obligation_debt_amount, obligation_debt_borrow_index) = obligation::debt(&obligation, type_name::get<USDC>());
     // make sure both liquidation and reserve already updated to the latest borrow_index
@@ -259,8 +258,8 @@ module protocol_test::borrow_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    add_interest_model_t<ETH>(scenario, math::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &eth_interest_params, &clock);
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
+    add_interest_model_t<ETH>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &eth_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let usdc_risk_params = usdc_risk_model_params();
@@ -273,25 +272,25 @@ module protocol_test::borrow_test {
     protocol::app::update_borrow_limit<USDC>(
       &admin_cap,
       &mut market,
-      500 * sui::math::pow(10, 9),
+      500 * std::u64::pow(10, 9),
     );
     
     test_scenario::next_tx(scenario, lender);
-    let usdc_amount = math::pow(10, usdc_decimals + 4);
+    let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&market_coin) == usdc_amount, 0);
     coin::burn_for_testing(market_coin);
 
-    let eth_amount = math::pow(10, eth_decimals);
+    let eth_amount = std::u64::pow(10, eth_decimals);
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let market_coin = mint::mint(&version, &mut market, eth_coin, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&market_coin) == eth_amount, 0);
     coin::burn_for_testing(market_coin);
 
     test_scenario::next_tx(scenario, borrower);
-    let eth_amount = math::pow(10, eth_decimals);
+    let eth_amount = std::u64::pow(10, eth_decimals);
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let (obligation, obligation_key) = open_obligation_t(scenario, &version);
     deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
@@ -303,7 +302,7 @@ module protocol_test::borrow_test {
     test_scenario::next_tx(scenario, borrower);
     // NOTE: this should be failed
     // because the borrow limit is only 500 USDC
-    let borrow_amount = 699 * math::pow(10, usdc_decimals);
+    let borrow_amount = 699 * std::u64::pow(10, usdc_decimals);
     let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&borrowed) == borrow_amount, 0);
     coin::burn_for_testing(borrowed);

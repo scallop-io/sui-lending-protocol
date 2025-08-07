@@ -87,6 +87,22 @@ module protocol::market {
     // @TODO: remove this after migrate to borrow_dynamics_v2
     borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type_name)
   }
+
+  public fun get_current_market_borrow_index_and_round_up(market: &Market, type: TypeName): u64 {
+      let new_borrow_index = borrow_index_decimal(market, type);
+
+      // accrue interest first, to get the latest borrow amount
+      let borrow_index = if (decimal::to_scaled_val(new_borrow_index) % std::u256::pow(10, 9) == 0) {
+        // if the new borrow index is divisible by 10^9, we can safely convert it to u64
+        ((decimal::to_scaled_val(new_borrow_index) / std::u256::pow(10, 9)) as u64)
+      } else {
+        // if the new borrow index is not divisible by 10^9, we need to round it up
+        ((decimal::to_scaled_val(new_borrow_index) / std::u256::pow(10, 9)) as u64) + 1
+      };
+
+      borrow_index
+  }
+
   public fun borrow_index_decimal(self: &Market, type_name: TypeName): Decimal {
     let borrow_dynamics_v2_table = borrow_dynamics_v2(self);
     borrow_dynamics_v2::borrow_index_by_type(borrow_dynamics_v2_table, type_name)
@@ -187,7 +203,13 @@ module protocol::market {
     let interest_model = ac_table::borrow(&self.interest_models, type);
     let base_borrow_rate = interest_model::base_borrow_rate(interest_model);
     let interest_rate_scale = interest_model::interest_rate_scale(interest_model);
-    borrow_dynamics::register_coin<T>(&mut self.borrow_dynamics, base_borrow_rate, interest_rate_scale, now);
+
+    // convert base_borrow_rate to decimal
+    let base_borrow_rate = decimal::from_fixed_point32(base_borrow_rate);
+    // descale the base_borrow_rate
+    let base_borrow_rate = decimal::div(base_borrow_rate, decimal::from(interest_rate_scale));
+    let borrow_dynamics_table = borrow_dynamics_v2_mut(self);
+    borrow_dynamics_v2::register_coin<T>(borrow_dynamics_table, base_borrow_rate, now);
     asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, type, true);
   }
 
@@ -445,7 +467,6 @@ module protocol::market {
       let last_updated = borrow_dynamics::last_updated(borrow_dynamic_old);
 
       // Convert interest rate of fixed_point32 to decimal
-      // raw_value of fixed_point32 is multiply by 2^32, so we divide it by 2^32 to get the decimal value
       let interest_rate_with_scale = decimal::from_fixed_point32(interest_rate);
 
       // next we need to descale the interest rate by divide it with interest_rate_scale
@@ -464,10 +485,9 @@ module protocol::market {
         last_updated,
       );
 
-      // set migration flag to true
-      df::add<IsBorrowDynamicsMigratedKey, bool>(&mut self.id, market_dynamic_keys::is_borrow_dynamics_migrated_key(), true);
-
       i = i + 1;
     };
+    // set migration flag to true
+    df::add<IsBorrowDynamicsMigratedKey, bool>(&mut self.id, market_dynamic_keys::is_borrow_dynamics_migrated_key(), true);
   }
 }

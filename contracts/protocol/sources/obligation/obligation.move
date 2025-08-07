@@ -136,10 +136,10 @@ module protocol::obligation {
     let (i, n) = (0, vector::length(&debt_types));
     while (i < n) {
       let type = *vector::borrow(&debt_types, i);
-      let new_borrow_index = market::borrow_index_decimal(market, type);
-      // accrue interest first, to get the latest borrow amount
-      obligation_debts::accrue_interest(&mut obligation.debts, type, ((decimal::to_scaled_val(new_borrow_index) / (protocol::borrow_dynamics::initial_borrow_index() as u256)) as u64));
-      
+
+      let new_borrow_index = market::get_current_market_borrow_index_and_round_up(market, type);
+      obligation_debts::accrue_interest(&mut obligation.debts, type, new_borrow_index);
+
       i = i + 1;
     };
   }
@@ -174,7 +174,7 @@ module protocol::obligation {
     market: &Market,
     type_name: TypeName,
   ) {
-    let borrow_index = market::borrow_index(market, type_name);
+    let borrow_index = market::get_current_market_borrow_index_and_round_up(market, type_name);
     obligation_debts::init_debt(&mut self.debts, type_name, borrow_index);
   }
   

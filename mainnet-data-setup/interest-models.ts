@@ -228,8 +228,8 @@ export const nativeUsdcInterestModel: InterestModel = {
   borrowRateOnHighKink: getRatePerSec(25), // 25%
   maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink, // 80%
-  highKink, // 90%
+  midKink: 85 * (scale / 100), // 85%
+  highKink: 95 * (scale / 100), // 95%
 
   revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
@@ -296,8 +296,8 @@ export const fdusdInterestModel: InterestModel = {
   borrowRateOnHighKink: getRatePerSec(25), // 25%
   maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink, // 80%
-  highKink, // 90%
+  midKink: 85 * (scale / 100), // 85%
+  highKink: 95 * (scale / 100), // 95%
 
   revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
@@ -313,8 +313,8 @@ export const sbUsdtInterestModel: InterestModel = {
   borrowRateOnHighKink: getRatePerSec(25), // 25%
   maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink, // 80%
-  highKink, // 90%
+  midKink: 85 * (scale / 100), // 85%
+  highKink: 95 * (scale / 100), // 95%
 
   revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
@@ -347,8 +347,8 @@ export const usdyInterestModel: InterestModel = {
   borrowRateOnHighKink: getRatePerSec(25), // 25%
   maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink, // 80%
-  highKink, // 90%
+  midKink: 85 * (scale / 100), // 85%
+  highKink: 95 * (scale / 100), // 95%
 
   revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1

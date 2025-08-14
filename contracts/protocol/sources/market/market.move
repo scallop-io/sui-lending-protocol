@@ -83,9 +83,9 @@ module protocol::market {
     debt
   }
 
+  /// @deprecated
   public fun borrow_index(self: &Market, type_name: TypeName): u64 {
-    // @TODO: remove this after migrate to borrow_dynamics_v2
-    borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type_name)
+    abort 0
   }
 
   public fun get_current_market_borrow_index_and_round_up(market: &Market, type: TypeName): u64 {
@@ -489,5 +489,39 @@ module protocol::market {
     };
     // set migration flag to true
     df::add<IsBorrowDynamicsMigratedKey, bool>(&mut self.id, market_dynamic_keys::is_borrow_dynamics_migrated_key(), true);
+  }
+
+  public fun get_current_borrow_apr(
+    self: &Market,
+    type_name: TypeName,
+  ): Decimal {
+    let borrow_dynamics_v2_table = borrow_dynamics_v2(self);
+    let debt_dynamic = table::borrow(borrow_dynamics_v2_table, type_name);
+
+    let seconds_in_year = 60 * 60 * 24 * 365;
+
+    decimal::mul(borrow_dynamics_v2::interest_rate(debt_dynamic), decimal::from(seconds_in_year))
+  }
+
+  public fun get_current_lending_apr(
+    self: &Market,
+    type_name: TypeName,
+  ): Decimal {
+    let borrow_apr = get_current_borrow_apr(self, type_name);
+    let util_rate = decimal::from_fixed_point32(reserve::util_rate(&self.vault, type_name));
+    let interest_model = ac_table::borrow(&self.interest_models, type_name);
+    let revenue_factor = decimal::from_fixed_point32(interest_model::revenue_factor(interest_model));
+
+    // supply APR = borrow APR * utilization rate * (1 - revenue factor)
+    decimal::mul(
+      borrow_apr,
+      decimal::mul(
+        util_rate,
+        decimal::sub(
+          decimal::from(1),
+          revenue_factor
+        )
+      )
+    )
   }
 }

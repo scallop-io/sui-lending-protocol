@@ -136,7 +136,7 @@ export const fdusdRiskModel: RiskModel = {
   liquidationPanelty: 20, // 2%
   liquidationDiscount: 19, // 1.9%
   scale: 1000,
-  maxCollateralAmount: 5 * 10 ** (coinDecimals.fdusd + 5), // 500k FDUSD
+  maxCollateralAmount: 2.5 * 10 ** (coinDecimals.fdusd + 5), // 250k FDUSD
 }
 
 export const sbUsdtRiskModel: RiskModel = {

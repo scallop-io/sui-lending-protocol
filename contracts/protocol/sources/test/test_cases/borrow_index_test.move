@@ -1,5 +1,5 @@
 #[test_only]
-module protocol_test::borrow_index_test {
+module protocol::borrow_index_test {
 
   use std::fixed_point32;
   use std::type_name;
@@ -15,13 +15,13 @@ module protocol_test::borrow_index_test {
   use protocol::mint;
   use protocol::accrue_interest;
   use protocol::market;
-  use protocol_test::app_t::app_init;
-  use protocol_test::open_obligation_t::open_obligation_t;
-  use protocol_test::constants::{usdc_interest_model_params, eth_risk_model_params};
-  use protocol_test::oracle_t;
-  use protocol_test::coin_decimals_registry_t::coin_decimals_registry_init;
-  use protocol_test::interest_model_t::add_interest_model_t;
-  use protocol_test::risk_model_t::add_risk_model_t;
+  use protocol::app_t::app_init;
+  use protocol::open_obligation_t::open_obligation_t;
+  use protocol::constants::{usdc_interest_model_params, eth_risk_model_params};
+  use protocol::oracle_t;
+  use protocol::coin_decimals_registry_t::coin_decimals_registry_init;
+  use protocol::interest_model_t::add_interest_model_t;
+  use protocol::risk_model_t::add_risk_model_t;
   use test_coin::eth::ETH;
   use test_coin::usdc::USDC;
   

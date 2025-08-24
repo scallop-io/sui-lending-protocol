@@ -1,12 +1,12 @@
 #[test_only]
-module protocol_test::interest_model_t {
+module protocol::interest_model_t {
   
   use sui::clock::Clock;
   use sui::test_scenario::{Self, Scenario};
   use protocol::market::Market;
   use protocol::app::{Self, AdminCap};
-  use protocol_test::constants::{Self, InterestModelParams};
-  use protocol_test::transaction_utils_t;
+  use protocol::constants::{Self, InterestModelParams};
+  use protocol::transaction_utils_t;
   
   public fun add_interest_model_t<T>(
     scenario: &mut Scenario,

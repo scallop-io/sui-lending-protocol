@@ -1,5 +1,5 @@
 #[test_only]
-module protocol_test::open_obligation_t {
+module protocol::open_obligation_t {
   
   use protocol::version::Version;
   use protocol::obligation::{ObligationKey, Obligation};

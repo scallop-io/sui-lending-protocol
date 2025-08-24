@@ -1,5 +1,5 @@
 #[test_only]
-module protocol_test::transaction_utils_t {
+module protocol::transaction_utils_t {
   use sui::test_scenario::Scenario;
   use sui::test_scenario;
   

@@ -1,15 +1,15 @@
 #[test_only]
-module protocol_test::mint_test {
+module protocol::mint_test {
   
   use sui::test_scenario;
   use sui::coin;
   use sui::clock;
   use protocol::version;
   use protocol::mint;
-  use protocol_test::app_t::app_init;
-  use protocol_test::constants::usdc_interest_model_params;
-  use protocol_test::coin_decimals_registry_t::coin_decimals_registry_init;
-  use protocol_test::interest_model_t::add_interest_model_t;
+  use protocol::app_t::app_init;
+  use protocol::constants::usdc_interest_model_params;
+  use protocol::coin_decimals_registry_t::coin_decimals_registry_init;
+  use protocol::interest_model_t::add_interest_model_t;
   use coin_decimals_registry::coin_decimals_registry;
   use test_coin::usdc::USDC;
   

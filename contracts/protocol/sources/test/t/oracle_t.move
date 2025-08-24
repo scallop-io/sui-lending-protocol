@@ -1,5 +1,5 @@
 #[test_only]
-module protocol_test::oracle_t {
+module protocol::oracle_t {
     use sui::test_scenario::{Self, Scenario};
     use x_oracle::x_oracle::{Self, XOracle, XOraclePolicyCap};
 

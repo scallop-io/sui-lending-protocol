@@ -1,5 +1,5 @@
 #[test_only]
-module protocol_test::app_t {
+module protocol::app_t {
   use sui::test_scenario::{Self, Scenario};
   use protocol::market::Market;
   use protocol::app::{Self, AdminCap};

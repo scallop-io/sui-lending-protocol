@@ -1,11 +1,11 @@
 #[test_only]
-module protocol_test::risk_model_t {
+module protocol::risk_model_t {
   
   use sui::test_scenario::{Self, Scenario};
   use protocol::market::Market;
   use protocol::app::{Self, AdminCap};
-  use protocol_test::constants::{Self, RiskModelParams};
-  use protocol_test::transaction_utils_t;
+  use protocol::constants::{Self, RiskModelParams};
+  use protocol::transaction_utils_t;
 
   public fun add_risk_model_t<T>(
     scenario: &mut Scenario,

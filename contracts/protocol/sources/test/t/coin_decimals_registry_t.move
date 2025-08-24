@@ -1,5 +1,5 @@
 #[test_only]
-module protocol_test::coin_decimals_registry_t {
+module protocol::coin_decimals_registry_t {
   use sui::test_scenario::Scenario;
   use sui::test_scenario;
   use coin_decimals_registry::coin_decimals_registry::{Self, CoinDecimalsRegistry};

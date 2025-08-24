@@ -1,5 +1,5 @@
 #[test_only]
-module protocol_test::market_t {
+module protocol::market_t {
     use protocol::market::Market;
     use std::fixed_point32::{Self, FixedPoint32};
     use x::ac_table;

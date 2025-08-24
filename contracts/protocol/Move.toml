@@ -3,6 +3,9 @@ name = "ScallopProtocol"
 version = "0.0.1"
 published-at = "0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41"
 
+[dev-dependencies.TestCoin]
+local = "../test_coin"
+
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
 subdir = "crates/sui-framework/packages/sui-framework"

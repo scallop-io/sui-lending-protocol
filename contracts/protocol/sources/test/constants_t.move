@@ -1,4 +1,5 @@
-module protocol_test::constants {
+#[test_only]
+module protocol::constants {
   use math::u64;
   use test_coin::eth::ETH;
   use test_coin::btc::BTC;

@@ -1,3 +1,4 @@
+#[test_only]
 module test_coin::btc {
   
   use sui::tx_context::TxContext;

@@ -75,10 +75,7 @@ module protocol::flash_loan {
     ctx: &mut TxContext,
   ): (Coin<T>, FlashLoan<T>) {
     // check if sender is in whitelist
-    assert!(
-      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
-      error::whitelist_error()
-    );
+    market::assert_whitelist_access(market, ctx);
 
     let coin_type = type_name::get<T>();
     // check if base asset is active

@@ -25,6 +25,8 @@ module protocol::market {
   use protocol::error;
   use math::fixed_point32_empower;
   use decimal::decimal::{Self, Decimal};
+  use whitelist::whitelist;
+  use sui::tx_context;
 
   friend protocol::app;
   friend protocol::borrow;
@@ -523,5 +525,13 @@ module protocol::market {
         )
       )
     )
+  }
+
+  // check if sender have access
+  public fun assert_whitelist_access(self: &Market, ctx: &TxContext) {
+    assert!(
+      whitelist::is_address_allowed(uid(self), tx_context::sender(ctx)),
+      error::whitelist_error()
+    );
   }
 }

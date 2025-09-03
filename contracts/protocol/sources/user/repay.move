@@ -49,10 +49,7 @@ module protocol::repay {
     assert!(coin::value(&user_coin) > 0, error::zero_repay_amount_error());
 
     // check if sender is in whitelist
-    assert!(
-      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
-      error::whitelist_error()
-    );
+    market::assert_whitelist_access(market, ctx);
 
     // check if obligation is locked, if locked, unlock is needed before calling this
     // This is a mechanism to enforce some actions to be done before repay

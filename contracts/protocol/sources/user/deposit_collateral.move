@@ -40,10 +40,8 @@ module protocol::deposit_collateral {
     // check version
     version::assert_current_version(version);
     // check if sender is in whitelist
-    assert!(
-      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
-      error::whitelist_error()
-    );
+    market::assert_whitelist_access(market, ctx);
+
     // check if obligation is locked, if locked, unlock operation is required before calling this function
     // This is a mechanism to enforce some operations before calling the function
     assert!(

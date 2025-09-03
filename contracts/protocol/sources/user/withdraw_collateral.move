@@ -84,10 +84,7 @@ module protocol::withdraw_collateral {
     version::assert_current_version(version);
 
     // check if sender is in whitelist
-    assert!(
-      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
-      error::whitelist_error()
-    );
+    market::assert_whitelist_access(market, ctx);
 
     // check if obligation is locked, if locked, unlock is required before calling this
     // This is a mechanism to enforce some actions before withdraw collateral

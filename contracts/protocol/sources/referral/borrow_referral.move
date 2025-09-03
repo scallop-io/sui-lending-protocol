@@ -6,10 +6,9 @@
 module protocol::borrow_referral {
 
   use std::type_name::{Self, TypeName};
-  use sui::balance;
   use sui::object::{Self, UID};
   use sui::vec_set::{Self, VecSet};
-  use sui::balance::Balance;
+  use sui::balance::{Self, Balance};
   use sui::tx_context::TxContext;
   use sui::transfer;
   use math::u64;
@@ -82,6 +81,11 @@ module protocol::borrow_referral {
       witness_list: vec_set::empty()
     };
     transfer::share_object(witness_list);
+  }
+
+  #[test_only]
+  public fun init_test(ctx: &mut TxContext) {
+    init(ctx);
   }
 
   /// @notice Create a borrow referral object
@@ -297,5 +301,105 @@ module protocol::borrow_referral {
       witness_list: vec_set::empty()
     };
     transfer::share_object(witness_list);
+  }
+
+  #[test_only]
+  use sui::test_scenario;
+
+  #[test_only]
+  use sui::test_utils;
+
+  #[test_only]
+  struct WitnessType has drop {}
+
+  #[test_only]
+  struct USDC {}
+
+  #[test_only]
+  struct ReferralCfg has store, drop {}
+
+  #[test]
+  fun referral_cfg_test() {
+    let admin = @0x1;
+    let scenario_value = test_scenario::begin(admin);
+    let scenario = &mut scenario_value;
+
+    init_test(test_scenario::ctx(scenario));
+    test_scenario::next_tx(scenario, admin);
+    let authorized_witness_list = test_scenario::take_shared<AuthorizedWitnessList>(scenario);
+
+    add_witness<WitnessType>(
+      &mut authorized_witness_list,
+    );
+
+    let borrow_referral = create_borrow_referral<USDC, WitnessType>(
+      WitnessType {},
+      &authorized_witness_list,
+      0,
+      0,
+      test_scenario::ctx(scenario)
+    );
+
+    add_referral_cfg<USDC, WitnessType, ReferralCfg>(
+      &mut borrow_referral,
+      ReferralCfg {}
+    );
+
+    let referral_cfg = get_referral_cfg<USDC, WitnessType, ReferralCfg>(
+      &borrow_referral,
+    );
+
+    assert!(referral_cfg == &ReferralCfg {}, 0);
+
+    let referral_fee = destroy_borrow_referral<USDC, WitnessType>(
+      WitnessType {},
+      borrow_referral
+    );
+
+    remove_witness<WitnessType>(
+      &mut authorized_witness_list,
+    );
+    balance::destroy_for_testing(referral_fee);
+
+    test_scenario::return_shared(authorized_witness_list);
+    test_scenario::end(scenario_value);
+  }
+
+  #[test]
+  fun getter_func_test() {
+    let admin = @0x1;
+    let scenario_value = test_scenario::begin(admin);
+    let scenario = &mut scenario_value;
+
+    let borrow_referral = BorrowReferral {
+      id: object::new(test_scenario::ctx(scenario)),
+      witness: WitnessType {},
+      borrowed: 0, // this field is deprecated leave it as 0
+      borrow_fee_discount: 10,
+      referral_share: 30,
+      referral_fee: balance::zero<USDC>(),
+    };
+
+    dynamic_field::add(&mut borrow_referral.id, BorrowedKey {}, 0);
+
+    increase_borrowed_v2(
+      &mut borrow_referral,
+      20,
+    );
+
+    let borrow_fee_discount = borrow_fee_discount<USDC, WitnessType>(&borrow_referral);
+    assert!(borrow_fee_discount == 10, 0);
+
+    let borrowed = borrowed<USDC, WitnessType>(&borrow_referral);
+    assert!(borrowed == 20, 0);
+
+    let referral_share = referral_share<USDC, WitnessType>(&borrow_referral);
+    assert!(referral_share == 30, 0);
+
+    assert!(fee_rate_base() == BASE_FOR_FEE, 0);
+
+    test_utils::destroy(borrow_referral);
+
+    test_scenario::end(scenario_value);
   }
 }

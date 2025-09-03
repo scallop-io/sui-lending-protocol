@@ -27,7 +27,7 @@ module protocol::borrow_index_test {
   
   #[test]
   #[allow(deprecated_usage)]
-  public fun borrow_index_test() {
+  fun borrow_index_test() {
     // Scenario:
     // 0. the price of USDC = $1 and the price of ETH = $1000
     // 1. `lender` deposit 10000 USDC

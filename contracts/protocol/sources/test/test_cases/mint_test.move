@@ -15,7 +15,7 @@ module protocol::mint_test {
   use test_coin::usdc::USDC;
   
   #[test]
-  public fun mint_test() {
+  fun mint_test() {
     // Scenario:
     // 1. `lender A` deposit 10000 USDC
     //    - assert that lender A get 10000 market coin of USDC
@@ -72,7 +72,7 @@ module protocol::mint_test {
   }
 
   #[test, expected_failure(abort_code=0x0014002, location=protocol::mint)]
-  public fun mint_failed_test() {
+  fun mint_failed_test() {
     let usdc_decimals = 9;
     
     let admin = @0xAD;

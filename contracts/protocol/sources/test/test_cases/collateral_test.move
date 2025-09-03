@@ -24,7 +24,7 @@ module protocol::collateral_test {
     use test_coin::usdc::USDC;
   
     #[test]
-    public fun withdraw_collateral_without_borrowing_test() {
+    fun withdraw_collateral_without_borrowing_test() {
         // Scenario:
         // 1. `borrower` deposit collateral 1 ETH
         // 2. `borrower` withdraw collateral 1 ETH
@@ -87,7 +87,7 @@ module protocol::collateral_test {
     }
     
     #[test]
-    public fun withdraw_collateral_with_borrowing_test() {
+    fun withdraw_collateral_with_borrowing_test() {
         // Scenario:
         // 0. the price of USDC = $1 and the price of ETH = $1000
         // 1. `lender` deposit 10000 USDC
@@ -253,7 +253,7 @@ module protocol::collateral_test {
     }
 
     #[test, expected_failure(abort_code=0x0000703, location=protocol::withdraw_collateral)]
-    public fun withdraw_collateral_more_than_healthy_threshold_error_test() {
+    fun withdraw_collateral_more_than_healthy_threshold_error_test() {
         let usdc_decimals = 9;
         let eth_decimals = 9;
         
@@ -330,7 +330,7 @@ module protocol::collateral_test {
     }
 
     #[test, expected_failure(abort_code=0x0000702, location=protocol::deposit_collateral)]
-    public fun deposit_collateral_on_non_existing_pool_failed_test() {
+    fun deposit_collateral_on_non_existing_pool_failed_test() {
         let eth_decimals = 9;
         
         let admin = @0xAD;
@@ -369,7 +369,7 @@ module protocol::collateral_test {
     }
 
     #[test, expected_failure(abort_code=0x0014006, location=protocol::deposit_collateral)]
-    public fun deposit_collateral_less_than_min_collateral_amount_failed_test() {
+    fun deposit_collateral_less_than_min_collateral_amount_failed_test() {
         let eth_decimals = 9;
         
         let admin = @0xAD;
@@ -416,7 +416,7 @@ module protocol::collateral_test {
     }
 
     #[test, expected_failure(abort_code=0x0000302, location=protocol::deposit_collateral)]
-    public fun deposit_collateral_on_locked_obligation_failed_test() {
+    fun deposit_collateral_on_locked_obligation_failed_test() {
         let eth_decimals = 9;
         
         let admin = @0xAD;
@@ -477,7 +477,7 @@ module protocol::collateral_test {
     }
 
     #[test, expected_failure(abort_code=0x0000704, location=protocol::deposit_collateral)]
-    public fun deposit_same_collateral_coin_with_debt_failed_test() {
+    fun deposit_same_collateral_coin_with_debt_failed_test() {
         let usdc_decimals = 9;
         let eth_decimals = 9;
         

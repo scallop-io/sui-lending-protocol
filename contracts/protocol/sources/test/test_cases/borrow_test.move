@@ -34,7 +34,7 @@ module protocol::borrow_test {
   use protocol::borrow_referral::{Self, AuthorizedWitnessList};
   
   #[test]
-  public fun borrow_test() {
+  fun borrow_test() {
     // Scenario:
     // 0. the price of USDC = $1 and the price of ETH = $1000
     // 1. `lender` deposit 10000 USDC
@@ -126,7 +126,7 @@ module protocol::borrow_test {
   }
 
   #[test]
-  public fun borrow_and_repay_unequal_debt_test() {
+  fun borrow_and_repay_unequal_debt_test() {
     // Scenario:
     // 0. the price of USDC = $1 and the price of ETH = $1000
     // 1. `lender` supply 10000 USDC
@@ -255,7 +255,7 @@ module protocol::borrow_test {
   }
 
   #[test, expected_failure(abort_code = 0x0014005, location = protocol::borrow)]
-  public fun borrow_reached_borrow_limit_test() {
+  fun borrow_reached_borrow_limit_test() {
     let usdc_decimals = 9;
     let eth_decimals = 9;
     
@@ -338,7 +338,7 @@ module protocol::borrow_test {
   }  
 
   #[test, expected_failure]
-  public fun borrow_two_isolated_asset_error_test() {
+  fun borrow_two_isolated_asset_error_test() {
     let usdc_decimals = 9;
     let usdt_decimals = 9;
     let eth_decimals = 9;
@@ -433,7 +433,7 @@ module protocol::borrow_test {
   struct WitnessReferral has drop {}
 
   #[test]
-  public fun borrow_with_referral_test() {
+  fun borrow_with_referral_test() {
     let usdc_decimals = 9;
     let eth_decimals = 9;
     

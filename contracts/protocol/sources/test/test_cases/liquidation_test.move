@@ -27,7 +27,7 @@ module protocol::liquidation_test {
   
   #[test]
   #[allow(deprecated_usage)]
-  public fun liquidation_test() {
+  fun liquidation_test() {
     // Scenario:
     // 0. the price of USDC = $0.5 and the price of ETH = $1000
     // 1. `lender` deposit 10000 USDC
@@ -150,7 +150,7 @@ module protocol::liquidation_test {
 
   #[test]
   #[allow(deprecated_usage)]
-  public fun liquidation_with_borrow_weight_test() {
+  fun liquidation_with_borrow_weight_test() {
     // Scenario:
     // 0. the price of USDC = $0.25 and the price of ETH = $1000
     //    - borrow weight USDC = 2

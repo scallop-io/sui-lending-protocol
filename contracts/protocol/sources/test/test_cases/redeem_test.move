@@ -31,7 +31,7 @@ module protocol::redeem_test {
 
   #[test]
   #[allow(deprecated_usage)]
-  public fun redeem_test() {
+  fun redeem_test() {
     let usdc_decimals = 9;
     let eth_decimals = 9;
     

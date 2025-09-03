@@ -26,7 +26,7 @@ module protocol::repay_test {
   use protocol::accrue_interest;
   
   #[test]
-  public fun repay_test() {
+  fun repay_test() {
     // Scenario:
     // 0. the price of USDC = $1 and the price of ETH = $1000
     // 1. `lender` deposit 10000 USDC
@@ -136,7 +136,7 @@ module protocol::repay_test {
   }
 
   #[test, expected_failure(abort_code=0x0015001, location=protocol::repay)]
-  public fun repay_zero_coin_failed_test() {
+  fun repay_zero_coin_failed_test() {
     let usdc_decimals = 9;
     let eth_decimals = 9;
     
@@ -202,7 +202,7 @@ module protocol::repay_test {
   }
 
   #[test]
-  public fun repay_more_than_debt_test() {
+  fun repay_more_than_debt_test() {
     let usdc_decimals = 9;
     let eth_decimals = 9;
     

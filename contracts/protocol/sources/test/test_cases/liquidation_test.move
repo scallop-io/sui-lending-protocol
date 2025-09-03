@@ -2,7 +2,7 @@
 module protocol::liquidation_test {
   
   use sui::test_scenario;
-  use sui::coin;
+  use sui::coin::{Self, Coin};
   use sui::clock;
   use x_oracle::x_oracle;
   use coin_decimals_registry::coin_decimals_registry;
@@ -99,7 +99,7 @@ module protocol::liquidation_test {
     let usdc_amount = 900 * std::u64::pow(10, usdc_decimals);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
 
-    let (coin_debt, coin_collateral) = liquidate::liquidate<USDC, ETH>(
+    liquidate::liquidate_entry<USDC, ETH>(
         &version,
         &mut obligation, 
         &mut market,
@@ -109,6 +109,9 @@ module protocol::liquidation_test {
         &clock,
         test_scenario::ctx(scenario),
     );
+    test_scenario::next_tx(scenario, liquidator);    
+    let coin_debt = test_scenario::take_from_address<Coin<USDC>>(scenario, liquidator);
+    let coin_collateral = test_scenario::take_from_address<Coin<ETH>>(scenario, liquidator);
 
     let repaid_debt_amount = usdc_amount - coin::value(&coin_debt); // original amount - remaining amount
 

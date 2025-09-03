@@ -1,3 +1,4 @@
+#[deprecated]
 module protocol::incentive_rewards {
 
   use std::type_name::{Self, TypeName};

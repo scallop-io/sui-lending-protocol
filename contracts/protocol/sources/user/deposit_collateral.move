@@ -50,15 +50,16 @@ module protocol::deposit_collateral {
     );
 
     let coin_type = type_name::get<T>();
+
+    // Make sure the protocol supports the collateral type
+    let has_risk_model = market::has_risk_model(market, coin_type);
+    assert!(has_risk_model == true, error::invalid_collateral_type_error());
+
     // check if collateral state is active
     assert!(
       market::is_collateral_active(market, coin_type),
       error::collateral_not_active_error()
     );
-
-    // Make sure the protocol supports the collateral type
-    let has_risk_model = market::has_risk_model(market, coin_type);
-    assert!(has_risk_model == true, error::invalid_collateral_type_error());
 
     // Avoid the loop of collateralize and borrow of same assets
     assert!(!obligation::has_coin_x_as_debt(obligation, coin_type), error::unable_to_deposit_a_borrowed_coin());

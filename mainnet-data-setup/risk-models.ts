@@ -55,7 +55,7 @@ export const scaRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 2.5 * 10 ** (coinDecimals.sca + 6), // 2.5M SCA
+  maxCollateralAmount: 5 * 10 ** (coinDecimals.sca + 6), // 5M SCA
 }
 
 export const afSuiRiskModel: RiskModel = {
@@ -136,7 +136,7 @@ export const fdusdRiskModel: RiskModel = {
   liquidationPanelty: 20, // 2%
   liquidationDiscount: 19, // 1.9%
   scale: 1000,
-  maxCollateralAmount: 2.5 * 10 ** (coinDecimals.fdusd + 5), // 250k FDUSD
+  maxCollateralAmount: 1 * 10 ** (coinDecimals.fdusd + 5), // 100k FDUSD
 }
 
 export const sbUsdtRiskModel: RiskModel = {

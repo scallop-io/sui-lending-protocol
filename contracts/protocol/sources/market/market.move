@@ -92,17 +92,7 @@ module protocol::market {
 
   public fun get_current_market_borrow_index_and_round_up(market: &Market, type: TypeName): u64 {
       let new_borrow_index = borrow_index_decimal(market, type);
-
-      // accrue interest first, to get the latest borrow amount
-      let borrow_index = if (decimal::to_scaled_val(new_borrow_index) % std::u256::pow(10, 9) == 0) {
-        // if the new borrow index is divisible by 10^9, we can safely convert it to u64
-        ((decimal::to_scaled_val(new_borrow_index) / std::u256::pow(10, 9)) as u64)
-      } else {
-        // if the new borrow index is not divisible by 10^9, we need to round it up
-        ((decimal::to_scaled_val(new_borrow_index) / std::u256::pow(10, 9)) as u64) + 1
-      };
-
-      borrow_index
+      decimal::ceil(new_borrow_index)
   }
 
   public fun borrow_index_decimal(self: &Market, type_name: TypeName): Decimal {
@@ -478,12 +468,7 @@ module protocol::market {
         borrow_dynamics_v2_mut(self),
         asset_type_name,
         interest_rate,
-        // borrow index is started with 1e9 in raw value, which is equal to 1
-        // so we need to convert it to decimal by dividing it by 1e9
-        decimal::div(
-          decimal::from(borrow_index), 
-          decimal::from(borrow_dynamics::initial_borrow_index())
-        ),
+        decimal::from(borrow_index),
         last_updated,
       );
 

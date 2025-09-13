@@ -17,6 +17,10 @@ module protocol::borrow_dynamics_v2 {
   public fun borrow_index(dynamic: &BorrowDynamicV2): Decimal { dynamic.borrow_index }
   public fun last_updated(dynamic: &BorrowDynamicV2): u64 { dynamic.last_updated }
 
+  public fun initial_borrow_index(): u64 {
+    std::u64::pow(10, 9)
+  }
+
   public(friend) fun new(
     self: &mut Table<TypeName, BorrowDynamicV2>,
     asset_type_name: TypeName,
@@ -39,7 +43,7 @@ module protocol::borrow_dynamics_v2 {
   ) {
     let borrow_dynamic = BorrowDynamicV2 {
       interest_rate: base_interest_rate,
-      borrow_index: decimal::from(1),
+      borrow_index: decimal::from(initial_borrow_index()),
       last_updated: now,
     };
     let type_name = get<T>();

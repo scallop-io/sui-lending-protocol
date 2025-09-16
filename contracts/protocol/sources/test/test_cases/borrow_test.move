@@ -229,7 +229,7 @@ module protocol::borrow_test {
     let balance_sheets = reserve::balance_sheets(reserve);
     let balance_sheet = wit_table::borrow(balance_sheets, type_name::get<USDC>());
     let (_, reserve_debt_amount, _, _) = reserve::balance_sheet(balance_sheet);
-    let market_borrow_index = market::get_current_market_borrow_index_and_round_up(&market, type_name::get<USDC>());
+    let market_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
     
     let (obligation_debt_amount, obligation_debt_borrow_index) = obligation::debt(&obligation, type_name::get<USDC>());
     // make sure both liquidation and reserve already updated to the latest borrow_index

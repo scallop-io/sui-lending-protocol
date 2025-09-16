@@ -143,23 +143,12 @@ module protocol::reserve {
   public(friend) fun increase_debt(
     self: &mut Reserve,
     debt_type: TypeName,
-    debt_increase_rate: Decimal, // How much debt should be increased in percent, such as 0.05%
-    revenue_factor: Decimal,
+    debt_increase_rate: FixedPoint32, // How much debt should be increased in percent, such as 0.05%
+    revenue_factor: FixedPoint32,
   ) {
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, debt_type);
-    let debt_increased = decimal::floor(
-      decimal::mul(
-        decimal::from(balance_sheet.debt),
-        debt_increase_rate
-      )
-    );
-    
-    let revenue_increased = decimal::floor(
-      decimal::mul(
-        decimal::from(debt_increased),
-        revenue_factor
-      )
-    );
+    let debt_increased = fixed_point32::multiply_u64(balance_sheet.debt, debt_increase_rate);
+    let revenue_increased = fixed_point32::multiply_u64(debt_increased, revenue_factor);
     balance_sheet.debt = balance_sheet.debt + debt_increased;
     balance_sheet.revenue = balance_sheet.revenue + revenue_increased;
   }

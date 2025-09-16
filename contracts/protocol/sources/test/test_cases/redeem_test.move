@@ -90,7 +90,7 @@ module protocol::redeem_test {
     coin::burn_for_testing(borrowed);
 
     test_scenario::next_tx(scenario, lender_b);
-    let current_borrow_index = market::borrow_index_decimal(&market, type_name::get<USDC>());
+    let current_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
     let mint_time = 400;
     clock::set_for_testing(&mut clock, mint_time * 1000);
@@ -107,12 +107,7 @@ module protocol::redeem_test {
       current_borrow_index,
       mint_time - borrow_time,
     );
-    let increased_debt = decimal::floor(
-      decimal::mul(
-        decimal::from(borrow_amount),
-        growth_interest_rate
-      )
-    );
+    let increased_debt = fixed_point32::multiply_u64(borrow_amount, growth_interest_rate);
     let current_revenue = fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_mint_amount = calc_mint_amount(
@@ -129,7 +124,7 @@ module protocol::redeem_test {
     test_scenario::next_tx(scenario, lender_a);
     let redeem_time = 500;
     clock::set_for_testing(&mut clock, 500 * 1000);
-    let current_borrow_index = market::borrow_index_decimal(&market, type_name::get<USDC>());
+    let current_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
 
 
     let expected_redeem = calc_scoin_to_coin(&version, &mut market, type_name::get<USDC>(), &clock, lender_a_market_coin_amount);
@@ -146,12 +141,7 @@ module protocol::redeem_test {
       current_borrow_index,
       redeem_time - mint_time,
     );
-    let increased_debt = decimal::floor(
-      decimal::mul(
-        decimal::from(current_debt),
-        growth_interest_rate
-      )
-    );
+    let increased_debt = fixed_point32::multiply_u64(current_debt, growth_interest_rate);
     let current_revenue = current_revenue + fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_redeem_amount = calc_redeem_amount(

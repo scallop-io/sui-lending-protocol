@@ -1,8 +1,10 @@
 #[test_only]
 module protocol::repay_test {
   
+  use std::fixed_point32;
   use sui::test_scenario;
   use sui::coin::{Self, Coin};
+  use sui::math;
   use sui::clock;
   use x_oracle::x_oracle;
   use coin_decimals_registry::coin_decimals_registry;
@@ -17,7 +19,7 @@ module protocol::repay_test {
   use protocol::app_t::app_init;
   use protocol::open_obligation_t::open_obligation_t;
   use protocol::constants::{usdc_interest_model_params, eth_risk_model_params};
-  use protocol::market_t::calc_growth_interest_on_obligation;
+  use protocol::market_t::calc_growth_interest;
   use protocol::coin_decimals_registry_t::coin_decimals_registry_init;
   use protocol::interest_model_t::add_interest_model_t;
   use protocol::risk_model_t::add_risk_model_t;
@@ -90,23 +92,15 @@ module protocol::repay_test {
 
     let time_delta = 100;
     clock::set_for_testing(&mut clock, 400 * 1000);
-    // interest on obligation is calculated with borrow index rounded up
-    // so need to use different function to calculate the growth interest
-    let growth_interest_rate = calc_growth_interest_on_obligation<USDC>(
+    let growth_interest_rate = calc_growth_interest<USDC>(
       &market,
       borrow_amount,
       usdc_amount - borrow_amount,
       0,
-      decimal::from(1),
+      math::pow(10, 9),
       time_delta,
     );
-    let increased_debt = decimal::floor(
-      decimal::mul(
-        decimal::from(borrow_amount),
-        growth_interest_rate
-      )
-    );
-
+    let increased_debt = fixed_point32::multiply_u64(borrow_amount, growth_interest_rate);
     let repay_amount = borrow_amount + increased_debt;
     let usdc_coin = coin::mint_for_testing<USDC>(repay_amount, test_scenario::ctx(scenario));
     repay::repay<USDC>(&version, &mut obligation, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));

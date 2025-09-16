@@ -86,12 +86,12 @@ module protocol::borrow_index_test {
     coin::burn_for_testing(borrowed);
 
     test_scenario::next_tx(scenario, borrower);
-    let initial_borrow_index = market::get_current_market_borrow_index_and_round_up(&market, type_name::get<USDC>());
+    let initial_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
 
     let time = 60 * 60 * 24 * 365 * 1000 + 300 * 1000;
     clock::set_for_testing(&mut clock, time);
     accrue_interest::accrue_interest_for_market(&version, &mut market, &clock);
-    let borrow_index = market::get_current_market_borrow_index_and_round_up(&market, type_name::get<USDC>());
+    let borrow_index = market::borrow_index(&market, type_name::get<USDC>());
     let expected_borrow_index = 4 * initial_borrow_index;
     let index_diff = if (borrow_index > expected_borrow_index) {
       borrow_index - expected_borrow_index

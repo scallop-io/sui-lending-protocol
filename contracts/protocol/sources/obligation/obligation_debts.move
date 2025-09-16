@@ -73,12 +73,7 @@ module protocol::obligation_debts {
     if (debt.borrow_index == new_borrow_index) return 0;
 
     let prev_amount = debt.amount;
-    debt.amount = decimal::floor(
-      decimal::mul(
-        decimal::from(debt.amount),
-        decimal::div(decimal::from(new_borrow_index), decimal::from(debt.borrow_index))
-      )
-    );
+    debt.amount = fixed_point32::multiply_u64(debt.amount, fixed_point32::create_from_rational(new_borrow_index, debt.borrow_index));
     let accrued_interest = debt.amount - prev_amount;
     debt.borrow_index = new_borrow_index;
     accrued_interest

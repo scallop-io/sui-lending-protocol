@@ -12,14 +12,13 @@ module protocol::market {
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
   use x::witness::Witness;
-  use protocol::market_dynamic_keys::{Self, IsolatedAssetKey, BorrowDynamicsTableKey, IsBorrowDynamicsMigratedKey};
+  use protocol::market_dynamic_keys::{Self, IsolatedAssetKey};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::limiter::{Self, Limiters, Limiter};
   use protocol::incentive_rewards::{Self, RewardFactors, RewardFactor};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::reserve::{Self, Reserve, MarketCoin, FlashLoan};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
-  use protocol::borrow_dynamics_v2::{Self, BorrowDynamicV2};
   use protocol::collateral_stats::{Self, CollateralStats, CollateralStat};
   use protocol::asset_active_state::{Self, AssetActiveStates};
   use protocol::error;
@@ -56,22 +55,7 @@ module protocol::market {
   public fun uid_mut_delegated(market: &mut Market, _: Witness<Market>): &mut UID { &mut market.id }
   public(friend) fun uid_mut(market: &mut Market): &mut UID { &mut market.id }
 
-  // @deprecated
   public fun borrow_dynamics(market: &Market): &WitTable<BorrowDynamics, TypeName, BorrowDynamic> { &market.borrow_dynamics }
-
-  public fun borrow_dynamics_v2(market: &Market): &Table<TypeName, BorrowDynamicV2> {
-    df::borrow<BorrowDynamicsTableKey, Table<TypeName, BorrowDynamicV2>>(&market.id, market_dynamic_keys::borrow_dynamics_table_key())
-  }
-
-  public(friend) fun borrow_dynamics_v2_mut(market: &mut Market): &mut Table<TypeName, BorrowDynamicV2> {
-    df::borrow_mut<BorrowDynamicsTableKey, Table<TypeName, BorrowDynamicV2>>(&mut market.id, market_dynamic_keys::borrow_dynamics_table_key())
-  }
-
-  public(friend) fun init_borrow_dynamics_v2_table(self: &mut Market, ctx: &mut TxContext) {
-    if (!df::exists_(&self.id, market_dynamic_keys::borrow_dynamics_table_key())) {      
-      df::add(&mut self.id,  market_dynamic_keys::borrow_dynamics_table_key(), table::new<TypeName, BorrowDynamicV2>(ctx));
-    };
-  }
 
   public fun interest_models(market: &Market): &AcTable<InterestModels, TypeName, InterestModel> { &market.interest_models }
   public fun vault(market: &Market): &Reserve { &market.vault }
@@ -85,20 +69,10 @@ module protocol::market {
     debt
   }
 
-  /// @deprecated
   public fun borrow_index(self: &Market, type_name: TypeName): u64 {
-    abort 0
+    borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type_name)
   }
 
-  public fun get_current_market_borrow_index_and_round_up(market: &Market, type: TypeName): u64 {
-      let new_borrow_index = borrow_index_decimal(market, type);
-      decimal::ceil(new_borrow_index)
-  }
-
-  public fun borrow_index_decimal(self: &Market, type_name: TypeName): Decimal {
-    let borrow_dynamics_v2_table = borrow_dynamics_v2(self);
-    borrow_dynamics_v2::borrow_index_by_type(borrow_dynamics_v2_table, type_name)
-  }
   public fun interest_model(self: &Market, type_name: TypeName): &InterestModel {
     ac_table::borrow(&self.interest_models, type_name)
   }
@@ -195,13 +169,7 @@ module protocol::market {
     let interest_model = ac_table::borrow(&self.interest_models, type);
     let base_borrow_rate = interest_model::base_borrow_rate(interest_model);
     let interest_rate_scale = interest_model::interest_rate_scale(interest_model);
-
-    // convert base_borrow_rate to decimal
-    let base_borrow_rate = decimal::from_fixed_point32(base_borrow_rate);
-    // descale the base_borrow_rate
-    let base_borrow_rate = decimal::div(base_borrow_rate, decimal::from(interest_rate_scale));
-    let borrow_dynamics_table = borrow_dynamics_v2_mut(self);
-    borrow_dynamics_v2::register_coin<T>(borrow_dynamics_table, base_borrow_rate, now);
+    borrow_dynamics::register_coin<T>(&mut self.borrow_dynamics, base_borrow_rate, interest_rate_scale, now);
     asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, type, true);
   }
 
@@ -373,38 +341,26 @@ module protocol::market {
     self: &mut Market,
     now: u64
   ) {
-    // migrate if haven't migrated
-    if (!is_borrow_dynamics_v2_migrated(self)) {
-      migrate_borrow_dynamics_v2(self);
-    };
-
-
     let asset_types = reserve::asset_types(&self.vault);
     let (i, n) = (0, vector::length(&asset_types));
     while (i < n) {
       let type = *vector::borrow(&asset_types, i);
 
-      let borrow_dynamics_table = borrow_dynamics_v2_mut(self);
       // if the interest has been accrued, skip
-      let last_updated = borrow_dynamics_v2::last_updated_by_type(borrow_dynamics_table, type);
+      let last_updated = borrow_dynamics::last_updated_by_type(&self.borrow_dynamics, type);
       if (last_updated == now) {
         i = i + 1;
         continue
       };
 
       // update borrow index
-      let old_borrow_index = borrow_dynamics_v2::borrow_index_by_type(borrow_dynamics_table, type);
-      borrow_dynamics_v2::update_borrow_index(borrow_dynamics_table, type, now);
-      let new_borrow_index = borrow_dynamics_v2::borrow_index_by_type(borrow_dynamics_table, type);
-      // let debt_increase_rate = fixed_point32_empower::sub(fixed_point32::create_from_rational(new_borrow_index, old_borrow_index), fixed_point32_empower::from_u64(1));
-      let debt_increase_rate = decimal::sub(
-        decimal::div(new_borrow_index, old_borrow_index),
-        decimal::from(1)
-      );
+      let old_borrow_index = borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type);
+      borrow_dynamics::update_borrow_index(&mut self.borrow_dynamics, type, now);
+      let new_borrow_index = borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type);
+      let debt_increase_rate = fixed_point32_empower::sub(fixed_point32::create_from_rational(new_borrow_index, old_borrow_index), fixed_point32_empower::from_u64(1));
       // get revenue factor
       let interest_model = ac_table::borrow(&self.interest_models, type);
-      let revenue_factor = decimal::from_fixed_point32(interest_model::revenue_factor(interest_model));
-
+      let revenue_factor = interest_model::revenue_factor(interest_model);
       // update market debt
       reserve::increase_debt(&mut self.vault, type, debt_increase_rate, revenue_factor);
       i = i + 1;
@@ -422,72 +378,23 @@ module protocol::market {
       let util_rate = reserve::util_rate(&self.vault, type);
       let interest_model = ac_table::borrow(&self.interest_models, type);
       let (new_interest_rate, interest_rate_scale) = interest_model::calc_interest(interest_model, util_rate);
-
-      let new_interest_rate = decimal::from_fixed_point32(new_interest_rate);
-      let new_interest_rate = decimal::div(new_interest_rate, decimal::from(interest_rate_scale));
-      let borrow_dynamics_table = borrow_dynamics_v2_mut(self);
-      borrow_dynamics_v2::update_interest_rate(borrow_dynamics_table, type, new_interest_rate);
+      borrow_dynamics::update_interest_rate(&mut self.borrow_dynamics, type, new_interest_rate, interest_rate_scale);
       i = i + 1;
     };
-  }
-
-  // Borrow Dynamics v2
-  fun is_borrow_dynamics_v2_migrated(self: &Market): bool {
-    if (!df::exists_<IsBorrowDynamicsMigratedKey>(&self.id, market_dynamic_keys::is_borrow_dynamics_migrated_key())) {
-      return false
-    };
-
-    return *df::borrow<IsBorrowDynamicsMigratedKey, bool>(&self.id, market_dynamic_keys::is_borrow_dynamics_migrated_key())
-  }
-
-  fun migrate_borrow_dynamics_v2(
-    self: &mut Market,
-  ) {
-    if (is_borrow_dynamics_v2_migrated(self)) {
-      return
-    };
-
-    let asset_types = reserve::asset_types(&self.vault);
-    let (i, n) = (0, vector::length(&asset_types));
-    while (i < n) {
-      let asset_type_name = *vector::borrow(&asset_types, i);
-      let borrow_dynamic_old = wit_table::borrow(&self.borrow_dynamics, asset_type_name);
-
-      let interest_rate = borrow_dynamics::interest_rate(borrow_dynamic_old);
-      let interest_rate_scale = borrow_dynamics::interest_rate_scale(borrow_dynamic_old);
-      let borrow_index = borrow_dynamics::borrow_index(borrow_dynamic_old);
-      let last_updated = borrow_dynamics::last_updated(borrow_dynamic_old);
-
-      // Convert interest rate of fixed_point32 to decimal
-      let interest_rate_with_scale = decimal::from_fixed_point32(interest_rate);
-
-      // next we need to descale the interest rate by divide it with interest_rate_scale
-      let interest_rate = decimal::div(interest_rate_with_scale, decimal::from(interest_rate_scale));
-
-      borrow_dynamics_v2::new(
-        borrow_dynamics_v2_mut(self),
-        asset_type_name,
-        interest_rate,
-        decimal::from(borrow_index),
-        last_updated,
-      );
-
-      i = i + 1;
-    };
-    // set migration flag to true
-    df::add<IsBorrowDynamicsMigratedKey, bool>(&mut self.id, market_dynamic_keys::is_borrow_dynamics_migrated_key(), true);
   }
 
   public fun get_current_borrow_apr(
     self: &Market,
     type_name: TypeName,
   ): Decimal {
-    let borrow_dynamics_v2_table = borrow_dynamics_v2(self);
-    let debt_dynamic = table::borrow(borrow_dynamics_v2_table, type_name);
+    let debt_dynamic = wit_table::borrow(&self.borrow_dynamics, type_name);
 
     let seconds_in_year = 60 * 60 * 24 * 365;
 
-    decimal::mul(borrow_dynamics_v2::interest_rate(debt_dynamic), decimal::from(seconds_in_year))
+    let interest_rate_scaled = decimal::from_fixed_point32(borrow_dynamics::interest_rate(debt_dynamic));
+    let interest_rate = decimal::div(interest_rate_scaled, decimal::from(borrow_dynamics::interest_rate_scale(debt_dynamic)));
+
+    decimal::mul(interest_rate, decimal::from(seconds_in_year))
   }
 
   public fun get_current_lending_apr(

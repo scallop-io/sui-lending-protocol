@@ -20,7 +20,7 @@ module protocol::app {
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey, IsBorrowDynamicsMigratedKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey};
   use protocol::borrow_referral::{Self, AuthorizedWitnessList};
 
   /// OTW
@@ -69,12 +69,6 @@ module protocol::app {
       risk_model_change_delay: 0,
       limiter_change_delay: 0,
     };
-
-    // for new deployed contract, directly use borrow_dynamics_v2 
-    market::init_borrow_dynamics_v2_table(&mut market, ctx);
-    // mark as migrated
-    dynamic_field::add<IsBorrowDynamicsMigratedKey, bool>(market::uid_mut(&mut market), market_dynamic_keys::is_borrow_dynamics_migrated_key(), true);
-
     package::claim_and_keep(otw, ctx);
     transfer::public_share_object(market);
     transfer::transfer(adminCap, tx_context::sender(ctx));
@@ -530,13 +524,5 @@ module protocol::app {
     ctx: &mut TxContext
   ) {
     market::init_market_coin_price_table(market, ctx);
-  }
-
-  public fun init_borrow_dynamics_v2_table(
-    _admin_cap: &AdminCap,
-    market: &mut Market,
-    ctx: &mut TxContext,
-  ) {
-    market::init_borrow_dynamics_v2_table(market, ctx);
   }
 }

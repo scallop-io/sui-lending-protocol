@@ -1,4 +1,3 @@
-#[deprecated, since = b"0.1.0", note = b"Use borrow_dynamics_v2 instead"]
 // This is used to calculate the debt interests
 module protocol::borrow_dynamics {
   
@@ -24,10 +23,6 @@ module protocol::borrow_dynamics {
   public fun interest_rate_scale(dynamic: &BorrowDynamic): u64 { dynamic.interest_rate_scale }
   public fun borrow_index(dynamic: &BorrowDynamic): u64 { dynamic.borrow_index }
   public fun last_updated(dynamic: &BorrowDynamic): u64 { dynamic.last_updated }
-
-  public fun initial_borrow_index(): u64 {
-    std::u64::pow(10, 9)
-  }
   
   public(friend) fun new(ctx: &mut TxContext): WitTable<BorrowDynamics, TypeName, BorrowDynamic> {
     wit_table::new<BorrowDynamics, TypeName, BorrowDynamic>(BorrowDynamics {}, true, ctx)

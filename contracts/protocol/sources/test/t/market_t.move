@@ -8,7 +8,8 @@ module protocol::market_t {
     use protocol::interest_model as interest_model_lib;
     use math::u64;
     use decimal::decimal::{Self, Decimal};
-  
+    use math::fixed_point32_empower;
+
     #[allow(deprecated_usage)]
     public fun calc_interest_rate<T>(
         market: &Market,
@@ -28,57 +29,17 @@ module protocol::market_t {
         curr_borrow: u64,
         curr_cash: u64,
         curr_revenue: u64,
-        curr_borrow_index: Decimal,
+        curr_borrow_index: u64,
         time_delta: u64,
-    ): Decimal {
+    ): FixedPoint32 {
         let (interest_rate, interest_rate_scale) = calc_interest_rate<T>(market, curr_borrow, curr_cash, curr_revenue);
-        let index_delta = decimal::mul(
-            curr_borrow_index,
-            decimal::mul(decimal::from(time_delta), 
-                decimal::div(decimal::from_fixed_point32(interest_rate), decimal::from(interest_rate_scale))
-            )
-        );
-        let new_borrow_index = decimal::add(curr_borrow_index, index_delta);
-        let index_diff = decimal::div(new_borrow_index, curr_borrow_index);
-        decimal::sub(index_diff, decimal::from(1))
-    }
-
-    public fun calc_growth_interest_on_obligation<T>(
-        market: &Market,
-        curr_borrow: u64,
-        curr_cash: u64,
-        curr_revenue: u64,
-        curr_borrow_index: Decimal,
-        time_delta: u64,
-    ): Decimal {
-        let (interest_rate, interest_rate_scale) = calc_interest_rate<T>(market, curr_borrow, curr_cash, curr_revenue);
-        let index_delta = decimal::mul(
-            curr_borrow_index,
-            decimal::mul(decimal::from(time_delta), 
-                decimal::div(decimal::from_fixed_point32(interest_rate), decimal::from(interest_rate_scale))
-            )
-        );
-        let new_borrow_index = decimal::add(curr_borrow_index, index_delta);
-
-        let new_borrow_index_u64 = borrow_index_from_decimal_to_u64_round_up(new_borrow_index);
-        let curr_borrow_index_u64 = borrow_index_from_decimal_to_u64_round_up(curr_borrow_index);
-        let index_diff = decimal::div(decimal::from(new_borrow_index_u64), decimal::from(curr_borrow_index_u64));
-        decimal::sub(index_diff, decimal::from(1))
-    }
-
-    public fun borrow_index_from_decimal_to_u64_round_up(
-        borrow_index: Decimal,
-    ): u64 {
-        // accrue interest first, to get the latest borrow amount
-        let result = if (decimal::to_scaled_val(borrow_index) % std::u256::pow(10, 9) == 0) {
-        // if the new borrow index is divisible by 10^9, we can safely convert it to u64
-        ((decimal::to_scaled_val(borrow_index) / std::u256::pow(10, 9)) as u64)
-        } else {
-        // if the new borrow index is not divisible by 10^9, we need to round it up
-        ((decimal::to_scaled_val(borrow_index) / std::u256::pow(10, 9)) as u64) + 1
-        };
-
-        result
+        let index_delta = fixed_point32::multiply_u64(curr_borrow_index, fixed_point32_empower::mul(
+            fixed_point32_empower::from_u64(time_delta), 
+            interest_rate
+        ));
+        let index_delta = index_delta / interest_rate_scale;
+        let new_borrow_index = curr_borrow_index + index_delta;
+        fixed_point32_empower::sub(fixed_point32::create_from_rational(new_borrow_index, curr_borrow_index), fixed_point32_empower::from_u64(1))
     }
 
     public fun calc_mint_amount(

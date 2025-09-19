@@ -1,6 +1,6 @@
 module protocol::apm {
     use std::vector;
-    use std::type_name::TypeName;
+    use std::type_name::{Self, TypeName};
     use sui::dynamic_field as df;
     use x_oracle::x_oracle::XOracle;
     use decimal::decimal::{Self, Decimal};
@@ -11,6 +11,7 @@ module protocol::apm {
 
     friend protocol::borrow;
     friend protocol::obligation;
+    friend protocol::app;
 
     struct MinPriceHistory has copy, drop, store {
         price: Decimal,
@@ -51,7 +52,8 @@ module protocol::apm {
         while (i < 24) {
             let min_price_history = vector::borrow(vect, i);
             
-            if (now - min_price_history.last_update <= 24 * 3600 && i != curr_index) {
+            // only consider the last 24h data
+            if (now - min_price_history.last_update <= 24 * 3600) {
                 if (decimal::eq(min_price_in_24h, decimal::from(0))) {
                     min_price_in_24h = min_price_history.price;
                 } else if (decimal::gt(min_price_history.price, decimal::from(0))) {
@@ -69,13 +71,17 @@ module protocol::apm {
             return false
         };
 
+        if (decimal::eq(min_price_in_24h, decimal::from(0))) {
+            return false
+        };
+
         let price_increased_percentage = decimal::div(
             decimal::sub(current_price, min_price_in_24h),
             min_price_in_24h
         );
 
         let apm_threshold = df::borrow<ApmThresholdKey, Decimal>(market::uid(market), apm_threshold_key(type_name));
-        if (decimal::gt(price_increased_percentage, *apm_threshold)) {
+        if (decimal::ge(price_increased_percentage, *apm_threshold)) {
             return true
         };
 
@@ -135,5 +141,108 @@ module protocol::apm {
             i = i + 1;
         };
         vec
+    }
+
+    #[test_only]
+    struct USDC has copy, drop, store {}
+
+    #[test_only]
+    use sui::test_scenario;
+
+    #[test_only]
+    use sui::test_utils;
+
+    #[test]
+    fun apm_test() {
+        let admin = @0xAA;
+        let coin_type = type_name::get<USDC>();
+
+        let scenario_value = test_scenario::begin(admin);
+        let scenario = &mut scenario_value;
+
+        let (market, ac_table_cap_interest_models, ac_table_cap_risk_models) = market::new(test_scenario::ctx(scenario));
+        let (x_oracle, x_oracle_policy_cap) = protocol::oracle_t::init_t(scenario);
+        let clock = clock::create_for_testing(test_scenario::ctx(scenario));
+        clock::increment_for_testing(&mut clock, 3600 * 1000);
+        x_oracle::x_oracle::update_price<USDC>(&mut x_oracle, &clock, protocol::oracle_t::calc_scaled_price(1, 0)); // $1
+
+        set_apm_threshold(&mut market, coin_type, 100);
+        let is_fluctuate = is_price_fluctuate(
+            &market,
+            &x_oracle,
+            coin_type,
+            &clock,
+        );
+        assert(!is_fluctuate, 0);
+        record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
+
+        clock::increment_for_testing(&mut clock, 1800 * 1000);
+        x_oracle::x_oracle::update_price<USDC>(&mut x_oracle, &clock, protocol::oracle_t::calc_scaled_price(1000, 0)); // $1000
+        // this will trigger the APM, because of the last recorded price within the same hour
+        let is_fluctuate = is_price_fluctuate(
+            &market,
+            &x_oracle,
+            coin_type,
+            &clock,
+        );
+        assert(is_fluctuate, 0);
+        record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
+
+        clock::increment_for_testing(&mut clock, 1800 * 1000);
+        x_oracle::x_oracle::update_price<USDC>(&mut x_oracle, &clock, protocol::oracle_t::calc_scaled_price(1000, 0)); // $1000
+        // this will trigger the APM, even the last recorded price is equal in the previous hour
+        // because the min price in 24h is still $1
+        let is_fluctuate = is_price_fluctuate(
+            &market,
+            &x_oracle,
+            coin_type,
+            &clock,
+        );
+        assert(is_fluctuate, 0);
+        record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
+
+        clock::increment_for_testing(&mut clock, 3600 * 1000);
+        x_oracle::x_oracle::update_price<USDC>(&mut x_oracle, &clock, protocol::oracle_t::calc_scaled_price(1, 0)); // $1
+        // this will NOT trigger the APM, because the price goes down
+        let is_fluctuate = is_price_fluctuate(
+            &market,
+            &x_oracle,
+            coin_type,
+            &clock,
+        );
+        assert(!is_fluctuate, 0);
+        record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
+
+        clock::increment_for_testing(&mut clock, 3600 * 1000);
+        x_oracle::x_oracle::update_price<USDC>(&mut x_oracle, &clock, protocol::oracle_t::calc_scaled_price(15, 1)); // $1.5
+        // this will NOT trigger the APM, because the price just up 50% from the lowest in 24 hours
+        let is_fluctuate = is_price_fluctuate(
+            &market,
+            &x_oracle,
+            coin_type,
+            &clock,
+        );
+        assert(!is_fluctuate, 0);
+        record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
+
+        clock::increment_for_testing(&mut clock, 3600 * 1000);
+        x_oracle::x_oracle::update_price<USDC>(&mut x_oracle, &clock, protocol::oracle_t::calc_scaled_price(2, 0)); // $2
+        // this will trigger the APM, because the price up 100% from the lowest in 24 hours
+        let is_fluctuate = is_price_fluctuate(
+            &market,
+            &x_oracle,
+            coin_type,
+            &clock,
+        );
+        assert(is_fluctuate, 0);
+        record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
+
+        test_utils::destroy(clock);
+        test_utils::destroy(x_oracle);
+        test_utils::destroy(x_oracle_policy_cap);
+        test_utils::destroy(market);
+        test_utils::destroy(ac_table_cap_interest_models);
+        test_utils::destroy(ac_table_cap_risk_models);
+        test_scenario::end(scenario_value);
     }
 }

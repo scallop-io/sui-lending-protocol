@@ -112,6 +112,20 @@ module protocol::app_t {
       test_scenario::ctx(scenario)
     );
 
+    app::set_apm_threshold<ETH>(
+      &adminCap,
+      &mut market,
+      100,
+      test_scenario::ctx(scenario)
+    );
+
+    app::set_apm_threshold<USDC>(
+      &adminCap,
+      &mut market,
+      100,
+      test_scenario::ctx(scenario)
+    );
+
     whitelist::allow_all(app::ext(&adminCap, &mut market));
 
     (market, adminCap)

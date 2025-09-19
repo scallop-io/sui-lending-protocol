@@ -17,6 +17,7 @@ module protocol::app {
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
   use protocol::incentive_rewards;
   use protocol::error;
+  use protocol::apm;
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
@@ -310,6 +311,16 @@ module protocol::app {
       one_time_lock_value,
       ctx
     );
+  }
+
+  public entry fun set_apm_threshold<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    apm_threshold: u8,
+    _ctx: &mut TxContext
+  ) {
+    let coin_type = type_name::get<T>();
+    apm::set_apm_threshold(market, coin_type, apm_threshold);
   }
 
   // ====== incentive rewards =====

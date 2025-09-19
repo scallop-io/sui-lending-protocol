@@ -9,6 +9,7 @@ module protocol::market {
   use sui::coin::Coin;
   use sui::dynamic_field as df;
   use sui::table::{Self, Table};
+  use sui::clock::{Self, Clock};
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
   use x::witness::Witness;
@@ -22,14 +23,17 @@ module protocol::market {
   use protocol::collateral_stats::{Self, CollateralStats, CollateralStat};
   use protocol::asset_active_state::{Self, AssetActiveStates};
   use protocol::error;
+  use x_oracle::x_oracle::XOracle;
   use math::fixed_point32_empower;
   use decimal::decimal::{Self, Decimal};
   use whitelist::whitelist;
   use sui::tx_context;
+  use protocol::price::get_price;
 
   friend protocol::app;
   friend protocol::borrow;
   friend protocol::repay;
+  friend protocol::apm;
   friend protocol::liquidate;
   friend protocol::mint;
   friend protocol::redeem;

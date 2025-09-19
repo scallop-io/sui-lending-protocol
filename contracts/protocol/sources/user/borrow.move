@@ -281,6 +281,14 @@ module protocol::borrow {
     let borrow_limit = *dynamic_field::borrow<BorrowLimitKey, u64>(market::uid(market), borrow_limit_key);
     let current_total_global_debt = market::total_global_debt(market, coin_type);
     assert!(current_total_global_debt + borrow_amount <= borrow_limit, error::borrow_limit_reached_error());    
+    
+    // do APM check
+    obligation::check_is_collateral_price_fluctuate(
+      obligation,
+      market,
+      x_oracle,
+      clock,
+    );
 
     // Add borrow amount to the outflow limiter, if limit is reached then abort
     market::handle_outflow<T>(market, borrow_amount, now);

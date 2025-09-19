@@ -24,6 +24,14 @@ module protocol::market_dynamic_keys {
     type: TypeName
   }  
 
+  struct MinPriceHistoryKey has copy, store, drop {
+    type: TypeName
+  }  
+
+  struct ApmThresholdKey has copy, store, drop {
+    type: TypeName
+  }
+
   public fun borrow_fee_key(type: TypeName): BorrowFeeKey {
     BorrowFeeKey{ type }
   }
@@ -46,5 +54,13 @@ module protocol::market_dynamic_keys {
 
   public fun borrow_limit_key(type: TypeName): BorrowLimitKey {
     BorrowLimitKey { type }
-  }  
+  }
+
+  public fun min_price_history_key(type: TypeName): MinPriceHistoryKey {
+    MinPriceHistoryKey { type }
+  }
+
+  public fun apm_threshold_key(type: TypeName): ApmThresholdKey {
+    ApmThresholdKey { type }
+  }
 }

@@ -49,6 +49,7 @@ module protocol::error {
 
   // misc
   public fun outflow_reach_limit_error(): u64 { 0x0001001 }
+  public fun apm_triggered_error(): u64 { 0x0001002 }
 
   // flashloan
   public fun flash_loan_not_paid_enough(): u64 { 0x0011001 }

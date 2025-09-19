@@ -219,8 +219,10 @@ module protocol::obligation {
           clock,
         );
 
-        // @TODO: set collateral to be 0
-        
+        assert!(
+          !is_fluctuate,
+          error::apm_triggered_error()
+        );
 
         // record the price history
         apm::record_min_price_history(

@@ -19,8 +19,14 @@ module protocol::lock_obligation {
     use protocol::collateral_value::collaterals_value_usd_for_liquidation;
     use protocol::market::{Self, Market};
     use protocol::error;
+    use protocol::version::Version;
     
     struct ObligationUnhealthyUnlocked has copy, drop {
+        obligation: ID,
+        witness: TypeName,
+    }
+
+    struct ObligationForceUnlocked has copy, drop {
         obligation: ID,
         witness: TypeName,
     }
@@ -75,6 +81,24 @@ module protocol::lock_obligation {
 
         // Emit the unlock event
         emit(ObligationUnhealthyUnlocked {
+            obligation: object::id(obligation),
+            witness: type_name::get<T>(),
+        });
+    }
+
+    public fun force_unlock<T: drop>(
+        version: &Version,
+        obligation: &mut Obligation,
+        key: T
+    ) {
+        // check if version is supported
+        version::assert_current_version(version);
+        
+        // Unlock the obligation, this also does the necessary check if the witness is correct
+        obligation::set_unlock(obligation, key);
+
+        // Emit the unlock event
+        emit(ObligationForceUnlocked {
             obligation: object::id(obligation),
             witness: type_name::get<T>(),
         });

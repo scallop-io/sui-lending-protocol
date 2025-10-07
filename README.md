@@ -55,7 +55,6 @@ We recommend using [DeepWiki](https://deepwiki.com/scallop-io/sui-lending-protoc
 
 It's recommended to use the Scallop SDK to interact with the contracts, see the official documentation: [How to use Scallop SDK](https://github.com/scallop-io/sui-scallop-sdk)
 
-or even generate demo code and transaction examples directly through [DeepWiki](https://deepwiki.com/scallop-io/sui-scallop-sdk)’s integrated LLM interface.
 or even generate demo code and transaction examples directly through [DeepWiki](https://deepwiki.com/scallop-io/sui-scallop-sdk) integrated LLM interface.
 
 ## Integrate with Scallop Protocol in SUI Move

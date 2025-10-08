@@ -58,7 +58,7 @@ In your project, you can add the following lines to your `Move.toml` file to imp
 [dependencies.ScallopProtocol]
 git = "https://github.com/scallop-io/sui-lending-protocol.git"
 subdir = "contracts/protocol"
-rev = "mainnet"
+rev = "main"
 
 ```
 

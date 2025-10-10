@@ -51,17 +51,17 @@ module protocol::obligation_key_display {
 	}
 
 	public fun update_display_name(
-    _obligation_key: &mut ObligationKey,
-    display: &mut display::Display<ObligationKey>,
-    new_name: vector<u8>,
-    _ctx: &mut TxContext
-  ) {
-    display::edit<ObligationKey>(
-      display,
-      string::utf8(b"name"),
-      string::utf8(new_name)
-    );
-  }
+		_obligation_key: &mut ObligationKey,
+		display: &mut display::Display<ObligationKey>,
+		new_name: vector<u8>,
+		_ctx: &mut TxContext
+	) {
+		display::edit<ObligationKey>(
+			display,
+			string::utf8(b"name"),
+			string::utf8(new_name)
+		);
+	}
 
 	public fun update_display_description(
 		_obligation_key: &mut ObligationKey,

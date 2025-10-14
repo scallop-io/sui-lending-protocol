@@ -129,14 +129,18 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowSegmentDuration,
   },
   wWal: {
-    outflowLimit: 10_000 * 10 ** (coinDecimals.wWal), // 10k wWAL per day
+    outflowLimit: 500_000 * 10 ** (coinDecimals.wWal), // 500k wWAL per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
   haWal: {
-    outflowLimit: 10_000 * 10 ** (coinDecimals.haWal), // 10k haWAL per day
+    outflowLimit: 500_000 * 10 ** (coinDecimals.haWal), // 500k haWAL per day
     outflowCycleDuration,
     outflowSegmentDuration,
   },
-
+  lofi: {
+    outflowLimit: 1_000_000 * 10 ** (coinDecimals.lofi), // 1M LOFI per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  }
 }

@@ -390,6 +390,23 @@ export const nsInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.ns - 1), // 0.1 NS
 };
 
+export const lofiInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(20),
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(600), // 600%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor: 50 * (scale / 100), // 50%
+  borrowWeight: (scale * 1.25), // 125%
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.lofi), // 1 LOFI
+};
+
 export const haedalInterestModel: InterestModel = {
   baseBorrowRatePerSec: getRatePerSec(20),
   interestRateScale,
@@ -485,4 +502,5 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   haedal: haedalInterestModel,
   wWal: wWalInterestModel,
   haWal: haWalInterestModel,
+  lofi: lofiInterestModel,
 }

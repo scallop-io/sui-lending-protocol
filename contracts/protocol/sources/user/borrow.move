@@ -17,10 +17,9 @@ module protocol::borrow {
   use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::market::{Self, Market};
   use protocol::version::{Self, Version};
-  use protocol::borrow_withdraw_evaluator;
   use protocol::interest_model;
   use protocol::error;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowLimitKey, BorrowFeeRecipientKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowLimitKey};
 
   use math::u64;
 
@@ -334,9 +333,6 @@ module protocol::borrow {
 
     // Calculate the referral fee and deducted fee
     let final_borrow_fee_amount = base_borrow_fee_amount - referral_fee_amount - deducted_borrow_fee_amount;
-    // Get the borrow fee collector address
-    let borrow_fee_recipient_key = market_dynamic_keys::borrow_fee_recipient_key();
-    let borrow_fee_recipient = dynamic_field::borrow<BorrowFeeRecipientKey, address>(market::uid(market), borrow_fee_recipient_key);
 
     // Split the borrow fee from borrowed asset
     let final_borrow_fee = balance::split(&mut borrowed_balance, final_borrow_fee_amount);

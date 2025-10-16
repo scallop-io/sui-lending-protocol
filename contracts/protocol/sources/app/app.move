@@ -50,6 +50,8 @@ module protocol::app {
     sender: address,
   }
 
+  const REASONABLE_MAX_DELAYS: u64 = 0; // this function is disabled for now, hence it set as 0
+
   fun init(otw: APP, ctx: &mut TxContext) {
     init_internal(otw, ctx)
   }
@@ -80,22 +82,30 @@ module protocol::app {
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
-    assert!(delay <= 1, error::invalid_params_error()); // can only extend 1 epoch per change
+    // disable this function for now
+    assert!(delay == 0, error::invalid_params_error());
     admin_cap.interest_model_change_delay = admin_cap.interest_model_change_delay + delay;
+    assert!(admin_cap.interest_model_change_delay <= REASONABLE_MAX_DELAYS, error::invalid_params_error());
   }
 
   public fun extend_risk_model_change_delay(
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
+    // disable this function for now
+    assert!(delay == 0, error::invalid_params_error());
     admin_cap.risk_model_change_delay = admin_cap.risk_model_change_delay + delay;
+    assert!(admin_cap.risk_model_change_delay <= REASONABLE_MAX_DELAYS, error::invalid_params_error());
   }
 
   public fun extend_limiter_change_delay(
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
+    // disable this function for now
+    assert!(delay == 0, error::invalid_params_error());
     admin_cap.limiter_change_delay = admin_cap.limiter_change_delay + delay;
+    assert!(admin_cap.limiter_change_delay <= REASONABLE_MAX_DELAYS, error::invalid_params_error());
   }
 
   /// For extension of the protocol

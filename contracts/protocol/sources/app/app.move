@@ -108,14 +108,6 @@ module protocol::app {
     assert!(admin_cap.limiter_change_delay <= REASONABLE_MAX_DELAYS, error::invalid_params_error());
   }
 
-  /// For extension of the protocol
-  public fun ext(
-    _: &AdminCap,
-    market: &mut Market,
-  ): &mut UID {
-    market::uid_mut(market)
-  }
-
   /// Add a whitelist address
   public fun add_whitelist_address(
     _: &AdminCap,
@@ -545,5 +537,14 @@ module protocol::app {
     ctx: &mut TxContext
   ) {
     market::init_market_coin_price_table(market, ctx);
+  }
+
+  /// For extension of the protocol in test
+  #[test_only]
+  public fun ext(
+    _: &AdminCap,
+    market: &mut Market,
+  ): &mut UID {
+    market::uid_mut(market)
   }
 }

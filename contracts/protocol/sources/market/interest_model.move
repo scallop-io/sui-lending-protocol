@@ -14,6 +14,7 @@ module protocol::interest_model {
 
   const InterestModelChangeEffectiveEpoches: u64 = 7;
   const MAX_REASONABLE_BORROW_RATE: u64 = 1000; // 1000%
+  const MAX_REASONABLE_BORROW_WEIGHT: u64 = 500; // 500%
   
   struct InterestModel has copy, store, drop {
     type: TypeName,
@@ -91,11 +92,20 @@ module protocol::interest_model {
     // mid_kink should be > 0
     assert!(mid_kink > 0, error::interest_model_param_error());
 
-    // max_borrow_rate should be a reasonable number
+    // max_borrow_rate should be within reasonable number
     assert!(
       fixed_point32_empower::gte(
         fixed_point32::create_from_rational(MAX_REASONABLE_BORROW_RATE, 100),
         fixed_point32::create_from_rational(max_borrow_rate, scale),
+      ),
+      error::interest_model_param_error()
+    );
+
+    // borrow_weight should be within reasonable number
+    assert!(
+      fixed_point32_empower::gte(
+        fixed_point32::create_from_rational(MAX_REASONABLE_BORROW_WEIGHT, 100),
+        fixed_point32::create_from_rational(borrow_weight, scale),
       ),
       error::interest_model_param_error()
     );

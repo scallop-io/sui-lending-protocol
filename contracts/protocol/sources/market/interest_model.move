@@ -92,7 +92,13 @@ module protocol::interest_model {
     assert!(mid_kink > 0, error::interest_model_param_error());
 
     // max_borrow_rate should be a reasonable number
-    assert!(max_borrow_rate <= MAX_REASONABLE_BORROW_RATE * scale, error::interest_model_param_error());
+    assert!(
+      fixed_point32_empower::gte(
+        fixed_point32::create_from_rational(MAX_REASONABLE_BORROW_RATE, 100),
+        fixed_point32::create_from_rational(max_borrow_rate, scale),
+      ),
+      error::interest_model_param_error()
+    );
 
     assert!(base_rate_per_sec <= borrow_rate_on_mid_kink, error::interest_model_param_error());
     assert!(borrow_rate_on_mid_kink <= borrow_rate_on_high_kink, error::interest_model_param_error());

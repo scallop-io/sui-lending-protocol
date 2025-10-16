@@ -13,6 +13,7 @@ module protocol::interest_model {
   friend protocol::market;
 
   const InterestModelChangeEffectiveEpoches: u64 = 7;
+  const MAX_REASONABLE_BORROW_RATE: u64 = 1000; // 1000%
   
   struct InterestModel has copy, store, drop {
     type: TypeName,
@@ -83,10 +84,21 @@ module protocol::interest_model {
     change_delay: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<InterestModel> {
-    assert!(mid_kink <= high_kink, error::interest_model_param_error());
+    // mid_kink should be < high_kink, and can't be equal
+    assert!(mid_kink < high_kink, error::interest_model_param_error());
+    // high_kink must be < 100%
+    assert!(high_kink < scale, error::interest_model_param_error());
+    // mid_kink should be > 0
+    assert!(mid_kink > 0, error::interest_model_param_error());
+
+    // max_borrow_rate should be a reasonable number
+    assert!(max_borrow_rate <= MAX_REASONABLE_BORROW_RATE * scale, error::interest_model_param_error());
+
     assert!(base_rate_per_sec <= borrow_rate_on_mid_kink, error::interest_model_param_error());
     assert!(borrow_rate_on_mid_kink <= borrow_rate_on_high_kink, error::interest_model_param_error());
     assert!(borrow_rate_on_high_kink <= max_borrow_rate, error::interest_model_param_error());
+    // revenue factor is the portion of interest that goes to the protocol, so it must be <= 100%
+    assert!(revenue_factor <= scale, error::interest_model_param_error());
 
     let base_borrow_rate_per_sec = fixed_point32::create_from_rational(base_rate_per_sec, scale);
     let borrow_rate_on_mid_kink = fixed_point32::create_from_rational(borrow_rate_on_mid_kink, scale);
@@ -165,6 +177,8 @@ module protocol::interest_model {
       interest_rate = ((util_rate - high_kink) / (1 - high_kink)) * (max_borrow_rate - borrow_rate_on_high_kink) + borrow_rate_on_high_kink
 
     ============================================================== */
+    // util_rate must be <= 100%
+    assert!(fixed_point32_empower::gte(fixed_point32_empower::from_u64(1), util_rate), error::invalid_util_rate_error());
 
     let borrow_rate = if (fixed_point32_empower::gte(mid_kink, util_rate)) {
       let weight = fixed_point32_empower::div(util_rate, mid_kink);

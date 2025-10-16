@@ -19,7 +19,7 @@ module protocol::lock_obligation {
     use protocol::collateral_value::collaterals_value_usd_for_liquidation;
     use protocol::market::{Self, Market};
     use protocol::error;
-    use protocol::version::Version;
+    use protocol::version::{Self, Version};
     
     struct ObligationUnhealthyUnlocked has copy, drop {
         obligation: ID,

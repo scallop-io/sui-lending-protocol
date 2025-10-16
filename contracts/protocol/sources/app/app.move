@@ -445,16 +445,13 @@ module protocol::app {
     dynamic_field::add(market_uid_mut, key, fee);
   }
 
+  /// deprecate the borrow fee recipient feature
   public entry fun update_borrow_fee_recipient(
     _admin_cap: &AdminCap,
-    market: &mut Market,
-    recipient: address,
+    _: &mut Market,
+    _: address,
   ) {
-    let market_uid_mut = market::uid_mut(market);
-    let key = market_dynamic_keys::borrow_fee_recipient_key();
-
-    dynamic_field::remove_if_exists<BorrowFeeRecipientKey, address>(market_uid_mut, key);
-    dynamic_field::add(market_uid_mut, key, recipient);
+    abort 0;
   }
 
   public entry fun update_supply_limit<T: drop>(

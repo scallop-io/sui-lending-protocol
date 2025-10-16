@@ -36,6 +36,7 @@ module protocol::market_dynamic_keys {
     BorrowFeeKey{ type }
   }
 
+  /// This key is no longer used, but we keep it for backward compatibility
   public fun borrow_fee_recipient_key(): BorrowFeeRecipientKey {
     BorrowFeeRecipientKey { }
   }

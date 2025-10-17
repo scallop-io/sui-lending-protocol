@@ -16,6 +16,7 @@ module protocol::app {
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
   use protocol::error;
+  use protocol::reserve;
   use protocol::apm;
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;

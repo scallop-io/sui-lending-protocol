@@ -6,6 +6,7 @@ module protocol::flash_loan {
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self ,TxContext};
   use sui::event::emit;
+  use sui::transfer;
   use whitelist::whitelist;
   use protocol::market::{Self, Market};
   use protocol::version::{Self, Version};
@@ -125,6 +126,16 @@ module protocol::flash_loan {
       amount: coin::value(&coin),
       fee: reserve::flash_loan_fee(&loan),
     });
+
+    // return remaining coin to sender if overpaid
+    let flash_loan_amount = reserve::flash_loan_loan_amount(&loan);
+    let flash_loan_fee = reserve::flash_loan_fee(&loan);
+    let total_required_repay_amount = flash_loan_amount + flash_loan_fee;
+    if (coin::value(&coin) > total_required_repay_amount) {
+      let remaining_amount = coin::value(&coin) - total_required_repay_amount;
+      let remaining_coin = coin::split(&mut coin, remaining_amount, ctx);
+      transfer::public_transfer(remaining_coin, tx_context::sender(ctx));
+    };
 
     // Put the asset back to the market and consume the flash loan hot potato object
     market::repay_flash_loan(market, coin, loan)

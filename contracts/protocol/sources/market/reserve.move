@@ -52,6 +52,7 @@ module protocol::reserve {
 
   public fun flash_loan_loan_amount<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.loan_amount }
   public fun flash_loan_fee<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.fee }
+  public fun flash_loan_fee_denominator(): u64 { FlashloanFeeScale }
   
   public fun market_coin_supplies(vault: &Reserve): &SupplyBag { &vault.market_coin_supplies }
   public fun underlying_balances(vault: &Reserve): &BalanceBag { &vault.underlying_balances }

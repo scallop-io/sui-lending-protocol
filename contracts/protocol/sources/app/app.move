@@ -343,6 +343,7 @@ module protocol::app {
     market: &mut Market,
     fee: u64
   ) {
+    assert!(fee <= reserve::flash_loan_fee_denominator(), error::invalid_params_error());
     market::set_flash_loan_fee<T>(market, fee);
   }
 

@@ -15,6 +15,7 @@ module x_oracle::price_update_policy {
   const REQUIRE_ALL_RULES_FOLLOWED: u64 = 721;
   const REQUST_NOT_FOR_THIS_POLICY: u64 = 722;
   const WRONG_POLICY_CAP: u64 = 723;
+  const ONLY_ONE_PRIMARY_RULES_ALLOWED: u64 = 724;
 
   struct PriceUpdateRequest<phantom T> {
     for: ID,
@@ -95,6 +96,8 @@ module x_oracle::price_update_policy {
 
     let rules = table::borrow_mut(rules_table, coin_type);
     vec_set::insert(rules, type_name::get<Rule>());
+
+    assert!(vec_set::length(rules) <= 1, ONLY_ONE_PRIMARY_RULES_ALLOWED);
   }
 
   public fun add_rule<Rule>(

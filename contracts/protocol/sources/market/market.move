@@ -120,6 +120,7 @@ module protocol::market {
       interest_models,
       risk_models,
       limiters: limiter::init_table(ctx),
+      // @NOTE: this feature is deprecated 
       reward_factors: incentive_rewards::init_table(ctx),
       asset_active_states: asset_active_state::new(ctx),
       vault: reserve::new(ctx),

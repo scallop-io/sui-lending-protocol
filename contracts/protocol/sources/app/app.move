@@ -537,12 +537,20 @@ module protocol::app {
     market::init_market_coin_price_table(market, ctx);
   }
 
-  /// For extension of the protocol in test
-  #[test_only]
+  /// For extension of the protocol
+  /// Deprecated function, always abort
   public fun ext(
     _: &AdminCap,
     market: &mut Market,
   ): &mut UID {
-    market::uid_mut(market)
+    abort 0
+  }
+
+  /// For extension of the protocol in test
+  public fun ext_for_test(
+    _: &AdminCap,
+    market: &mut Market,
+  ): &mut UID {
+    abort 0
   }
 }

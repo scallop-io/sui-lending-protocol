@@ -126,7 +126,7 @@ module protocol::app_t {
       test_scenario::ctx(scenario)
     );
 
-    whitelist::allow_all(app::ext(&adminCap, &mut market));
+    whitelist::allow_all(app::ext_for_test(&adminCap, &mut market));
 
     (market, adminCap)
   }

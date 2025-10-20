@@ -258,8 +258,8 @@ module protocol::redeem_test {
     assert!(coin::value(&lender_a_market_coin) == usdc_amount, 0);
 
     // only admin is in whitelist
-    whitelist::whitelist::switch_to_whitelist_mode(protocol::app::ext(&admin_cap, &mut market));
-    whitelist::whitelist::add_whitelist_address(protocol::app::ext(&admin_cap, &mut market), admin);
+    whitelist::whitelist::switch_to_whitelist_mode(protocol::app::ext_for_test(&admin_cap, &mut market));
+    whitelist::whitelist::add_whitelist_address(protocol::app::ext_for_test(&admin_cap, &mut market), admin);
 
     test_scenario::next_tx(scenario, lender_a);
     let redeemed_coin = redeem::redeem(&version, &mut market, lender_a_market_coin, &clock, test_scenario::ctx(scenario));

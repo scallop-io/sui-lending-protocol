@@ -18,7 +18,7 @@ module protocol::apm {
         last_update: u64,
     }
 
-    public(friend) fun set_apm_threshold(market: &mut Market, type_name: TypeName, apm_threshold_percentage: u8) {
+    public(friend) fun set_apm_threshold(market: &mut Market, type_name: TypeName, apm_threshold_percentage: u64) {
         init_if_not_exists(market, type_name);
 
         if (df::exists_(market::uid(market), apm_threshold_key(type_name))) {
@@ -26,7 +26,7 @@ module protocol::apm {
                 market::uid_mut(market),
                 apm_threshold_key(type_name),
             );
-            *apm_threshold = decimal::from_percent(apm_threshold_percentage);
+            *apm_threshold = decimal::from_percent_u64(apm_threshold_percentage);
         } else {
             df::add<ApmThresholdKey, Decimal>(
                 market::uid_mut(market),

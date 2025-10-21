@@ -315,12 +315,15 @@ module protocol::app {
     );
   }
 
-  public entry fun set_apm_threshold<T>(
+  public fun set_apm_threshold<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
-    apm_threshold: u8,
+    apm_threshold: u64,
     _ctx: &mut TxContext
   ) {
+    assert!(apm_threshold <= 10_000, error::invalid_params_error());
+    assert!(apm_threshold > 0, error::invalid_params_error());
+
     let coin_type = type_name::get<T>();
     apm::set_apm_threshold(market, coin_type, apm_threshold);
   }

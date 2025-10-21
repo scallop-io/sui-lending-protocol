@@ -123,6 +123,15 @@ module protocol::withdraw_collateral {
       withdraw_amount: balance::value(&withdrawed_balance),
     });
 
+    // do APM check after withdrawal - so user could remove the fluctuated collateral
+    // and if they have the fluctuated collateral in their obligation the action will be aborted
+    obligation::check_is_collateral_price_fluctuate(
+      obligation,
+      market,
+      x_oracle,
+      clock,
+    );
+
     // Return the withdrawn collateral
     coin::from_balance(withdrawed_balance, ctx)
   }

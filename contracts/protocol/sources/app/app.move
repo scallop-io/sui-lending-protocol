@@ -546,11 +546,35 @@ module protocol::app {
     abort 0
   }
 
-  /// For extension of the protocol in test
-  public fun ext_for_test(
-    _: &AdminCap,
+  #[test_only]
+  public fun whitelist_allow_all(
+    _admin_cap: &AdminCap,
     market: &mut Market,
-  ): &mut UID {
-    abort 0
+  ) {
+    whitelist::allow_all(
+      market::uid_mut(market)
+    );
+  }
+
+  #[test_only]
+  public fun whitelist_switch_to_whitelist_mode(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+  ) {
+    whitelist::switch_to_whitelist_mode(
+      market::uid_mut(market)
+    );
+  }
+
+  #[test_only]
+  public fun whitelist_add_address_to_whitelist(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+  ) {
+    whitelist::add_whitelist_address(
+      market::uid_mut(market),
+      address
+    );
   }
 }

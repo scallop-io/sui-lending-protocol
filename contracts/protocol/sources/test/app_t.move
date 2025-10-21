@@ -15,15 +15,6 @@ module protocol::app_t {
     let adminCap = test_scenario::take_from_sender<AdminCap>(scenario);
     let market = test_scenario::take_shared<Market>(scenario);
 
-    // set-up incentive rewards
-    app::set_incentive_reward_factor<USDC>(
-      &adminCap,
-      &mut market,
-      1000,
-      1,
-      test_scenario::ctx(scenario)
-    );
-
     app::update_borrow_fee<USDC>(
       &adminCap,
       &mut market,
@@ -35,14 +26,6 @@ module protocol::app_t {
       &adminCap,
       &mut market,
       1_000_000 * std::u64::pow(10, 9),
-    );
-
-    app::set_incentive_reward_factor<USDT>(
-      &adminCap,
-      &mut market,
-      1000,
-      1,
-      test_scenario::ctx(scenario)
     );
 
     app::update_borrow_fee<USDT>(
@@ -80,12 +63,6 @@ module protocol::app_t {
       &adminCap,
       &mut market,
       1_000 * std::u64::pow(10, 9),
-    );
-
-    app::update_borrow_fee_recipient(
-      &adminCap,
-      &mut market,
-      sender
     );
 
     app::update_min_collateral_amount<USDC>(
@@ -126,7 +103,7 @@ module protocol::app_t {
       test_scenario::ctx(scenario)
     );
 
-    whitelist::allow_all(app::ext_for_test(&adminCap, &mut market));
+    app::whitelist_allow_all(&adminCap, &mut market);
 
     (market, adminCap)
   }

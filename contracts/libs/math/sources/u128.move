@@ -1,7 +1,8 @@
 module math::u128 {
   
-  const DIVIDE_BY_ZERO: u64 = 1002;
-  const CALCULATION_OVERFLOW: u64 = 1003;
+  const CALCULATION_OVERFLOW: u64 = 0x101;
+  const DIVIDE_BY_ZERO: u64 = 0x102;
+
   const U128_MAX: u128 = 340282366920938463463374607431768211455;
   
   /// Return the value of a * b / c

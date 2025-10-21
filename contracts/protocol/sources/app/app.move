@@ -248,6 +248,12 @@ module protocol::app {
     outflow_segment_duration: u32,
     _ctx: &mut TxContext
   ) {
+    // ensure the cycle duration is multiple of segment duration
+    assert!(outflow_cycle_duration % outflow_segment_duration == 0, error::invalid_params_error());
+    assert!(outflow_cycle_duration > 0, error::invalid_params_error());
+    assert!(outflow_segment_duration > 0, error::invalid_params_error());
+    assert!(outflow_cycle_duration >= outflow_segment_duration, error::invalid_params_error());
+
     let limiter = market::rate_limiter_mut(market);
     limiter::add_limiter<T>(
       limiter,

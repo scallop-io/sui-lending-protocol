@@ -31,7 +31,7 @@ module protocol::apm {
             df::add<ApmThresholdKey, Decimal>(
                 market::uid_mut(market),
                 apm_threshold_key(type_name),
-                decimal::from_percent(apm_threshold_percentage),
+                decimal::from_percent_u64(apm_threshold_percentage),
             );
         };
     }

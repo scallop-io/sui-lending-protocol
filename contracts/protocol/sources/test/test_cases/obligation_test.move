@@ -356,7 +356,7 @@ module protocol::obligation_test {
   }
 
   #[test]
-  fun force_unlock_unhealthy_obligation_test() {
+  fun force_unlock_when_obligation_unhealthy_test() {
     let usdc_decimals = 9;
     let eth_decimals = 9;
     
@@ -429,12 +429,10 @@ module protocol::obligation_test {
 
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
 
-    lock_obligation::force_unlock_unhealthy(
+    // The whitelist package will call this function to force unlock the obligation before liquidation
+    lock_obligation::force_unlock(
+      &version,
       &mut obligation, 
-      &mut market, 
-      &coin_decimals_registry, 
-      &x_oracle, 
-      &clock, 
       MockLockKey {}
     );
 

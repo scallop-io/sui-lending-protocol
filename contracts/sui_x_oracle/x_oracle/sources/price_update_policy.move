@@ -97,7 +97,7 @@ module x_oracle::price_update_policy {
     let rules = table::borrow_mut(rules_table, coin_type);
     vec_set::insert(rules, type_name::get<Rule>());
 
-    assert!(vec_set::length(rules) <= 1, ONLY_ONE_PRIMARY_RULES_ALLOWED);
+    assert!(vec_set::size(rules) <= 1, ONLY_ONE_PRIMARY_RULES_ALLOWED);
   }
 
   public fun add_rule<Rule>(

@@ -94,10 +94,6 @@ fun get_price(
         INVALID_EXCHANGE_RATE_RANGE_ERR,
     );
 
-    let price_value = decimal::from(price_value);
-    let price_value = decimal::mul(price_value, afsui_to_sui_exchange_rate);
-    let price_value = decimal::floor(price_value);
-
     let formatted_decimals = price_feed::decimals();
     let price_value_with_formatted_decimals = if (price_decimals < formatted_decimals) {
         price_value * std::u64::pow(10, formatted_decimals - price_decimals)
@@ -105,6 +101,12 @@ fun get_price(
         // This should rarely happen, since formatted_decimals is 9 and price_decimals is usually smaller than 8
         price_value / std::u64::pow(10, price_decimals - formatted_decimals)
     };
+
+    let price_value_with_formatted_decimals = 
+        decimal::from(price_value_with_formatted_decimals)
+            .mul(afsui_to_sui_exchange_rate)
+            .floor();
+
     assert!(price_value_with_formatted_decimals > 0, PYTH_PRICE_DECIMALS_TOO_LARGE);
     (price_value_with_formatted_decimals, updated_time)
 }

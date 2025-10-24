@@ -25,6 +25,7 @@ module protocol::borrow_referral {
   const ERROR_FEE_DISCOUNT_TOO_HIGH: u64 = 712;
   const ERROR_CFG_ALREADY_EXIST: u64 = 713;
   const ERROR_CFG_ISNT_EXIST: u64 = 714;
+  const ERROR_CFG_NOT_EXIST: u64 = 715;
 
   // This is a hot potato object, which can only be consumed by the authorized package
   #[allow(lint(missing_key))]
@@ -201,6 +202,21 @@ module protocol::borrow_referral {
     dynamic_field::add(&mut borrow_referral.id, BorrowReferralCfgKey<Cfg> {}, cfg);
   }
 
+  /// @notice Remove a custom config data from the borrow referral object
+  /// @dev This is meant to be called by the authorized package to remove custom config data from the borrow referral object
+  /// @param borrow_referral The borrow referral object
+  /// @param cfg The custom config data
+  /// @return The custom config data removed
+  /// @custom:CoinType The type of the coin to borrow
+  /// @custom:Witness The type of the witness issued by the authorized package
+  /// @custom:Cfg The type of the custom config data
+  public fun remove_referral_cfg<CoinType, Witness: drop, Cfg: store + drop>(
+    borrow_referral: &mut BorrowReferral<CoinType, Witness>,
+  ): Cfg {
+    assert!(dynamic_field::exists_(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}) == true, ERROR_CFG_NOT_EXIST);
+    dynamic_field::remove<BorrowReferralCfgKey<Cfg>, Cfg>(&mut borrow_fee_referral.id, BorrowReferralCfgKey<Cfg> {});
+  }
+
   /// @notice Get the custom config data from the borrow referral object
   /// @dev This is meant to be called by the authorized package to get the custom config data from the borrow referral object
   /// @param borrow_referral The borrow referral object
@@ -228,6 +244,9 @@ module protocol::borrow_referral {
   ): Balance<CoinType> {
     // Get referral fee from dynamic fields
     let patched_referral_fee = dynamic_field::remove<ReferralFeeKey, Balance<CoinType>>(&mut borrow_fee_referral.id, ReferralFeeKey {});
+
+    // Remove the borrowed dynamic field
+    dynamic_field::remove<BorrowedKey, u64>(&mut borrow_fee_referral.id, BorrowedKey {});
 
     // Delete the object
     let BorrowReferral {

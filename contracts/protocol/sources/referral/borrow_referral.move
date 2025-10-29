@@ -212,9 +212,9 @@ module protocol::borrow_referral {
   /// @custom:Cfg The type of the custom config data
   public fun remove_referral_cfg<CoinType, Witness: drop, Cfg: store + drop>(
     borrow_referral: &mut BorrowReferral<CoinType, Witness>,
-  ): Cfg {
+  ) {
     assert!(dynamic_field::exists_(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}) == true, ERROR_CFG_NOT_EXIST);
-    dynamic_field::remove<BorrowReferralCfgKey<Cfg>, Cfg>(&mut borrow_fee_referral.id, BorrowReferralCfgKey<Cfg> {});
+    dynamic_field::remove<BorrowReferralCfgKey<Cfg>, Cfg>(&mut borrow_referral.id, BorrowReferralCfgKey<Cfg> {});
   }
 
   /// @notice Get the custom config data from the borrow referral object

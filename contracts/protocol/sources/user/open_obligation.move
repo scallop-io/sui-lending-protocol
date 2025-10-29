@@ -34,14 +34,7 @@ module protocol::open_obligation {
   public entry fun open_obligation_entry(version: &Version, ctx: &mut TxContext) {
     // Check version
     version::assert_current_version(version);
-    let (obligation, obligation_key) = obligation::new(ctx);
-
-    // Emit the obligation created event
-    emit(ObligationCreatedEvent {
-      sender: tx_context::sender(ctx),
-      obligation: object::id(&obligation),
-      obligation_key: object::id(&obligation_key),
-    });
+    let (obligation, obligation_key) = create_obligation(ctx);
 
     // Transfer the obligation key to the sender
     transfer::public_transfer(obligation_key, tx_context::sender(ctx));
@@ -59,20 +52,26 @@ module protocol::open_obligation {
     // Check contract version
     version::assert_current_version(version);
 
-    let (obligation, obligation_key) = obligation::new(ctx);
+    let (obligation, obligation_key) = create_obligation(ctx);
+
     let obligation_hot_potato = ObligationHotPotato {
       obligation_id: object::id(&obligation),
-    };
+    };    
 
-    // Emit the obligation created event
+    // Return the obligation, obligation key and the hot potato
+    (obligation, obligation_key, obligation_hot_potato)
+  }
+
+  fun create_obligation(ctx: &mut TxContext): (Obligation, ObligationKey) {
+    let (obligation, obligation_key) = obligation::new(ctx);
+    
     emit(ObligationCreatedEvent {
       sender: tx_context::sender(ctx),
       obligation: object::id(&obligation),
       obligation_key: object::id(&obligation_key),
     });
 
-    // Return the obligation, obligation key and the hot potato
-    (obligation, obligation_key, obligation_hot_potato)
+    (obligation, obligation_key)
   }
 
   /// @notice share the obligation and consume the hot potato created

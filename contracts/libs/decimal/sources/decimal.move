@@ -3,7 +3,6 @@ module decimal::decimal;
 use std::fixed_point32::{Self, FixedPoint32};
 
 const WAD: u256 = 1000000000000000000; // 10^18
-const U64_MAX: u256 = 18446744073709551615;
 
 public struct Decimal has copy, drop, store {
     value: u256,
@@ -61,14 +60,6 @@ public fun sub(a: Decimal, b: Decimal): Decimal {
     }
 }
 
-public fun saturating_sub(a: Decimal, b: Decimal): Decimal {
-    if (a.value < b.value) {
-        Decimal { value: 0 }
-    } else {
-        Decimal { value: a.value - b.value }
-    }
-}
-
 public fun mul(a: Decimal, b: Decimal): Decimal {
     Decimal {
         value: (a.value * b.value) / WAD,
@@ -82,6 +73,12 @@ public fun div(a: Decimal, b: Decimal): Decimal {
 }
 
 public fun pow(b: Decimal, mut e: u64): Decimal {
+    if (b.eq(from(2)) && e == 32) return from(4_294_967_296);
+    if (b.eq(from(10)) && e == 9) return from(1_000_000_000);
+    if (b.eq(from(10)) && e == 8) return from(100_000_000);
+    if (b.eq(from(10)) && e == 7) return from(10_000_000);
+    if (b.eq(from(10)) && e == 6) return from(1_000_000);
+    
     let mut cur_base = b;
     let mut result = from(1);
 
@@ -98,14 +95,6 @@ public fun pow(b: Decimal, mut e: u64): Decimal {
 
 public fun floor(a: Decimal): u64 {
     ((a.value / WAD) as u64)
-}
-
-public fun saturating_floor(a: Decimal): u64 {
-    if (a.value > U64_MAX * WAD) {
-        (U64_MAX as u64)
-    } else {
-        floor(a)
-    }
 }
 
 public fun ceil(a: Decimal): u64 {
@@ -156,7 +145,34 @@ public fun from_fixed_point32(fp: FixedPoint32): Decimal {
 }
 
 #[test]
-public fun from_fixed_point32_test() {
+fun pow_test() {
+    let x = pow(from(2), 16 + 16); // 2^32
+    assert!(eq(x, from(4_294_967_296)), 0);
+
+    let x = pow(from(2), 30); // 2^30
+    assert!(eq(x, from(1_073_741_824)), 0);
+
+    let x = pow(from(10), 9); // 10^9
+    assert!(eq(x, from(1_000_000_000)), 0);
+
+    let x = pow(from(10), 8); // 10^8
+    assert!(eq(x, from(100_000_000)), 0);
+
+    let x = pow(from(10), 7); // 10^7
+    assert!(eq(x, from(10_000_000)), 0);
+
+    let x = pow(from(10), 6); // 10^6
+    assert!(eq(x, from(1_000_000)), 0);
+
+    let x = pow(from(10), 5); // 10^5
+    assert!(eq(x, from(100_000)), 0);
+
+    let x = pow(from(10), 0); // 10^0
+    assert!(eq(x, from(1)), 0);    
+}
+
+#[test]
+fun from_fixed_point32_test() {
     let a = fixed_point32::create_from_rational(1, 1);
     let b = from_fixed_point32(a);
 

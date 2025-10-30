@@ -314,6 +314,9 @@ module protocol::obligation_test {
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
+    protocol::apm::refresh_apm_state<USDC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+    protocol::apm::refresh_apm_state<ETH>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));    
+
     app::add_lock_key<MockLockKey>(&admin_cap, &mut obligation_access_store);
     obligation::lock(
       &mut obligation, 
@@ -405,6 +408,9 @@ module protocol::obligation_test {
     clock::set_for_testing(&mut clock, 300 * 1000);
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(5, 1)); // $0.5
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
+
+    protocol::apm::refresh_apm_state<USDC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+    protocol::apm::refresh_apm_state<ETH>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));    
 
     test_scenario::next_tx(scenario, borrower);
     let borrow_amount = 850 * std::u64::pow(10, usdc_decimals);

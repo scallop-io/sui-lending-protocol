@@ -8,6 +8,9 @@ module protocol::apm {
     use protocol::market::{Self, Market};
     use sui::clock::{Self, Clock};
     use protocol::market_dynamic_keys::{min_price_history_key, apm_threshold_key, MinPriceHistoryKey, ApmThresholdKey};
+    use sui::tx_context::TxContext;
+    use protocol::version::{Self, Version};
+    use protocol::error;
 
     friend protocol::borrow;
     friend protocol::obligation;
@@ -17,6 +20,29 @@ module protocol::apm {
         price: Decimal,
         last_update: u64,
     }
+
+    // Refresh the APM state, should be callable by anyone
+    public fun refresh_apm_state<T>(
+        version: &Version,
+        market: &mut Market,
+        x_oracle: &XOracle,
+        clock: &Clock,
+        _ctx: &mut TxContext
+    ) {
+        // check if version is supported
+        version::assert_current_version(version);
+
+        let coin_type = type_name::get<T>();
+        
+        // record the price history
+        record_min_price_history(
+            market,
+            x_oracle,
+            coin_type,
+            clock,
+        );
+    }
+
 
     public(friend) fun set_apm_threshold(market: &mut Market, type_name: TypeName, apm_threshold_percentage: u64) {
         init_if_not_exists(market, type_name);
@@ -71,9 +97,8 @@ module protocol::apm {
             return false
         };
 
-        if (decimal::eq(min_price_in_24h, decimal::from(0))) {
-            return false
-        };
+        // check if no recorded price in 24h, abort
+        assert!(decimal::gt(min_price_in_24h, decimal::from(0)), error::apm_price_history_empty_error());
 
         let price_increased_percentage = decimal::div(
             decimal::sub(current_price, min_price_in_24h),
@@ -162,11 +187,13 @@ module protocol::apm {
 
         let (market, ac_table_cap_interest_models, ac_table_cap_risk_models) = market::new(test_scenario::ctx(scenario));
         let (x_oracle, x_oracle_policy_cap) = protocol::oracle_t::init_t(scenario);
+        let version = protocol::version::create_for_testing(test_scenario::ctx(scenario));
         let clock = clock::create_for_testing(test_scenario::ctx(scenario));
         clock::increment_for_testing(&mut clock, 3600 * 1000);
         x_oracle::x_oracle::update_price<USDC>(&mut x_oracle, &clock, protocol::oracle_t::calc_scaled_price(1, 0)); // $1
 
         set_apm_threshold(&mut market, coin_type, 100);
+        protocol::apm::refresh_apm_state<USDC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
         let is_fluctuate = is_price_fluctuate(
             &market,
             &x_oracle,
@@ -241,6 +268,7 @@ module protocol::apm {
         test_utils::destroy(x_oracle);
         test_utils::destroy(x_oracle_policy_cap);
         test_utils::destroy(market);
+        test_utils::destroy(version);
         test_utils::destroy(ac_table_cap_interest_models);
         test_utils::destroy(ac_table_cap_risk_models);
         test_scenario::end(scenario_value);

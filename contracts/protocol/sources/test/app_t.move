@@ -92,16 +92,23 @@ module protocol::app_t {
     app::set_apm_threshold<ETH>(
       &adminCap,
       &mut market,
-      100,
+      200,
       test_scenario::ctx(scenario)
     );
 
     app::set_apm_threshold<USDC>(
       &adminCap,
       &mut market,
-      100,
+      200,
       test_scenario::ctx(scenario)
     );
+
+    app::set_apm_threshold<USDT>(
+      &adminCap,
+      &mut market,
+      200,
+      test_scenario::ctx(scenario)
+    );    
 
     app::whitelist_allow_all(&adminCap, &mut market);
 

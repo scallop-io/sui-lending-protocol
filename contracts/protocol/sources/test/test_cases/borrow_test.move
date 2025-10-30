@@ -96,6 +96,9 @@ module protocol::borrow_test {
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
+    protocol::apm::refresh_apm_state<USDC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+    protocol::apm::refresh_apm_state<ETH>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+
     test_scenario::next_tx(scenario, borrower);
     let borrow_amount = 699 * std::u64::pow(10, usdc_decimals);
     let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
@@ -189,6 +192,10 @@ module protocol::borrow_test {
     clock::set_for_testing(&mut clock, 300 * 1000);
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
+
+
+    protocol::apm::refresh_apm_state<USDC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+    protocol::apm::refresh_apm_state<ETH>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
 
     test_scenario::next_tx(scenario, borrower);
     let borrow_amount = 699 * std::u64::pow(10, usdc_decimals);
@@ -337,7 +344,7 @@ module protocol::borrow_test {
     test_scenario::end(scenario_value);
   }  
 
-  #[test, expected_failure]
+  #[test, expected_failure(abort_code = 0x0000505, location = protocol::borrow)]
   fun borrow_two_isolated_asset_error_test() {
     let usdc_decimals = 9;
     let usdt_decimals = 9;
@@ -404,6 +411,10 @@ module protocol::borrow_test {
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
     x_oracle::update_price<USDT>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
+
+    protocol::apm::refresh_apm_state<USDC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+    protocol::apm::refresh_apm_state<USDT>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+    protocol::apm::refresh_apm_state<ETH>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
 
     test_scenario::next_tx(scenario, borrower);
     let borrow_amount = 100 * std::u64::pow(10, usdc_decimals);
@@ -493,6 +504,9 @@ module protocol::borrow_test {
     clock::set_for_testing(&mut clock, 300 * 1000);
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0)); // $1
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
+
+    protocol::apm::refresh_apm_state<USDC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+    protocol::apm::refresh_apm_state<ETH>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
 
     app::update_borrow_fee<USDC>(
       &admin_cap,

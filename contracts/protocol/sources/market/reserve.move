@@ -277,11 +277,14 @@ module protocol::reserve {
     fee_discount_numerator: u64,
     fee_discount_denominator: u64,
   ): (Balance<T>, FlashLoan<T>) {
+    assert!(fee_discount_denominator > 0, error::invalid_flash_loan_fee_discount_error());
+    assert!(fee_discount_numerator <= fee_discount_denominator, error::invalid_flash_loan_fee_discount_error());
+
     let balance = balance_bag::split<T>(&mut self.underlying_balances, amount);
     let fee_rate = *wit_table::borrow(&self.flash_loan_fees, get<T>());
     let base_fee = if (fee_rate > 0) {
       // charge at least 1 unit of coin when fee_rate is not 0
-      amount * fee_rate / FlashloanFeeScale + 1
+      u64::mul_div(amount, fee_rate, FlashloanFeeScale) + 1
     } else {
       0
     };

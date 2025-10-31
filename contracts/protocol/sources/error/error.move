@@ -54,6 +54,7 @@ module protocol::error {
 
   // flashloan
   public fun flash_loan_not_paid_enough(): u64 { 0x0011001 }
+  public fun invalid_flash_loan_fee_discount_error(): u64 { 0x0011002 }
 
   // asset not active errors
   public fun base_asset_not_active_error(): u64 { 0x0012001 }

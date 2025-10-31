@@ -73,7 +73,7 @@ module protocol::repay {
     let repay_coin = coin::split<T>(&mut user_coin, repay_amount, ctx);
 
     // Put the repay asset into market
-    market::handle_repay<T>(market, coin::into_balance(repay_coin));
+    market::handle_repay<T>(market, coin::into_balance(repay_coin), now);
 
     // Decrease repay amount to the outflow limiter
     market::handle_inflow<T>(market, repay_amount, now);

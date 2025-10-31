@@ -224,8 +224,10 @@ module protocol::market {
   public(friend) fun handle_repay<T>(
     self: &mut Market,
     balance: Balance<T>,
+    current_timestamp: u64,
   ) {
-    // @TODO: extra-checks assert that borrow_dynamics last_updated already equal to current time
+    let coin_type = type_name::get<T>();
+    assert!(borrow_dynamics::last_updated_by_type(&self.borrow_dynamics, coin_type) == current_timestamp, error::interest_is_not_accrued_error());
     reserve::handle_repay(&mut self.vault, balance);
     update_interest_rates(self);
   }

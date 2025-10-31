@@ -76,6 +76,8 @@ module protocol::mint {
       error::base_asset_not_active_error()
     );
 
+    assert!(coin::value(&coin) > 0, error::mint_with_zero_amount_error());
+
     let now = clock::timestamp_ms(clock) / 1000;
     let deposit_amount = coin::value(&coin);
 

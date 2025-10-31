@@ -49,6 +49,8 @@ module protocol::deposit_collateral {
       error::obligation_locked()
     );
 
+    assert!(coin::value(&coin) > 0, error::zero_deposit_amount_error());
+
     let coin_type = type_name::get<T>();
 
     // Make sure the protocol supports the collateral type

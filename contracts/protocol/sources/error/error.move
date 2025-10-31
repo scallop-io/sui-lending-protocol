@@ -37,10 +37,13 @@ module protocol::error {
   public fun invalid_collateral_type_error(): u64 { 0x0000702 }
   public fun withdraw_collateral_too_much_error(): u64 { 0x0000703 }
   public fun unable_to_deposit_a_borrowed_coin(): u64 { 0x0000704 }
+  public fun zero_deposit_amount_error(): u64 { 0x0000705 }
+  public fun zero_withdrawal_amount_error(): u64 { 0x0000706 }
 
   // market coin error
   public fun mint_market_coin_too_small_error(): u64 { 0x0000801 }
   public fun redeem_market_coin_too_small_error(): u64 { 0x0000802 }
+  public fun mint_with_zero_amount_error(): u64 { 0x0000803 }
 
   // admin
   public fun interest_model_type_not_match_error(): u64 { 0x0000901 }

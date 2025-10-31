@@ -93,6 +93,8 @@ module protocol::withdraw_collateral {
       error::obligation_locked()
     );
 
+    assert!(withdraw_amount > 0, error::zero_withdrawal_amount_error());
+
     let now = clock::timestamp_ms(clock) / 1000;
 
     // Check the ownership of the obligation

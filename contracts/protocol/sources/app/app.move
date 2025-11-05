@@ -21,8 +21,11 @@ module protocol::app {
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey, PauseAuthorityRegistryKey};
   use protocol::borrow_referral::{Self, AuthorizedWitnessList};
+  use protocol::version::{Self, Version};
+  use sui::vec_set::{Self, VecSet};
+  use std::vector;
 
   /// OTW
   struct APP has drop {}
@@ -334,6 +337,60 @@ module protocol::app {
     apm::set_apm_threshold(market, coin_type, apm_threshold);
   }
 
+  public fun disable_borrow(
+    version: &Version,
+    market: &mut Market,
+    ctx: &mut TxContext
+  ) {
+    version::assert_current_version(version);
+
+    let sender = tx_context::sender(ctx);
+
+    let market_uid_mut = market::uid(market);
+    let key = market_dynamic_keys::pause_authority_registry_key();
+
+    let pause_authority_registry = dynamic_field::borrow<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    assert!(vec_set::contains(pause_authority_registry, &sender), error::unauthorize_pause_error());
+
+    let interest_models = market::interest_models(market);
+    let coin_types = x::ac_table::keys(interest_models);
+
+    let (i, n) = (0, vector::length(&coin_types));
+    while (i < n) {
+      let coin_type = *vector::borrow(&coin_types, i);
+      market::set_base_asset_active_state(market, coin_type, false);
+
+      i = i + 1;
+    };
+  }
+
+  public fun disable_collateral(
+    version: &Version,
+    market: &mut Market,
+    ctx: &mut TxContext
+  ) {
+    version::assert_current_version(version);
+    
+    let sender = tx_context::sender(ctx);
+
+    let market_uid_mut = market::uid(market);
+    let key = market_dynamic_keys::pause_authority_registry_key();
+
+    let pause_authority_registry = dynamic_field::borrow<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    assert!(vec_set::contains(pause_authority_registry, &sender), error::unauthorize_pause_error());
+
+    let risk_models = market::risk_models(market);
+    let coin_types = x::ac_table::keys(risk_models);
+
+    let (i, n) = (0, vector::length(&coin_types));
+    while (i < n) {
+      let coin_type = *vector::borrow(&coin_types, i);
+      market::set_collateral_active_state(market, coin_type, false);
+
+      i = i + 1;
+    };
+  }
+
   // ====== incentive rewards =====
   #[deprecated]
   public entry fun set_incentive_reward_factor<T>(
@@ -363,7 +420,8 @@ module protocol::app {
     market: &mut Market,
     is_active: bool,
   ) {
-    market::set_base_asset_active_state<T>(market, is_active);
+    let coin_type = type_name::get<T>();
+    market::set_base_asset_active_state(market, coin_type, is_active);
   }
 
   public entry fun set_collateral_active_state<T>(
@@ -371,7 +429,8 @@ module protocol::app {
     market: &mut Market,
     is_active: bool,
   ) {
-    market::set_collateral_active_state<T>(market, is_active);
+    let coin_type = type_name::get<T>();
+    market::set_collateral_active_state(market, coin_type, is_active);
   }
 
   /// ======= take revenue =======

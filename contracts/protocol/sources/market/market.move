@@ -157,13 +157,11 @@ module protocol::market {
   }
 
   // ===== management of asset active state =====
-  public(friend) fun set_base_asset_active_state<T>(self: &mut Market, is_active: bool) {
-    let type = get<T>();
-    asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, type, is_active);
+  public(friend) fun set_base_asset_active_state(self: &mut Market, coin_type: TypeName, is_active: bool) {
+    asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, coin_type, is_active);
   }
-  public(friend) fun set_collateral_active_state<T>(self: &mut Market, is_active: bool) {
-    let type = get<T>();
-    asset_active_state::set_collateral_active_state(&mut self.asset_active_states, type, is_active);
+  public(friend) fun set_collateral_active_state(self: &mut Market, coin_type: TypeName, is_active: bool) {
+    asset_active_state::set_collateral_active_state(&mut self.asset_active_states, coin_type, is_active);
   }
 
 

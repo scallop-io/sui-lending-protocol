@@ -32,6 +32,8 @@ module protocol::market_dynamic_keys {
     type: TypeName
   }
 
+  struct PauseAuthorityRegistryKey has copy, store, drop { }
+
   public fun borrow_fee_key(type: TypeName): BorrowFeeKey {
     BorrowFeeKey{ type }
   }
@@ -63,5 +65,9 @@ module protocol::market_dynamic_keys {
 
   public fun apm_threshold_key(type: TypeName): ApmThresholdKey {
     ApmThresholdKey { type }
+  }
+
+  public fun pause_authority_registry_key(): PauseAuthorityRegistryKey {
+    PauseAuthorityRegistryKey{ }
   }
 }

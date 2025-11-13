@@ -73,6 +73,37 @@ module protocol::obligation_test {
     test_scenario::end(scenario_value);
   }
 
+  #[test, expected_failure(abort_code=0x0000301, location=protocol::open_obligation)]
+  fun open_obligation_with_hot_potato_and_return_invalid_obligation_test() {    
+    let admin = @0xAD;
+    let borrower = @0xBB;
+    let scenario_value = test_scenario::begin(admin);
+    let scenario = &mut scenario_value;
+    let clock = clock::create_for_testing(test_scenario::ctx(scenario));
+    let version = version::create_for_testing(test_scenario::ctx(scenario));
+    let (market, admin_cap) = app_init(scenario);
+
+    clock::set_for_testing(&mut clock, 100 * 1000);
+    let usdc_risk_params = usdc_risk_model_params();
+    add_risk_model_t<USDC>(scenario, &mut market, &admin_cap, &usdc_risk_params);
+
+    let (obligation, obligation_key, obligation_hot_potato) = open_obligation::open_obligation(&version, test_scenario::ctx(scenario));
+    let (obligation_two, obligation_key_two, obligation_hot_potato_two) = open_obligation::open_obligation(&version, test_scenario::ctx(scenario));
+    open_obligation::return_obligation(&version, obligation_two, obligation_hot_potato);
+    open_obligation::return_obligation(&version, obligation, obligation_hot_potato_two);
+
+    transfer::public_transfer(obligation_key, borrower);
+    transfer::public_transfer(obligation_key_two, borrower);
+
+
+    clock::destroy_for_testing(clock);
+    version::destroy_for_testing(version);
+
+    test_scenario::return_shared(market);
+    test_scenario::return_to_address(admin, admin_cap);
+    test_scenario::end(scenario_value);
+  }  
+
   // lock here, works just like a hooks.
   // meant if an obligation locked, the locker contract need to be notify before doing any action with the obligation
   #[test, expected_failure(abort_code=770, location=protocol::borrow)]

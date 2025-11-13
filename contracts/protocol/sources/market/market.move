@@ -55,6 +55,9 @@ module protocol::market {
     vault: Reserve
   }
 
+  // how many seconds in a year
+  const SECONDS_IN_A_YEAR: u64 = 60 * 60 * 24 * 365;
+
   public fun uid(market: &Market): &UID { &market.id }
   public fun uid_mut_delegated(market: &mut Market, _: Witness<Market>): &mut UID { &mut market.id }
   public(friend) fun uid_mut(market: &mut Market): &mut UID { &mut market.id }
@@ -394,12 +397,10 @@ module protocol::market {
   ): Decimal {
     let debt_dynamic = wit_table::borrow(&self.borrow_dynamics, type_name);
 
-    let seconds_in_year = 60 * 60 * 24 * 365;
-
     let interest_rate_scaled = decimal::from_fixed_point32(borrow_dynamics::interest_rate(debt_dynamic));
     let interest_rate = decimal::div(interest_rate_scaled, decimal::from(borrow_dynamics::interest_rate_scale(debt_dynamic)));
 
-    decimal::mul(interest_rate, decimal::from(seconds_in_year))
+    decimal::mul(interest_rate, decimal::from(SECONDS_IN_A_YEAR))
   }
 
   public fun get_current_lending_apr(

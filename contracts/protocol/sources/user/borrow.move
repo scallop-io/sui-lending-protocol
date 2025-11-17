@@ -115,6 +115,8 @@ module protocol::borrow {
   ): Coin<T> {
     // check if version is supported
     version::assert_current_version(version);
+    // check if sender is in whitelist
+    market::assert_whitelist_access(market, ctx);
 
     let borrow_fee_discount = borrow_referral::borrow_fee_discount(borrow_referral);
     let borrow_fee_referral_share = borrow_referral::referral_share(borrow_referral);
@@ -165,6 +167,8 @@ module protocol::borrow {
   ): Coin<T> {
     // check if version is supported
     version::assert_current_version(version);
+    // check if sender is in whitelist
+    market::assert_whitelist_access(market, ctx);
 
     let borrow_fee_discount = 0;
     let borrow_fee_referral_share = 0;
@@ -228,7 +232,6 @@ module protocol::borrow {
     assert!(ok, error::unable_to_borrow_other_coin_with_isolated_asset());
   }  
 
-  // @TODO: borrow fee store in an object
   fun borrow_internal<T>(
     obligation: &mut Obligation,
     obligation_key: &ObligationKey,
@@ -241,9 +244,6 @@ module protocol::borrow {
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Balance<T>, Balance<T>) {
-    // check if sender is in whitelist
-    market::assert_whitelist_access(market, ctx);
-
     // check if obligation is locked, if locked, unlock operation is required before calling this function
     // This is a mechanism to enforce some operations before calling the function
     assert!(

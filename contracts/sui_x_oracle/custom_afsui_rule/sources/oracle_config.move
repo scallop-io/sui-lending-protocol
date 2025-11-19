@@ -76,7 +76,7 @@ public fun max_exchange_rate(oracle_config: &OracleConfig): Decimal {
     oracle_config.max_exchange_rate
 }
 
-public entry fun update_oracle_config(
+public fun update_oracle_config(
     oracle_config: &mut OracleConfig,
     oracle_cap: &OracleAdminCap,
     pyth_info_object: &PriceInfoObject,

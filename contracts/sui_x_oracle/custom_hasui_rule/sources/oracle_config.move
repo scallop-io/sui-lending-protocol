@@ -2,6 +2,7 @@ module custom_hasui_rule::oracle_config;
 
 use decimal::decimal::{Self, Decimal};
 use pyth::price_info::PriceInfoObject;
+use sui::event;
 
 const ERR_INVALID_PYTH_OBJECT: u64 = 0x1;
 const ERR_INVALID_CAP: u64 = 0x2;
@@ -25,6 +26,15 @@ public struct OracleConfig has key {
 public struct OracleAdminCap has key, store {
     id: UID,
     parent: ID,
+}
+
+public struct UpdateOracleConfidenceToleranceEvent has copy, drop {
+    pyth_feed_confidence_tolerance_bps: u64,
+}
+
+public struct UpdateExchangeRateConstraintEvent has copy, drop {
+    min_exchange_rate_bps: u64,
+    max_exchange_rate_bps: u64,
 }
 
 public fun conf_tolerance_denominator(): u64 {
@@ -85,6 +95,10 @@ public entry fun update_oracle_config(
     oracle_config.feed_id = option::some(object::id(pyth_info_object));
     oracle_config.conf_tolerance =
         option::some(decimal::from_bps(pyth_feed_confidence_tolerance_bps));
+
+    event::emit(UpdateOracleConfidenceToleranceEvent {
+        pyth_feed_confidence_tolerance_bps,
+    });        
 }
 
 public fun update_exchange_rate_constraint(
@@ -100,6 +114,11 @@ public fun update_exchange_rate_constraint(
     assert!(oracle_config.min_exchange_rate.le(oracle_config.max_exchange_rate), ERR_INVALID_EXCHANGE_RATE_CONFIG);
     assert!(oracle_config.min_exchange_rate.ge(decimal::from_percent_u64(REASONABLE_EXCHANGE_RATE_LOWER_BOUND)), ERR_INVALID_EXCHANGE_RATE_CONFIG);
     assert!(oracle_config.max_exchange_rate.le(decimal::from_percent_u64(REASONABLE_EXCHANGE_RATE_UPPER_BOUND)), ERR_INVALID_EXCHANGE_RATE_CONFIG);
+
+    event::emit(UpdateExchangeRateConstraintEvent {
+        min_exchange_rate_bps,
+        max_exchange_rate_bps,
+    });
 }
 
 public fun assert_pyth_price_info_object(

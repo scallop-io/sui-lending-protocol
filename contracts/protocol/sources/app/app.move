@@ -10,10 +10,11 @@ module protocol::app {
   use sui::package;
   use sui::event;
   use x::ac_table::AcTableCap;
-  use x::one_time_lock_value::OneTimeLockValue;
+  use x::one_time_lock_value::{Self, OneTimeLockValue};
   use protocol::market::{Self, Market};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
+  use protocol::hashi_risk_model::{Self, HashiRiskModel};
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
   use protocol::error;
   use protocol::reserve;
@@ -241,6 +242,37 @@ module protocol::app {
       risk_model_change,
       ctx
     );
+  }
+
+  public fun create_hashi_risk_model_change(
+    admin_cap: &AdminCap,
+    collateral_factor: u64, // exp. 70 for 70%,
+    liquidation_factor: u64, // exp. 80 for 80%,
+    liquidation_penalty: u64, // exp. 7 for 7%,
+    liquidation_discount: u64, // exp. 5 for 5%,
+    max_collateral_amount: u64,
+    ctx: &mut TxContext,
+  ): OneTimeLockValue<HashiRiskModel> {
+    let risk_model_change = hashi_risk_model::create_hashi_risk_model_change(
+      collateral_factor, // exp. 70%,
+      liquidation_factor, // exp. 80%,
+      liquidation_penalty, // exp. 7%,
+      liquidation_discount, // exp. 5%,
+      max_collateral_amount,
+      admin_cap.risk_model_change_delay,
+      ctx
+    );
+    risk_model_change
+  }
+
+  public fun update_hashi_risk_model<T>(
+    market: &mut Market,
+    admin_cap: &AdminCap,
+    hashi_risk_model_change: OneTimeLockValue<HashiRiskModel>,
+    ctx: &mut TxContext
+  ) {
+    let hashi_risk_model = one_time_lock_value::get_value(hashi_risk_model_change, ctx);
+    market::update_hashi_risk_model(market, hashi_risk_model);
   }
 
   public entry fun add_limiter<T>(

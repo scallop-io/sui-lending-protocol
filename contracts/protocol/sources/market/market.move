@@ -8,8 +8,6 @@ module protocol::market {
   use sui::object::{Self, UID};
   use sui::coin::Coin;
   use sui::dynamic_field as df;
-  use sui::table::{Self, Table};
-  use sui::clock::{Self, Clock};
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
   use x::witness::Witness;
@@ -18,17 +16,16 @@ module protocol::market {
   use protocol::limiter::{Self, Limiters, Limiter};
   use protocol::incentive_rewards::{Self, RewardFactors, RewardFactor};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
+  use protocol::hashi_risk_model::{Self, HashiRiskModel};
   use protocol::reserve::{Self, Reserve, MarketCoin, FlashLoan};
   use protocol::borrow_dynamics::{Self, BorrowDynamics, BorrowDynamic};
   use protocol::collateral_stats::{Self, CollateralStats, CollateralStat};
   use protocol::asset_active_state::{Self, AssetActiveStates};
   use protocol::error;
-  use x_oracle::x_oracle::XOracle;
   use math::fixed_point32_empower;
   use decimal::decimal::{Self, Decimal};
   use whitelist::whitelist;
   use sui::tx_context;
-  use protocol::price::get_price;
 
   friend protocol::app;
   friend protocol::borrow;
@@ -54,6 +51,9 @@ module protocol::market {
     asset_active_states: AssetActiveStates,
     vault: Reserve
   }
+
+  // The key to store the hashi risk model on the market object, coz
+  struct HashiRiskModelKey has copy, store, drop {}
 
   // how many seconds in a year
   const SECONDS_IN_A_YEAR: u64 = 60 * 60 * 24 * 365;
@@ -85,6 +85,9 @@ module protocol::market {
   }
   public fun risk_model(self: &Market, type_name: TypeName): &RiskModel {
     ac_table::borrow(&self.risk_models, type_name)
+  }
+  public fun hashi_risk_model(self: &Market): &HashiRiskModel {
+    df::borrow(&self.id, HashiRiskModelKey {})
   }
   public fun reward_factor(self: &Market, type_name: TypeName): &RewardFactor {
     wit_table::borrow(&self.reward_factors, type_name)
@@ -190,6 +193,12 @@ module protocol::market {
   // When fee is 10, the final fee rate is 0.1%
   public(friend) fun set_flash_loan_fee<T>(self: &mut Market, fee: u64) {
     reserve::set_flash_loan_fee<T>(&mut self.vault, fee)
+  }
+
+  // Config the hashi risk model, if exists replace it, if not add it
+  public(friend) fun update_hashi_risk_model(self: &mut Market, hashi_risk_model: HashiRiskModel) {
+    df::remove_if_exists(&mut self.id, HashiRiskModelKey{});
+    df::add(&mut self.id, HashiRiskModelKey{}, hashi_risk_model);
   }
   
   public(friend) fun risk_models_mut(self: &mut Market): &mut AcTable<RiskModels, TypeName, RiskModel> {

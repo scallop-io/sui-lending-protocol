@@ -32,7 +32,7 @@ module protocol::apm {
         // check if version is supported
         version::assert_current_version(version);
 
-        let coin_type = type_name::get<T>();
+        let coin_type = type_name::with_defining_ids<T>();
         
         // record the price history
         record_min_price_history(
@@ -72,7 +72,6 @@ module protocol::apm {
         let min_price_in_24h = decimal::from(0);
 
         let now = clock::timestamp_ms(clock) / 1000;
-        let curr_index = (now / 3600) % 24; // hourly index
 
         let i = 0;
         while (i < 24) {

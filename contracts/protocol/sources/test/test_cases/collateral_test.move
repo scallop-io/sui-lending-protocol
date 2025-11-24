@@ -85,6 +85,55 @@ module protocol::collateral_test {
         test_scenario::return_to_address(borrower, obligation_key);
         test_scenario::end(scenario_value);
     }
+
+    #[test, expected_failure(abort_code=0x0000706, location=protocol::withdraw_collateral)]
+    fun withdraw_zero_collateral_failed_test() {
+        let eth_decimals = 9;
+        
+        let admin = @0xAD;
+        let borrower = @0xBB;
+        let scenario_value = test_scenario::begin(admin);
+        let scenario = &mut scenario_value;
+        let clock = clock::create_for_testing(test_scenario::ctx(scenario));
+        let version = version::create_for_testing(test_scenario::ctx(scenario));
+        let (market, admin_cap) = app_init(scenario);
+
+        let (x_oracle, x_oracle_policy_cap) = oracle_t::init_t(scenario);
+
+        test_scenario::next_tx(scenario, admin);
+        
+        clock::set_for_testing(&mut clock, 100 * 1000);
+        let eth_risk_params = eth_risk_model_params();
+        add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
+        let coin_decimals_registry = coin_decimals_registry_init(scenario);
+        coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
+                
+        test_scenario::next_tx(scenario, borrower);
+        let eth_amount = std::u64::pow(10, eth_decimals);
+        let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
+        let (obligation, obligation_key) = open_obligation_t(scenario, &version);
+        deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
+        
+        clock::set_for_testing(&mut clock, 200 * 1000);
+
+        test_scenario::next_tx(scenario, borrower);
+        // this should be aborted, because trying to withdraw 0 coin
+        let withdrawed_collateral = withdraw_collateral::withdraw_collateral<ETH>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, 0, &x_oracle, &clock, test_scenario::ctx(scenario));
+        assert!(coin::value(&withdrawed_collateral) == 0, 0);
+        coin::burn_for_testing(withdrawed_collateral);
+
+        clock::destroy_for_testing(clock);
+        version::destroy_for_testing(version);
+
+        test_scenario::return_shared(x_oracle);
+        test_scenario::return_shared(coin_decimals_registry);
+        test_scenario::return_shared(market);
+        test_scenario::return_shared(obligation);
+        test_scenario::return_to_address(admin, admin_cap);
+        test_scenario::return_to_address(admin, x_oracle_policy_cap);
+        test_scenario::return_to_address(borrower, obligation_key);
+        test_scenario::end(scenario_value);
+    }    
     
     #[test]
     fun withdraw_collateral_with_borrowing_test() {

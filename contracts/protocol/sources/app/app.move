@@ -343,6 +343,41 @@ module protocol::app {
     apm::set_apm_threshold(market, coin_type, apm_threshold);
   }
 
+  /// ======= Management Circuit Breaker =======
+  public fun add_pause_authority_registry(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+    _tx_context: &mut TxContext
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::pause_authority_registry_key();
+
+    if (!dynamic_field::exists_<PauseAuthorityRegistryKey>(market_uid_mut, key)) {
+      dynamic_field::add<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
+    };
+
+    let pause_authority_registry = dynamic_field::borrow_mut<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    vec_set::insert(pause_authority_registry, address);
+  }
+
+  public fun remove_pause_authority_registry(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+    _tx_context: &mut TxContext
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::pause_authority_registry_key();
+
+    if (!dynamic_field::exists_<PauseAuthorityRegistryKey>(market_uid_mut, key)) {
+      dynamic_field::add<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
+    };
+
+    let pause_authority_registry = dynamic_field::borrow_mut<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    vec_set::remove(pause_authority_registry, &address);
+  }  
+
   public fun disable_borrow(
     version: &Version,
     market: &mut Market,

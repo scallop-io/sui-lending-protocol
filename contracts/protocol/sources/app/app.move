@@ -252,9 +252,9 @@ module protocol::app {
     _ctx: &mut TxContext
   ) {
     // ensure the cycle duration is multiple of segment duration
-    assert!(outflow_cycle_duration % outflow_segment_duration == 0, error::invalid_params_error());
     assert!(outflow_cycle_duration > 0, error::invalid_params_error());
     assert!(outflow_segment_duration > 0, error::invalid_params_error());
+    assert!(outflow_cycle_duration % outflow_segment_duration == 0, error::invalid_params_error());
     assert!(outflow_cycle_duration >= outflow_segment_duration, error::invalid_params_error());
 
     let limiter = market::rate_limiter_mut(market);
@@ -272,6 +272,12 @@ module protocol::app {
     outflow_segment_duration: u32,
     ctx: &mut TxContext
   ): OneTimeLockValue<LimiterUpdateParamsChange> {
+    // ensure the cycle duration is multiple of segment duration
+    assert!(outflow_cycle_duration > 0, error::invalid_params_error());
+    assert!(outflow_segment_duration > 0, error::invalid_params_error());
+    assert!(outflow_cycle_duration % outflow_segment_duration == 0, error::invalid_params_error());
+    assert!(outflow_cycle_duration >= outflow_segment_duration, error::invalid_params_error());
+
     let one_time_lock_value = limiter::create_limiter_params_change<T>(
       outflow_cycle_duration,
       outflow_segment_duration,
@@ -330,7 +336,7 @@ module protocol::app {
     apm_threshold: u64,
     _ctx: &mut TxContext
   ) {
-    assert!(apm_threshold <= 10_000, error::invalid_params_error());
+    assert!(apm_threshold <= 1000, error::invalid_params_error()); // Max APM threshold is 1000%
     assert!(apm_threshold > 0, error::invalid_params_error());
 
     let coin_type = type_name::get<T>();

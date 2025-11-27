@@ -67,6 +67,9 @@ module protocol::market {
   public fun interest_models(market: &Market): &AcTable<InterestModels, TypeName, InterestModel> { &market.interest_models }
   public fun vault(market: &Market): &Reserve { &market.vault }
   public fun risk_models(market: &Market): &AcTable<RiskModels, TypeName, RiskModel> { &market.risk_models }
+  public fun get_hashi_risk_model(market: &Market): &HashiRiskModel {
+    dynamic_field::borrow(&market.id, HashiRiskModelKey {})
+  }
   public fun reward_factors(market: &Market): &WitTable<RewardFactors, TypeName, RewardFactor> { &market.reward_factors }
   public fun collateral_stats(market: &Market): &WitTable<CollateralStats, TypeName, CollateralStat> { &market.collateral_stats }
   

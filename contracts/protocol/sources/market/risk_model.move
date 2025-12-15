@@ -92,6 +92,10 @@ module protocol::risk_model {
     assert!(fixed_point32_empower::gt(liquidation_factor, collateral_factor), error::risk_model_param_error());
     // Make sure liquidation penalty is bigger than liquidation discount
     assert!(fixed_point32_empower::gte(liquidation_penalty, liquidation_discount), error::risk_model_param_error());
+    // Make sure:  liquidation_penalty + liquidation_factor < 1
+    let liq_sum = fixed_point32_empower::add(liquidation_factor, liquidation_penalty);
+    let liq_sum_max = fixed_point32_empower::from_u64(1);
+    assert!(fixed_point32_empower::gt(liq_sum_max, liq_sum), error::risk_model_param_error());
 
     let liquidation_revenue_factor = fixed_point32_empower::sub(liquidation_penalty, liquidation_discount);
     let risk_model = RiskModel {

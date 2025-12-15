@@ -134,6 +134,17 @@ module protocol::app {
     );
   }
 
+  // This function is used in emergence case to shut down all user activities
+  public fun reject_all_address(
+    _: &AdminCap,
+    market: &mut Market,
+    address: address,
+  ) {
+    whitelist::reject_all(
+      market::uid_mut(market),
+    );
+  }
+
   public fun create_interest_model_change<T>(
     admin_cap: &AdminCap,
     base_rate_per_sec: u64,

@@ -424,6 +424,23 @@ export const walInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.wal - 2), // 0.01 WAL
 };
 
+export const xBtcInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(5), // 5%
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(30), // 30%
+  maxBorrowRate: getRatePerSec(150), // 150%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor, // 20%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.xBTC - 6), // 0.000001 xBTC
+};
+
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sui: suiInterestModel,
   sca: scaInterestModel,
@@ -449,4 +466,5 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   usdy: usdyInterestModel,
   wal: walInterestModel,
   haedal: haedalInterestModel,
+  xBTC: xBtcInterestModel,
 }

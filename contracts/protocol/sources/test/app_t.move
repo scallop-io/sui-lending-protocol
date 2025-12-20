@@ -110,7 +110,7 @@ module protocol::app_t {
       test_scenario::ctx(scenario)
     );    
 
-    app::whitelist_allow_all(&adminCap, &mut market);
+    app::whitelist_allow_all(&adminCap, &mut market, test_scenario::ctx(scenario));
 
     (market, adminCap)
   }

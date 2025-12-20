@@ -53,6 +53,11 @@ module protocol::app {
     sender: address,
   }
 
+  struct FreezeProtocolEvent has copy, drop {
+    market: ID,
+    sender: address,
+  }  
+
   const REASONABLE_MAX_DELAYS: u64 = 0; // this function is disabled for now, hence it set as 0
 
   fun init(otw: APP, ctx: &mut TxContext) {
@@ -134,7 +139,7 @@ module protocol::app {
     );
   }
 
-  // This function is used in emergence case to shut down all user activities
+  /// Reject all addresses
   public fun reject_all_address(
     _: &AdminCap,
     market: &mut Market,
@@ -387,42 +392,15 @@ module protocol::app {
 
     let pause_authority_registry = dynamic_field::borrow_mut<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
     vec_set::remove(pause_authority_registry, &address);
-  }  
-
-  public fun disable_borrow(
-    version: &Version,
-    market: &mut Market,
-    ctx: &mut TxContext
-  ) {
-    version::assert_current_version(version);
-
-    let sender = tx_context::sender(ctx);
-
-    let market_uid_mut = market::uid(market);
-    let key = market_dynamic_keys::pause_authority_registry_key();
-
-    let pause_authority_registry = dynamic_field::borrow<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
-    assert!(vec_set::contains(pause_authority_registry, &sender), error::unauthorize_pause_error());
-
-    let interest_models = market::interest_models(market);
-    let coin_types = x::ac_table::keys(interest_models);
-
-    let (i, n) = (0, vector::length(&coin_types));
-    while (i < n) {
-      let coin_type = *vector::borrow(&coin_types, i);
-      market::set_base_asset_active_state(market, coin_type, false);
-
-      i = i + 1;
-    };
   }
 
-  public fun disable_collateral(
+  public fun freeze_protocol(
     version: &Version,
     market: &mut Market,
     ctx: &mut TxContext
   ) {
     version::assert_current_version(version);
-    
+
     let sender = tx_context::sender(ctx);
 
     let market_uid_mut = market::uid(market);
@@ -431,16 +409,14 @@ module protocol::app {
     let pause_authority_registry = dynamic_field::borrow<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
     assert!(vec_set::contains(pause_authority_registry, &sender), error::unauthorize_pause_error());
 
-    let risk_models = market::risk_models(market);
-    let coin_types = x::ac_table::keys(risk_models);
+    whitelist::reject_all(
+      market::uid_mut(market),
+    );
 
-    let (i, n) = (0, vector::length(&coin_types));
-    while (i < n) {
-      let coin_type = *vector::borrow(&coin_types, i);
-      market::set_collateral_active_state(market, coin_type, false);
-
-      i = i + 1;
-    };
+    event::emit(FreezeProtocolEvent {
+      market: object::id(market),
+      sender,
+    });
   }
 
   // ====== incentive rewards =====
@@ -666,10 +642,10 @@ module protocol::app {
     abort 0
   }
 
-  #[test_only]
   public fun whitelist_allow_all(
     _admin_cap: &AdminCap,
     market: &mut Market,
+    _: &mut TxContext
   ) {
     whitelist::allow_all(
       market::uid_mut(market)

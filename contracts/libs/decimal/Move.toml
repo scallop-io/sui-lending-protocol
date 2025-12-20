@@ -2,6 +2,7 @@
 name = "Decimal"
 version = "0.0.1"
 edition = "2024.beta"
+published-at = "0x07caedbf4c4d64288771089889a8b3e8721e5522bb55d041b14a234bf5e4d242"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"
@@ -9,4 +10,4 @@ subdir = "crates/sui-framework/packages/sui-framework"
 rev = "mainnet"
 
 [addresses]
-decimal = "0x0"
+decimal = "0x07caedbf4c4d64288771089889a8b3e8721e5522bb55d041b14a234bf5e4d242"

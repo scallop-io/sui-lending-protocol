@@ -596,4 +596,16 @@ export class ProtocolTxBuilder {
       [coinType]
     );
   }
+
+  initMarketCoinPriceTable(
+    suiTxBlock: SuiTxBlock,
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::init_market_coin_price_table`,
+      [
+        this.adminCapId,
+        this.marketId,
+      ],
+    );
+  }
 }

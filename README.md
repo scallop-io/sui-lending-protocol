@@ -9,7 +9,7 @@ pnpm install
 ```
 
 2. Install SUI cli
-See the official documentation: [How to install SUI cli](https://docs.sui.io/devnet/build/install)
+See the official documentation: [How to install SUI cli](https://docs.sui.io/guides/developer/getting-started/sui-install)
 
 3. Set the envs
   ```bash

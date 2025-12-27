@@ -1,4 +1,12 @@
-# How to use
+# Switchboard Oracle Rule
 
-## Necessary steps before use
-- Make sure the `Move.${networkType}.toml` is correct for `vendors/switchboard_std`.
+This package integrates [Switchboard](https://switchboard.xyz/) standard price feeds into the Scallop xOracle system.
+
+## Structure
+
+- `sources/` - Oracle rule implementation
+- `vendors/switchboard_std` - Switchboard standard library dependency
+
+## Prerequisites
+
+1. Ensure `Move.${networkType}.toml` has correct addresses for `vendors/switchboard_std`

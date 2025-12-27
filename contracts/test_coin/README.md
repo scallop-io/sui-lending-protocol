@@ -12,7 +12,10 @@ Currently, it will create the following coin types:
 It also contains typescript utilities for publishing and minting test coins.
 
 ### Publish
-To publish a test coin, run the following command:
+To publish test coins, run the following command from the project root:
+```bash
+pnpm run publish-testcoin
 ```
 
-```
+### Mint
+After publishing, you can use the typescript utilities in the `typescript` folder to mint test coins for testing purposes.

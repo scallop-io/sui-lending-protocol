@@ -124,7 +124,7 @@ module protocol::open_obligation {
   // This creates a new obligation
   // the user keeps the obligation key.
   // the obligation key is used to access the obligation
-  // ObligationHotPotato should be comsumed in the same transaction 
+  // ObligationHotPotato should be consumed in the same transaction 
   public fun open_obligation(
     version: &Version,
     ctx: &mut TxContext,
@@ -169,7 +169,7 @@ module protocol::withdraw_collateral {
   
   // withdraw collateral from the obligation
   // obligation key is required to withdraw collateral 
-  // It also requires the oracle to be updated, interests will be accured for the obligation before withdrawal
+  // It also requires the oracle to be updated, interests will be accrued for the obligation before withdrawal
   public fun withdraw_collateral<T>(
     version: &Version,
     obligation: &mut Obligation,
@@ -186,15 +186,15 @@ module protocol::withdraw_collateral {
 ```
 
 ### Borrow assets
-Module: [contracts/protocol/sources/user/borrow_assets.move](contracts/protocol/sources/user/borrow.move)
+Module: [contracts/protocol/sources/user/borrow.move](contracts/protocol/sources/user/borrow.move)
 
 Usage:
 ```move
-module protocol::borrow_assets {
+module protocol::borrow {
   
   // borrow assets from the obligation
   // obligation key is required to borrow assets
-  // It also requires the oracle to be updated, interests will be accured for the obligation before borrowing
+  // It also requires the oracle to be updated, interests will be accrued for the obligation before borrowing
   public fun borrow<T>(
     version: &Version,
     obligation: &mut Obligation,
@@ -211,7 +211,7 @@ module protocol::borrow_assets {
 ```
 
 ### Repay assets
-Module: [contracts/protocol/sources/user/repay_assets.move](contracts/protocol/sources/user/repay.move)
+Module: [contracts/protocol/sources/user/repay.move](contracts/protocol/sources/user/repay.move)
 
 Usage:
 ```move
@@ -240,7 +240,7 @@ module protocol::liquidate {
   
   // liquidate the obligation
   // anyone can liquidate the obligation if the obligation is undercollateralized
-  // It also requires the oracle to be updated, interests will be accured for the obligation before liquidation
+  // It also requires the oracle to be updated, interests will be accrued for the obligation before liquidation
   public fun liquidate<DebtType, CollateralType>(
     version: &Version,
     obligation: &mut Obligation,

@@ -42,7 +42,7 @@ module x::wit_table {
   
   /// Adds a key-value pair to the table.
   /// Aborts if the xtable already has an entry with that key `k: K`.
-  /// Wtiness control
+  /// Witness control
   public fun add<T: drop, K: copy + drop + store, V: store>(
     _: T,
     self: &mut WitTable<T, K, V>,

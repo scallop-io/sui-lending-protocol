@@ -14,77 +14,81 @@ import { SupplyLimits } from './supply-limits';
 import { BorrowLimits } from './borrow-limits';
 import { borrowFees } from './borrow-fee';
 import { FlashloanFees } from './flashloan-fees';
-import { MULTI_SIG_ADDRESS } from './multi-sig';
 import { decimalsRegistryTxBuilder } from 'contracts/libs/coin_decimals_registry';
 import { suiKit } from 'sui-elements';
+import { pythRuleStructType, xOracleTxBuilder } from 'contracts/sui_x_oracle';
+import { ApmThresholds } from './apm-threshold';
+import { MinCollaterals } from './min-collateral';
 
 export const initMarket = async (suiTxBlock: SuiTxBlock) => {
   const riskModelPairs: { type: string, riskModel: RiskModel }[] = [
+    { type: coinTypes.haSui, riskModel: riskModels.haSui },
     { type: coinTypes.sui, riskModel: riskModels.sui },
     { type: coinTypes.nativeUsdc, riskModel: riskModels.nativeUsdc },
-    { type: coinTypes.sca, riskModel: riskModels.sca },
   ];
 
   const interestModelPairs: { type: string, interestModel: InterestModel }[] = [
+    { type: coinTypes.haSui, interestModel: interestModels.haSui },
     { type: coinTypes.sui, interestModel: interestModels.sui },
     { type: coinTypes.nativeUsdc, interestModel: interestModels.nativeUsdc },
-    { type: coinTypes.sca, interestModel: interestModels.sca },
-    { type: coinTypes.deep, interestModel: interestModels.deep },
-    { type: coinTypes.fud, interestModel: interestModels.fud },
   ];
 
   const outflowLimitPairs: { type: string, outflowLimit: OutflowLimiterModel }[] = [
+    { type: coinTypes.haSui, outflowLimit: outflowRateLimiters.haSui },
     { type: coinTypes.sui, outflowLimit: outflowRateLimiters.sui },
     { type: coinTypes.nativeUsdc, outflowLimit: outflowRateLimiters.nativeUsdc },
-    { type: coinTypes.sca, outflowLimit: outflowRateLimiters.sca },
-    { type: coinTypes.deep, outflowLimit: outflowRateLimiters.deep },
-    { type: coinTypes.fud, outflowLimit: outflowRateLimiters.fud },
   ];
 
   const supplyLimitList: { type: string, limit: number }[] = [
-    {type: coinTypes.sca, limit: SupplyLimits.sca},
+    {type: coinTypes.haSui, limit: SupplyLimits.haSui},
     {type: coinTypes.sui, limit: SupplyLimits.sui},
     {type: coinTypes.nativeUsdc, limit: SupplyLimits.nativeUsdc},
-    {type: coinTypes.deep, limit: SupplyLimits.deep},
-    {type: coinTypes.fud, limit: SupplyLimits.fud},
   ];
 
   const borrowLimitList: { type: string, limit: number }[] = [
-    { type: coinTypes.sca, limit: BorrowLimits.sca },
+    { type: coinTypes.haSui, limit: BorrowLimits.haSui },
     { type: coinTypes.sui, limit: BorrowLimits.sui },
     { type: coinTypes.nativeUsdc, limit: BorrowLimits.nativeUsdc },
-    { type: coinTypes.deep, limit: BorrowLimits.deep },
-    { type: coinTypes.fud, limit: BorrowLimits.fud },
   ];
 
   const isolatedAssetStatus: { type: string, status: boolean }[] = [
-    { type: coinTypes.deep, status: true },
-    { type: coinTypes.fud, status: true },
   ];
 
   const borrowFeePairs: { type: string, borrowFee: BorrowFee }[] = [
+    {type: coinTypes.haSui, borrowFee: borrowFees.haSui},
     {type: coinTypes.sui, borrowFee: borrowFees.sui},
-    {type: coinTypes.sca, borrowFee: borrowFees.sca},
     {type: coinTypes.nativeUsdc, borrowFee: borrowFees.nativeUsdc},
-    {type: coinTypes.deep, borrowFee: borrowFees.deep},
-    {type: coinTypes.fud, borrowFee: borrowFees.fud},
   ];
 
   const flashloanFeeList: { type: string, fee: number }[] = [
+    {type: coinTypes.haSui, fee: FlashloanFees.haSui},
     {type: coinTypes.sui, fee: FlashloanFees.sui},
     {type: coinTypes.nativeUsdc, fee: FlashloanFees.nativeUsdc},
-    {type: coinTypes.sca, fee: FlashloanFees.sca},
-    {type: coinTypes.deep, fee: FlashloanFees.deep},
-    {type: coinTypes.fud, fee: FlashloanFees.fud},
   ];
 
   const decimalsList = [
+    { type: coinTypes.haSui, metadata: coinMetadataIds.haSui },
     { type: coinTypes.sui, metadata: coinMetadataIds.sui },
     { type: coinTypes.nativeUsdc, metadata: coinMetadataIds.nativeUsdc },
-    { type: coinTypes.sca, metadata: coinMetadataIds.sca },
-    { type: coinTypes.deep, metadata: coinMetadataIds.deep },
-    { type: coinTypes.fud, metadata: coinMetadataIds.fud },
   ];
+
+  const xOraclePrimaryRules = [
+    { type: coinTypes.haSui, rule: pythRuleStructType },
+    { type: coinTypes.sui, rule: pythRuleStructType },
+    { type: coinTypes.nativeUsdc, rule: pythRuleStructType },
+  ];
+
+  const apmThresholds = [
+    { type: coinTypes.haSui, threshold: ApmThresholds.haSui },
+    { type: coinTypes.sui, threshold: ApmThresholds.sui },
+    { type: coinTypes.nativeUsdc, threshold: ApmThresholds.nativeUsdc },
+  ]
+
+  const minCollaterals = [
+    { type: coinTypes.haSui, minCollateral: MinCollaterals.haSui },
+    { type: coinTypes.sui, minCollateral: MinCollaterals.sui },
+    { type: coinTypes.nativeUsdc, minCollateral: MinCollaterals.nativeUsdc },
+  ]
 
   riskModelPairs.forEach(pair => {
     protocolTxBuilder.addRiskModel(suiTxBlock, pair.riskModel, pair.type);
@@ -110,12 +114,22 @@ export const initMarket = async (suiTxBlock: SuiTxBlock) => {
   flashloanFeeList.forEach(pair => {
     protocolTxBuilder.setFlashloanFee(suiTxBlock, pair.fee, pair.type);
   });
-
-  protocolTxBuilder.updateBorrowFeeRecipient(suiTxBlock, MULTI_SIG_ADDRESS);
-
+  xOraclePrimaryRules.forEach(pair => {
+    xOracleTxBuilder.addPrimaryPriceUpdateRuleV2(suiTxBlock, pair.type, pair.rule);
+  });
   decimalsList.forEach(pair => {
     decimalsRegistryTxBuilder.registerDecimals(suiTxBlock, pair.metadata, pair.type);
   });
+  minCollaterals.forEach(pair => {
+    protocolTxBuilder.updateMinCollateral(suiTxBlock, pair.minCollateral, pair.type);
+  })
+  apmThresholds.forEach(pair => {
+    protocolTxBuilder.setApmThreshold(suiTxBlock, pair.threshold, pair.type);
+  })
+  // init table
+  protocolTxBuilder.initMarketCoinPriceTable(suiTxBlock);
+  // allow all whitelist
+  protocolTxBuilder.whitelistAllowAll(suiTxBlock);
 
   const resp = await suiKit.signAndSendTxn(suiTxBlock);
   console.log(resp)

@@ -597,14 +597,73 @@ export class ProtocolTxBuilder {
     );
   }
 
-  initMarketCoinPriceTable(
+
+  addPauseAuthorityRegistry(
+    suiTxBlock: SuiTxBlock,
+    address: string,
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::add_pause_authority_registry`,
+      [
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+        suiTxBlock.pure.address(address),
+      ],
+    )
+  }
+
+  whitelistAllowAll(
     suiTxBlock: SuiTxBlock,
   ) {
     suiTxBlock.moveCall(
+      `${this.packageId}::app::whitelist_allow_all`,
+      [
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+      ],
+    )
+  }
+
+  updateMinCollateral(
+    suiTxBlock: SuiTxBlock,
+    minAmount: number,
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::update_min_collateral_amount`,
+      [
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+        suiTxBlock.pure.u64(minAmount)
+      ],
+      [coinType]
+    )
+  }
+
+  setApmThreshold(
+    suiTxBlock: SuiTxBlock,
+    apmThreshold: number,
+    coinType: string
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::set_apm_threshold`,
+      [
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+        suiTxBlock.pure.u64(apmThreshold)
+      ],
+      [coinType]
+    )
+  }
+
+  initMarketCoinPriceTable(
+    suiTxBlock: SuiTxBlock,
+  ) {
+    return suiTxBlock.moveCall(
       `${this.packageId}::app::init_market_coin_price_table`,
       [
         this.adminCapId,
-        this.marketId,
+        suiTxBlock.object(this.marketId),
       ],
     );
   }

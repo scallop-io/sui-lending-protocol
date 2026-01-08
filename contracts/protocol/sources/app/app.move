@@ -409,7 +409,7 @@ module protocol::app {
     let pause_authority_registry = dynamic_field::borrow<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
     assert!(vec_set::contains(pause_authority_registry, &sender), error::unauthorize_pause_error());
 
-    assert!(!whitelist::is_reject_all(market), error::protocol_already_frozen_error());
+    assert!(!whitelist::is_reject_all(market::uid(market)), error::protocol_already_frozen_error());
 
     whitelist::reject_all(
       market::uid_mut(market),

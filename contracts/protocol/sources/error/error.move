@@ -56,6 +56,7 @@ module protocol::error {
   public fun apm_triggered_error(): u64 { 0x0001002 }
   public fun apm_price_history_empty_error(): u64 { 0x0001003 }
   public fun interest_is_not_accrued_error(): u64 { 0x0001004 }
+  public fun protocol_already_frozen_error(): u64 { 0x0001005 }
 
   // flashloan
   public fun flash_loan_not_paid_enough(): u64 { 0x0011001 }

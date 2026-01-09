@@ -8,6 +8,8 @@ module protocol::market {
   use sui::object::{Self, UID};
   use sui::coin::Coin;
   use sui::dynamic_field as df;
+  use sui::table::{Self, Table};
+  use sui::clock::{Self, Clock};
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::wit_table::{Self, WitTable};
   use x::witness::Witness;
@@ -21,11 +23,17 @@ module protocol::market {
   use protocol::collateral_stats::{Self, CollateralStats, CollateralStat};
   use protocol::asset_active_state::{Self, AssetActiveStates};
   use protocol::error;
+  use x_oracle::x_oracle::XOracle;
   use math::fixed_point32_empower;
+  use decimal::decimal::{Self, Decimal};
+  use whitelist::whitelist;
+  use sui::tx_context;
+  use protocol::price::get_price;
 
   friend protocol::app;
   friend protocol::borrow;
   friend protocol::repay;
+  friend protocol::apm;
   friend protocol::liquidate;
   friend protocol::mint;
   friend protocol::redeem;
@@ -47,11 +55,15 @@ module protocol::market {
     vault: Reserve
   }
 
+  // how many seconds in a year
+  const SECONDS_IN_A_YEAR: u64 = 60 * 60 * 24 * 365;
+
   public fun uid(market: &Market): &UID { &market.id }
   public fun uid_mut_delegated(market: &mut Market, _: Witness<Market>): &mut UID { &mut market.id }
   public(friend) fun uid_mut(market: &mut Market): &mut UID { &mut market.id }
 
   public fun borrow_dynamics(market: &Market): &WitTable<BorrowDynamics, TypeName, BorrowDynamic> { &market.borrow_dynamics }
+
   public fun interest_models(market: &Market): &AcTable<InterestModels, TypeName, InterestModel> { &market.interest_models }
   public fun vault(market: &Market): &Reserve { &market.vault }
   public fun risk_models(market: &Market): &AcTable<RiskModels, TypeName, RiskModel> { &market.risk_models }
@@ -67,6 +79,7 @@ module protocol::market {
   public fun borrow_index(self: &Market, type_name: TypeName): u64 {
     borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type_name)
   }
+
   public fun interest_model(self: &Market, type_name: TypeName): &InterestModel {
     ac_table::borrow(&self.interest_models, type_name)
   }
@@ -110,6 +123,7 @@ module protocol::market {
       interest_models,
       risk_models,
       limiters: limiter::init_table(ctx),
+      // @NOTE: this feature is deprecated 
       reward_factors: incentive_rewards::init_table(ctx),
       asset_active_states: asset_active_state::new(ctx),
       vault: reserve::new(ctx),
@@ -146,13 +160,11 @@ module protocol::market {
   }
 
   // ===== management of asset active state =====
-  public(friend) fun set_base_asset_active_state<T>(self: &mut Market, is_active: bool) {
-    let type = get<T>();
-    asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, type, is_active);
+  public(friend) fun set_base_asset_active_state(self: &mut Market, coin_type: TypeName, is_active: bool) {
+    asset_active_state::set_base_asset_active_state(&mut self.asset_active_states, coin_type, is_active);
   }
-  public(friend) fun set_collateral_active_state<T>(self: &mut Market, is_active: bool) {
-    let type = get<T>();
-    asset_active_state::set_collateral_active_state(&mut self.asset_active_states, type, is_active);
+  public(friend) fun set_collateral_active_state(self: &mut Market, coin_type: TypeName, is_active: bool) {
+    asset_active_state::set_collateral_active_state(&mut self.asset_active_states, coin_type, is_active);
   }
 
 
@@ -213,8 +225,10 @@ module protocol::market {
   public(friend) fun handle_repay<T>(
     self: &mut Market,
     balance: Balance<T>,
+    current_timestamp: u64,
   ) {
-    // @TODO: extra-checks assert that borrow_dynamics last_updated already equal to current time
+    let coin_type = type_name::get<T>();
+    assert!(borrow_dynamics::last_updated_by_type(&self.borrow_dynamics, coin_type) == current_timestamp, error::interest_is_not_accrued_error());
     reserve::handle_repay(&mut self.vault, balance);
     update_interest_rates(self);
   }
@@ -251,6 +265,13 @@ module protocol::market {
     reserve::handle_liquidation(&mut self.vault, balance, revenue_balance);
     collateral_stats::decrease(&mut self.collateral_stats, get<CollateralType>(), liquidate_amount);
     update_interest_rates(self);
+  }
+
+  public(friend) fun init_market_coin_price_table(
+    self: &mut Market,
+    ctx: &mut TxContext,
+  ) {
+    reserve::init_market_coin_price_table(&mut self.vault, ctx);
   }
   
   public(friend) fun handle_redeem<T>(
@@ -368,5 +389,47 @@ module protocol::market {
       borrow_dynamics::update_interest_rate(&mut self.borrow_dynamics, type, new_interest_rate, interest_rate_scale);
       i = i + 1;
     };
+  }
+
+  public fun get_current_borrow_apr(
+    self: &Market,
+    type_name: TypeName,
+  ): Decimal {
+    let debt_dynamic = wit_table::borrow(&self.borrow_dynamics, type_name);
+
+    let interest_rate_scaled = decimal::from_fixed_point32(borrow_dynamics::interest_rate(debt_dynamic));
+    let interest_rate = decimal::div(interest_rate_scaled, decimal::from(borrow_dynamics::interest_rate_scale(debt_dynamic)));
+
+    decimal::mul(interest_rate, decimal::from(SECONDS_IN_A_YEAR))
+  }
+
+  public fun get_current_lending_apr(
+    self: &Market,
+    type_name: TypeName,
+  ): Decimal {
+    let borrow_apr = get_current_borrow_apr(self, type_name);
+    let util_rate = decimal::from_fixed_point32(reserve::util_rate(&self.vault, type_name));
+    let interest_model = ac_table::borrow(&self.interest_models, type_name);
+    let revenue_factor = decimal::from_fixed_point32(interest_model::revenue_factor(interest_model));
+
+    // supply APR = borrow APR * utilization rate * (1 - revenue factor)
+    decimal::mul(
+      borrow_apr,
+      decimal::mul(
+        util_rate,
+        decimal::sub(
+          decimal::from(1),
+          revenue_factor
+        )
+      )
+    )
+  }
+
+  // check if sender have access
+  public fun assert_whitelist_access(self: &Market, ctx: &TxContext) {
+    assert!(
+      whitelist::is_address_allowed(uid(self), tx_context::sender(ctx)),
+      error::whitelist_error()
+    );
   }
 }

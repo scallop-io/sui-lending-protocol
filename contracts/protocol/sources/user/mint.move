@@ -67,10 +67,7 @@ module protocol::mint {
     version::assert_current_version(version);
 
     // check if sender is in whitelist
-    assert!(
-      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
-      error::whitelist_error()
-    );
+    market::assert_whitelist_access(market, ctx);
 
     let coin_type = type_name::get<T>();
     // check if base asset is active
@@ -78,6 +75,8 @@ module protocol::mint {
       market::is_base_asset_active(market, coin_type),
       error::base_asset_not_active_error()
     );
+
+    assert!(coin::value(&coin) > 0, error::mint_with_zero_amount_error());
 
     let now = clock::timestamp_ms(clock) / 1000;
     let deposit_amount = coin::value(&coin);

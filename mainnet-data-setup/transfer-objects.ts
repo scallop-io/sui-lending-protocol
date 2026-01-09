@@ -4,9 +4,9 @@ import { SuiTxBlock } from '@scallop-io/sui-kit';
 transferObjects().then(console.log);
 async function transferObjects() {
   const objects = [
-    '0x6fe6200624299584c2a96cdcdba6461bd07fe42d2640efb549a15d947f0a0521',
+    '0xcd8f2b7c4e82f618c9979dacd3cea0dcf1939637d60ffe23413a53153895cfe5',
   ]
-  const recipient = '0x473c5b346a779b7d6271a94fccc4c0d75c380a9f478cd7afaec79127a715c519';
+  const recipient = '0x66b12e98c51d86f0823c39b5555c557d6044822abe5cdb68f0fe761e5bffed08';
 
   const tx = new SuiTxBlock();
   tx.transferObjects(objects, recipient);

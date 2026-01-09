@@ -96,23 +96,17 @@ module x_oracle::x_oracle {
   }
 
   public fun add_primary_price_update_rule<Rule: drop>(
-    self: &mut XOracle,
-    cap: &XOraclePolicyCap,
+    _self: &mut XOracle,
+    _cap: &XOraclePolicyCap,
   ) {
-    price_update_policy::add_rule<Rule>(
-      &mut self.primary_price_update_policy,
-      &cap.primary_price_update_policy_cap
-    );
+    abort 0
   }
 
   public fun remove_primary_price_update_rule<Rule: drop>(
-    self: &mut XOracle,
-    cap: &XOraclePolicyCap,
+    _self: &mut XOracle,
+    _cap: &XOraclePolicyCap,
   ) {
-    price_update_policy::remove_rule<Rule>(
-      &mut self.primary_price_update_policy,
-      &cap.primary_price_update_policy_cap
-    );
+    abort 0
   }
 
   public fun add_secondary_price_update_rule_v2<CoinType, Rule: drop>(
@@ -136,23 +130,17 @@ module x_oracle::x_oracle {
   }  
 
   public fun add_secondary_price_update_rule<Rule: drop>(
-    self: &mut XOracle,
-    cap: &XOraclePolicyCap,
+    _self: &mut XOracle,
+    _cap: &XOraclePolicyCap,
   ) {
-    price_update_policy::add_rule<Rule>(
-      &mut self.secondary_price_update_policy,
-      &cap.secondary_price_update_policy_cap
-    );
+    abort 0
   }
 
   public fun remove_secondary_price_update_rule<Rule: drop>(
-    self: &mut XOracle,
-    cap: &XOraclePolicyCap,
+    _self: &mut XOracle,
+    _cap: &XOraclePolicyCap,
   ) {
-    price_update_policy::remove_rule<Rule>(
-      &mut self.secondary_price_update_policy,
-      &cap.secondary_price_update_policy_cap
-    );
+    abort 0
   }
 
   // === Price Update ===

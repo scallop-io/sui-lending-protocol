@@ -12,6 +12,8 @@ module protocol::reserve {
   use x::wit_table::{Self, WitTable};
   use math::u64;
   use sui::dynamic_field;
+  use sui::table::{Self, Table};
+  use decimal::decimal::{Self, Decimal};
   use protocol::error;
 
   friend protocol::market;
@@ -44,10 +46,13 @@ module protocol::reserve {
     flash_loan_fees: WitTable<FlashLoanFees, TypeName, u64>,
   }
 
+  struct MarketCoinPriceTableKey has copy, store, drop {}
+
   struct BorrowFeeVaultKey has copy, store, drop {}
 
   public fun flash_loan_loan_amount<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.loan_amount }
   public fun flash_loan_fee<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.fee }
+  public fun flash_loan_fee_denominator(): u64 { FlashloanFeeScale }
   
   public fun market_coin_supplies(vault: &Reserve): &SupplyBag { &vault.market_coin_supplies }
   public fun underlying_balances(vault: &Reserve): &BalanceBag { &vault.underlying_balances }
@@ -78,7 +83,51 @@ module protocol::reserve {
     wit_table::add(BalanceSheets{}, &mut self.balance_sheets, get<T>(), balance_sheet);
     wit_table::add(FlashLoanFees{}, &mut self.flash_loan_fees, get<T>(), 0);
   }
-  
+
+  /// Intialize a table to store market coin prices instead of purely relying on the balance sheet.
+  /// This is to make sure that the market coin price is always increasing or at least not decreasing.
+  /// It's to preventing the market coin price from being manipulated by unexpected behavior.
+  public(friend) fun init_market_coin_price_table(
+    self: &mut Reserve,
+    ctx: &mut TxContext,
+  ) {
+    if (dynamic_field::exists_with_type<MarketCoinPriceTableKey, Table<TypeName, Decimal>>(&self.id, MarketCoinPriceTableKey{})) {
+      return; // already initialized
+    };
+    let price_table = table::new<TypeName, Decimal>(ctx);
+    dynamic_field::add(&mut self.id, MarketCoinPriceTableKey{}, price_table);
+  }
+
+  /// This function do 2 things: first update the market coin price based on the balance sheet, and return the new price.
+  fun update_and_get_market_coin_price(
+    self: &mut Reserve,
+    coin_type: TypeName,
+  ): Decimal {
+    let price_table = dynamic_field::borrow_mut<MarketCoinPriceTableKey, Table<TypeName, Decimal>>(&mut self.id, MarketCoinPriceTableKey{});
+
+    // In the beginning, we assume the market coin price is 1, so we need to initialize it.
+    if (table::contains(price_table, coin_type) == false) {
+      table::add(price_table, coin_type, decimal::from(1));
+    };
+
+    let price = table::borrow_mut<TypeName, Decimal>(price_table, coin_type);
+
+    let old_price = *price;
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, coin_type);
+    let new_price = if (balance_sheet.market_coin_supply > 0) {
+      let potential_price = decimal::div(
+        decimal::from(balance_sheet.cash + balance_sheet.debt - balance_sheet.revenue),
+        decimal::from(balance_sheet.market_coin_supply)
+      );
+      assert!(decimal::ge(potential_price, old_price), error::market_coin_price_cannot_decrease_error());
+      potential_price
+    } else {
+      decimal::from(1)
+    };
+    *price = new_price;
+    new_price
+  }
+
   public fun util_rate(self: &Reserve, type_name: TypeName): FixedPoint32 {
     let balance_sheet = wit_table::borrow(&self.balance_sheets, type_name);
     if (balance_sheet.debt > 0)  {
@@ -158,19 +207,16 @@ module protocol::reserve {
   ): Balance<MarketCoin<T>> {
     // Calculate how much market coin should be minted
     let underlying_amount = balance::value(&underlying_balance);
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
-    let mint_amount = if (balance_sheet.market_coin_supply > 0) {
-      u64::mul_div(
-        underlying_amount,
-        balance_sheet.market_coin_supply,
-        balance_sheet.cash + balance_sheet.debt - balance_sheet.revenue
-      )
-    } else {
-      underlying_amount
-    };
+    let price = update_and_get_market_coin_price(self, get<T>());
+    let mint_amount_decimal = decimal::div(
+      decimal::from(underlying_amount),
+      price
+    );
+    let mint_amount = decimal::floor(mint_amount_decimal);
     assert!(mint_amount > 0, error::mint_market_coin_too_small_error());
 
     // Update balance sheet
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     balance_sheet.cash = balance_sheet.cash + underlying_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply + mint_amount;
 
@@ -185,17 +231,18 @@ module protocol::reserve {
   ): Balance<T> {
     // Calculate how much underlying coin should be redeemed
     let market_coin_amount = balance::value(&market_coin_balance);
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
-    let redeem_amount = u64::mul_div(
-      market_coin_amount,
-      balance_sheet.cash + balance_sheet.debt - balance_sheet.revenue,
-      balance_sheet.market_coin_supply
+    let price = update_and_get_market_coin_price(self, get<T>());
+    let redeem_amount_decimal = decimal::mul(
+      decimal::from(market_coin_amount),
+      price
     );
+    let redeem_amount = decimal::floor(redeem_amount_decimal);
 
     assert!(redeem_amount > 0, error::redeem_market_coin_too_small_error());
-    assert!(balance_sheet.cash >= redeem_amount, error::reserve_not_enough_error());
 
     // Update balance sheet
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    assert!(balance_sheet.cash >= redeem_amount, error::reserve_not_enough_error());
     balance_sheet.cash = balance_sheet.cash - redeem_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply - market_coin_amount;
 
@@ -230,11 +277,14 @@ module protocol::reserve {
     fee_discount_numerator: u64,
     fee_discount_denominator: u64,
   ): (Balance<T>, FlashLoan<T>) {
+    assert!(fee_discount_denominator > 0, error::invalid_flash_loan_fee_discount_error());
+    assert!(fee_discount_numerator <= fee_discount_denominator, error::invalid_flash_loan_fee_discount_error());
+
     let balance = balance_bag::split<T>(&mut self.underlying_balances, amount);
     let fee_rate = *wit_table::borrow(&self.flash_loan_fees, get<T>());
     let base_fee = if (fee_rate > 0) {
       // charge at least 1 unit of coin when fee_rate is not 0
-      amount * fee_rate / FlashloanFeeScale + 1
+      u64::mul_div(amount, fee_rate, FlashloanFeeScale) + 1
     } else {
       0
     };

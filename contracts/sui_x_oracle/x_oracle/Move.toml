@@ -1,7 +1,7 @@
 [package]
 name = "XOracle"
 version = "0.0.1"
-published-at = "0x897ebc619bdb4c3d9e8d86fb85b86cfd5d861b1696d26175c55ed14903a372f6"
+published-at = "0xbf926dd6ecdd3bb5231659b739e20cf864dc12f13c5b4c8b939d00fa70350b3a"
 
 [dependencies.Sui]
 git = "https://github.com/MystenLabs/sui.git"

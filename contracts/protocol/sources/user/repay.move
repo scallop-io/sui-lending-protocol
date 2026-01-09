@@ -49,10 +49,7 @@ module protocol::repay {
     assert!(coin::value(&user_coin) > 0, error::zero_repay_amount_error());
 
     // check if sender is in whitelist
-    assert!(
-      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
-      error::whitelist_error()
-    );
+    market::assert_whitelist_access(market, ctx);
 
     // check if obligation is locked, if locked, unlock is needed before calling this
     // This is a mechanism to enforce some actions to be done before repay
@@ -68,7 +65,7 @@ module protocol::repay {
     // always accrued all the interest before doing any actions
     // Because all actions should based on the latest state
     market::accrue_all_interests(market, now);
-    obligation::accrue_interests_and_rewards(obligation, market);
+    obligation::accrue_interests(obligation, market);
 
     // If the given coin is more than the debt, repay the debt only
     let (debt_amount, _) = obligation::debt(obligation, coin_type);
@@ -76,7 +73,7 @@ module protocol::repay {
     let repay_coin = coin::split<T>(&mut user_coin, repay_amount, ctx);
 
     // Put the repay asset into market
-    market::handle_repay<T>(market, coin::into_balance(repay_coin));
+    market::handle_repay<T>(market, coin::into_balance(repay_coin), now);
 
     // Decrease repay amount to the outflow limiter
     market::handle_inflow<T>(market, repay_amount, now);

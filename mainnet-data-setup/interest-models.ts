@@ -44,7 +44,7 @@ export const scaInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 0 * (scale / 100), // 0%
+  revenueFactor: 1 * (scale / 100), // 1%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.sca - 1), // 0.1 SCA
@@ -112,7 +112,7 @@ export const wormholeUsdtInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.wormholeUsdt - 2), // 0.01 USDT
@@ -228,10 +228,10 @@ export const nativeUsdcInterestModel: InterestModel = {
   borrowRateOnHighKink: getRatePerSec(25), // 25%
   maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink, // 80%
-  highKink, // 90%
+  midKink: 85 * (scale / 100), // 85%
+  highKink: 95 * (scale / 100), // 95%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.nativeUsdc - 2), // 0.01 USDC
@@ -265,7 +265,7 @@ export const deepInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 40 * (scale / 100), // 40%
+  revenueFactor: 30 * (scale / 100), // 30%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.deep + 1), // 10 DEEP
@@ -296,10 +296,10 @@ export const fdusdInterestModel: InterestModel = {
   borrowRateOnHighKink: getRatePerSec(25), // 25%
   maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink, // 80%
-  highKink, // 90%
+  midKink: 85 * (scale / 100), // 85%
+  highKink: 95 * (scale / 100), // 95%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.fdusd - 2), // 0.01 FDUSD
@@ -313,10 +313,10 @@ export const sbUsdtInterestModel: InterestModel = {
   borrowRateOnHighKink: getRatePerSec(25), // 25%
   maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink, // 80%
-  highKink, // 90%
+  midKink: 85 * (scale / 100), // 85%
+  highKink: 95 * (scale / 100), // 95%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.sbUsdt - 2), // 0.01 USDT
@@ -347,10 +347,10 @@ export const usdyInterestModel: InterestModel = {
   borrowRateOnHighKink: getRatePerSec(25), // 25%
   maxBorrowRate: getRatePerSec(150), // 150%
 
-  midKink, // 80%
-  highKink, // 90%
+  midKink: 85 * (scale / 100), // 85%
+  highKink: 95 * (scale / 100), // 95%
 
-  revenueFactor: 30 * (scale / 100), // 30%
+  revenueFactor: 20 * (scale / 100), // 20%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.usdy - 2), // 0.01 USDY
@@ -390,6 +390,23 @@ export const nsInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.ns - 1), // 0.1 NS
 };
 
+export const lofiInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(20),
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(600), // 600%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor: 50 * (scale / 100), // 50%
+  borrowWeight: (scale * 1.25), // 125%
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.lofi), // 1 LOFI
+};
+
 export const haedalInterestModel: InterestModel = {
   baseBorrowRatePerSec: getRatePerSec(20),
   interestRateScale,
@@ -402,7 +419,7 @@ export const haedalInterestModel: InterestModel = {
   highKink, // 90%
 
   revenueFactor: 40 * (scale / 100), // 40%
-  borrowWeight: (scale * 1.25), // 125%
+  borrowWeight, // 100%
   scale,
   minBorrowAmount: 10 ** (coinDecimals.haedal - 1), // 0.1 NS
 };
@@ -418,10 +435,61 @@ export const walInterestModel: InterestModel = {
   midKink, // 80%
   highKink, // 90%
 
-  revenueFactor: 40 * (scale / 100), // 40%
+  revenueFactor: 30 * (scale / 100), // 30%
   borrowWeight, // 1
   scale,
   minBorrowAmount: 10 ** (coinDecimals.wal - 2), // 0.01 WAL
+};
+
+export const xBtcInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(5), // 5%
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(30), // 30%
+  maxBorrowRate: getRatePerSec(150), // 150%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor, // 20%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.xBTC - 6), // 0.000001 xBTC
+};
+
+export const wWalInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(20),
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(600), // 600%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor: 30 * (scale / 100), // 30%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.wWal - 2), // 0.01 wWAL
+};
+
+export const haWalInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(20),
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(30), // 30%
+  borrowRateOnHighKink: getRatePerSec(50), // 50%
+  maxBorrowRate: getRatePerSec(600), // 600%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor: 30 * (scale / 100), // 30%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.haWal - 2), // 0.01 haWAL
 };
 
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
@@ -449,4 +517,8 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   usdy: usdyInterestModel,
   wal: walInterestModel,
   haedal: haedalInterestModel,
+  xBTC: xBtcInterestModel,
+  wWal: wWalInterestModel,
+  haWal: haWalInterestModel,
+  lofi: lofiInterestModel,
 }

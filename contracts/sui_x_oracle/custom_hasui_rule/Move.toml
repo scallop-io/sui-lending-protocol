@@ -1,0 +1,20 @@
+[package]
+name = "CustomHasuiRule"
+version = "0.0.1"
+edition = "2024.beta"
+
+[dependencies.haedal]
+git = "https://github.com/nathanramli/haedal-protocol-interface.git"
+rev = "main"
+
+[dependencies.Pyth]
+local = "../pyth_rule/vendors/pyth"
+
+[dependencies.XOracle]
+local = "../x_oracle"
+
+[dependencies.Decimal]
+local = "../../libs/decimal"
+
+[addresses]
+custom_hasui_rule = "0x0"

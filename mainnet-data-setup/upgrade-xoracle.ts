@@ -20,6 +20,11 @@ const createUpgradeXOracleTx = async (client: SuiClient, publisher: string) => {
     client,
     publisher,
   );
+
+  const resp = await suiKit.client().dryRunTransactionBlock({
+    transactionBlock: res.txBytesBase64
+  })
+  console.log(resp.effects.status);
   return res.txBytesBase64;
 }
 

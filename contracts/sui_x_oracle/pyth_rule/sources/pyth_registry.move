@@ -11,6 +11,7 @@ module pyth_rule::pyth_registry {
   const ERR_ILLEGAL_PYTH_PRICE_OBJECT: u64 = 0x11205;
   const ERR_ILLEGAL_REGISTRY_CAP: u64 = 0x11206;
   const ERR_INVALID_CONF_TOLERANCE: u64 = 0x11207;
+  const ERR_PYTH_FEED_NOT_FOUND: u64 = 0x11208;
 
   const CONF_TOLERANCE_DENOMINATOR: u64 = 10_000;
 
@@ -59,7 +60,7 @@ module pyth_rule::pyth_registry {
     pyth_feed_data.conf_tolerance
   }
 
-  public entry fun register_pyth_feed<CoinType>(
+  public fun register_pyth_feed<CoinType>(
     pyth_registry: &mut PythRegistry,
     pyth_registry_cap: &PythRegistryCap,
     pyth_info_object: &PriceInfoObject,
@@ -67,10 +68,7 @@ module pyth_rule::pyth_registry {
   ) {
     assert!(pyth_feed_confidence_tolerance <= conf_tolerance_denominator(), ERR_INVALID_CONF_TOLERANCE);
     assert!(object::id(pyth_registry) == pyth_registry_cap.for, ERR_ILLEGAL_REGISTRY_CAP);
-    let coin_type = type_name::get<CoinType>();
-    if (table::contains(&pyth_registry.table, coin_type)) {
-      table::remove<TypeName, PythFeedData>(&mut pyth_registry.table, coin_type);
-    };
+    let coin_type = type_name::with_defining_ids<CoinType>();
     table::add(&mut pyth_registry.table, coin_type, 
     PythFeedData {
       feed: object::id(pyth_info_object),
@@ -78,11 +76,22 @@ module pyth_rule::pyth_registry {
     });
   }
 
+  public fun remove_pyth_feed<CoinType>(
+    pyth_registry: &mut PythRegistry,
+    pyth_registry_cap: &PythRegistryCap,
+  ) {
+    assert!(object::id(pyth_registry) == pyth_registry_cap.for, ERR_ILLEGAL_REGISTRY_CAP);
+    
+    let coin_type = type_name::with_defining_ids<CoinType>();
+    assert!(table::contains(&pyth_registry.table, coin_type), ERR_PYTH_FEED_NOT_FOUND);
+    table::remove<TypeName, PythFeedData>(&mut pyth_registry.table, coin_type);
+  }
+
   public fun assert_pyth_price_info_object<CoinType>(
     pyth_registry: &PythRegistry,
     price_info_object: &PriceInfoObject,
   ) {
-    let coin_type = type_name::get<CoinType>();
+    let coin_type = type_name::with_defining_ids<CoinType>();
     let pyth_feed_data = table::borrow(&pyth_registry.table, coin_type);
     assert!(object::id(price_info_object) == pyth_feed_data.feed, ERR_ILLEGAL_PYTH_PRICE_OBJECT);
   }

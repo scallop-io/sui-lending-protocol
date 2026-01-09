@@ -21,6 +21,7 @@ export const oracles: Record<SupportedBaseAssets | SupportedCollaterals, OracleD
   wormholeEth: { pythPriceObjectId: pythOracleData.priceFeeds.eth_usd.priceFeedObjectId },
   wormholeBtc: { pythPriceObjectId: pythOracleData.priceFeeds.btc_usd.priceFeedObjectId },
   sbwBTC: { pythPriceObjectId: pythOracleData.priceFeeds.btc_usd.priceFeedObjectId },
+  xBTC: { pythPriceObjectId: pythOracleData.priceFeeds.btc_usd.priceFeedObjectId },
   wormholeSol: { pythPriceObjectId: pythOracleData.priceFeeds.sol_usd.priceFeedObjectId },
   nativeUsdc: { pythPriceObjectId: pythOracleData.priceFeeds.usdc_usd.priceFeedObjectId },
   sbEth: { pythPriceObjectId: pythOracleData.priceFeeds.eth_usd.priceFeedObjectId },
@@ -34,4 +35,7 @@ export const oracles: Record<SupportedBaseAssets | SupportedCollaterals, OracleD
   usdy: { pythPriceObjectId: pythOracleData.priceFeeds.usdy_rr_usd.priceFeedObjectId },
   wal: { pythPriceObjectId: pythOracleData.priceFeeds.wal_usd.priceFeedObjectId },
   haedal: { pythPriceObjectId: pythOracleData.priceFeeds.haedal_usd.priceFeedObjectId },
+  wWal: { pythPriceObjectId: pythOracleData.priceFeeds.wal_usd.priceFeedObjectId },
+  haWal: { pythPriceObjectId: pythOracleData.priceFeeds.wal_usd.priceFeedObjectId },
+  lofi: { pythPriceObjectId: pythOracleData.priceFeeds.lofi_usd.priceFeedObjectId },
 };

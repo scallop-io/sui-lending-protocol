@@ -21,6 +21,9 @@ export type SupportedCollaterals =
   | 'wal'
   | 'deep'
   | 'xBTC'
+  | 'haedal'
+  | 'wWal'
+  | 'haWal'
 ;
 
 export type SupportedBaseAssets =
@@ -49,6 +52,9 @@ export type SupportedBaseAssets =
   | 'wal'
   | 'haedal'
   | 'xBTC'
+  | 'wWal'
+  | 'haWal'
+  | 'lofi'
 ;
 
 export const coinTypes = {
@@ -78,6 +84,9 @@ export const coinTypes = {
   wal: '0x356a26eb9e012a68958082340d4c4116e7f55615cf27affcff209cf0ae544f59::wal::WAL',
   haedal: '0x3a304c7feba2d819ea57c3542d68439ca2c386ba02159c740f7b406e592c62ea::haedal::HAEDAL',
   xBTC: '0x876a4b7bce8aeaef60464c11f4026903e9afacab79b9b142686158aa86560b50::xbtc::XBTC',
+  wWal: '0xb1b0650a8862e30e3f604fd6c5838bc25464b8d3d827fbd58af7cb9685b832bf::wwal::WWAL',
+  haWal: '0x8b4d553839b219c3fd47608a0cc3d5fcc572cb25d41b7df3833208586a8d2470::hawal::HAWAL',
+  lofi: '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503::LOFI::LOFI',
 };
 
 export const coinMetadataIds = {
@@ -107,6 +116,9 @@ export const coinMetadataIds = {
   wal: '0xcf8a31804ae40cb3e7183fe57320f87467a7750d4fa701bca1ffbb1edd37781e',
   haedal: '0xcc89fcc22f0d13de3688b94fa16d64a22079186a941914280c67101ff754263c',
   xBTC: '0x2d8943412f7570da1c4dcdb5283683d0946ae97362d0373bc9212f952327e112',
+  wWal: '0xb99b3755f138d5a56b3bbc1b9cc19ed7da9be82c79844b39ff84d5c438ee5c40',
+  haWal: '0x285c96e598e2861a898eff9331a5ffeb9e2199cdb02f6ba52f311b0fab5c47cf',
+  lofi: '0x57a2bf5e6887eca522fe6c3ff0d9d8dc116d072998a477c6c24fe6603107ebb8',
 };
 
 export const coinDecimals = {
@@ -136,4 +148,7 @@ export const coinDecimals = {
   wal: 9,
   haedal: 9,
   xBTC: 8,
+  wWal: 9,
+  haWal: 9,
+  lofi: 9,
 }

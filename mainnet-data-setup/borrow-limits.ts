@@ -21,13 +21,16 @@ export const BorrowLimits: Record<SupportedBaseAssets, number> = {
     nativeUsdc: 5e7 * Math.pow(10, coinDecimals.nativeUsdc),
     sbEth: 5e3 * Math.pow(10, coinDecimals.sbEth),
     deep: 180_000_000 * Math.pow(10, coinDecimals.deep),
-    fud: 2_400_000_000_000 * Math.pow(10, coinDecimals.fud),
+    fud: 0 * Math.pow(10, coinDecimals.fud),
     fdusd: 5e6 * Math.pow(10, coinDecimals.fdusd), // 5M
     sbUsdt: 1e7 * Math.pow(10, coinDecimals.sbUsdt),
-    blub: 24e12 * Math.pow(10, coinDecimals.blub), // 24T
+    blub: 0 * Math.pow(10, coinDecimals.blub),
     mUsd: 2e6 * Math.pow(10, coinDecimals.mUsd), // 2M
     ns: 5e6 * Math.pow(10, coinDecimals.ns), // 5M
     usdy: 5e6 * Math.pow(10, coinDecimals.usdy), // 5M
     wal: 18_000_000 * Math.pow(10, coinDecimals.wal), // 18M
     haedal: 5_000_000 * Math.pow(10, coinDecimals.haedal), // 5M
+    wWal: 8_000_000 * Math.pow(10, coinDecimals.wWal), // 8M
+    haWal: 8_000_000 * Math.pow(10, coinDecimals.haWal), // 8M
+    lofi: 0 * Math.pow(10, coinDecimals.lofi),
 }

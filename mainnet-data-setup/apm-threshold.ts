@@ -1,8 +1,8 @@
 import {
-    SupportedBaseAssets,
+    SupportedCollaterals,
 } from './chain-data';
 
-export const ApmThresholds: Record<SupportedBaseAssets, number> = {
+export const ApmThresholds: Record<SupportedCollaterals, number> = {
     sui: 100,
     wormholeUsdc: 100,
     wormholeUsdt: 100,
@@ -19,13 +19,11 @@ export const ApmThresholds: Record<SupportedBaseAssets, number> = {
     nativeUsdc: 100,
     sbEth: 100,
     deep: 100,
-    fud: 100,
     fdusd: 100,
     sbUsdt: 100,
-    blub: 100,
-    mUsd: 100,
-    ns: 100,
     usdy: 100,
     wal: 100,
     haedal: 100,
+    wWal: 100,
+    haWal: 100,
 }

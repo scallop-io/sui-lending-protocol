@@ -667,4 +667,16 @@ export class ProtocolTxBuilder {
       ],
     );
   }
+
+  freezeProtocol(
+    suiTxBlock: SuiTxBlock,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::freeze_protocol`,
+      [
+        suiTxBlock.object(this.versionId),
+        suiTxBlock.object(this.marketId),
+      ],
+    );
+  }
 }

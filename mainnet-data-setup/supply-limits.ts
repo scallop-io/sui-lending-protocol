@@ -17,6 +17,7 @@ export const SupplyLimits: Record<SupportedBaseAssets, number> = {
   wormholeBtc: 0 * Math.pow(10, coinDecimals.wormholeBtc),
   sbwBTC: 20 * Math.pow(10, coinDecimals.sbwBTC),
   xBTC: 10 * Math.pow(10, coinDecimals.xBTC),
+  zWBtc: 10 * Math.pow(10, coinDecimals.zWBtc),
   wormholeSol: 2e4 * Math.pow(10, coinDecimals.wormholeSol),
   nativeUsdc: 7e7 * Math.pow(10, coinDecimals.nativeUsdc),
   sbEth: 5e3 * Math.pow(10, coinDecimals.sbEth),

@@ -17,11 +17,13 @@ import { BorrowLimits } from './borrow-limits';
 import { suiKit } from 'sui-elements';
 import { xOracleTxBuilder } from 'contracts/sui_x_oracle';
 import { riskModels } from './risk-models';
+import { MinCollaterals } from './min-collateral';
+import { ApmThresholds } from './apm-threshold';
 
 async function addNewPool_xBTC() {
   const tx = new SuiTxBlock();
-  const coin = 'xBTC';
-  const dustCoinId = '0x095daf559cadd7d02279adf74ced09bd017c4df1225ca45dbbeff6f275f156ce'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'zWBtc';
+  const dustCoinId = '0x9f757d22feb69ef9acd29f13e1631964fedfea16c5193fd8cc741251f6ac9369'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
   protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
@@ -30,6 +32,8 @@ async function addNewPool_xBTC() {
   protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
+  protocolTxBuilder.updateMinCollateral(tx, MinCollaterals[coin], coinType);
+  protocolTxBuilder.setApmThreshold(tx, ApmThresholds[coin], coinType);
 
   pythRuleTxBuilder.registerPythFeed(tx, oracles[coin].pythPriceObjectId, pythRuleTxBuilder.calculatePriceConfidenceTolerance(2), coinType);
   xOracleTxBuilder.addPrimaryPriceUpdateRuleV2(tx, coinType, pythRuleStructType);

@@ -147,5 +147,10 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowLimit: 1_000_000 * 10 ** (coinDecimals.lofi), // 1M LOFI per day
     outflowCycleDuration,
     outflowSegmentDuration,
-  }
+  },
+  zWBtc: {
+    outflowLimit: 2 * 10 ** (0 + coinDecimals.zWBtc), // 2 zWBtc per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
 }

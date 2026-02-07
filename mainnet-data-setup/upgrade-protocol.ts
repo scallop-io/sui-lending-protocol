@@ -44,13 +44,14 @@ const createUpgradeProtocolTx = async (client: SuiClient, publisher: string) => 
     client,
     publisher,
   );
-  const resp = await suiKit.client().dryRunTransactionBlock({
+  if (!res) return;
+  const resp = await client.dryRunTransactionBlock({
     transactionBlock: res.txBytesBase64
   })
   console.log(resp.effects.status);
   return res.txBytesBase64;
 }
 
-createUpgradeProtocolTx(suiKit.client(), MULTI_SIG_ADDRESS).then(console.log).catch(console.error).finally(() => process.exit(0));
+createUpgradeProtocolTx(suiKit.client, MULTI_SIG_ADDRESS).then(console.log).catch(console.error).finally(() => process.exit(0));
 
 // createUpgradeProtocolTx(suiKit.client(), suiKit.currentAddress()).then(console.log).catch(console.error).finally(() => process.exit(0));

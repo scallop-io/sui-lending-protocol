@@ -10,6 +10,6 @@ export const networkType = (process.env.SUI_NETWORK_TYPE || 'testnet') as Networ
 export const suiKit = new SuiKit({ secretKey, networkType });
 
 console.log(networkType);
-console.log(suiKit.currentAddress());
+console.log(suiKit.currentAddress);
 
 export const packagePublisher = new SuiAdvancePackagePublisher({ networkType });

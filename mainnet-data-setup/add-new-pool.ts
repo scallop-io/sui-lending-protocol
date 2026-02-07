@@ -46,7 +46,7 @@ async function addNewPool_xBTC() {
   tx.transferObjects([dustToBurn], voidAddress);
 
   const txBytes = await buildMultiSigTx(tx);
-  const resp = await suiKit.client().dryRunTransactionBlock({
+  const resp = await suiKit.client.dryRunTransactionBlock({
       transactionBlock: txBytes
   })
   console.log(resp.effects.status);

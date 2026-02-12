@@ -24,7 +24,6 @@ module protocol::market {
   use protocol::asset_active_state::{Self, AssetActiveStates};
   use protocol::error;
   use x_oracle::x_oracle::XOracle;
-  use math::fixed_point32_empower;
   use decimal::decimal::{Self, Decimal};
   use whitelist::whitelist;
   use sui::tx_context;
@@ -267,6 +266,20 @@ module protocol::market {
     update_interest_rates(self);
   }
 
+  public(friend) fun handle_liquidation_v2<DebtType, CollateralType>(
+    self: &mut Market,
+    repay_balance: Balance<DebtType>,
+    collateral_revenue: Balance<CollateralType>,
+    liquidate_amount: u64, // liquidate amount of the collateral
+  ) {
+    // Handle debt repayment (full repay amount goes to debt reduction)
+    reserve::handle_repay(&mut self.vault, repay_balance);
+    // Handle protocol revenue in collateral type
+    reserve::handle_revenue(&mut self.vault, collateral_revenue);
+    collateral_stats::decrease(&mut self.collateral_stats, get<CollateralType>(), liquidate_amount);
+    update_interest_rates(self);
+  }
+
   public(friend) fun init_market_coin_price_table(
     self: &mut Market,
     ctx: &mut TxContext,
@@ -365,12 +378,11 @@ module protocol::market {
       let old_borrow_index = borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type);
       borrow_dynamics::update_borrow_index(&mut self.borrow_dynamics, type, now);
       let new_borrow_index = borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type);
-      let debt_increase_rate = fixed_point32_empower::sub(fixed_point32::create_from_rational(new_borrow_index, old_borrow_index), fixed_point32_empower::from_u64(1));
       // get revenue factor
       let interest_model = ac_table::borrow(&self.interest_models, type);
       let revenue_factor = interest_model::revenue_factor(interest_model);
-      // update market debt
-      reserve::increase_debt(&mut self.vault, type, debt_increase_rate, revenue_factor);
+      // update market debt using index-based calculation (prevents ghost debt)
+      reserve::increase_debt_v2(&mut self.vault, type, new_borrow_index, old_borrow_index, revenue_factor);
       i = i + 1;
     };
   }

@@ -123,6 +123,94 @@ module protocol::liquidation_evaluator {
     (max_repay_amount, max_liq_amount)
   }
 
+  // calculate the maximum repay amount for the given debt type
+  public fun max_repay_amount<DebtType>(
+    obligation: &Obligation,
+    market: &Market,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    x_oracle: &XOracle,
+    clock: &Clock,
+  ): u64 {
+
+    let debt_type = type_name::get<DebtType>();
+
+    // get all the necessary parameters for liquidation
+    let interest_model = market::interest_model(market, debt_type);
+    let borrow_weight = interest_model::borrow_weight(interest_model);
+    let debt_decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
+    let debt_scale = math::pow(10, debt_decimals);
+    let debt_price = get_price(x_oracle, debt_type, clock);
+
+    // calculate the value of collaterals and debts for liquidation
+    let collaterals_value = collaterals_value_usd_for_liquidation(obligation, market, coin_decimals_registry, x_oracle, clock);
+    let weighted_debts_value = debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle, clock);
+
+    // when collaterals_value >= weighted_debts_value, the obligation is not liquidatable
+    if (!fixed_point32_empower::gt(weighted_debts_value, collaterals_value)) {
+      return 0
+    };
+
+    // max_repay_value = bad_debt_value / borrow_weight (in USD)
+    // max_repay_amount = max_repay_value * debt_scale / debt_price (in debt token units)
+    let bad_debt_value = fixed_point32_empower::sub(weighted_debts_value, collaterals_value);
+    let debt_price_weighted = fixed_point32_empower::mul(debt_price, borrow_weight);
+    let max_repay_amount = fixed_point32::multiply_u64(
+      debt_scale,
+      fixed_point32_empower::div(bad_debt_value, debt_price_weighted)
+    );
+
+    // Cap by total debt amount
+    let (total_debt_amount, _) = obligation::debt(obligation, debt_type);
+    math::min(max_repay_amount, total_debt_amount)
+  }
+
+  /// Calculate the collateral taken amount for liquidator, and protocol based on the repayed debt amount
+  /// Returns (liquidator_collateral_amount, protocol_collateral_amount)
+  public fun debt_to_collateral_amount<DebtType, CollateralType>(
+    market: &Market,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    x_oracle: &XOracle,
+    debt_amount: u64,
+    clock: &Clock,
+  ): (u64, u64) {
+    let collateral_type = type_name::get<CollateralType>();
+    let debt_type = type_name::get<DebtType>();
+
+    let risk_model = market::risk_model(market, collateral_type);
+    let liq_discount = risk_model::liq_discount(risk_model);
+    let liq_revenue_factor = risk_model::liq_revenue_factor(risk_model);
+
+    let collateral_decimals = coin_decimals_registry::decimals(coin_decimals_registry, collateral_type);
+    let debt_decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
+    let collateral_scale = math::pow(10, collateral_decimals);
+    let debt_scale = math::pow(10, debt_decimals);
+    let collateral_price = get_price(x_oracle, collateral_type, clock);
+    let debt_price = get_price(x_oracle, debt_type, clock);
+
+    // base exchange rate: collateral tokens per debt token at market prices
+    let exchange_rate = fixed_point32_empower::mul(
+      fixed_point32::create_from_rational(collateral_scale, debt_scale),
+      fixed_point32_empower::div(debt_price, collateral_price),
+    );
+
+    // Liquidator gets collateral at a discounted price (bonus for liquidating)
+    // liq_exchange_rate = exchange_rate / (1 - liq_discount)
+    let liq_exchange_rate = fixed_point32_empower::div(
+      exchange_rate,
+      fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), liq_discount)
+    );
+    let liquidator_amount = fixed_point32::multiply_u64(debt_amount, liq_exchange_rate);
+
+    // Protocol gets a small percentage of collateral as revenue
+    // protocol_amount = debt_amount * exchange_rate * liq_revenue_factor
+    let protocol_amount = fixed_point32::multiply_u64(
+      debt_amount,
+      fixed_point32_empower::mul(exchange_rate, liq_revenue_factor)
+    );
+
+    (liquidator_amount, protocol_amount)
+  }
+
   /// calculate the liquidation exchange rate
   /// Debt to Collateral ratio for liquidator
   fun calc_liq_exchange_rate<DebtType, CollateralType>(

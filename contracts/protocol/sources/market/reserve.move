@@ -50,6 +50,20 @@ module protocol::reserve {
 
   struct BorrowFeeVaultKey has copy, store, drop {}
 
+  /// Dynamic field key for index-based global debt tracking (ghost debt fix)
+  struct DebtBaseKey has copy, store, drop {
+    debt_type: TypeName,
+  }
+
+  /// Tracks normalized total debt relative to a base borrow index.
+  /// Used by increase_debt_v2 to compute global debt via the same index-based
+  /// formula as per-user debt, preventing ghost debt from compounding.
+  struct DebtBaseInfo has copy, store, drop {
+    debt_base: u64,   // total debt normalized to base_index
+    base_index: u64,  // reference borrow index at which debt_base is denominated
+    last_index: u64,  // most recent borrow index (updated each accrual)
+  }
+
   public fun flash_loan_loan_amount<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.loan_amount }
   public fun flash_loan_fee<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.fee }
   public fun flash_loan_fee_denominator(): u64 { FlashloanFeeScale }
@@ -154,20 +168,69 @@ module protocol::reserve {
     balance_sheet.revenue = balance_sheet.revenue + revenue_increased;
   }
   
+  /// Index-based debt accrual that prevents ghost debt from compounding.
+  /// Instead of iterative: debt += debt * rate (which diverges from per-user tracking),
+  /// computes: debt = debt_base * new_index / base_index (mirrors per-user formula).
+  public(friend) fun increase_debt_v2(
+    self: &mut Reserve,
+    debt_type: TypeName,
+    new_borrow_index: u64,
+    old_borrow_index: u64,
+    revenue_factor: FixedPoint32,
+  ) {
+    let key = DebtBaseKey { debt_type };
+
+    // Lazy initialization: on first call, capture current debt as the base
+    if (!dynamic_field::exists_with_type<DebtBaseKey, DebtBaseInfo>(&self.id, key)) {
+      let balance_sheet = wit_table::borrow(&self.balance_sheets, debt_type);
+      let current_debt = balance_sheet.debt;
+      dynamic_field::add(&mut self.id, key, DebtBaseInfo {
+        debt_base: current_debt,
+        base_index: old_borrow_index,
+        last_index: old_borrow_index,
+      });
+    };
+
+    // Compute new debt using index ratio (same formula as per-user debt accrual)
+    let info = dynamic_field::borrow_mut<DebtBaseKey, DebtBaseInfo>(&mut self.id, key);
+    let new_debt = u64::mul_div(info.debt_base, new_borrow_index, info.base_index);
+    info.last_index = new_borrow_index;
+
+    // Update balance sheet only if debt increased
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, debt_type);
+    if (new_debt > balance_sheet.debt) {
+      let debt_increased = new_debt - balance_sheet.debt;
+      let revenue_increased = fixed_point32::multiply_u64(debt_increased, revenue_factor);
+      balance_sheet.debt = new_debt;
+      balance_sheet.revenue = balance_sheet.revenue + revenue_increased;
+    };
+  }
+
   public(friend) fun handle_repay<T>(
     self: &mut Reserve,
     balance: Balance<T>
   ) {
     let repay_amount = balance::value(&balance);
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let old_debt = balance_sheet.debt;
     if (balance_sheet.debt >= repay_amount) {
       balance_sheet.debt = balance_sheet.debt - repay_amount;
     } else {
       balance_sheet.revenue = balance_sheet.revenue + (repay_amount - balance_sheet.debt);
       balance_sheet.debt = 0;
     };
+    let debt_decrease = old_debt - balance_sheet.debt;
     balance_sheet.cash = balance_sheet.cash + repay_amount;
-    balance_bag::join(&mut self.underlying_balances, balance)
+
+    balance_bag::join(&mut self.underlying_balances, balance);
+
+    // Update debt_base: normalize repaid amount to base_index scale
+    let key = DebtBaseKey { debt_type: get<T>() };
+    if (dynamic_field::exists_with_type<DebtBaseKey, DebtBaseInfo>(&self.id, key)) {
+      let info = dynamic_field::borrow_mut<DebtBaseKey, DebtBaseInfo>(&mut self.id, key);
+      let base_decrease = u64::mul_div(debt_decrease, info.base_index, info.last_index);
+      info.debt_base = if (info.debt_base >= base_decrease) { info.debt_base - base_decrease } else { 0 };
+    };
   }
 
   public(friend) fun handle_borrow<T>(
@@ -182,6 +245,13 @@ module protocol::reserve {
     // Make sure cash is always bigger than revenue
     assert!(balance_sheet.cash >= balance_sheet.revenue, error::pool_liquidity_not_enough_error());
 
+    // Update debt_base: normalize borrowed amount to base_index scale
+    let key = DebtBaseKey { debt_type: get<T>() };
+    if (dynamic_field::exists_with_type<DebtBaseKey, DebtBaseInfo>(&self.id, key)) {
+      let info = dynamic_field::borrow_mut<DebtBaseKey, DebtBaseInfo>(&mut self.id, key);
+      info.debt_base = info.debt_base + u64::mul_div(amount, info.base_index, info.last_index);
+    };
+
     balance_bag::split<T>(&mut self.underlying_balances, amount)
   }
 
@@ -191,13 +261,33 @@ module protocol::reserve {
     revenue_balance: Balance<T>,
   ) {
     // update balance sheet
+    let debt_decrease = balance::value(&balance);
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     balance_sheet.cash = balance_sheet.cash + balance::value(&balance) + balance::value(&revenue_balance);
     balance_sheet.revenue = balance_sheet.revenue + balance::value(&revenue_balance);
-    balance_sheet.debt = balance_sheet.debt - balance::value(&balance);
+    balance_sheet.debt = balance_sheet.debt - debt_decrease;
 
     // put back the balance
     balance_bag::join(&mut self.underlying_balances, balance);
+    balance_bag::join(&mut self.underlying_balances, revenue_balance);
+
+    // Update debt_base: normalize liquidated debt to base_index scale
+    let key = DebtBaseKey { debt_type: get<T>() };
+    if (dynamic_field::exists_with_type<DebtBaseKey, DebtBaseInfo>(&self.id, key)) {
+      let info = dynamic_field::borrow_mut<DebtBaseKey, DebtBaseInfo>(&mut self.id, key);
+      let base_decrease = u64::mul_div(debt_decrease, info.base_index, info.last_index);
+      info.debt_base = if (info.debt_base >= base_decrease) { info.debt_base - base_decrease } else { 0 };
+    };
+  }
+
+  /// Handle protocol revenue in any coin type (e.g. collateral revenue from liquidation)
+  public(friend) fun handle_revenue<T>(
+    self: &mut Reserve,
+    revenue_balance: Balance<T>,
+  ) {
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    balance_sheet.cash = balance_sheet.cash + balance::value(&revenue_balance);
+    balance_sheet.revenue = balance_sheet.revenue + balance::value(&revenue_balance);
     balance_bag::join(&mut self.underlying_balances, revenue_balance);
   }
 

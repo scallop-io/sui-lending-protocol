@@ -11,6 +11,7 @@ module protocol::app {
   use sui::event;
   use x::ac_table::AcTableCap;
   use x::one_time_lock_value::OneTimeLockValue;
+  use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
   use protocol::market::{Self, Market};
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
@@ -26,6 +27,7 @@ module protocol::app {
   use protocol::version::{Self, Version};
   use sui::vec_set::{Self, VecSet};
   use std::vector;
+  use coin_decimals_registry::coin_decimals_registry;
 
   /// OTW
   struct APP has drop {}
@@ -150,8 +152,28 @@ module protocol::app {
     );
   }
 
+  /// @deprecated
   public fun create_interest_model_change<T>(
+    _admin_cap: &AdminCap,
+    _base_rate_per_sec: u64,
+    _interest_rate_scale: u64,
+    _borrow_rate_on_mid_kink: u64,
+    _mid_kink: u64,
+    _borrow_rate_on_high_kink: u64,
+    _high_kink: u64,
+    _max_borrow_rate: u64,
+    _revenue_factor: u64,
+    _borrow_weight: u64,
+    _scale: u64,
+    _min_borrow_amount: u64,
+    _ctx: &mut TxContext,
+  ): OneTimeLockValue<InterestModel> {
+    abort 0
+  }
+
+  public fun create_interest_model_change_v2<T>(
     admin_cap: &AdminCap,
+    coin_decimals_registry: &CoinDecimalsRegistry,
     base_rate_per_sec: u64,
     interest_rate_scale: u64,
     borrow_rate_on_mid_kink: u64,
@@ -167,6 +189,7 @@ module protocol::app {
   ): OneTimeLockValue<InterestModel> {
     let interest_model_change = interest_model::create_interest_model_change<T>(
       &admin_cap.interest_model_cap,
+      coin_decimals_registry,
       base_rate_per_sec,
       interest_rate_scale,
       borrow_rate_on_mid_kink,
@@ -182,7 +205,8 @@ module protocol::app {
       ctx,
     );
     interest_model_change
-  }
+  }  
+
   public fun add_interest_model<T>(
     market: &mut Market,
     admin_cap: &AdminCap,
@@ -210,6 +234,7 @@ module protocol::app {
     );
   }
 
+  // @TODO: follow interest model assert to add decimal check for risk model (extra-safety)
   public fun create_risk_model_change<T>(
     admin_cap: &AdminCap,
     collateral_factor: u64, // exp. 70%,

@@ -33,11 +33,11 @@ module protocol::flash_loan_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::increment_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     
     let coin_decimals_registry_obj = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry_obj, usdc_decimals);
-    
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry_obj, &usdc_interest_params, &clock);
+
     test_scenario::next_tx(scenario, lender_a);
     let usdc_amount = 1_000 * std::u64::pow(10, usdc_decimals);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
@@ -76,12 +76,11 @@ module protocol::flash_loan_test {
     let usdc_interest_params = usdc_interest_model_params();
     test_scenario::next_tx(scenario, admin);
     
-    clock::increment_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    
+    clock::increment_for_testing(&mut clock, 100 * 1000);    
     let coin_decimals_registry_obj = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry_obj, usdc_decimals);
-    
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry_obj, &usdc_interest_params, &clock);
+
     test_scenario::next_tx(scenario, lender_a);
     let usdc_amount = 1_000 * std::u64::pow(10, usdc_decimals);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));

@@ -39,12 +39,11 @@ module protocol::mint_test {
     let usdc_interest_params = usdc_interest_model_params();
     test_scenario::next_tx(scenario, admin);
     
-    clock::increment_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    
+    clock::increment_for_testing(&mut clock, 100 * 1000);    
     let coin_decimals_registry_obj = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry_obj, usdc_decimals);
-    
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry_obj, &usdc_interest_params, &clock);    
+
     test_scenario::next_tx(scenario, lender_a);
     let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
@@ -89,12 +88,11 @@ module protocol::mint_test {
     let usdc_interest_params = usdc_interest_model_params();
     test_scenario::next_tx(scenario, admin);
     
-    clock::increment_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    
+    clock::increment_for_testing(&mut clock, 100 * 1000);    
     let coin_decimals_registry_obj = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry_obj, usdc_decimals);
-    
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry_obj, &usdc_interest_params, &clock);
+
     protocol::app::update_supply_limit<USDC>(
       &admin_cap,
       &mut market,
@@ -136,11 +134,10 @@ module protocol::mint_test {
     let usdc_interest_params = usdc_interest_model_params();
     test_scenario::next_tx(scenario, admin);
     
-    clock::increment_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    
+    clock::increment_for_testing(&mut clock, 100 * 1000);    
     let coin_decimals_registry_obj = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry_obj, usdc_decimals);
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry_obj, &usdc_interest_params, &clock);
     
     // set the asset to be inactive
     protocol::app::set_base_asset_active_state<USDC>(
@@ -184,11 +181,10 @@ module protocol::mint_test {
     let usdc_interest_params = usdc_interest_model_params();
     test_scenario::next_tx(scenario, admin);
     
-    clock::increment_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    
+    clock::increment_for_testing(&mut clock, 100 * 1000);    
     let coin_decimals_registry_obj = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry_obj, usdc_decimals);
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry_obj, &usdc_interest_params, &clock);
 
     test_scenario::next_tx(scenario, lender_a);
     // this will fails, because user try to supply on inactive pool

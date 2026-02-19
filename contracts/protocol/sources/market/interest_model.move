@@ -8,6 +8,7 @@ module protocol::interest_model {
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
   use protocol::error;
+  use coin_decimals_registry::coin_decimals_registry::{Self, CoinDecimalsRegistry};
 
   friend protocol::app;
   friend protocol::market;
@@ -72,6 +73,7 @@ module protocol::interest_model {
   
   public(friend) fun create_interest_model_change<T>(
     _: &AcTableCap<InterestModels>,
+    coin_decimals_registry: &CoinDecimalsRegistry,
     base_rate_per_sec: u64,
     interest_rate_scale: u64,
     borrow_rate_on_mid_kink: u64,
@@ -123,6 +125,9 @@ module protocol::interest_model {
     assert!(borrow_rate_on_high_kink <= max_borrow_rate, error::interest_model_param_error());
     // revenue factor is the portion of interest that goes to the protocol, so it must be <= 100%
     assert!(revenue_factor <= scale, error::interest_model_param_error());
+
+    // only list coins with decimals <= 9
+    assert!(coin_decimals_registry::decimals(coin_decimals_registry, get<T>()) <= 9, error::interest_model_param_error());
 
     let base_borrow_rate_per_sec = fixed_point32::create_from_rational(base_rate_per_sec, scale);
     let borrow_rate_on_mid_kink = fixed_point32::create_from_rational(borrow_rate_on_mid_kink, scale);

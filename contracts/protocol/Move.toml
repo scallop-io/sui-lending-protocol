@@ -23,11 +23,12 @@ local = "../libs/whitelist"
 [dependencies.CoinDecimalsRegistry]
 local = "../libs/coin_decimals_registry"
 
-[dependencies.Decimal]
-local = "../libs/decimal"
-
 [dependencies.XOracle]
 local = "../sui_x_oracle/x_oracle"
+
+[dependencies.Decimal]
+local = "../libs/decimal"
+override = true
 
 [addresses]
 protocol = "0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf"

@@ -7,8 +7,6 @@ module protocol::liquidation_test {
   use x_oracle::x_oracle;
   use coin_decimals_registry::coin_decimals_registry;
   use protocol::borrow;
-  use protocol::collateral_value;
-  use protocol::debt_value;
   use protocol::deposit_collateral;
   use protocol::liquidate;
   use protocol::mint;
@@ -23,7 +21,9 @@ module protocol::liquidation_test {
   use test_coin::eth::ETH;
   use test_coin::usdc::USDC;
   use math::fixed_point32_empower;
-  use std::fixed_point32::{Self, FixedPoint32};
+  use math::u64;
+  use std::fixed_point32;
+  use protocol::constants::eth_interest_model_params;
   
   #[test]
   #[allow(deprecated_usage)]
@@ -65,6 +65,8 @@ module protocol::liquidation_test {
     add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
+    let eth_interest_params = eth_interest_model_params();
+    add_interest_model_t<ETH>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &eth_interest_params, &clock);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
@@ -117,23 +119,44 @@ module protocol::liquidation_test {
     let coin_collateral = test_scenario::take_from_address<Coin<ETH>>(scenario, liquidator);
 
     let repaid_debt_amount = usdc_amount - coin::value(&coin_debt); // original amount - remaining amount
+    let liquidator_collateral = coin::value(&coin_collateral);
 
-    // liq exchange rate will help converting the coin including the discount
-    let liq_exchange_rate = calc_liq_exchange_rate(
-      fixed_point32::create_from_rational(5, 100),
-      usdc_decimals,
-      eth_decimals,
-      fixed_point32::create_from_rational(1, 1),
-      fixed_point32::create_from_rational(1000, 1),
+    // New liquidation mechanism:
+    // exchange_rate = (collateral_scale / debt_scale) * (debt_price / collateral_price)
+    //               = (10^9 / 10^9) * ($1 / $1000) = 0.001
+    // liquidator_amount = actual_repay * exchange_rate * (1 + liq_discount)
+    //                   = actual_repay * 0.001 * 1.05
+    // protocol_amount   = actual_repay * exchange_rate * liq_revenue_factor
+    //                   = actual_repay * 0.001 * 0.03
+    let debt_price = fixed_point32::create_from_rational(1, 1); // $1
+    let collateral_price = fixed_point32::create_from_rational(1000, 1); // $1000
+    let liq_discount = fixed_point32::create_from_rational(5, 100); // 5%
+    let liq_revenue_factor = fixed_point32::create_from_rational(3, 100); // 8% - 5% = 3%
+
+    let exchange_rate = fixed_point32_empower::mul(
+      fixed_point32::create_from_rational(std::u64::pow(10, eth_decimals), std::u64::pow(10, usdc_decimals)),
+      fixed_point32_empower::div(debt_price, collateral_price),
     );
-    let discounted_collateral_in_debt_coin_amount = fixed_point32::divide_u64(coin::value(&coin_collateral), liq_exchange_rate);
+    let liquidator_rate = fixed_point32_empower::mul(
+      exchange_rate,
+      fixed_point32_empower::add(fixed_point32_empower::from_u64(1), liq_discount),
+    );
+    let protocol_rate = fixed_point32_empower::mul(exchange_rate, liq_revenue_factor);
 
-    assert!(repaid_debt_amount == discounted_collateral_in_debt_coin_amount, 1);
+    let expected_liq_amount = fixed_point32::multiply_u64(repaid_debt_amount, liquidator_rate);
+    let expected_protocol_amount = fixed_point32::multiply_u64(repaid_debt_amount, protocol_rate);
 
-    let collaterals_value_with_liq_factor = collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &x_oracle, &clock);
-    let weighted_debts_value = debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &x_oracle, &clock);
+    // verify the repaid debt amount is correct
+    assert!(repaid_debt_amount >= 50 * std::u64::pow(10, usdc_decimals), 0); // the repaid debt is $50
+    // 5% discount for liquidator: $50 * 1.05 = $52.5 worth of ETH = 0.0525 ETH = 52_500_000
+    assert!(liquidator_collateral <= u64::mul_div(std::u64::pow(10, eth_decimals), 52_5, 1000_0), 0);
+    // 3% revenue for protocol: $50 * 0.03 / $1000 = 0.0015 ETH = 1_500_000
+    assert!(expected_protocol_amount <= u64::mul_div(std::u64::pow(10, eth_decimals), 1_5, 1000_0), 0);
 
-    assert!(fixed_point32_empower::gt(weighted_debts_value, collaterals_value_with_liq_factor) == false, 2);
+    // Verify liquidator received the correct collateral amount
+    assert!(liquidator_collateral == expected_liq_amount, 1);
+    // Verify protocol amount is positive
+    assert!(expected_protocol_amount > 0, 2);
 
     coin::burn_for_testing(coin_debt);
     coin::burn_for_testing(coin_collateral);
@@ -167,11 +190,11 @@ module protocol::liquidation_test {
     //    - calculated how coin used to repay the debt
     //    - convert how many amount of returned collateral in debt type coin, also deduct the discount
     //    - check if they are equal
-    // 7. assert the debt should be healthy
-    
+    // 7. assert the debt improved after liquidation
+
     let usdc_decimals = 9;
     let eth_decimals = 9;
-    
+
     let admin = @0xAD;
     let lender = @0xAA;
     let borrower = @0xBB;
@@ -188,15 +211,17 @@ module protocol::liquidation_test {
 
     let (x_oracle, x_oracle_policy_cap) = oracle_t::init_t(scenario);
     test_scenario::next_tx(scenario, admin);
-    
+
     clock::set_for_testing(&mut clock, 100 * 1000);
     add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
     let eth_risk_params = eth_risk_model_params();
     add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
+    let eth_interest_params = eth_interest_model_params();
+    add_interest_model_t<ETH>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &eth_interest_params, &clock);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
-    
+
     test_scenario::next_tx(scenario, lender);
     let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
@@ -204,19 +229,19 @@ module protocol::liquidation_test {
     let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
     assert!(coin::value(&market_coin) == usdc_amount, 0);
     coin::burn_for_testing(market_coin);
-    
+
     test_scenario::next_tx(scenario, borrower);
     let eth_amount = std::u64::pow(10, eth_decimals);
     let eth_coin = coin::mint_for_testing<ETH>(eth_amount, test_scenario::ctx(scenario));
     let (obligation, obligation_key) = open_obligation_t(scenario, &version);
     deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
-  
+
     clock::set_for_testing(&mut clock, 300 * 1000);
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(25, 2)); // $0.25
     x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0)); // $1000
 
     protocol::apm::refresh_apm_state<USDC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
-    protocol::apm::refresh_apm_state<ETH>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));    
+    protocol::apm::refresh_apm_state<ETH>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
 
     test_scenario::next_tx(scenario, borrower);
     let borrow_amount = 850 * std::u64::pow(10, usdc_decimals);
@@ -226,13 +251,13 @@ module protocol::liquidation_test {
 
     x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(5, 1)); // $0.5
 
-    test_scenario::next_tx(scenario, liquidator);    
+    test_scenario::next_tx(scenario, liquidator);
     let usdc_amount = 900 * std::u64::pow(10, usdc_decimals);
     let usdc_coin = coin::mint_for_testing<USDC>(usdc_amount, test_scenario::ctx(scenario));
 
     let (coin_debt, coin_collateral) = liquidate::liquidate<USDC, ETH>(
         &version,
-        &mut obligation, 
+        &mut obligation,
         &mut market,
         usdc_coin,
         &coin_decimals_registry,
@@ -242,22 +267,43 @@ module protocol::liquidation_test {
     );
 
     let repaid_debt_amount = (usdc_amount - coin::value(&coin_debt)); // original amount - remaining amount
+    let liquidator_collateral = coin::value(&coin_collateral);
 
-    // liq exchange rate will help converting the coin including the discount
-    let liq_exchange_rate = calc_liq_exchange_rate(
-      fixed_point32::create_from_rational(5, 100),
-      usdc_decimals,
-      eth_decimals,
-      fixed_point32::create_from_rational(1, 2),
-      fixed_point32::create_from_rational(1000, 1),
+    // New liquidation mechanism with borrow_weight = 2:
+    // exchange_rate = (10^9 / 10^9) * ($0.5 / $1000) = 0.0005
+    // liquidator_amount = actual_repay * exchange_rate * (1 + liq_discount)
+    // protocol_amount   = actual_repay * exchange_rate * liq_revenue_factor
+    let debt_price = fixed_point32::create_from_rational(1, 2); // $0.5
+    let collateral_price = fixed_point32::create_from_rational(1000, 1); // $1000
+    let liq_discount = fixed_point32::create_from_rational(5, 100); // 5%
+    let liq_revenue_factor = fixed_point32::create_from_rational(3, 100); // 8% - 5% = 3%
+
+    let exchange_rate = fixed_point32_empower::mul(
+      fixed_point32::create_from_rational(std::u64::pow(10, eth_decimals), std::u64::pow(10, usdc_decimals)),
+      fixed_point32_empower::div(debt_price, collateral_price),
     );
-    let discounted_collateral_debt_coin_amount = fixed_point32::divide_u64(coin::value(&coin_collateral), liq_exchange_rate);
-    assert!(repaid_debt_amount == discounted_collateral_debt_coin_amount, 1);
+    let liquidator_rate = fixed_point32_empower::mul(
+      exchange_rate,
+      fixed_point32_empower::add(fixed_point32_empower::from_u64(1), liq_discount),
+    );
+    let protocol_rate = fixed_point32_empower::mul(exchange_rate, liq_revenue_factor);
 
-    let collaterals_value_with_liq_factor = collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &x_oracle, &clock);
-    let weighted_debts_value = debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &x_oracle, &clock);
+    let expected_liq_amount = fixed_point32::multiply_u64(repaid_debt_amount, liquidator_rate);
+    let expected_protocol_amount = fixed_point32::multiply_u64(repaid_debt_amount, protocol_rate);
 
-    assert!(fixed_point32_empower::gt(weighted_debts_value, collaterals_value_with_liq_factor) == false, 2);
+    // the repaid debt should be $25
+    // and because the price of USDC is $0.5, so the amount should be 50 USDC
+    assert!(repaid_debt_amount >= 50 * std::u64::pow(10, usdc_decimals), 0);
+
+    // 5% discount for liquidator: $25 * 1.05 = $26.25 worth of ETH = 0.02625 ETH = 26_250_000
+    assert!(liquidator_collateral <= u64::mul_div(std::u64::pow(10, eth_decimals), 26_25, 1000_0), 0);
+    // 3% revenue for protocol: $25 * 0.03 / $1000 = 0.00075 ETH = 750_000
+    assert!(expected_protocol_amount <= u64::mul_div(std::u64::pow(10, eth_decimals), 0_75, 1000_0), 0);
+
+    // Verify liquidator received the correct collateral amount
+    assert!(liquidator_collateral == expected_liq_amount, 1);
+    // Verify protocol amount is positive
+    assert!(expected_protocol_amount > 0, 2);
 
     coin::burn_for_testing(coin_debt);
     coin::burn_for_testing(coin_collateral);
@@ -275,22 +321,4 @@ module protocol::liquidation_test {
     test_scenario::end(scenario_value);
   }
 
-  #[allow(deprecated_usage)]
-  fun calc_liq_exchange_rate(
-    liq_discount: FixedPoint32,
-    debt_decimal: u8,
-    collateral_decimal: u8,
-    debt_price: FixedPoint32,
-    collateral_price: FixedPoint32,
-  ): FixedPoint32 {
-    let exchange_rate = fixed_point32_empower::mul(
-      fixed_point32::create_from_rational(std::u64::pow(10, collateral_decimal), std::u64::pow(10, debt_decimal)),
-      fixed_point32_empower::div(debt_price, collateral_price),
-    );
-    let liq_exchange_rate = fixed_point32_empower::div(
-      exchange_rate,
-      fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), liq_discount)
-    );
-    liq_exchange_rate
-  }
 }

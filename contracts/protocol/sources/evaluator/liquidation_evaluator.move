@@ -1,5 +1,5 @@
 module protocol::liquidation_evaluator {
-  use std::type_name::{Self, TypeName};
+  use std::type_name;
   use std::fixed_point32;
   use std::fixed_point32::FixedPoint32;
   use sui::math;
@@ -200,7 +200,6 @@ module protocol::liquidation_evaluator {
     x_oracle: &XOracle,
     clock: &Clock,
     available_repay_amount: u64,
-    collateral_type: TypeName,
   ): (u64, u64, u64) {
     // Determine the maximum this liquidator may repay for the given debt type
     let max_repay = max_repay_amount<DebtType>(obligation, market, coin_decimals_registry, x_oracle, clock);
@@ -216,7 +215,7 @@ module protocol::liquidation_evaluator {
     // When collateral is insufficient all three values are scaled by the same
     // ratio (total_collateral / total_needed) so the liquidator only pays for
     // the collateral they actually receive and does not incur a loss.
-    let total_collateral = obligation::collateral(obligation, collateral_type);
+    let total_collateral = obligation::collateral(obligation, type_name::get<CollateralType>());
     let total_needed = liq_amount + protocol_amount;
     let (actual_repay, liq_amount, protocol_amount) = if (total_needed > total_collateral) {
       let scaled_repay = u64::mul_div(actual_repay, total_collateral, total_needed);
@@ -227,6 +226,7 @@ module protocol::liquidation_evaluator {
       (actual_repay, liq_amount, protocol_amount)
     };
     assert!(liq_amount > 0, error::unable_to_liquidate_error());
+    assert!(actual_repay > 0, error::unable_to_liquidate_error());
 
     (actual_repay, liq_amount, protocol_amount)
   }

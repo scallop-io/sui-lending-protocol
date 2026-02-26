@@ -126,8 +126,9 @@ module protocol::interest_model {
     // revenue factor is the portion of interest that goes to the protocol, so it must be <= 100%
     assert!(revenue_factor <= scale, error::interest_model_param_error());
 
-    // only list coins with decimals <= 9
+    // only list coins with decimals 1 - 9
     assert!(coin_decimals_registry::decimals(coin_decimals_registry, get<T>()) <= 9, error::interest_model_param_error());
+    assert!(coin_decimals_registry::decimals(coin_decimals_registry, get<T>()) >= 1, error::interest_model_param_error());
 
     let base_borrow_rate_per_sec = fixed_point32::create_from_rational(base_rate_per_sec, scale);
     let borrow_rate_on_mid_kink = fixed_point32::create_from_rational(borrow_rate_on_mid_kink, scale);

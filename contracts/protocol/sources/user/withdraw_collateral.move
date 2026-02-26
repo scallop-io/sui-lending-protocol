@@ -84,10 +84,7 @@ module protocol::withdraw_collateral {
     version::assert_current_version(version);
 
     // check if sender is in whitelist
-    assert!(
-      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
-      error::whitelist_error()
-    );
+    market::assert_whitelist_access(market, ctx);
 
     // check if obligation is locked, if locked, unlock is required before calling this
     // This is a mechanism to enforce some actions before withdraw collateral
@@ -95,6 +92,8 @@ module protocol::withdraw_collateral {
       obligation::withdraw_collateral_locked(obligation) == false,
       error::obligation_locked()
     );
+
+    assert!(withdraw_amount > 0, error::zero_withdrawal_amount_error());
 
     let now = clock::timestamp_ms(clock) / 1000;
 
@@ -107,7 +106,7 @@ module protocol::withdraw_collateral {
     market::handle_withdraw_collateral<T>(market, withdraw_amount, now);
   
     // accure interests & rewards for obligation
-    obligation::accrue_interests_and_rewards(obligation, market);
+    obligation::accrue_interests(obligation, market);
     
     // If withdraw_amount bigger than max allowed withdraw amount, abort
     // Max withdarw amount is calculated according to the risk level of the obligation, if risk level is higher than 1, withdraw is not allowed
@@ -125,6 +124,15 @@ module protocol::withdraw_collateral {
       withdraw_asset: type_name::get<T>(),
       withdraw_amount: balance::value(&withdrawed_balance),
     });
+
+    // do APM check after withdrawal - so user could remove the fluctuated collateral
+    // and if they have the fluctuated collateral in their obligation the action will be aborted
+    obligation::check_is_collateral_price_fluctuate(
+      obligation,
+      market,
+      x_oracle,
+      clock,
+    );
 
     // Return the withdrawn collateral
     coin::from_balance(withdrawed_balance, ctx)

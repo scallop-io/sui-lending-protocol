@@ -2,11 +2,12 @@
 
 [move]
 version = 3
-manifest_digest = "589F578CF80141E2B549A5B631EB2825B4CE4C92F39E4379894B41C6C52DBE2D"
-deps_digest = "52B406A7A21811BEF51751CF88DA0E76DAEFFEAC888D4F4060B1A72BBE7D8D35"
+manifest_digest = "ACAD1E03ABF29CD9C9BC95C98DED2B44CB87CBAD1D1A922D38C6F60ADC58FED3"
+deps_digest = "CAFAD8A7CF51067FB4358215BECB86BD100DD64E57C2AC8A7AE7D74B688F5965"
 
 dependencies = [
   { id = "CoinDecimalsRegistry", name = "CoinDecimalsRegistry" },
+  { id = "Decimal", name = "Decimal" },
   { id = "Math", name = "Math" },
   { id = "Sui", name = "Sui" },
   { id = "Whitelist", name = "Whitelist" },
@@ -17,6 +18,14 @@ dependencies = [
 [[move.package]]
 id = "CoinDecimalsRegistry"
 source = { local = "../libs/coin_decimals_registry" }
+
+dependencies = [
+  { id = "Sui", name = "Sui" },
+]
+
+[[move.package]]
+id = "Decimal"
+source = { local = "../libs/decimal" }
 
 dependencies = [
   { id = "Sui", name = "Sui" },
@@ -67,6 +76,6 @@ dependencies = [
 ]
 
 [move.toolchain-version]
-compiler-version = "1.42.2"
+compiler-version = "1.51.2"
 edition = "2024"
 flavor = "sui"

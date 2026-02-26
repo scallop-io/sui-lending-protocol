@@ -17,10 +17,9 @@ module protocol::borrow {
   use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::market::{Self, Market};
   use protocol::version::{Self, Version};
-  use protocol::borrow_withdraw_evaluator;
   use protocol::interest_model;
   use protocol::error;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowLimitKey, BorrowFeeRecipientKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowLimitKey};
 
   use math::u64;
 
@@ -116,6 +115,8 @@ module protocol::borrow {
   ): Coin<T> {
     // check if version is supported
     version::assert_current_version(version);
+    // check if sender is in whitelist
+    market::assert_whitelist_access(market, ctx);
 
     let borrow_fee_discount = borrow_referral::borrow_fee_discount(borrow_referral);
     let borrow_fee_referral_share = borrow_referral::referral_share(borrow_referral);
@@ -166,6 +167,8 @@ module protocol::borrow {
   ): Coin<T> {
     // check if version is supported
     version::assert_current_version(version);
+    // check if sender is in whitelist
+    market::assert_whitelist_access(market, ctx);
 
     let borrow_fee_discount = 0;
     let borrow_fee_referral_share = 0;
@@ -229,7 +232,6 @@ module protocol::borrow {
     assert!(ok, error::unable_to_borrow_other_coin_with_isolated_asset());
   }  
 
-  // @TODO: borrow fee store in an object
   fun borrow_internal<T>(
     obligation: &mut Obligation,
     obligation_key: &ObligationKey,
@@ -242,12 +244,6 @@ module protocol::borrow {
     clock: &Clock,
     ctx: &mut TxContext,
   ): (Balance<T>, Balance<T>) {
-    // check if sender is in whitelist
-    assert!(
-      whitelist::is_address_allowed(market::uid(market), tx_context::sender(ctx)),
-      error::whitelist_error()
-    );
-
     // check if obligation is locked, if locked, unlock operation is required before calling this function
     // This is a mechanism to enforce some operations before calling the function
     assert!(
@@ -284,6 +280,14 @@ module protocol::borrow {
     let borrow_limit = *dynamic_field::borrow<BorrowLimitKey, u64>(market::uid(market), borrow_limit_key);
     let current_total_global_debt = market::total_global_debt(market, coin_type);
     assert!(current_total_global_debt + borrow_amount <= borrow_limit, error::borrow_limit_reached_error());    
+    
+    // do APM check
+    obligation::check_is_collateral_price_fluctuate(
+      obligation,
+      market,
+      x_oracle,
+      clock,
+    );
 
     // Add borrow amount to the outflow limiter, if limit is reached then abort
     market::handle_outflow<T>(market, borrow_amount, now);
@@ -296,7 +300,7 @@ module protocol::borrow {
     obligation::init_debt(obligation, market, coin_type);
 
     // accure interests & rewards for obligation
-    obligation::accrue_interests_and_rewards(obligation, market);
+    obligation::accrue_interests(obligation, market);
 
     // calc the maximum borrow amount
     // If borrow too much, abort
@@ -329,9 +333,6 @@ module protocol::borrow {
 
     // Calculate the referral fee and deducted fee
     let final_borrow_fee_amount = base_borrow_fee_amount - referral_fee_amount - deducted_borrow_fee_amount;
-    // Get the borrow fee collector address
-    let borrow_fee_recipient_key = market_dynamic_keys::borrow_fee_recipient_key();
-    let borrow_fee_recipient = dynamic_field::borrow<BorrowFeeRecipientKey, address>(market::uid(market), borrow_fee_recipient_key);
 
     // Split the borrow fee from borrowed asset
     let final_borrow_fee = balance::split(&mut borrowed_balance, final_borrow_fee_amount);

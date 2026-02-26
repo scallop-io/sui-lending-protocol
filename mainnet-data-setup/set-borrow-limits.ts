@@ -32,7 +32,7 @@ export const updateBorrowLimits = async () => {
   });    
 
     const txBytes = await buildMultiSigTx(suiTxBlock);
-    const resp = await suiKit.provider().dryRunTransactionBlock({
+    const resp = await suiKit.client.dryRunTransactionBlock({
         transactionBlock: txBytes
     })
     console.log(resp.effects.status);

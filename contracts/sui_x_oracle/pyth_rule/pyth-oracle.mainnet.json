@@ -75,6 +75,10 @@
     "haedal_usd": {
       "priceFeedId": "0xe67d98cc1fbd94f569d5ba6c3c3c759eb3ffc5d2b28e64538a53ae13efad8fd1",
       "priceFeedObjectId": "0xbc98681c15de1ca1b80a8e26500d43c77f7113368b024de1bf490afcb0387109"
+    },
+    "lofi_usd": {
+      "priceFeedId": "0x82eebc2c47490ba9c0f9bc35ea9fb57a7e2bbf69b84a04ea2a3525153b8090ea",
+      "priceFeedObjectId": "0xb65b2888e74b2be973616740da410670ecd6d1d1f4b5456acc7b04ece9c95559"
     }
   }
 }

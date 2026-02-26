@@ -1,3 +1,4 @@
+#[test_only]
 module test_coin::usdc {
   
   use sui::tx_context::TxContext;

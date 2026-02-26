@@ -9,12 +9,14 @@ const xOraclePath = path.join(__dirname, "../contracts/sui_x_oracle/x_oracle");
 const mathPkgPath = path.join(__dirname, "../contracts/libs/math");
 const xPkgPath = path.join(__dirname, "../contracts/libs/x");
 const whitelistPkgPath = path.join(__dirname, "../contracts/libs/whitelist");
+const decimalPkgPath = path.join(__dirname, "../contracts/libs/decimal");
 const coinDecimalsRegistryPath = path.join(__dirname, "../contracts/libs/coin_decimals_registry");
 
 export const protocolDependencies = [
   { packagePath: xOraclePath },
   { packagePath: mathPkgPath },
   { packagePath: xPkgPath },
+  { packagePath: decimalPkgPath },
   { packagePath: whitelistPkgPath },
   { packagePath: coinDecimalsRegistryPath },
 ];
@@ -42,9 +44,14 @@ const createUpgradeProtocolTx = async (client: SuiClient, publisher: string) => 
     client,
     publisher,
   );
+  if (!res) return;
+  const resp = await client.dryRunTransactionBlock({
+    transactionBlock: res.txBytesBase64
+  })
+  console.log(resp.effects.status);
   return res.txBytesBase64;
 }
 
-createUpgradeProtocolTx(suiKit.client(), MULTI_SIG_ADDRESS).then(console.log).catch(console.error).finally(() => process.exit(0));
+createUpgradeProtocolTx(suiKit.client, MULTI_SIG_ADDRESS).then(console.log).catch(console.error).finally(() => process.exit(0));
 
 // createUpgradeProtocolTx(suiKit.client(), suiKit.currentAddress()).then(console.log).catch(console.error).finally(() => process.exit(0));

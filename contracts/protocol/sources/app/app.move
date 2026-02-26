@@ -15,13 +15,17 @@ module protocol::app {
   use protocol::interest_model::{Self, InterestModels, InterestModel};
   use protocol::risk_model::{Self, RiskModels, RiskModel};
   use protocol::limiter::{Self, LimiterUpdateParamsChange, LimiterUpdateLimitChange};
-  use protocol::incentive_rewards;
   use protocol::error;
+  use protocol::reserve;
+  use protocol::apm;
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, BorrowLimitKey, IsolatedAssetKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey, PauseAuthorityRegistryKey};
   use protocol::borrow_referral::{Self, AuthorizedWitnessList};
+  use protocol::version::{Self, Version};
+  use sui::vec_set::{Self, VecSet};
+  use std::vector;
 
   /// OTW
   struct APP has drop {}
@@ -48,6 +52,13 @@ module protocol::app {
     coin_type: TypeName,
     sender: address,
   }
+
+  struct FreezeProtocolEvent has copy, drop {
+    market: ID,
+    sender: address,
+  }  
+
+  const REASONABLE_MAX_DELAYS: u64 = 0; // this function is disabled for now, hence it set as 0
 
   fun init(otw: APP, ctx: &mut TxContext) {
     init_internal(otw, ctx)
@@ -79,30 +90,30 @@ module protocol::app {
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
-    assert!(delay <= 1, error::invalid_params_error()); // can only extend 1 epoch per change
+    // disable this function for now
+    assert!(delay == 0, error::invalid_params_error());
     admin_cap.interest_model_change_delay = admin_cap.interest_model_change_delay + delay;
+    assert!(admin_cap.interest_model_change_delay <= REASONABLE_MAX_DELAYS, error::invalid_params_error());
   }
 
   public fun extend_risk_model_change_delay(
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
+    // disable this function for now
+    assert!(delay == 0, error::invalid_params_error());
     admin_cap.risk_model_change_delay = admin_cap.risk_model_change_delay + delay;
+    assert!(admin_cap.risk_model_change_delay <= REASONABLE_MAX_DELAYS, error::invalid_params_error());
   }
 
   public fun extend_limiter_change_delay(
     admin_cap: &mut AdminCap,
     delay: u64,
   ) {
+    // disable this function for now
+    assert!(delay == 0, error::invalid_params_error());
     admin_cap.limiter_change_delay = admin_cap.limiter_change_delay + delay;
-  }
-
-  /// For extension of the protocol
-  public fun ext(
-    _: &AdminCap,
-    market: &mut Market,
-  ): &mut UID {
-    market::uid_mut(market)
+    assert!(admin_cap.limiter_change_delay <= REASONABLE_MAX_DELAYS, error::invalid_params_error());
   }
 
   /// Add a whitelist address
@@ -125,6 +136,17 @@ module protocol::app {
     whitelist::remove_whitelist_address(
       market::uid_mut(market),
       address,
+    );
+  }
+
+  /// Reject all addresses
+  public fun reject_all_address(
+    _: &AdminCap,
+    market: &mut Market,
+    address: address,
+  ) {
+    whitelist::reject_all(
+      market::uid_mut(market),
     );
   }
 
@@ -245,6 +267,12 @@ module protocol::app {
     outflow_segment_duration: u32,
     _ctx: &mut TxContext
   ) {
+    // ensure the cycle duration is multiple of segment duration
+    assert!(outflow_cycle_duration > 0, error::invalid_params_error());
+    assert!(outflow_segment_duration > 0, error::invalid_params_error());
+    assert!(outflow_cycle_duration % outflow_segment_duration == 0, error::invalid_params_error());
+    assert!(outflow_cycle_duration >= outflow_segment_duration, error::invalid_params_error());
+
     let limiter = market::rate_limiter_mut(market);
     limiter::add_limiter<T>(
       limiter,
@@ -260,6 +288,12 @@ module protocol::app {
     outflow_segment_duration: u32,
     ctx: &mut TxContext
   ): OneTimeLockValue<LimiterUpdateParamsChange> {
+    // ensure the cycle duration is multiple of segment duration
+    assert!(outflow_cycle_duration > 0, error::invalid_params_error());
+    assert!(outflow_segment_duration > 0, error::invalid_params_error());
+    assert!(outflow_cycle_duration % outflow_segment_duration == 0, error::invalid_params_error());
+    assert!(outflow_cycle_duration >= outflow_segment_duration, error::invalid_params_error());
+
     let one_time_lock_value = limiter::create_limiter_params_change<T>(
       outflow_cycle_duration,
       outflow_segment_duration,
@@ -312,7 +346,83 @@ module protocol::app {
     );
   }
 
+  public fun set_apm_threshold<T>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    apm_threshold: u64,
+    _ctx: &mut TxContext
+  ) {
+    assert!(apm_threshold <= 1000, error::invalid_params_error()); // Max APM threshold is 1000%
+    assert!(apm_threshold > 0, error::invalid_params_error());
+
+    let coin_type = type_name::get<T>();
+    apm::set_apm_threshold(market, coin_type, apm_threshold);
+  }
+
+  /// ======= Management Circuit Breaker =======
+  public fun add_pause_authority_registry(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+    _tx_context: &mut TxContext
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::pause_authority_registry_key();
+
+    if (!dynamic_field::exists_<PauseAuthorityRegistryKey>(market_uid_mut, key)) {
+      dynamic_field::add<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
+    };
+
+    let pause_authority_registry = dynamic_field::borrow_mut<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    vec_set::insert(pause_authority_registry, address);
+  }
+
+  public fun remove_pause_authority_registry(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+    _tx_context: &mut TxContext
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::pause_authority_registry_key();
+
+    if (!dynamic_field::exists_<PauseAuthorityRegistryKey>(market_uid_mut, key)) {
+      dynamic_field::add<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
+    };
+
+    let pause_authority_registry = dynamic_field::borrow_mut<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    vec_set::remove(pause_authority_registry, &address);
+  }
+
+  public fun freeze_protocol(
+    version: &Version,
+    market: &mut Market,
+    ctx: &mut TxContext
+  ) {
+    version::assert_current_version(version);
+
+    let sender = tx_context::sender(ctx);
+
+    let market_uid_mut = market::uid(market);
+    let key = market_dynamic_keys::pause_authority_registry_key();
+
+    let pause_authority_registry = dynamic_field::borrow<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    assert!(vec_set::contains(pause_authority_registry, &sender), error::unauthorize_pause_error());
+
+    assert!(!whitelist::is_reject_all(market::uid(market)), error::protocol_already_frozen_error());
+
+    whitelist::reject_all(
+      market::uid_mut(market),
+    );
+
+    event::emit(FreezeProtocolEvent {
+      market: object::id(market),
+      sender,
+    });
+  }
+
   // ====== incentive rewards =====
+  #[deprecated]
   public entry fun set_incentive_reward_factor<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
@@ -320,8 +430,7 @@ module protocol::app {
     scale: u64,
     _ctx: &mut TxContext
   ) {
-    let reward_factors = market::reward_factors_mut(market);
-    incentive_rewards::set_reward_factor<T>(reward_factors, reward_factor, scale);
+    abort 0 // deprecated
   }
 
   // the final fee rate is "fee/10000"
@@ -331,6 +440,7 @@ module protocol::app {
     market: &mut Market,
     fee: u64
   ) {
+    assert!(fee <= reserve::flash_loan_fee_denominator(), error::invalid_params_error());
     market::set_flash_loan_fee<T>(market, fee);
   }
 
@@ -340,7 +450,8 @@ module protocol::app {
     market: &mut Market,
     is_active: bool,
   ) {
-    market::set_base_asset_active_state<T>(market, is_active);
+    let coin_type = type_name::get<T>();
+    market::set_base_asset_active_state(market, coin_type, is_active);
   }
 
   public entry fun set_collateral_active_state<T>(
@@ -348,7 +459,8 @@ module protocol::app {
     market: &mut Market,
     is_active: bool,
   ) {
-    market::set_collateral_active_state<T>(market, is_active);
+    let coin_type = type_name::get<T>();
+    market::set_collateral_active_state(market, coin_type, is_active);
   }
 
   /// ======= take revenue =======
@@ -432,16 +544,13 @@ module protocol::app {
     dynamic_field::add(market_uid_mut, key, fee);
   }
 
+  /// deprecate the borrow fee recipient feature
   public entry fun update_borrow_fee_recipient(
     _admin_cap: &AdminCap,
-    market: &mut Market,
-    recipient: address,
+    _: &mut Market,
+    _: address,
   ) {
-    let market_uid_mut = market::uid_mut(market);
-    let key = market_dynamic_keys::borrow_fee_recipient_key();
-
-    dynamic_field::remove_if_exists<BorrowFeeRecipientKey, address>(market_uid_mut, key);
-    dynamic_field::add(market_uid_mut, key, recipient);
+    abort 0;
   }
 
   public entry fun update_supply_limit<T: drop>(
@@ -455,6 +564,18 @@ module protocol::app {
     dynamic_field::remove_if_exists<SupplyLimitKey, u64>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, limit_amount);
   }
+
+  public entry fun update_min_collateral_amount<T: drop>(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    min_amount: u64,
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::min_collateral_amount_key(type_name::get<T>());
+
+    dynamic_field::remove_if_exists<MinCollateralAmountKey, u64>(market_uid_mut, key);
+    dynamic_field::add(market_uid_mut, key, min_amount);
+  }  
 
   public entry fun update_borrow_limit<T: drop>(
     _admin_cap: &AdminCap,
@@ -503,5 +624,55 @@ module protocol::app {
     witness_list: &mut AuthorizedWitnessList
   ) {
     borrow_referral::remove_witness<T>(witness_list);
+  }
+
+  /// Initialize the market coin price table, only call it once
+  public fun init_market_coin_price_table(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    ctx: &mut TxContext
+  ) {
+    market::init_market_coin_price_table(market, ctx);
+  }
+
+  /// For extension of the protocol
+  /// Deprecated function, always abort
+  public fun ext(
+    _: &AdminCap,
+    market: &mut Market,
+  ): &mut UID {
+    abort 0
+  }
+
+  public fun whitelist_allow_all(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    _: &mut TxContext
+  ) {
+    whitelist::allow_all(
+      market::uid_mut(market)
+    );
+  }
+
+  #[test_only]
+  public fun whitelist_switch_to_whitelist_mode(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+  ) {
+    whitelist::switch_to_whitelist_mode(
+      market::uid_mut(market)
+    );
+  }
+
+  #[test_only]
+  public fun whitelist_add_address_to_whitelist(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+  ) {
+    whitelist::add_whitelist_address(
+      market::uid_mut(market),
+      address
+    );
   }
 }

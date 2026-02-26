@@ -9,6 +9,8 @@ module protocol::obligation {
   use sui::balance::{Self, Balance};
   use sui::event::emit;
   use sui::tx_context;
+  use sui::clock::Clock;
+
 
   use x::balance_bag::{Self, BalanceBag};
   use x::ownership::{Self, Ownership};
@@ -20,6 +22,11 @@ module protocol::obligation {
   use protocol::market::{Self, Market};
   use protocol::obligation_access::{Self, ObligationAccessStore};
   use protocol::error;
+  use protocol::apm;
+
+  use x_oracle::x_oracle::XOracle;
+
+  use decimal::decimal::{Self, Decimal};
 
   friend protocol::repay;
   friend protocol::borrow;
@@ -126,7 +133,7 @@ module protocol::obligation {
     ownership::is_owner(&key.ownership, obligation)
   }
   
-  public(friend) fun accrue_interests_and_rewards(
+  public(friend) fun accrue_interests(
     obligation: &mut Obligation,
     market: &Market,
   ) {
@@ -137,11 +144,6 @@ module protocol::obligation {
       let new_borrow_index = market::borrow_index(market, type);
       // accrue interest first, to get the latest borrow amount
       obligation_debts::accrue_interest(&mut obligation.debts, type, new_borrow_index);
-      
-      // @deprecated: this feature is no longer used
-      // let reward_factor = incentive_rewards::reward_factor(market::reward_factor(market, type));
-      // let accrued_rewards_point = fixed_point32::multiply_u64(accrued_interest, reward_factor);
-      // obligation.rewards_point = obligation.rewards_point + accrued_rewards_point;
 
       i = i + 1;
     };
@@ -195,6 +197,43 @@ module protocol::obligation {
     amount: u64,
   ) {
     obligation_debts::decrease(&mut self.debts, type_name, amount);
+  }
+
+  public(friend) fun check_is_collateral_price_fluctuate(
+    self: &Obligation,
+    market: &mut Market,
+    x_oracle: &XOracle,
+    clock: &Clock,
+  ) {
+    let collaterals = collateral_types(self);
+
+    let (i, n) = (0, vector::length(&collaterals));
+    while (i < n) {
+      let collateral_type = *vector::borrow(&collaterals, i);
+
+      if (has_coin_x_as_collateral(self, collateral_type)) {
+        let is_fluctuate = apm::is_price_fluctuate(
+          market,
+          x_oracle,
+          collateral_type,
+          clock,
+        );
+
+        assert!(
+          !is_fluctuate,
+          error::apm_triggered_error()
+        );
+
+        // record the price history
+        apm::record_min_price_history(
+          market,
+          x_oracle,
+          collateral_type,
+          clock,
+        );
+      };
+      i = i + 1;
+    };
   }
 
   public fun has_coin_x_as_debt(self: &Obligation, coin_type: TypeName): bool {

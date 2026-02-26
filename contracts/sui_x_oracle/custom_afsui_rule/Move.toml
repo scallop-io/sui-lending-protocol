@@ -1,0 +1,25 @@
+[package]
+name = "CustomAfsuiRule"
+version = "0.0.1"
+edition = "2024.beta"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "framework/mainnet"
+override = true
+
+[dependencies.AftermathLSD]
+local = "../../../../../aftermath/move-interfaces/packages/afsui/afsui-staked-sui-vault"
+
+[dependencies.Pyth]
+local = "../pyth_rule/vendors/pyth"
+
+[dependencies.XOracle]
+local = "../x_oracle"
+
+[dependencies.Decimal]
+local = "../../libs/decimal"
+
+[addresses]
+custom_afsui_rule = "0x0"

@@ -4,6 +4,7 @@ module protocol::obligation_debts {
   use sui::tx_context::TxContext;
   use x::wit_table::{Self, WitTable};
   use std::fixed_point32;
+  use decimal::decimal::{Self, Decimal};
 
   friend protocol::obligation;
 

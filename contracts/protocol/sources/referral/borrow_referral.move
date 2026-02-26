@@ -6,10 +6,9 @@
 module protocol::borrow_referral {
 
   use std::type_name::{Self, TypeName};
-  use sui::balance;
   use sui::object::{Self, UID};
   use sui::vec_set::{Self, VecSet};
-  use sui::balance::Balance;
+  use sui::balance::{Self, Balance};
   use sui::tx_context::TxContext;
   use sui::transfer;
   use math::u64;
@@ -26,6 +25,7 @@ module protocol::borrow_referral {
   const ERROR_FEE_DISCOUNT_TOO_HIGH: u64 = 712;
   const ERROR_CFG_ALREADY_EXIST: u64 = 713;
   const ERROR_CFG_ISNT_EXIST: u64 = 714;
+  const ERROR_CFG_NOT_EXIST: u64 = 715;
 
   // This is a hot potato object, which can only be consumed by the authorized package
   #[allow(lint(missing_key))]
@@ -82,6 +82,11 @@ module protocol::borrow_referral {
       witness_list: vec_set::empty()
     };
     transfer::share_object(witness_list);
+  }
+
+  #[test_only]
+  public fun init_test(ctx: &mut TxContext) {
+    init(ctx);
   }
 
   /// @notice Create a borrow referral object
@@ -197,6 +202,21 @@ module protocol::borrow_referral {
     dynamic_field::add(&mut borrow_referral.id, BorrowReferralCfgKey<Cfg> {}, cfg);
   }
 
+  /// @notice Remove a custom config data from the borrow referral object
+  /// @dev This is meant to be called by the authorized package to remove custom config data from the borrow referral object
+  /// @param borrow_referral The borrow referral object
+  /// @param cfg The custom config data
+  /// @return The custom config data removed
+  /// @custom:CoinType The type of the coin to borrow
+  /// @custom:Witness The type of the witness issued by the authorized package
+  /// @custom:Cfg The type of the custom config data
+  public fun remove_referral_cfg<CoinType, Witness: drop, Cfg: store + drop>(
+    borrow_referral: &mut BorrowReferral<CoinType, Witness>,
+  ) {
+    assert!(dynamic_field::exists_(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}) == true, ERROR_CFG_NOT_EXIST);
+    dynamic_field::remove<BorrowReferralCfgKey<Cfg>, Cfg>(&mut borrow_referral.id, BorrowReferralCfgKey<Cfg> {});
+  }
+
   /// @notice Get the custom config data from the borrow referral object
   /// @dev This is meant to be called by the authorized package to get the custom config data from the borrow referral object
   /// @param borrow_referral The borrow referral object
@@ -224,6 +244,9 @@ module protocol::borrow_referral {
   ): Balance<CoinType> {
     // Get referral fee from dynamic fields
     let patched_referral_fee = dynamic_field::remove<ReferralFeeKey, Balance<CoinType>>(&mut borrow_fee_referral.id, ReferralFeeKey {});
+
+    // Remove the borrowed dynamic field
+    dynamic_field::remove<BorrowedKey, u64>(&mut borrow_fee_referral.id, BorrowedKey {});
 
     // Delete the object
     let BorrowReferral {
@@ -297,5 +320,105 @@ module protocol::borrow_referral {
       witness_list: vec_set::empty()
     };
     transfer::share_object(witness_list);
+  }
+
+  #[test_only]
+  use sui::test_scenario;
+
+  #[test_only]
+  use sui::test_utils;
+
+  #[test_only]
+  struct WitnessType has drop {}
+
+  #[test_only]
+  struct USDC {}
+
+  #[test_only]
+  struct ReferralCfg has store, drop {}
+
+  #[test]
+  fun referral_cfg_test() {
+    let admin = @0x1;
+    let scenario_value = test_scenario::begin(admin);
+    let scenario = &mut scenario_value;
+
+    init_test(test_scenario::ctx(scenario));
+    test_scenario::next_tx(scenario, admin);
+    let authorized_witness_list = test_scenario::take_shared<AuthorizedWitnessList>(scenario);
+
+    add_witness<WitnessType>(
+      &mut authorized_witness_list,
+    );
+
+    let borrow_referral = create_borrow_referral<USDC, WitnessType>(
+      WitnessType {},
+      &authorized_witness_list,
+      0,
+      0,
+      test_scenario::ctx(scenario)
+    );
+
+    add_referral_cfg<USDC, WitnessType, ReferralCfg>(
+      &mut borrow_referral,
+      ReferralCfg {}
+    );
+
+    let referral_cfg = get_referral_cfg<USDC, WitnessType, ReferralCfg>(
+      &borrow_referral,
+    );
+
+    assert!(referral_cfg == &ReferralCfg {}, 0);
+
+    let referral_fee = destroy_borrow_referral<USDC, WitnessType>(
+      WitnessType {},
+      borrow_referral
+    );
+
+    remove_witness<WitnessType>(
+      &mut authorized_witness_list,
+    );
+    balance::destroy_for_testing(referral_fee);
+
+    test_scenario::return_shared(authorized_witness_list);
+    test_scenario::end(scenario_value);
+  }
+
+  #[test]
+  fun getter_func_test() {
+    let admin = @0x1;
+    let scenario_value = test_scenario::begin(admin);
+    let scenario = &mut scenario_value;
+
+    let borrow_referral = BorrowReferral {
+      id: object::new(test_scenario::ctx(scenario)),
+      witness: WitnessType {},
+      borrowed: 0, // this field is deprecated leave it as 0
+      borrow_fee_discount: 10,
+      referral_share: 30,
+      referral_fee: balance::zero<USDC>(),
+    };
+
+    dynamic_field::add(&mut borrow_referral.id, BorrowedKey {}, 0);
+
+    increase_borrowed_v2(
+      &mut borrow_referral,
+      20,
+    );
+
+    let borrow_fee_discount = borrow_fee_discount<USDC, WitnessType>(&borrow_referral);
+    assert!(borrow_fee_discount == 10, 0);
+
+    let borrowed = borrowed<USDC, WitnessType>(&borrow_referral);
+    assert!(borrowed == 20, 0);
+
+    let referral_share = referral_share<USDC, WitnessType>(&borrow_referral);
+    assert!(referral_share == 30, 0);
+
+    assert!(fee_rate_base() == BASE_FOR_FEE, 0);
+
+    test_utils::destroy(borrow_referral);
+
+    test_scenario::end(scenario_value);
   }
 }

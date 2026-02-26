@@ -9,7 +9,7 @@ pnpm install
 ```
 
 2. Install SUI cli
-See the official documentation: [How to install SUI cli](https://docs.sui.io/devnet/build/install)
+See the official documentation: [How to install SUI cli](https://docs.sui.io/guides/developer/getting-started/sui-install)
 
 3. Set the envs
   ```bash
@@ -47,9 +47,15 @@ Let's take the `test_coin` package as an example:
 
 - `README.md` description of the package, explain the usage of the package.
 
+## Learn More About the Project with LLM 
+
+We recommend using [DeepWiki](https://deepwiki.com/scallop-io/sui-lending-protocol) to gain a deeper understanding of the project's architecture, core concepts, and implementation details.
+
 ## Use Scallop SDK to interact with the contracts
 
 It's recommended to use the Scallop SDK to interact with the contracts, see the official documentation: [How to use Scallop SDK](https://github.com/scallop-io/sui-scallop-sdk)
+
+or even generate demo code and transaction examples directly through [DeepWiki](https://deepwiki.com/scallop-io/sui-scallop-sdk) integrated LLM interface.
 
 ## Integrate with Scallop Protocol in SUI Move
 

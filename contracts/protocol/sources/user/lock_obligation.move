@@ -19,8 +19,14 @@ module protocol::lock_obligation {
     use protocol::collateral_value::collaterals_value_usd_for_liquidation;
     use protocol::market::{Self, Market};
     use protocol::error;
+    use protocol::version::{Self, Version};
     
     struct ObligationUnhealthyUnlocked has copy, drop {
+        obligation: ID,
+        witness: TypeName,
+    }
+
+    struct ObligationForceUnlocked has copy, drop {
         obligation: ID,
         witness: TypeName,
     }
@@ -35,46 +41,29 @@ module protocol::lock_obligation {
     /// @param clock The SUI system Clock object
     /// @param key The witness issued by the authorized contract
     public fun force_unlock_unhealthy<T: drop>(
+        _obligation: &mut Obligation,
+        _market: &mut Market,
+        _coin_decimals_registry: &CoinDecimalsRegistry,
+        _x_oracle: &XOracle,
+        _clock: &Clock,
+        _key: T
+    ) {
+        abort 0;
+    }
+
+    public fun force_unlock<T: drop>(
+        version: &Version,
         obligation: &mut Obligation,
-        market: &mut Market,
-        coin_decimals_registry: &CoinDecimalsRegistry,
-        x_oracle: &XOracle,
-        clock: &Clock,
         key: T
     ) {
+        // check if version is supported
+        version::assert_current_version(version);
+        
         // Unlock the obligation, this also does the necessary check if the witness is correct
         obligation::set_unlock(obligation, key);
 
-        // accrue all interest before any action
-        let now = clock::timestamp_ms(clock) / 1000;
-        market::accrue_all_interests(market, now);
-        obligation::accrue_interests_and_rewards(obligation, market);
-
-        // calculate the value of collaterals in the context of liquidation
-        // collateral value is discounted with liquidation factor
-        // 1000$ of market value asset, with 90% liquidation factor, will be counted as 900$
-        let collaterals_value = collaterals_value_usd_for_liquidation(
-            obligation, market, 
-            coin_decimals_registry, 
-            x_oracle, 
-            clock
-        );
-        // calculate the value of debts in the context of liquidation
-        // debt value is boosted by the borrow weight
-        // 1000$ of market value debt, with 1.5x borrow weight, will be counted as 1500$
-        let weighted_debts_value = debts_value_usd_with_weight(
-            obligation, 
-            coin_decimals_registry, 
-            market, 
-            x_oracle, 
-            clock
-        );
-
-        // Make sure the debt value is bigger than collateral value in context of liquidation
-        assert!(fixed_point32_empower::gt(weighted_debts_value, collaterals_value), error::obligation_cant_forcely_unlocked());
-
         // Emit the unlock event
-        emit(ObligationUnhealthyUnlocked {
+        emit(ObligationForceUnlocked {
             obligation: object::id(obligation),
             witness: type_name::get<T>(),
         });

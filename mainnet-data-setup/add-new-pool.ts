@@ -16,19 +16,24 @@ import { buildMultiSigTx } from './multi-sig';
 import { BorrowLimits } from './borrow-limits';
 import { suiKit } from 'sui-elements';
 import { xOracleTxBuilder } from 'contracts/sui_x_oracle';
+import { riskModels } from './risk-models';
+import { MinCollaterals } from './min-collateral';
+import { ApmThresholds } from './apm-threshold';
 
-async function addNewPool_haedal() {
+async function addNewPool_xBTC() {
   const tx = new SuiTxBlock();
-  const coin = 'haedal';
-  const dustCoinId = '0xd63a0ac2bf7bc0a79e5b2bada85a9eb9b7e3e88a1a8c6b8b692b86bd4d168ecb'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'zWBtc';
+  const dustCoinId = '0x9f757d22feb69ef9acd29f13e1631964fedfea16c5193fd8cc741251f6ac9369'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
+  protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
   protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
-  protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
+  protocolTxBuilder.updateMinCollateral(tx, MinCollaterals[coin], coinType);
+  protocolTxBuilder.setApmThreshold(tx, ApmThresholds[coin], coinType);
 
   pythRuleTxBuilder.registerPythFeed(tx, oracles[coin].pythPriceObjectId, pythRuleTxBuilder.calculatePriceConfidenceTolerance(2), coinType);
   xOracleTxBuilder.addPrimaryPriceUpdateRuleV2(tx, coinType, pythRuleStructType);
@@ -41,7 +46,7 @@ async function addNewPool_haedal() {
   tx.transferObjects([dustToBurn], voidAddress);
 
   const txBytes = await buildMultiSigTx(tx);
-  const resp = await suiKit.client().dryRunTransactionBlock({
+  const resp = await suiKit.client.dryRunTransactionBlock({
       transactionBlock: txBytes
   })
   console.log(resp.effects.status);
@@ -50,4 +55,4 @@ async function addNewPool_haedal() {
   return txBytes;
 }
 
-addNewPool_haedal().then(console.log);
+addNewPool_xBTC().then(console.log);

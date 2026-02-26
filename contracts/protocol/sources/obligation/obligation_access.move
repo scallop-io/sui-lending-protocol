@@ -74,4 +74,74 @@ module protocol::obligation_access {
     let key = type_name::get<T>();
     assert!(vec_set::contains(&store.reward_keys, &key), error::obligation_access_reward_key_not_in_store());
   }
+
+  #[test_only]
+  use sui::test_scenario;
+
+  #[test_only]
+  struct MockKeyA has drop {}
+
+  #[test_only]
+  struct MockKeyB has drop {}
+  
+  #[test_only]
+  struct MockKeyC has drop {}
+
+  #[test]
+  fun lock_key_test() {
+    let admin = @0x1;
+    let scenario_value = test_scenario::begin(admin);
+    let scenario = &mut scenario_value;
+    init_test(test_scenario::ctx(scenario));
+    test_scenario::next_tx(scenario, admin);
+    let obligation_access_store = test_scenario::take_shared<ObligationAccessStore>(scenario);
+
+    add_lock_key<MockKeyA>(&mut obligation_access_store);
+    add_lock_key<MockKeyB>(&mut obligation_access_store);
+    add_lock_key<MockKeyC>(&mut obligation_access_store);
+
+    assert_lock_key_in_store(&obligation_access_store, MockKeyA {});
+    assert_lock_key_in_store(&obligation_access_store, MockKeyB {});
+    assert_lock_key_in_store(&obligation_access_store, MockKeyC {});
+
+    assert!(vec_set::size(&obligation_access_store.lock_keys) == 3, 0);
+
+    remove_lock_key<MockKeyA>(&mut obligation_access_store);
+    remove_lock_key<MockKeyB>(&mut obligation_access_store);
+    remove_lock_key<MockKeyC>(&mut obligation_access_store);
+
+    assert!(vec_set::size(&obligation_access_store.lock_keys) == 0, 0);
+
+    test_scenario::return_shared(obligation_access_store);
+    test_scenario::end(scenario_value);
+  }
+
+  #[test]
+  fun reward_key_test() {
+    let admin = @0x1;
+    let scenario_value = test_scenario::begin(admin);
+    let scenario = &mut scenario_value;
+    init_test(test_scenario::ctx(scenario));
+    test_scenario::next_tx(scenario, admin);
+    let obligation_access_store = test_scenario::take_shared<ObligationAccessStore>(scenario);
+
+    add_reward_key<MockKeyA>(&mut obligation_access_store);
+    add_reward_key<MockKeyB>(&mut obligation_access_store);
+    add_reward_key<MockKeyC>(&mut obligation_access_store);
+
+    assert_reward_key_in_store(&obligation_access_store, MockKeyA {});
+    assert_reward_key_in_store(&obligation_access_store, MockKeyB {});
+    assert_reward_key_in_store(&obligation_access_store, MockKeyC {});
+
+    assert!(vec_set::size(&obligation_access_store.reward_keys) == 3, 0);
+
+    remove_reward_key<MockKeyA>(&mut obligation_access_store);
+    remove_reward_key<MockKeyB>(&mut obligation_access_store);
+    remove_reward_key<MockKeyC>(&mut obligation_access_store);
+
+    assert!(vec_set::size(&obligation_access_store.reward_keys) == 0, 0);
+
+    test_scenario::return_shared(obligation_access_store);
+    test_scenario::end(scenario_value);
+  }
 }

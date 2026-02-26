@@ -97,12 +97,27 @@ module x_oracle::price_update_policy {
     vec_set::insert(rules, type_name::get<Rule>());
   }
 
+  public(friend) fun count_rules_v2<CoinType>(
+    policy: &PriceUpdatePolicy
+  ): u64 {
+    let rules_table = dynamic_field::borrow<PriceUpdatePolicyRulesKey, Table<TypeName, VecSet<TypeName>>>(
+        &policy.id,
+        PriceUpdatePolicyRulesKey {},
+    );
+    let coin_type = type_name::get<CoinType>();
+    if (!table::contains(rules_table, coin_type)) {
+      return 0
+    };
+    
+    let rules = table::borrow(rules_table, coin_type);
+    vec_set::size(rules)
+  }
+
   public fun add_rule<Rule>(
-    policy: &mut PriceUpdatePolicy,
-    cap: &PriceUpdatePolicyCap,
+    _policy: &mut PriceUpdatePolicy,
+    _cap: &PriceUpdatePolicyCap,
   ) {
-    assert!(object::id(policy) == cap.for, WRONG_POLICY_CAP);
-    vec_set::insert(&mut policy.rules, type_name::get<Rule>());
+    abort 0
   }
 
   public(friend) fun remove_rule_v2<CoinType, Rule>(
@@ -126,11 +141,10 @@ module x_oracle::price_update_policy {
   }  
 
   public fun remove_rule<Rule>(
-    policy: &mut PriceUpdatePolicy,
-    cap: &PriceUpdatePolicyCap,
+    _policy: &mut PriceUpdatePolicy,
+    _cap: &PriceUpdatePolicyCap,
   ) {
-    assert!(object::id(policy) == cap.for, WRONG_POLICY_CAP);
-    vec_set::remove<TypeName>(&mut policy.rules, &type_name::get<Rule>());
+    abort 0
   }
 
   public fun add_price_feed<CoinType, Rule: drop>(

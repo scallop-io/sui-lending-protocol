@@ -83,6 +83,8 @@ module x_oracle::x_oracle {
       &mut self.primary_price_update_policy,
       &cap.primary_price_update_policy_cap
     );
+
+    assert!(price_update_policy::count_rules_v2<CoinType>(&self.secondary_price_update_policy) <= 1, ONLY_SUPPORT_ONE_PRIMARY);
   }
 
   public fun remove_primary_price_update_rule_v2<CoinType, Rule: drop>(

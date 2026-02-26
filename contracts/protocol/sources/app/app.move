@@ -9,6 +9,7 @@ module protocol::app {
   use sui::transfer;
   use sui::package;
   use sui::event;
+  use sui::package::Publisher;
   use x::ac_table::AcTableCap;
   use x::one_time_lock_value::OneTimeLockValue;
   use protocol::market::{Self, Market};
@@ -18,6 +19,7 @@ module protocol::app {
   use protocol::error;
   use protocol::reserve;
   use protocol::apm;
+  use protocol::obligation_key_display;
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
@@ -633,6 +635,14 @@ module protocol::app {
     ctx: &mut TxContext
   ) {
     market::init_market_coin_price_table(market, ctx);
+  }
+
+  public fun init_obligation_key_display(
+    _admin_cap: &AdminCap,
+    publisher: &Publisher,
+    ctx: &mut TxContext,
+  ) {
+    obligation_key_display::init_display(publisher, ctx);
   }
 
   /// For extension of the protocol

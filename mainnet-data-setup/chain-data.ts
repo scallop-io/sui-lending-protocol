@@ -25,6 +25,7 @@ export type SupportedCollaterals =
   | 'wWal'
   | 'haWal'
   | 'zWBtc'
+  | 'suiUSDe'
 ;
 
 export type SupportedBaseAssets =
@@ -57,6 +58,7 @@ export type SupportedBaseAssets =
   | 'haWal'
   | 'lofi'
   | 'zWBtc'
+  | 'suiUSDe'
 ;
 
 export const coinTypes = {
@@ -90,6 +92,7 @@ export const coinTypes = {
   haWal: '0x8b4d553839b219c3fd47608a0cc3d5fcc572cb25d41b7df3833208586a8d2470::hawal::HAWAL',
   lofi: '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503::LOFI::LOFI',
   zWBtc: '0x0041f9f9344cac094454cd574e333c4fdb132d7bcc9379bcd4aab485b2a63942::wbtc::WBTC',
+  suiUSDe: '0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::sui_usde::SUI_USDE',
 };
 
 export const coinMetadataIds = {
@@ -123,6 +126,7 @@ export const coinMetadataIds = {
   haWal: '0x285c96e598e2861a898eff9331a5ffeb9e2199cdb02f6ba52f311b0fab5c47cf',
   lofi: '0x57a2bf5e6887eca522fe6c3ff0d9d8dc116d072998a477c6c24fe6603107ebb8',
   zWBtc: '0x3b4b0f06afdd9358d2be551979d679b64934b8c78d345ef934358eed4af1d6e4',
+  suiUSDe: '', // suiUSDe using currency registry, no metadata id
 };
 
 export const coinDecimals = {
@@ -156,4 +160,5 @@ export const coinDecimals = {
   haWal: 9,
   lofi: 9,
   zWBtc: 8,
+  suiUSDe: 6,
 }

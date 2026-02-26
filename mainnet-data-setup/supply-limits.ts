@@ -34,4 +34,5 @@ export const SupplyLimits: Record<SupportedBaseAssets, number> = {
   wWal: 10_000_000 * Math.pow(10, coinDecimals.wWal), // 10M
   haWal: 10_000_000 * Math.pow(10, coinDecimals.haWal), // 10M
   lofi: 0 * Math.pow(10, coinDecimals.lofi),
+  suiUSDe: 1_000_000 * Math.pow(10, coinDecimals.suiUSDe), // 1M
 }

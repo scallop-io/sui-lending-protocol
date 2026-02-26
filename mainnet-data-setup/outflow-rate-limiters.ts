@@ -153,4 +153,9 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  suiUSDe: {
+    outflowLimit: 1 * 10 ** (5 + coinDecimals.suiUSDe), // 100k SUIUSDe per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
 }

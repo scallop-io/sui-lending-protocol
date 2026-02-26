@@ -121,13 +121,17 @@ module protocol::liquidation_test {
     let repaid_debt_amount = usdc_amount - coin::value(&coin_debt); // original amount - remaining amount
     let liquidator_collateral = coin::value(&coin_collateral);
 
-    // New liquidation mechanism:
+    // New liquidation mechanism (20% of total debt value):
+    // total_debts_value_usd = 850 USDC * $1 = $850
+    // max_repay_usd    = 20% * $850 = $170
+    // max_repay (USDC) = $170 / $1  = 170 USDC  (liquidator supplied 900, so capped at 170)
+    //
     // exchange_rate = (collateral_scale / debt_scale) * (debt_price / collateral_price)
     //               = (10^9 / 10^9) * ($1 / $1000) = 0.001
     // liquidator_amount = actual_repay * exchange_rate * (1 + liq_discount)
-    //                   = actual_repay * 0.001 * 1.05
+    //                   = 170 USDC * 0.001 * 1.05 = 0.1785 ETH
     // protocol_amount   = actual_repay * exchange_rate * liq_revenue_factor
-    //                   = actual_repay * 0.001 * 0.03
+    //                   = 170 USDC * 0.001 * 0.03 = 0.0051 ETH
     let debt_price = fixed_point32::create_from_rational(1, 1); // $1
     let collateral_price = fixed_point32::create_from_rational(1000, 1); // $1000
     let liq_discount = fixed_point32::create_from_rational(5, 100); // 5%
@@ -146,12 +150,12 @@ module protocol::liquidation_test {
     let expected_liq_amount = fixed_point32::multiply_u64(repaid_debt_amount, liquidator_rate);
     let expected_protocol_amount = fixed_point32::multiply_u64(repaid_debt_amount, protocol_rate);
 
-    // verify the repaid debt amount is correct
-    assert!(repaid_debt_amount >= 50 * std::u64::pow(10, usdc_decimals), 0); // the repaid debt is $50
-    // 5% discount for liquidator: $50 * 1.05 = $52.5 worth of ETH = 0.0525 ETH = 52_500_000
-    assert!(liquidator_collateral <= u64::mul_div(std::u64::pow(10, eth_decimals), 52_5, 1000_0), 0);
-    // 3% revenue for protocol: $50 * 0.03 / $1000 = 0.0015 ETH = 1_500_000
-    assert!(expected_protocol_amount <= u64::mul_div(std::u64::pow(10, eth_decimals), 1_5, 1000_0), 0);
+    // verify the repaid debt amount is correct: 20% of 850 USDC = 170 USDC
+    assert!(repaid_debt_amount == 170 * std::u64::pow(10, usdc_decimals), 0);
+    // 5% discount for liquidator: $170 * 1.05 / $1000 = 0.1785 ETH = 178_500_000
+    assert!(liquidator_collateral <= u64::mul_div(std::u64::pow(10, eth_decimals), 178_5, 1000_0), 0);
+    // 3% revenue for protocol: $170 * 0.03 / $1000 = 0.0051 ETH = 5_100_000
+    assert!(expected_protocol_amount <= u64::mul_div(std::u64::pow(10, eth_decimals), 5_1, 1000_0), 0);
 
     // Verify liquidator received the correct collateral amount
     assert!(liquidator_collateral == expected_liq_amount, 1);
@@ -269,10 +273,16 @@ module protocol::liquidation_test {
     let repaid_debt_amount = (usdc_amount - coin::value(&coin_debt)); // original amount - remaining amount
     let liquidator_collateral = coin::value(&coin_collateral);
 
-    // New liquidation mechanism with borrow_weight = 2:
+    // New liquidation mechanism (20% of total debt value) with borrow_weight = 2:
+    // total_debts_value_usd = 850 USDC * $0.5 = $425
+    // max_repay_usd    = 20% * $425 = $85
+    // max_repay (USDC) = $85 / $0.5 = 170 USDC  (borrow_weight no longer affects the repay cap)
+    //
     // exchange_rate = (10^9 / 10^9) * ($0.5 / $1000) = 0.0005
     // liquidator_amount = actual_repay * exchange_rate * (1 + liq_discount)
+    //                   = 170 USDC * 0.0005 * 1.05 = 0.08925 ETH
     // protocol_amount   = actual_repay * exchange_rate * liq_revenue_factor
+    //                   = 170 USDC * 0.0005 * 0.03 = 0.00255 ETH
     let debt_price = fixed_point32::create_from_rational(1, 2); // $0.5
     let collateral_price = fixed_point32::create_from_rational(1000, 1); // $1000
     let liq_discount = fixed_point32::create_from_rational(5, 100); // 5%
@@ -291,14 +301,13 @@ module protocol::liquidation_test {
     let expected_liq_amount = fixed_point32::multiply_u64(repaid_debt_amount, liquidator_rate);
     let expected_protocol_amount = fixed_point32::multiply_u64(repaid_debt_amount, protocol_rate);
 
-    // the repaid debt should be $25
-    // and because the price of USDC is $0.5, so the amount should be 50 USDC
-    assert!(repaid_debt_amount >= 50 * std::u64::pow(10, usdc_decimals), 0);
+    // 20% of 850 USDC = 170 USDC; borrow_weight no longer changes the repay cap
+    assert!(repaid_debt_amount == 170 * std::u64::pow(10, usdc_decimals), 0);
 
-    // 5% discount for liquidator: $25 * 1.05 = $26.25 worth of ETH = 0.02625 ETH = 26_250_000
-    assert!(liquidator_collateral <= u64::mul_div(std::u64::pow(10, eth_decimals), 26_25, 1000_0), 0);
-    // 3% revenue for protocol: $25 * 0.03 / $1000 = 0.00075 ETH = 750_000
-    assert!(expected_protocol_amount <= u64::mul_div(std::u64::pow(10, eth_decimals), 0_75, 1000_0), 0);
+    // 5% discount for liquidator: $85 * 1.05 / $1000 = 0.08925 ETH = 89_250_000
+    assert!(liquidator_collateral <= u64::mul_div(std::u64::pow(10, eth_decimals), 8_925, 100_000), 0);
+    // 3% revenue for protocol: $85 * 0.03 / $1000 = 0.00255 ETH = 2_550_000
+    assert!(expected_protocol_amount <= u64::mul_div(std::u64::pow(10, eth_decimals), 255, 100_000), 0);
 
     // Verify liquidator received the correct collateral amount
     assert!(liquidator_collateral == expected_liq_amount, 1);

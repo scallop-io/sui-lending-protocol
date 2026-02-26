@@ -7,9 +7,8 @@ module protocol::liquidation_evaluator {
   use math::fixed_point32_empower;
   use math::u64;
   use protocol::obligation::{Self, Obligation};
-  use protocol::interest_model;
   use protocol::market::{Self, Market};
-  use protocol::debt_value::debts_value_usd_with_weight;
+  use protocol::debt_value::{debts_value_usd_with_weight, debts_value_usd};
   use protocol::collateral_value::collaterals_value_usd_for_liquidation;
   use protocol::risk_model;
   use protocol::error;
@@ -49,30 +48,35 @@ module protocol::liquidation_evaluator {
   /// collateral value (adjusted for liquidation thresholds):
   ///   weighted_debts_value > collaterals_value
   ///
-  /// The maximum repay amount is derived from the shortfall ("bad debt"):
-  ///   bad_debt_value   = weighted_debts_value - collaterals_value  (USD)
-  ///   max_repay_value  = bad_debt_value / borrow_weight            (USD, unweighted)
-  ///   max_repay_amount = max_repay_value * debt_scale / debt_price (debt token units)
+  /// To prevent a single liquidation from stripping so much collateral that it
+  /// creates fresh bad debt on the same obligation, the per-call repayment is
+  /// capped at 20% of the **total outstanding debt value across all types**,
+  /// converted back to `DebtType` token units:
+  ///   max_repay_usd    = 20% * total_debts_value_usd   (sum of all debt types)
+  ///   max_repay_amount = max_repay_usd / debt_price * debt_scale
+  ///                      (capped at the actual debt balance of DebtType)
   ///
-  /// The result is capped by the borrower's total outstanding debt of this type,
-  /// ensuring the liquidator cannot repay more than what is owed.
+  /// Exception — dust positions: when the total USD value of all debts on the
+  /// obligation falls below $10, a full repay is allowed so that tiny positions
+  /// can be cleared in one call (gas cost would otherwise exceed any partial-
+  /// liquidation incentive).
   ///
   /// Returns 0 if the obligation is healthy (not liquidatable).
   ///
-  /// Example 1 — borrow_weight = 1.0 (e.g. USDC, decimals=6, price=$1):
-  ///   weighted_debts_value = $1200, collaterals_value = $1000
-  ///   bad_debt_value   = $1200 - $1000 = $200
-  ///   max_repay_value  = $200 / 1.0 = $200
-  ///   max_repay_amount = $200 * 1_000_000 / $1 = 200_000_000 (200 USDC)
-  ///   If total outstanding USDC debt is 150 USDC, result is capped to 150_000_000.
+  /// Example 1 — single debt: 850 USDC at $1:
+  ///   total_debts_value_usd = $850 > $10 → apply 20% cap
+  ///   max_repay_usd    = 20% * $850 = $170
+  ///   max_repay_amount = $170 / $1  = 170 USDC = 170_000_000_000
   ///
-  /// Example 2 — borrow_weight = 2.0 (e.g. volatile token XYZ, decimals=8, price=$50):
-  ///   weighted_debts_value = $1500, collaterals_value = $1000
-  ///   bad_debt_value   = $1500 - $1000 = $500
-  ///   max_repay_value  = $500 / 2.0 = $250
-  ///   max_repay_amount = $250 * 100_000_000 / $50 = 500_000_000 (5 XYZ)
-  ///   A higher borrow_weight means each dollar of debt counts more toward the
-  ///   shortfall, but the liquidator only needs to repay the unweighted amount.
+  /// Example 2 — two debts: Da = 500 USDC at $1, Db = 200 ETH at $3:
+  ///   total_debts_value_usd = $500 + $600 = $1,100 > $10 → apply 20% cap
+  ///   max_repay_usd    = 20% * $1,100 = $220
+  ///   max_repay_Da     = $220 / $1 = 220 USDC  (≤ 500 USDC balance → 220 USDC)
+  ///   max_repay_Db     = $220 / $3 ≈ 73 ETH    (≤ 200 ETH balance → ~73 ETH)
+  ///
+  /// Example 3 — dust position: 5 USDC total debt at $1:
+  ///   total_debts_value_usd = $5 < $10 → full repay allowed
+  ///   max_repay_amount = 5_000_000_000 (5 USDC)
   public fun max_repay_amount<DebtType>(
     obligation: &Obligation,
     market: &Market,
@@ -81,11 +85,6 @@ module protocol::liquidation_evaluator {
     clock: &Clock,
   ): u64 {
     let debt_type = type_name::get<DebtType>();
-
-    let interest_model = market::interest_model(market, debt_type);
-    let borrow_weight = interest_model::borrow_weight(interest_model);
-    let debt_scale = math::pow(10, coin_decimals_registry::decimals(coin_decimals_registry, debt_type));
-    let debt_price = get_price(x_oracle, debt_type, clock);
 
     // Compute portfolio values: collateral (liquidation-adjusted) vs weighted debts
     let collaterals_value = collaterals_value_usd_for_liquidation(obligation, market, coin_decimals_registry, x_oracle, clock);
@@ -96,20 +95,37 @@ module protocol::liquidation_evaluator {
       return 0
     };
 
-    // Compute the full conversion rate in FixedPoint32 before the final u64
-    // multiplication to preserve maximum precision:
-    // repay_rate = bad_debt_value / (debt_price * borrow_weight)
-    // max_repay_amount = debt_scale * repay_rate
-    let bad_debt_value = fixed_point32_empower::sub(weighted_debts_value, collaterals_value);
-    let repay_rate = fixed_point32_empower::div(
-      bad_debt_value,
-      fixed_point32_empower::mul(debt_price, borrow_weight),
-    );
-    let max_repay_amount = fixed_point32::multiply_u64(debt_scale, repay_rate);
-
-    // Cap by the borrower's total outstanding debt of this type
+    // Get total outstanding debt of this type
     let (total_debt_amount, _) = obligation::debt(obligation, debt_type);
-    math::min(max_repay_amount, total_debt_amount)
+
+    // Total USD value across all debt types
+    let total_debts_value = debts_value_usd(obligation, coin_decimals_registry, x_oracle, clock);
+
+    // Dust position: when total debt value across all types is below $10, allow
+    // a full repay so tiny positions can be fully cleared in a single call.
+    if (!fixed_point32_empower::gt(total_debts_value, fixed_point32_empower::from_u64(10))) {
+      return total_debt_amount
+    };
+
+    // Normal case: cap per-call repayment at 20% of the *total* outstanding debt
+    // value across all types, converted back to DebtType token units.
+    // This ensures each liquidation call removes at most 20% of the portfolio's
+    // total debt value regardless of which debt type is chosen, preventing
+    // incremental over-liquidation across multiple debt types.
+    //
+    // Derivation (FixedPoint32 raw values carry an implicit 2^32 scale):
+    //   max_repay_usd   = 20% * total_debts_value
+    //                   = total_debts_value_raw / 2^32 * (1/5)     [USD]
+    //   max_repay_tokens = max_repay_usd / debt_price * debt_scale
+    //                   = (total_debts_value_raw / 5) / (debt_price_raw / 2^32) / 2^32 * debt_scale
+    //                   = total_debts_value_raw * debt_scale / (5 * debt_price_raw)
+    // Working at the raw u64 level avoids any FixedPoint32 rounding from 1/5.
+    let debt_price = get_price(x_oracle, debt_type, clock);
+    let debt_scale = math::pow(10, coin_decimals_registry::decimals(coin_decimals_registry, debt_type));
+    let total_debts_value_raw = fixed_point32::get_raw_value(total_debts_value);
+    let debt_price_raw = fixed_point32::get_raw_value(debt_price);
+    let max_repay = u64::mul_div(total_debts_value_raw, debt_scale, 5 * debt_price_raw);
+    math::min(max_repay, total_debt_amount)
   }
 
   /// Converts a debt repayment amount into the collateral amounts awarded to the

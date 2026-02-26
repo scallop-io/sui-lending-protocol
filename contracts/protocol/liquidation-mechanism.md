@@ -1,4 +1,4 @@
-# nd Liquidation Mechanism
+# Liquidation Mechanism
 
 ## Overview
 
@@ -28,15 +28,22 @@ bad_debt = weighted_debts_value - collaterals_value_for_liquidation
 
 ### Max Repay Amount
 
-The liquidator can repay up to the bad debt value in any single debt type. The max repay amount in debt token units for a given `DebtType` is:
+To prevent a single liquidation from stripping so much collateral that it creates **fresh bad debt** on the same obligation, the per-call repayment is capped at **20% of the total outstanding debt value across all debt types**, converted to the chosen `DebtType` token units:
 
 ```
-max_repay_value = bad_debt / borrow_weight          (in USD)
-max_repay_amount = max_repay_value / debt_price      (in debt token units)
-max_repay_amount = min(max_repay_amount, total_debt)  (capped by actual debt)
+max_repay_usd    = 20% * total_debts_value_usd   (sum of ALL debt types)
+max_repay_amount = max_repay_usd / debt_price * debt_scale
+                   (capped at the actual balance of the chosen DebtType)
 ```
 
-The `borrow_weight` adjusts for debts that carry higher risk (e.g., a debt with `borrow_weight = 2` only requires half as many tokens to cover the same bad debt value).
+**Exception — dust positions**: When the total USD value of all debts on the obligation is below **$10**, a full repay is allowed. This clears tiny positions where gas cost would otherwise exceed any partial-liquidation incentive:
+
+```
+if total_debts_value_usd < $10:
+    max_repay_amount = total_debt_amount      (full repay)
+```
+
+> **Rationale for the 20% cap**: the old mechanism derived the cap from the bad-debt shortfall (`bad_debt / borrow_weight`). The problem is that after a liquidation, the collateral taken by the liquidator further reduces collateral value, which can generate new bad debt on the same obligation. Capping each call at 20% of the **total** portfolio debt (not per-type) makes liquidations gradual and prevents a liquidator from targeting multiple debt types in sequence to exceed the intended cap.
 
 ### Collateral Distribution
 
@@ -69,22 +76,55 @@ Computation:
 ```
 weighted_debts  = 6 + 3 * 2 = $12.00
 collateral_val  = 12.5 * 0.8 = $10.00
-bad_debt        = 12 - 10    = $2.00
+bad_debt        = 12 - 10    = $2.00    (position is liquidatable)
+
+total_debts_value_usd = 6 + 3 = $9.00 < $10  →  dust: full repay allowed
 ```
 
-Liquidator chooses to repay Da:
+Because total debt is below the $10 dust threshold, the liquidator may repay the full debt amount in one call.
+
+---
+
+**Non-dust example** (total debts > $10):
+- Debt Da = 850 USDC at $1 (`borrow_weight = 1`), no other debts
+- Collateral Ca worth $900 * 0.8 = $720 for liquidation
 ```
-max_repay_value = $2 / 1 = $2 worth of Da
-liquidator gets = $2 / (1 - 0.05)  = ~$2.105 worth of Ca
-protocol gets   = $2 * 0.03         = $0.06 worth of Ca
+weighted_debts  = 850 * 1 = $850
+collateral_val  = $720
+bad_debt        = $130     (position is liquidatable)
+total_debts_usd = $850 > $10  →  normal: 20% cap applies
+
+max_repay_usd    = 20% * $850 = $170
+max_repay (USDC) = $170 / $1  = 170 USDC
 ```
 
-Or liquidator chooses to repay Db:
+Liquidator repays 170 USDC:
 ```
-max_repay_value = $2 / 2 = $1 worth of Db
-liquidator gets = $1 / (1 - 0.05)  = ~$1.053 worth of Ca
-protocol gets   = $1 * 0.03         = $0.03 worth of Ca
+liquidator gets = $170 / (1 - 0.05) / $price_collateral  (worth ~$178.95 of Ca)
+protocol gets   = $170 * 0.03 / $price_collateral         (worth $5.10 of Ca)
 ```
+
+After this liquidation, the obligation's health improves. If it is still unhealthy,
+another liquidation call may repay another 20% of the remaining total debt value.
+
+**Multi-debt example** (two debt types):
+- Debt Da = 500 USDC at $1, Debt Db = 200 ETH at $3
+- Collateral Ca worth $1,500 * 0.8 = $1,200 for liquidation
+```
+weighted_debts  = 500*1 + 200*3 = $1,100  (borrow_weight = 1 for both)
+collateral_val  = $1,200  →  not yet liquidatable in this example
+```
+
+If the position were liquidatable:
+```
+total_debts_usd  = $500 + $600 = $1,100 > $10  →  normal: 20% cap applies
+
+max_repay_usd    = 20% * $1,100 = $220
+max_repay_Da     = $220 / $1    = 220 USDC   (≤ 500 USDC balance → 220 USDC)
+max_repay_Db     = $220 / $3   ≈ 73.3 ETH   (≤ 200 ETH balance  → ~73 ETH)
+```
+
+The liquidator may repay at most $220 worth per call regardless of which debt type is chosen.
 
 ## Risk Model Parameters
 
@@ -110,7 +150,8 @@ Constraints enforced on-chain:
 3. Accrue interests on market and obligation
 4. (actual_repay, liq_amount, protocol_amount) =
        calculate_liquidation_amounts(...)              // in liquidation_evaluator
-       - Computes max_repay from bad debt, caps by available coins
+       - Computes max_repay (20% of total debt value across all types, or full if dust position)
+       - Caps by available coins
        - Converts to collateral amounts, caps by available collateral
 5. Withdraw collateral from obligation
 6. Decrease obligation debt by actual_repay
@@ -124,7 +165,10 @@ Constraints enforced on-chain:
 
 | Aspect | Old Mechanism | New Mechanism |
 |---|---|---|
-| Max repay calculation | Based on collateral-debt exchange rate formula | Based on bad debt value / (debt_price * borrow_weight) |
+| Max repay cap basis | Bad debt / borrow_weight | **20% of total debt value** across all types, converted to chosen type |
+| Dust position handling | Same cap regardless of position size | Full repay allowed when total debts < $10 |
+| Cascade risk | High — removing collateral can create new bad debt | Low — 20% cap keeps each step gradual |
+| `borrow_weight` effect on cap | Reduces max repay for high-weight debts | No effect on repay cap (still affects liquidatability) |
 | Protocol revenue source | Taken from the **debt repayment** (debt tokens) | Taken from the **collateral** (collateral tokens) |
 | Debt reduction | Partial -- `repay - revenue` applied to debt | Full -- entire `actual_repay` reduces debt |
 | Revenue type | `Balance<DebtType>` | `Balance<CollateralType>` |
@@ -192,6 +236,8 @@ public fun calculate_liquidation_amounts<DebtType, CollateralType>(
 Lower-level helpers are also available if needed:
 ```move
 // Get the max repay amount for a debt type (returns 0 if not liquidatable)
+// Capped at 20% of total debt value across all types (converted to this type),
+// or full debt if total debts value < $10.
 public fun max_repay_amount<DebtType>(...): u64
 
 // Convert a debt repay amount to collateral amounts
@@ -225,6 +271,9 @@ public fun debt_to_collateral_amount<DebtType, CollateralType>(...): (u64, u64)
        version, obligation, market, repay_coin,
        coin_decimals_registry, x_oracle, clock, ctx
    )
+
+6. Repeat until the obligation is healthy.
+   Each call repays up to 20% of the remaining total debt value (converted to the chosen type).
 ```
 
 ### Event Listening

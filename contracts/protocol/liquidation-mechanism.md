@@ -229,7 +229,6 @@ public fun calculate_liquidation_amounts<DebtType, CollateralType>(
     x_oracle: &XOracle,
     clock: &Clock,
     available_repay_amount: u64,
-    collateral_type: TypeName,
 ): (u64, u64, u64)
 ```
 
@@ -258,7 +257,7 @@ public fun debt_to_collateral_amount<DebtType, CollateralType>(...): (u64, u64)
    (actual_repay, liq_amount, protocol_amount) =
        calculate_liquidation_amounts<DebtType, CollateralType>(
            obligation, market, coin_decimals_registry, x_oracle, clock,
-           available_repay_amount, collateral_type,
+           available_repay_amount,
        )
    - If the obligation is not liquidatable, this aborts
 

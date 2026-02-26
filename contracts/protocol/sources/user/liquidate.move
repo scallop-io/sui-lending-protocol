@@ -118,7 +118,7 @@ module protocol::liquidate {
     let available_repay_amount = balance::value(&available_repay_balance);
     let (actual_repay, liq_amount, protocol_amount) = calculate_liquidation_amounts<DebtType, CollateralType>(
       obligation, market, coin_decimals_registry, x_oracle, clock,
-      available_repay_amount, collateral_type,
+      available_repay_amount,
     );
 
     // --- 4. Execute liquidation ---

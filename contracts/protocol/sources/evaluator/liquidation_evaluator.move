@@ -212,15 +212,19 @@ module protocol::liquidation_evaluator {
       market, coin_decimals_registry, x_oracle, actual_repay, clock
     );
 
-    // Cap by the obligation's available collateral, scaling proportionally
+    // Cap by the obligation's available collateral, scaling proportionally.
+    // When collateral is insufficient all three values are scaled by the same
+    // ratio (total_collateral / total_needed) so the liquidator only pays for
+    // the collateral they actually receive and does not incur a loss.
     let total_collateral = obligation::collateral(obligation, collateral_type);
     let total_needed = liq_amount + protocol_amount;
-    let (liq_amount, protocol_amount) = if (total_needed > total_collateral) {
+    let (actual_repay, liq_amount, protocol_amount) = if (total_needed > total_collateral) {
+      let scaled_repay = u64::mul_div(actual_repay, total_collateral, total_needed);
       let scaled_liq = u64::mul_div(total_collateral, liq_amount, total_needed);
       let scaled_protocol = total_collateral - scaled_liq;
-      (scaled_liq, scaled_protocol)
+      (scaled_repay, scaled_liq, scaled_protocol)
     } else {
-      (liq_amount, protocol_amount)
+      (actual_repay, liq_amount, protocol_amount)
     };
     assert!(liq_amount > 0, error::unable_to_liquidate_error());
 

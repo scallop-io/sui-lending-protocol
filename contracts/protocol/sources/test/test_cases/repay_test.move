@@ -59,13 +59,14 @@ module protocol::repay_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    let eth_risk_params = eth_risk_model_params();
-    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
-    
+
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry, &usdc_interest_params, &clock);
+    let eth_risk_params = eth_risk_model_params();
+    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
+
     test_scenario::next_tx(scenario, lender);
     let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
@@ -153,13 +154,14 @@ module protocol::repay_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    let eth_risk_params = eth_risk_model_params();
-    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
-    
+
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry, &usdc_interest_params, &clock);
+    let eth_risk_params = eth_risk_model_params();
+    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
+
     test_scenario::next_tx(scenario, lender);
     let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
@@ -233,13 +235,14 @@ module protocol::repay_test {
     );
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    let eth_risk_params = eth_risk_model_params();
-    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
-    
+
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry, &usdc_interest_params, &clock);
+    let eth_risk_params = eth_risk_model_params();
+    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
+
     test_scenario::next_tx(scenario, lender);
     let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);
@@ -314,13 +317,14 @@ module protocol::repay_test {
     test_scenario::next_tx(scenario, admin);
     
     clock::set_for_testing(&mut clock, 100 * 1000);
-    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
-    let eth_risk_params = eth_risk_model_params();
-    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
     let coin_decimals_registry = coin_decimals_registry_init(scenario);
     coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
     coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
-    
+
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &coin_decimals_registry, &usdc_interest_params, &clock);
+    let eth_risk_params = eth_risk_model_params();
+    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
+
     test_scenario::next_tx(scenario, lender);
     let usdc_amount = std::u64::pow(10, usdc_decimals + 4);
     clock::set_for_testing(&mut clock, 200 * 1000);

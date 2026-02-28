@@ -7,15 +7,17 @@ module protocol::interest_model_t {
   use protocol::app::{Self, AdminCap};
   use protocol::constants::{Self, InterestModelParams};
   use protocol::transaction_utils_t;
+  use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
   
   public fun add_interest_model_t<T>(
     scenario: &mut Scenario,
     outflow_limit: u64, outflow_cycle_duration: u32, outflow_segment_duration: u32,
-    market: &mut Market, admin_cap: &AdminCap, params: &InterestModelParams<T>, clock: &Clock,
+    market: &mut Market, admin_cap: &AdminCap, coin_decimals_registry: &CoinDecimalsRegistry, params: &InterestModelParams<T>, clock: &Clock,
   ) {
     test_scenario::next_tx(scenario, @0x0);
-    let interest_model = app::create_interest_model_change<T>(
+    let interest_model = app::create_interest_model_change_v2<T>(
       admin_cap,
+      coin_decimals_registry,
       constants::base_rate_per_sec(params),
       constants::interest_rate_scale(params),
       constants::borrow_rate_on_mid_kink(params),

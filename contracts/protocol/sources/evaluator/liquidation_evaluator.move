@@ -16,6 +16,10 @@ module protocol::liquidation_evaluator {
   use x_oracle::x_oracle::XOracle;
   use coin_decimals_registry::coin_decimals_registry::{Self, CoinDecimalsRegistry};
 
+  /// Each liquidation call may repay at most 1/LIQUIDATION_CAP_DIVISOR (20%) of the
+  /// obligation's total outstanding debt value, preventing incremental over-liquidation.
+  const LIQUIDATION_CAP_DIVISOR: u64 = 5;
+
   // @deprecated
   // calculate the actual repay amount, actual liquidate amount, actual market amount
   public fun liquidation_amounts<DebtType, CollateralType>(
@@ -115,16 +119,23 @@ module protocol::liquidation_evaluator {
     //
     // Derivation (FixedPoint32 raw values carry an implicit 2^32 scale):
     //   max_repay_usd   = 20% * total_debts_value
-    //                   = total_debts_value_raw / 2^32 * (1/5)     [USD]
+    //                   = total_debts_value_raw / 2^32 * (1/LIQUIDATION_CAP_DIVISOR)     [USD]
     //   max_repay_tokens = max_repay_usd / debt_price * debt_scale
-    //                   = (total_debts_value_raw / 5) / (debt_price_raw / 2^32) / 2^32 * debt_scale
-    //                   = total_debts_value_raw * debt_scale / (5 * debt_price_raw)
-    // Working at the raw u64 level avoids any FixedPoint32 rounding from 1/5.
+    //                   = (total_debts_value_raw / LIQUIDATION_CAP_DIVISOR) / (debt_price_raw / 2^32) / 2^32 * debt_scale
+    //                   = total_debts_value_raw * debt_scale / (LIQUIDATION_CAP_DIVISOR * debt_price_raw)
+    // Working at the raw u64 level avoids any FixedPoint32 rounding from 1/LIQUIDATION_CAP_DIVISOR.
     let debt_price = get_price(x_oracle, debt_type, clock);
-    let debt_scale = math::pow(10, coin_decimals_registry::decimals(coin_decimals_registry, debt_type));
+    let debt_decimals = coin_decimals_registry::decimals(coin_decimals_registry, debt_type);
+    let debt_scale = math::pow(10, debt_decimals);
     let total_debts_value_raw = fixed_point32::get_raw_value(total_debts_value);
     let debt_price_raw = fixed_point32::get_raw_value(debt_price);
-    let max_repay = u64::mul_div(total_debts_value_raw, debt_scale, 5 * debt_price_raw);
+    // LIQUIDATION_CAP_DIVISOR (= 5) enforces the 20% per-call repayment cap.
+    // Dividing by it in the denominator is equivalent to multiplying the USD value by 0.2.
+    // The cap is intentionally applied to the *total* debt value across all types — not just
+    // the DebtType balance — so that splitting a position across multiple debt assets cannot
+    // be used to liquidate more than 20% of the portfolio's total value in a single call.
+    // Raising this value tightens the cap (e.g. 10 → 10%); lowering it relaxes it (e.g. 2 → 50%).
+    let max_repay = u64::mul_div(total_debts_value_raw, debt_scale, LIQUIDATION_CAP_DIVISOR * debt_price_raw);
     math::min(max_repay, total_debt_amount)
   }
 

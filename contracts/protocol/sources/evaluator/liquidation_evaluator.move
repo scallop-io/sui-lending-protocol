@@ -20,6 +20,11 @@ module protocol::liquidation_evaluator {
   /// obligation's total outstanding debt value, preventing incremental over-liquidation.
   const LIQUIDATION_CAP_DIVISOR: u64 = 5;
 
+  /// Obligations whose total debt value (in USD) is at or below this threshold are
+  /// considered dust positions. A full repay is allowed in one call so that these
+  /// tiny positions can be cleared without the gas cost exceeding the liquidation incentive.
+  const LIQUIDATION_DUST_THRESHOLD_USD: u64 = 10;
+
   // @deprecated
   // calculate the actual repay amount, actual liquidate amount, actual market amount
   public fun liquidation_amounts<DebtType, CollateralType>(
@@ -105,9 +110,9 @@ module protocol::liquidation_evaluator {
     // Total USD value across all debt types
     let total_debts_value = debts_value_usd(obligation, coin_decimals_registry, x_oracle, clock);
 
-    // Dust position: when total debt value across all types is below $10, allow
+    // Dust position: when total debt value across all types is below LIQUIDATION_DUST_THRESHOLD_USD, allow
     // a full repay so tiny positions can be fully cleared in a single call.
-    if (!fixed_point32_empower::gt(total_debts_value, fixed_point32_empower::from_u64(10))) {
+    if (!fixed_point32_empower::gt(total_debts_value, fixed_point32_empower::from_u64(LIQUIDATION_DUST_THRESHOLD_USD))) {
       return total_debt_amount
     };
 

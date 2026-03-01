@@ -31,4 +31,5 @@ export const borrowFees: Record<SupportedBaseAssets, BorrowFee> = {
   haedal: { numerator: 10, denominator: 1000 },
   wWal: { numerator: 10, denominator: 1000 },
   haWal: { numerator: 10, denominator: 1000 },
+  suiUSDe: { numerator: 3, denominator: 1000 },
 }

@@ -163,7 +163,7 @@ export const deepRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 1 * 10 ** (coinDecimals.deep + 6), // 1M DEEP
+  maxCollateralAmount: 4 * 10 ** (coinDecimals.deep + 6), // 4M DEEP
 }
 
 export const walRiskModel: RiskModel = {
@@ -208,7 +208,7 @@ export const xBtcRiskModel: RiskModel = {
   liquidationPanelty: 3,
   liquidationDiscount: 2,
   scale: 100,
-  maxCollateralAmount: 10 * 10 ** (coinDecimals.xBTC), // 10 xBTC
+  maxCollateralAmount: 20 * 10 ** (coinDecimals.xBTC), // 20 xBTC
 }
 
 export const zWBtcRiskModel: RiskModel = {
@@ -218,6 +218,15 @@ export const zWBtcRiskModel: RiskModel = {
   liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 10 * 10 ** (coinDecimals.zWBtc), // 10 BTC
+}
+
+export const suiUSDeRiskModel: RiskModel = {
+  collateralFactor: 60,
+  liquidationFactor: 70,
+  liquidationPanelty: 3,
+  liquidationDiscount: 2,
+  scale: 100,
+  maxCollateralAmount: 0 * 10 ** (coinDecimals.suiUSDe + 5), // 0 SUIUSDe
 }
 
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {
@@ -245,4 +254,5 @@ export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   wWal: wWalRiskModel,
   haWal: haWalRiskModel,
   zWBtc: zWBtcRiskModel,
+  suiUSDe: suiUSDeRiskModel,
 }

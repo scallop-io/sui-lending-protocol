@@ -275,12 +275,6 @@ module protocol::borrow {
     let min_borrow_amount = interest_model::min_borrow_amount(interest_model);
     assert!(borrow_amount > min_borrow_amount, error::borrow_too_small_error());
 
-    // assert borrow limit
-    let borrow_limit_key = market_dynamic_keys::borrow_limit_key(coin_type);
-    let borrow_limit = *dynamic_field::borrow<BorrowLimitKey, u64>(market::uid(market), borrow_limit_key);
-    let current_total_global_debt = market::total_global_debt(market, coin_type);
-    assert!(current_total_global_debt + borrow_amount <= borrow_limit, error::borrow_limit_reached_error());    
-    
     // do APM check
     obligation::check_is_collateral_price_fluctuate(
       obligation,
@@ -313,6 +307,12 @@ module protocol::borrow {
     let collaterals_value = protocol::collateral_value::collaterals_value_usd_for_borrow(obligation, market, coin_decimals_registry, x_oracle, clock);
     let debts_value = protocol::debt_value::debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle, clock);
     assert!(math::fixed_point32_empower::gt(collaterals_value, debts_value), error::borrow_too_much_error());
+
+    // assert borrow limit, make sure it's still within the limit after the borrow done
+    let borrow_limit_key = market_dynamic_keys::borrow_limit_key(coin_type);
+    let borrow_limit = *dynamic_field::borrow<BorrowLimitKey, u64>(market::uid(market), borrow_limit_key);
+    let current_total_global_debt = market::total_global_debt(market, coin_type);
+    assert!(current_total_global_debt <= borrow_limit, error::borrow_limit_reached_error());
 
     // Calculate the base borrow fee
     let base_borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());

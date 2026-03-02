@@ -81,6 +81,9 @@ module protocol::mint {
     let now = clock::timestamp_ms(clock) / 1000;
     let deposit_amount = coin::value(&coin);
 
+    // Put the supplied asset into the market
+    let mint_balance = market::handle_mint(market, coin::into_balance(coin), now);
+
     // Get the supply limit from the market
     let supply_limit_key = market_dynamic_keys::supply_limit_key(coin_type);
     let supply_limit = *df::borrow<SupplyLimitKey, u64>(market::uid(market), supply_limit_key);
@@ -89,11 +92,8 @@ module protocol::mint {
     let balance_sheets = reserve::balance_sheets(market::vault(market));
     let balance_sheet = wit_table::borrow(balance_sheets, coin_type);
     let (balance_sheet_cash, balance_sheet_debt, balance_sheet_revenue, _) = reserve::balance_sheet(balance_sheet);
-    assert!(balance_sheet_cash + balance_sheet_debt - balance_sheet_revenue + deposit_amount <= supply_limit, error::supply_limit_reached());
+    assert!(balance_sheet_cash + balance_sheet_debt - balance_sheet_revenue <= supply_limit, error::supply_limit_reached());
 
-    // Put the supplied asset into the market
-    let mint_balance = market::handle_mint(market, coin::into_balance(coin), now);
-    
     let sender = tx_context::sender(ctx);
 
     // Emit the mint event

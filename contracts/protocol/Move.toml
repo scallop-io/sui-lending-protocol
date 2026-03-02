@@ -1,7 +1,7 @@
 [package]
 name = "ScallopProtocol"
 version = "0.0.1"
-published-at = "0xd384ded6b9e7f4d2c4c9007b0291ef88fbfed8e709bce83d2da69de2d79d013d"
+published-at = "0xde5c09ad171544aa3724dc67216668c80e754860f419136a68d78504eb2e2805"
 
 [dev-dependencies.TestCoin]
 local = "../test_coin"

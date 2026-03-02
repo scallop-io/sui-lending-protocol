@@ -17,7 +17,6 @@ module protocol::obligation_key_display {
 	const ObligationKeyImageUrl: vector<u8> = b"https://nft.apis.scallop.io/render-obligation?obligationKey={id}";
 	const ProjectUrl: vector<u8> = b"https://app.scallop.io";
 	const Creator: vector<u8> = b"Scallop Labs";
-	const Alias: vector<u8> = b"{id}";
 
 	public(friend) fun init_display(
 		publisher: &Publisher,
@@ -30,7 +29,6 @@ module protocol::obligation_key_display {
 			string::utf8(b"image_url"),
 			string::utf8(b"project_url"),
 			string::utf8(b"creator"),
-			string::utf8(b"alias"),
 		];
 
 		let display_values = vector[
@@ -39,7 +37,6 @@ module protocol::obligation_key_display {
 			string::utf8(ObligationKeyImageUrl),
 			string::utf8(ProjectUrl),
 			string::utf8(Creator),
-			string::utf8(Alias),
 		];
 
 		let display = display::new_with_fields<ObligationKey>(
@@ -50,24 +47,6 @@ module protocol::obligation_key_display {
 		);
 		display::update_version(&mut display);
 		transfer::public_transfer(display, sender);
-	}
-
-	public fun update_alias(
-		version: &Version,
-		obligation_key: &ObligationKey,
-		display: &mut Display<ObligationKey>,
-		new_alias: vector<u8>,
-		_ctx: &mut TxContext,
-	) {
-		// check version
-		version::assert_current_version(version);
-
-		display::edit<ObligationKey>(
-			display,
-			string::utf8(b"alias"),
-			string::utf8(new_alias)
-		);
-		display::update_version(display);
 	}
 }
 

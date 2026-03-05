@@ -526,6 +526,23 @@ export const suiUSDeInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.suiUSDe - 2), // 0.01 SUIUSDe
 }
 
+export const USDSUIInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(3), // 3%
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(25), // 25%
+  maxBorrowRate: getRatePerSec(150), // 150%
+
+  midKink: 85 * (scale / 100), // 85%
+  highKink: 95 * (scale / 100), // 95%
+
+  revenueFactor: 20 * (scale / 100), // 20%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.USDSUI - 2), // 0.01 USDSUI
+}
+
 export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   sui: suiInterestModel,
   sca: scaInterestModel,
@@ -557,4 +574,5 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   lofi: lofiInterestModel,
   zWBtc: zWBtcInterestModel,
   suiUSDe: suiUSDeInterestModel,
+  USDSUI: USDSUIInterestModel,
 }

@@ -22,23 +22,24 @@ import { ApmThresholds } from './apm-threshold';
 
 async function addNewPool_xBTC() {
   const tx = new SuiTxBlock();
-  const coin = 'zWBtc';
-  const dustCoinId = '0x9f757d22feb69ef9acd29f13e1631964fedfea16c5193fd8cc741251f6ac9369'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'USDSUI';
+  const dustCoinId = '0x0c860bc976d9c880ac4c646527f27c101a3ec2eba1e944428e0b4d654d83f5c2'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
-  protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
+  // protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
   protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
-  protocolTxBuilder.updateMinCollateral(tx, MinCollaterals[coin], coinType);
-  protocolTxBuilder.setApmThreshold(tx, ApmThresholds[coin], coinType);
+  // protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
+  // protocolTxBuilder.updateMinCollateral(tx, MinCollaterals[coin], coinType);
+  // protocolTxBuilder.setApmThreshold(tx, ApmThresholds[coin], coinType);
 
   pythRuleTxBuilder.registerPythFeed(tx, oracles[coin].pythPriceObjectId, pythRuleTxBuilder.calculatePriceConfidenceTolerance(2), coinType);
   xOracleTxBuilder.addPrimaryPriceUpdateRuleV2(tx, coinType, pythRuleStructType);
 
-  decimalsRegistryTxBuilder.registerDecimals(tx, coinMetadataIds[coin], coinType);
+  // decimalsRegistryTxBuilder.registerDecimals(tx, coinMetadataIds[coin], coinType);
 
   // // Burn dust to keep a minimum amount of the coin in the pool
   const dustToBurn = protocolTxBuilder.supplyBaseAsset(tx, dustCoinId, coinType);

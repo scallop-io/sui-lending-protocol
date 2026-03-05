@@ -59,6 +59,7 @@ export type SupportedBaseAssets =
   | 'lofi'
   | 'zWBtc'
   | 'suiUSDe'
+  | 'USDSUI'
 ;
 
 export const coinTypes = {
@@ -93,6 +94,7 @@ export const coinTypes = {
   lofi: '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503::LOFI::LOFI',
   zWBtc: '0x0041f9f9344cac094454cd574e333c4fdb132d7bcc9379bcd4aab485b2a63942::wbtc::WBTC',
   suiUSDe: '0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::sui_usde::SUI_USDE',
+  USDSUI: '0x44f838219cf67b058f3b37907b655f226153c18e33dfcd0da559a844fea9b1c1::usdsui::USDSUI',
 };
 
 export const coinMetadataIds = {
@@ -127,6 +129,7 @@ export const coinMetadataIds = {
   lofi: '0x57a2bf5e6887eca522fe6c3ff0d9d8dc116d072998a477c6c24fe6603107ebb8',
   zWBtc: '0x3b4b0f06afdd9358d2be551979d679b64934b8c78d345ef934358eed4af1d6e4',
   suiUSDe: '', // suiUSDe using currency registry, no metadata id
+  USDSUI: '', // suiUSDe using currency registry, no metadata id
 };
 
 export const coinDecimals = {
@@ -161,4 +164,5 @@ export const coinDecimals = {
   lofi: 9,
   zWBtc: 8,
   suiUSDe: 6,
+  USDSUI: 6,
 }

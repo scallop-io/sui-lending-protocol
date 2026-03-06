@@ -17,14 +17,14 @@ module test_coin::eth {
     cap: TreasuryCap<ETH>
   }
   
-  fun init(wtiness: ETH, ctx: &mut TxContext) {
+  fun init(witness: ETH, ctx: &mut TxContext) {
     let decimals = 9u8;
     let symbol = b"ETH";
     let name = b"ETH";
     let description = b"Test Ethereum";
     let icon_url_option = option::none();
     let (treasuryCap, coinMeta) = coin::create_currency(
-      wtiness,
+      witness,
       decimals,
       symbol,
       name,

@@ -26,6 +26,7 @@ export type SupportedCollaterals =
   | 'haWal'
   | 'zWBtc'
   | 'suiUSDe'
+  | 'USDSUI'
 ;
 
 export type SupportedBaseAssets =

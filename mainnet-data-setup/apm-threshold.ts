@@ -28,4 +28,5 @@ export const ApmThresholds: Record<SupportedCollaterals, number> = {
     wWal: 100,
     haWal: 100,
     suiUSDe: 5,
+    USDSUI: 5,
 }

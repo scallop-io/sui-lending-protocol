@@ -230,8 +230,8 @@ export const suiUSDeRiskModel: RiskModel = {
 }
 
 export const USDSUIRiskModel: RiskModel = {
-  collateralFactor: 70,
-  liquidationFactor: 80,
+  collateralFactor: 85,
+  liquidationFactor: 90,
   liquidationPanelty: 3,
   liquidationDiscount: 2,
   scale: 100,

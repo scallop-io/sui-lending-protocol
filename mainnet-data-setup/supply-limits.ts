@@ -8,7 +8,7 @@ export const SupplyLimits: Record<SupportedBaseAssets, number> = {
   sui: 1e8 * Math.pow(10, coinDecimals.sui),
   wormholeUsdc: 0 * Math.pow(10, coinDecimals.wormholeUsdc),
   wormholeUsdt: 0 * Math.pow(10, coinDecimals.wormholeUsdt),
-  sca: 15e6 * Math.pow(10, coinDecimals.sca),
+  sca: 50e6 * Math.pow(10, coinDecimals.sca),
   afSui: 1e6 * Math.pow(10, coinDecimals.afSui),
   haSui: 10e6 * Math.pow(10, coinDecimals.haSui), // 10M
   vSui: 0 * Math.pow(10, coinDecimals.vSui), // 0

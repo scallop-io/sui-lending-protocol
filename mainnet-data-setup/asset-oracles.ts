@@ -41,4 +41,5 @@ export const oracles: Record<SupportedBaseAssets | SupportedCollaterals, OracleD
   lofi: { pythPriceObjectId: pythOracleData.priceFeeds.lofi_usd.priceFeedObjectId },
   suiUSDe: { pythPriceObjectId: pythOracleData.priceFeeds.usdc_usd.priceFeedObjectId },
   USDSUI: { pythPriceObjectId: pythOracleData.priceFeeds.usdc_usd.priceFeedObjectId },
+  XAUm: { pythPriceObjectId: pythOracleData.priceFeeds.xaum_rr_usd.priceFeedObjectId },
 };

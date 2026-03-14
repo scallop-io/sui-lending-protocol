@@ -36,4 +36,5 @@ export const BorrowLimits: Record<SupportedBaseAssets, number> = {
     lofi: 0 * Math.pow(10, coinDecimals.lofi),
     suiUSDe: 0 * Math.pow(10, coinDecimals.suiUSDe), // 100k
     USDSUI: 500_000 * Math.pow(10, coinDecimals.USDSUI), // 500k
+    XAUm: 100 * Math.pow(10, coinDecimals.XAUm), // 100 XAUm
 }

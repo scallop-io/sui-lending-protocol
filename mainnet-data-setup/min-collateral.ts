@@ -30,4 +30,5 @@ export const MinCollaterals: Record<SupportedCollaterals, number> = {
     haWal: 10 ** (coinDecimals.haWal - 1), // 0.1 HAWAL
     suiUSDe: 10 ** (coinDecimals.suiUSDe - 2), // 0.01 SUIUSDe
     USDSUI: 10 ** (coinDecimals.USDSUI - 2), // 0.01 USDSUI
+    XAUm: 10 ** (coinDecimals.XAUm - 4), // 0.0001 XAUm
 }

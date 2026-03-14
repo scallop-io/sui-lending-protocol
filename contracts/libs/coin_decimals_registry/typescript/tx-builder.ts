@@ -1,4 +1,4 @@
-import { SuiTxBlock } from "@scallop-io/sui-kit";
+import { SuiTxArg, SuiTxBlock } from "@scallop-io/sui-kit";
 
 export class DecimalsRegistryTxBuilder {
   constructor(
@@ -7,7 +7,7 @@ export class DecimalsRegistryTxBuilder {
   ) {}
   registerDecimals(
     suiTxBlock: SuiTxBlock,
-    coinMetadataId: string,
+    coinMetadataId: SuiTxArg | string,
     coinType: string,
   ) {
     const registerDecimalsTarget = `${this.packageId}::coin_decimals_registry::register_decimals`;

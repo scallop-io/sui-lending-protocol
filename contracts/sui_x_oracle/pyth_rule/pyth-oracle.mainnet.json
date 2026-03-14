@@ -79,6 +79,10 @@
     "lofi_usd": {
       "priceFeedId": "0x82eebc2c47490ba9c0f9bc35ea9fb57a7e2bbf69b84a04ea2a3525153b8090ea",
       "priceFeedObjectId": "0xb65b2888e74b2be973616740da410670ecd6d1d1f4b5456acc7b04ece9c95559"
+    },
+    "xaum_rr_usd": {
+      "priceFeedId": "0xd7db067954e28f51a96fd50c6d51775094025ced2d60af61ec9803e553471c88",
+      "priceFeedObjectId": "0x2731a8e3e9bc69b2d6af6f4c032fcd4856c77e2c21f839134d1ebcc3a16e4b1b"
     }
   }
 }

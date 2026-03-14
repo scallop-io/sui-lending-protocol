@@ -163,4 +163,9 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowCycleDuration,
     outflowSegmentDuration,
   },
+  XAUm: {
+    outflowLimit: 50 * (10 ** coinDecimals.XAUm), // 50 XAUm per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  }
 }

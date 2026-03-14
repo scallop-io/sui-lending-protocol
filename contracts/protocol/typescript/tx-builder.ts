@@ -668,6 +668,19 @@ export class ProtocolTxBuilder {
     );
   }
 
+  initObligationDisplay(
+    suiTxBlock: SuiTxBlock,
+    publisherId: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::app::init_obligation_key_display`,
+      [
+        this.adminCapId,
+        suiTxBlock.object(publisherId),
+      ],
+    );
+  }
+
   freezeProtocol(
     suiTxBlock: SuiTxBlock,
   ) {

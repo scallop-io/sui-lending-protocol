@@ -238,6 +238,15 @@ export const USDSUIRiskModel: RiskModel = {
   maxCollateralAmount: 200_000 * (10 ** coinDecimals.USDSUI), // 200,000 USDSUI
 }
 
+export const XAUmRiskModel: RiskModel = {
+  collateralFactor: 50,
+  liquidationFactor: 70,
+  liquidationPanelty: 3,
+  liquidationDiscount: 2,
+  scale: 100,
+  maxCollateralAmount: 100 * 10 ** (coinDecimals.XAUm), // 100 XAUm
+}
+
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   sui: suiRiskModel,
   sca: scaRiskModel,
@@ -265,4 +274,5 @@ export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   zWBtc: zWBtcRiskModel,
   suiUSDe: suiUSDeRiskModel,
   USDSUI: USDSUIRiskModel,
+  XAUm: XAUmRiskModel,
 }

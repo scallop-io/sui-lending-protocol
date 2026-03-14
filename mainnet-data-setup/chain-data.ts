@@ -27,6 +27,7 @@ export type SupportedCollaterals =
   | 'zWBtc'
   | 'suiUSDe'
   | 'USDSUI'
+  | 'XAUm'
 ;
 
 export type SupportedBaseAssets =
@@ -61,6 +62,7 @@ export type SupportedBaseAssets =
   | 'zWBtc'
   | 'suiUSDe'
   | 'USDSUI'
+  | 'XAUm'
 ;
 
 export const coinTypes = {
@@ -96,6 +98,7 @@ export const coinTypes = {
   zWBtc: '0x0041f9f9344cac094454cd574e333c4fdb132d7bcc9379bcd4aab485b2a63942::wbtc::WBTC',
   suiUSDe: '0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::sui_usde::SUI_USDE',
   USDSUI: '0x44f838219cf67b058f3b37907b655f226153c18e33dfcd0da559a844fea9b1c1::usdsui::USDSUI',
+  XAUm: '0x9d297676e7a4b771ab023291377b2adfaa4938fb9080b8d12430e4b108b836a9::xaum::XAUM',
 };
 
 export const coinMetadataIds = {
@@ -131,6 +134,7 @@ export const coinMetadataIds = {
   zWBtc: '0x3b4b0f06afdd9358d2be551979d679b64934b8c78d345ef934358eed4af1d6e4',
   suiUSDe: '', // suiUSDe using currency registry, no metadata id
   USDSUI: '', // suiUSDe using currency registry, no metadata id
+  XAUm: '0x7c03508c00036b4a6ec1f7a4a225537992ae6fed24bafa152b70b7a414b19dbd',
 };
 
 export const coinDecimals = {
@@ -166,4 +170,5 @@ export const coinDecimals = {
   zWBtc: 8,
   suiUSDe: 6,
   USDSUI: 6,
+  XAUm: 9,
 }

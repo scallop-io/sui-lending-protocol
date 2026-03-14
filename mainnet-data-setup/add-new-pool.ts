@@ -20,26 +20,26 @@ import { riskModels } from './risk-models';
 import { MinCollaterals } from './min-collateral';
 import { ApmThresholds } from './apm-threshold';
 
-async function addNewPool_xBTC() {
+async function addNewPool() {
   const tx = new SuiTxBlock();
-  const coin = 'USDSUI';
-  const dustCoinId = '0x0c860bc976d9c880ac4c646527f27c101a3ec2eba1e944428e0b4d654d83f5c2'; // This is used to keep a minimum amount of the coin in the pool
+  const coin = 'XAUm';
+  const dustCoinId = '0x913022574b8567b86e958cf137c861c16724fc7f37eee82e048949ff69c4e708'; // This is used to keep a minimum amount of the coin in the pool
   const coinType = coinTypes[coin];
   protocolTxBuilder.addInterestModel(tx, interestModels[coin], coinType);
-  // protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
+  protocolTxBuilder.addRiskModel(tx, riskModels[coin], coinType);
   protocolTxBuilder.addLimiter(tx, outflowRateLimiters[coin], coinType);
   protocolTxBuilder.setSupplyLimit(tx, SupplyLimits[coin], coinType);
   protocolTxBuilder.setBorrowLimit(tx, BorrowLimits[coin], coinType);
   protocolTxBuilder.updateBorrowFee(tx, borrowFees[coin], coinType);
   protocolTxBuilder.setFlashloanFee(tx, FlashloanFees[coin], coinType);
-  // protocolTxBuilder.updateIsolatedAssetStatus(tx, true, coinType);
-  // protocolTxBuilder.updateMinCollateral(tx, MinCollaterals[coin], coinType);
-  // protocolTxBuilder.setApmThreshold(tx, ApmThresholds[coin], coinType);
+  // protocolTxBuilder.updateIsolatedAssetStatus(tx, false, coinType);
+  protocolTxBuilder.updateMinCollateral(tx, MinCollaterals[coin], coinType);
+  protocolTxBuilder.setApmThreshold(tx, ApmThresholds[coin], coinType);
 
   pythRuleTxBuilder.registerPythFeed(tx, oracles[coin].pythPriceObjectId, pythRuleTxBuilder.calculatePriceConfidenceTolerance(2), coinType);
   xOracleTxBuilder.addPrimaryPriceUpdateRuleV2(tx, coinType, pythRuleStructType);
 
-  // decimalsRegistryTxBuilder.registerDecimals(tx, coinMetadataIds[coin], coinType);
+  decimalsRegistryTxBuilder.registerDecimals(tx, coinMetadataIds[coin], coinType);
 
   // // Burn dust to keep a minimum amount of the coin in the pool
   const dustToBurn = protocolTxBuilder.supplyBaseAsset(tx, dustCoinId, coinType);
@@ -56,4 +56,4 @@ async function addNewPool_xBTC() {
   return txBytes;
 }
 
-addNewPool_xBTC().then(console.log);
+addNewPool().then(console.log);

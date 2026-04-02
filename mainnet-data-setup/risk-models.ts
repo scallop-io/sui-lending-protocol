@@ -19,7 +19,7 @@ export const cetusRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.cetus + 6), // 1 million CETUS
+  maxCollateralAmount: 3 ** (coinDecimals.cetus + 5), // 300k CETUS
 }
 
 export const wormholeEthRiskModel: RiskModel = {
@@ -55,7 +55,7 @@ export const scaRiskModel: RiskModel = {
   liquidationPanelty: 3,
   liquidationDiscount: 2,
   scale: 100,
-  maxCollateralAmount: 10 * 10 ** (coinDecimals.sca + 6), // 10M SCA
+  maxCollateralAmount: 5 * 10 ** (coinDecimals.sca + 6), // 5M SCA
 }
 
 export const afSuiRiskModel: RiskModel = {
@@ -185,12 +185,12 @@ export const haedalRiskModel: RiskModel = {
 }
 
 export const wWalRiskModel: RiskModel = {
-  collateralFactor: 75,
+  collateralFactor: 0,
   liquidationFactor: 80,
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 1 * 10 ** (coinDecimals.wWal + 6), // 1M WAL
+  maxCollateralAmount: 0 * 10 ** (coinDecimals.wWal), // 0 WAL
 }
 
 export const haWalRiskModel: RiskModel = {

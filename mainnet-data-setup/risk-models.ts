@@ -109,7 +109,7 @@ export const wormholeSolRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 10 ** (coinDecimals.wormholeSol + 4), // 10k Sol
+  maxCollateralAmount: 3_000 * 10 ** (coinDecimals.wormholeSol), // 3k Sol
 }
 
 export const nativeUsdcRiskModel: RiskModel = {

@@ -8,7 +8,7 @@ export const suiRiskModel: RiskModel = {
   collateralFactor: 85,
   liquidationFactor: 90,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 10 ** (coinDecimals.sui + 8), // 100 million SUI
 };
@@ -19,14 +19,14 @@ export const cetusRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 3 ** (coinDecimals.cetus + 5), // 300k CETUS
+  maxCollateralAmount: 300_000 * (10 ** coinDecimals.cetus), // 300k CETUS
 }
 
 export const wormholeEthRiskModel: RiskModel = {
   collateralFactor: 75,
   liquidationFactor: 80,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 0 * 10 ** (coinDecimals.wormholeEth), // 0 ETH
 }
@@ -35,7 +35,7 @@ export const wormholeUsdcRiskModel: RiskModel = {
   collateralFactor: 85,
   liquidationFactor: 90,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 0 * 10 ** (coinDecimals.wormholeUsdc), // 0 USDC
 }
@@ -44,7 +44,7 @@ export const wormholeUsdtRiskModel: RiskModel = {
   collateralFactor: 85,
   liquidationFactor: 90,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 0 * 10 ** (coinDecimals.wormholeUsdt), // 0 USDT
 }
@@ -52,8 +52,8 @@ export const wormholeUsdtRiskModel: RiskModel = {
 export const scaRiskModel: RiskModel = {
   collateralFactor: 80,
   liquidationFactor: 85,
-  liquidationPanelty: 3,
-  liquidationDiscount: 2,
+  liquidationPanelty: 5,
+  liquidationDiscount: 4,
   scale: 100,
   maxCollateralAmount: 5 * 10 ** (coinDecimals.sca + 6), // 5M SCA
 }
@@ -80,7 +80,7 @@ export const vSuiRiskModel: RiskModel = {
   collateralFactor: 60,
   liquidationFactor: 70,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 1,
   scale: 100,
   maxCollateralAmount: 0,
 }
@@ -89,7 +89,7 @@ export const wormholeBtcRiskModel: RiskModel = {
   collateralFactor: 75,
   liquidationFactor: 80,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 0 * 10 ** (coinDecimals.wormholeBtc), // 0 Btc
 }
@@ -98,7 +98,7 @@ export const sbwBtcRiskModel: RiskModel = {
   collateralFactor: 75,
   liquidationFactor: 80,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 50 * 10 ** (coinDecimals.sbwBTC), // 50 BTC
 }
@@ -107,7 +107,7 @@ export const wormholeSolRiskModel: RiskModel = {
   collateralFactor: 70,
   liquidationFactor: 80,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 3_000 * 10 ** (coinDecimals.wormholeSol), // 3k Sol
 }
@@ -116,7 +116,7 @@ export const nativeUsdcRiskModel: RiskModel = {
   collateralFactor: 85,
   liquidationFactor: 90,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 3 * 10 ** (coinDecimals.nativeUsdc + 7), // 30M USDC
 }
@@ -125,7 +125,7 @@ export const sbEthRiskModel: RiskModel = {
   collateralFactor: 75,
   liquidationFactor: 80,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 5 * 10 ** (coinDecimals.sbEth + 3), // 5000 ETH
 }
@@ -133,8 +133,8 @@ export const sbEthRiskModel: RiskModel = {
 export const fdusdRiskModel: RiskModel = {
   collateralFactor: 850, // 85% 
   liquidationFactor: 900, // 90%
-  liquidationPanelty: 20, // 2%
-  liquidationDiscount: 19, // 1.9%
+  liquidationPanelty: 40, // 4%
+  liquidationDiscount: 20, // 2%
   scale: 1000,
   maxCollateralAmount: 0 * 10 ** (coinDecimals.fdusd), // 0 FDUSD
 }
@@ -143,7 +143,7 @@ export const sbUsdtRiskModel: RiskModel = {
   collateralFactor: 85,
   liquidationFactor: 90,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 20 * 10 ** (coinDecimals.sbUsdt + 6), // 20 million USDT
 }
@@ -152,7 +152,7 @@ export const usdyRiskModel: RiskModel = {
   collateralFactor: 85,
   liquidationFactor: 90,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 10 * 10 ** (coinDecimals.usdy + 6), // 10 million USDY
 }
@@ -161,7 +161,7 @@ export const deepRiskModel: RiskModel = {
   collateralFactor: 70,
   liquidationFactor: 80,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 3,
   scale: 100,
   maxCollateralAmount: 4 * 10 ** (coinDecimals.deep + 6), // 4M DEEP
 }
@@ -170,7 +170,7 @@ export const walRiskModel: RiskModel = {
   collateralFactor: 75,
   liquidationFactor: 80,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 3,
   scale: 100,
   maxCollateralAmount: 1 * 10 ** (coinDecimals.wal + 6), // 1M WAL
 }
@@ -179,7 +179,7 @@ export const haedalRiskModel: RiskModel = {
   collateralFactor: 0,
   liquidationFactor: 70,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 0 * 10 ** (coinDecimals.haedal + 6), // 0 HAEDAL
 }
@@ -188,7 +188,7 @@ export const wWalRiskModel: RiskModel = {
   collateralFactor: 0,
   liquidationFactor: 80,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 3,
   scale: 100,
   maxCollateralAmount: 0 * 10 ** (coinDecimals.wWal), // 0 WAL
 }
@@ -197,7 +197,7 @@ export const haWalRiskModel: RiskModel = {
   collateralFactor: 75,
   liquidationFactor: 80,
   liquidationPanelty: 5,
-  liquidationDiscount: 4,
+  liquidationDiscount: 3,
   scale: 100,
   maxCollateralAmount: 1 * 10 ** (coinDecimals.haWal + 6), // 1M WAL
 }
@@ -205,7 +205,7 @@ export const haWalRiskModel: RiskModel = {
 export const xBtcRiskModel: RiskModel = {
   collateralFactor: 75,
   liquidationFactor: 80,
-  liquidationPanelty: 3,
+  liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 20 * 10 ** (coinDecimals.xBTC), // 20 xBTC
@@ -214,7 +214,7 @@ export const xBtcRiskModel: RiskModel = {
 export const zWBtcRiskModel: RiskModel = {
   collateralFactor: 75,
   liquidationFactor: 80,
-  liquidationPanelty: 3,
+  liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 10 * 10 ** (coinDecimals.zWBtc), // 10 BTC
@@ -223,7 +223,7 @@ export const zWBtcRiskModel: RiskModel = {
 export const suiUSDeRiskModel: RiskModel = {
   collateralFactor: 60,
   liquidationFactor: 70,
-  liquidationPanelty: 3,
+  liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 0 * 10 ** (coinDecimals.suiUSDe + 5), // 0 SUIUSDe
@@ -232,7 +232,7 @@ export const suiUSDeRiskModel: RiskModel = {
 export const USDSUIRiskModel: RiskModel = {
   collateralFactor: 85,
   liquidationFactor: 90,
-  liquidationPanelty: 3,
+  liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 200_000 * (10 ** coinDecimals.USDSUI), // 200,000 USDSUI
@@ -241,7 +241,7 @@ export const USDSUIRiskModel: RiskModel = {
 export const XAUmRiskModel: RiskModel = {
   collateralFactor: 50,
   liquidationFactor: 70,
-  liquidationPanelty: 3,
+  liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
   maxCollateralAmount: 100 * 10 ** (coinDecimals.XAUm), // 100 XAUm

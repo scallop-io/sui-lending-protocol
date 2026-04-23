@@ -212,12 +212,12 @@ export const xBtcRiskModel: RiskModel = {
 }
 
 export const zWBtcRiskModel: RiskModel = {
-  collateralFactor: 75,
+  collateralFactor: 70,
   liquidationFactor: 80,
   liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
-  maxCollateralAmount: 10 * 10 ** (coinDecimals.zWBtc), // 10 BTC
+  maxCollateralAmount: 0 * 10 ** (coinDecimals.zWBtc), // 0 BTC
 }
 
 export const suiUSDeRiskModel: RiskModel = {
@@ -244,7 +244,7 @@ export const XAUmRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
-  maxCollateralAmount: 100 * 10 ** (coinDecimals.XAUm), // 100 XAUm
+  maxCollateralAmount: 10 * 10 ** (coinDecimals.XAUm), // 10 XAUm
 }
 
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {

@@ -1,4 +1,4 @@
-/// @title Module for hanlding supply base asset request from user
+/// @title Module for handling supply base asset request from user
 /// @author Scallop Labs
 /// @notice User get sCoin after supplying the base asset
 module protocol::mint {
@@ -47,8 +47,8 @@ module protocol::mint {
   }
 
   /// @notice supply base asset and return the corresponding sCoin
-  /// @dev The returned sCoin is an intrest bearing token, and is standard coin buth without CoinMetadata.
-  ///      There's a limit for max total supply amount. Beyond this, trasanction will abort.
+  /// @dev The returned sCoin is an interest-bearing token, and is standard coin but without CoinMetadata.
+  ///      There's a limit for max total supply amount. Beyond this, transaction will abort.
   /// @param version The version control object, contract version must match with this
   /// @param market The Scallop market object, it contains base assets, and related protocol configs
   /// @param coin The base asset to be supplied to the market

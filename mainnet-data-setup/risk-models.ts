@@ -55,7 +55,7 @@ export const scaRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 4,
   scale: 100,
-  maxCollateralAmount: 5 * 10 ** (coinDecimals.sca + 6), // 5M SCA
+  maxCollateralAmount: 2_500_000 * (10 ** coinDecimals.sca), // 2.5M SCA
 }
 
 export const afSuiRiskModel: RiskModel = {
@@ -217,7 +217,7 @@ export const zWBtcRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
-  maxCollateralAmount: 0 * 10 ** (coinDecimals.zWBtc), // 0 BTC
+  maxCollateralAmount: 5 * 10 ** (coinDecimals.zWBtc), // 5 BTC
 }
 
 export const suiUSDeRiskModel: RiskModel = {
@@ -244,7 +244,7 @@ export const XAUmRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
-  maxCollateralAmount: 10 * 10 ** (coinDecimals.XAUm), // 10 XAUm
+  maxCollateralAmount: 25 * 10 ** (coinDecimals.XAUm), // 25 XAUm
 }
 
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {

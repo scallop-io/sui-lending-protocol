@@ -169,6 +169,23 @@ export const vSuiInterestModel: InterestModel = {
   minBorrowAmount: 10 ** (coinDecimals.haSui - 2), // 0.01 vSUI
 };
 
+export const scaSuiInterestModel: InterestModel = {
+  baseBorrowRatePerSec: getRatePerSec(5), // 5%
+  interestRateScale,
+
+  borrowRateOnMidKink: getRatePerSec(10), // 10%
+  borrowRateOnHighKink: getRatePerSec(30), // 30%
+  maxBorrowRate: getRatePerSec(150), // 150%
+
+  midKink, // 80%
+  highKink, // 90%
+
+  revenueFactor, // 20%
+  borrowWeight, // 1
+  scale,
+  minBorrowAmount: 10 ** (coinDecimals.scaSui - 2), // 0.01 scaSUI
+};
+
 export const wormholeSolInterestModel: InterestModel = {
   baseBorrowRatePerSec: getRatePerSec(5), // 5%
   interestRateScale,
@@ -593,4 +610,5 @@ export const interestModels: Record<SupportedBaseAssets, InterestModel> = {
   suiUSDe: suiUSDeInterestModel,
   USDSUI: USDSUIInterestModel,
   XAUm: XAUmInterestModel,
+  scaSui: scaSuiInterestModel,
 }

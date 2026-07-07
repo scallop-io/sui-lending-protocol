@@ -16,6 +16,7 @@ export const oracles: Record<SupportedBaseAssets | SupportedCollaterals, OracleD
   afSui: { pythPriceObjectId: pythOracleData.priceFeeds.sui_usd.priceFeedObjectId },
   haSui: { pythPriceObjectId: pythOracleData.priceFeeds.sui_usd.priceFeedObjectId },
   vSui: { pythPriceObjectId: pythOracleData.priceFeeds.sui_usd.priceFeedObjectId },
+  scaSui: { pythPriceObjectId: pythOracleData.priceFeeds.sui_usd.priceFeedObjectId },
   wormholeUsdc: { pythPriceObjectId: pythOracleData.priceFeeds.usdc_usd.priceFeedObjectId },
   wormholeUsdt: { pythPriceObjectId: pythOracleData.priceFeeds.usdt_usd.priceFeedObjectId },
   wormholeEth: { pythPriceObjectId: pythOracleData.priceFeeds.eth_usd.priceFeedObjectId },

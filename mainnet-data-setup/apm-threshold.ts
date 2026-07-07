@@ -10,6 +10,7 @@ export const ApmThresholds: Record<SupportedCollaterals, number> = {
     afSui: 100,
     haSui: 100,
     vSui: 100,
+    scaSui: 100,
     cetus: 100,
     wormholeEth: 100,
     wormholeBtc: 100,

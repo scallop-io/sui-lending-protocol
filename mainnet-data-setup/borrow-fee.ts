@@ -8,6 +8,7 @@ export const borrowFees: Record<SupportedBaseAssets, BorrowFee> = {
   afSui: { numerator: 3, denominator: 1000 },
   haSui: { numerator: 3, denominator: 1000 },
   vSui: { numerator: 3, denominator: 1000 },
+  scaSui: { numerator: 3, denominator: 1000 },
   wormholeEth: { numerator: 3, denominator: 1000 },
   wormholeUsdc: { numerator: 3, denominator: 1000 },
   wormholeUsdt: { numerator: 3, denominator: 1000 },

@@ -11,6 +11,7 @@ export const MinCollaterals: Record<SupportedCollaterals, number> = {
     afSui: 10 ** (coinDecimals.afSui - 1), // 0.1 afSUI
     haSui: 10 ** (coinDecimals.haSui - 1), // 0.1 haSUI
     vSui: 10 ** (coinDecimals.vSui - 1), // 0.1 haSUI
+    scaSui: 10 ** (coinDecimals.scaSui - 1), // 0.1 scaSui
     cetus: 10 ** (coinDecimals.cetus), // 1 CETUS
     wormholeEth: 10 ** (coinDecimals.wormholeEth - 3), // 0.001 ETH
     wormholeBtc: 10 ** (coinDecimals.wormholeBtc - 6), // 0.000001 Btc

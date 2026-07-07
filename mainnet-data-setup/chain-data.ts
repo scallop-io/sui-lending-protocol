@@ -28,6 +28,7 @@ export type SupportedCollaterals =
   | 'suiUSDe'
   | 'USDSUI'
   | 'XAUm'
+  | 'scaSui'
 ;
 
 export type SupportedBaseAssets =
@@ -63,6 +64,7 @@ export type SupportedBaseAssets =
   | 'suiUSDe'
   | 'USDSUI'
   | 'XAUm'
+  | 'scaSui'
 ;
 
 export const coinTypes = {
@@ -99,6 +101,7 @@ export const coinTypes = {
   suiUSDe: '0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::sui_usde::SUI_USDE',
   USDSUI: '0x44f838219cf67b058f3b37907b655f226153c18e33dfcd0da559a844fea9b1c1::usdsui::USDSUI',
   XAUm: '0x9d297676e7a4b771ab023291377b2adfaa4938fb9080b8d12430e4b108b836a9::xaum::XAUM',
+  scaSui: '0xda008a552a2d6a9566fa6204255d55ab32ce00f23e307145dec2644cf83336b2::sca_sui::SCA_SUI',
 };
 
 export const coinMetadataIds = {
@@ -135,6 +138,7 @@ export const coinMetadataIds = {
   suiUSDe: '', // suiUSDe using currency registry, no metadata id
   USDSUI: '', // suiUSDe using currency registry, no metadata id
   XAUm: '0x7c03508c00036b4a6ec1f7a4a225537992ae6fed24bafa152b70b7a414b19dbd',
+  scaSui: '0x71dd901768abcd6e83c4bca76dc7b45fe1ef038c554eba4b1fd76a4c5d91703d',
 };
 
 export const coinDecimals = {
@@ -171,4 +175,5 @@ export const coinDecimals = {
   suiUSDe: 6,
   USDSUI: 6,
   XAUm: 9,
+  scaSui: 9,
 }

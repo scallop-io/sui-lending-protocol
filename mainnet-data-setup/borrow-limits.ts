@@ -12,6 +12,7 @@ export const BorrowLimits: Record<SupportedBaseAssets, number> = {
     afSui: 1e6 * Math.pow(10, coinDecimals.afSui),
     haSui: 10e6 * Math.pow(10, coinDecimals.haSui), // 10M
     vSui: 0 * Math.pow(10, coinDecimals.vSui),
+    scaSui: 800_000 * Math.pow(10, coinDecimals.scaSui),
     cetus: 2e6 * Math.pow(10, coinDecimals.cetus),
     wormholeEth: 0 * Math.pow(10, coinDecimals.wormholeEth),
     wormholeBtc: 0 * Math.pow(10, coinDecimals.wormholeBtc),

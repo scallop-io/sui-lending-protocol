@@ -85,6 +85,12 @@ module protocol::error {
   // market coin price
   public fun market_coin_price_cannot_decrease_error(): u64 { 0x0016001 }
 
+  // forced deleverage
+  public fun unauthorized_forced_deleverage_error(): u64 { 0x0017001 }
+  public fun forced_deleverage_no_debt_error(): u64 { 0x0017002 }
+  public fun forced_deleverage_no_collateral_error(): u64 { 0x0017003 }
+  public fun unable_to_force_deleverage_error(): u64 { 0x0017004 }
+
   #[test_only]
   use sui::vec_set;
 
@@ -135,5 +141,9 @@ module protocol::error {
     vec_set::insert(&mut vec_set, min_collateral_amount_error());
     vec_set::insert(&mut vec_set, zero_repay_amount_error());
     vec_set::insert(&mut vec_set, market_coin_price_cannot_decrease_error());
+    vec_set::insert(&mut vec_set, unauthorized_forced_deleverage_error());
+    vec_set::insert(&mut vec_set, forced_deleverage_no_debt_error());
+    vec_set::insert(&mut vec_set, forced_deleverage_no_collateral_error());
+    vec_set::insert(&mut vec_set, unable_to_force_deleverage_error());
   }
 }

@@ -23,7 +23,7 @@ module protocol::app {
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey, PauseAuthorityRegistryKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey, PauseAuthorityRegistryKey, ForcedDeleverageAuthorityRegistryKey};
   use protocol::borrow_referral::{Self, AuthorizedWitnessList};
   use protocol::version::{Self, Version};
   use sui::vec_set::{Self, VecSet};
@@ -59,6 +59,16 @@ module protocol::app {
     market: ID,
     sender: address,
   }  
+
+  struct ForcedDeleverageAuthorityAddedEvent has copy, drop {
+    market: ID,
+    authority: address,
+  }
+
+  struct ForcedDeleverageAuthorityRemovedEvent has copy, drop {
+    market: ID,
+    authority: address,
+  }
 
   const REASONABLE_MAX_DELAYS: u64 = 0; // this function is disabled for now, hence it set as 0
 
@@ -420,6 +430,51 @@ module protocol::app {
     event::emit(FreezeProtocolEvent {
       market: object::id(market),
       sender,
+    });
+  }
+
+  /// ======= Management of forced deleverage =======
+  public fun add_forced_deleverage_authority(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+    _ctx: &mut TxContext
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::forced_deleverage_authority_registry_key();
+
+    if (!dynamic_field::exists_<ForcedDeleverageAuthorityRegistryKey>(market_uid_mut, key)) {
+      dynamic_field::add<ForcedDeleverageAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
+    };
+
+    let registry = dynamic_field::borrow_mut<ForcedDeleverageAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    vec_set::insert(registry, address);
+
+    event::emit(ForcedDeleverageAuthorityAddedEvent {
+      market: object::id(market),
+      authority: address,
+    });
+  }
+
+  public fun remove_forced_deleverage_authority(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+    _ctx: &mut TxContext
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::forced_deleverage_authority_registry_key();
+
+    if (!dynamic_field::exists_<ForcedDeleverageAuthorityRegistryKey>(market_uid_mut, key)) {
+      dynamic_field::add<ForcedDeleverageAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
+    };
+
+    let registry = dynamic_field::borrow_mut<ForcedDeleverageAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    vec_set::remove(registry, &address);
+
+    event::emit(ForcedDeleverageAuthorityRemovedEvent {
+      market: object::id(market),
+      authority: address,
     });
   }
 

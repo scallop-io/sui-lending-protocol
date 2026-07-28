@@ -36,6 +36,7 @@ module protocol::obligation {
   friend protocol::open_obligation;
   friend protocol::accrue_interest;
   friend protocol::lock_obligation;
+  friend protocol::forced_deleverage;
   
   struct Obligation has key, store {
     id: UID,

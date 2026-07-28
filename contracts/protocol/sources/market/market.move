@@ -42,6 +42,7 @@ module protocol::market {
   friend protocol::flash_loan;
   friend protocol::accrue_interest;
   friend protocol::lock_obligation;
+  friend protocol::forced_deleverage;
   
   struct Market has key, store {
     id: UID,

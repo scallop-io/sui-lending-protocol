@@ -131,9 +131,19 @@ module protocol::reserve {
   public fun util_rate(self: &Reserve, type_name: TypeName): FixedPoint32 {
     let balance_sheet = wit_table::borrow(&self.balance_sheets, type_name);
     if (balance_sheet.debt > 0)  {
+      // Revenue is the protocol's reserved share of cash, not lendable liquidity.
+      // Interest accrual grows `revenue` without adding cash, so `revenue` can
+      // exceed `cash` on a high-utilization pool; saturate the free-cash term at 0
+      // so utilization caps at 100% instead of exceeding 1 (which would make
+      // interest_model::calc_interest abort and brick every accruing operation).
+      let free_cash = if (balance_sheet.cash > balance_sheet.revenue) {
+        balance_sheet.cash - balance_sheet.revenue
+      } else {
+        0
+      };
       fixed_point32::create_from_rational(
         balance_sheet.debt,
-        balance_sheet.debt + balance_sheet.cash - balance_sheet.revenue,
+        balance_sheet.debt + free_cash,
       )
     } else {
       fixed_point32::create_from_rational(0, 1)

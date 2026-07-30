@@ -9,21 +9,29 @@ module protocol::forced_deleverage_test {
   use sui::transfer;
   use x_oracle::x_oracle::{Self, XOracle, XOraclePolicyCap};
   use coin_decimals_registry::coin_decimals_registry::{Self, CoinDecimalsRegistry};
+  use x::wit_table;
   use protocol::borrow;
   use protocol::deposit_collateral;
   use protocol::mint;
+  use protocol::repay;
+  use protocol::withdraw_collateral;
+  use protocol::accrue_interest;
   use protocol::liquidate;
   use protocol::forced_deleverage;
+  use protocol::debt_value;
+  use protocol::collateral_value;
   use protocol::price;
+  use protocol::reserve;
+  use protocol::collateral_stats;
   use protocol::version::{Self, Version};
   use protocol::app::{Self, AdminCap};
   use protocol::app_t::app_init;
   use protocol::open_obligation_t::open_obligation_t;
   use protocol::obligation::{Self, Obligation, ObligationKey};
   use protocol::obligation_access::{Self, ObligationAccessStore};
-  use protocol::market::Market;
+  use protocol::market::{Self, Market};
   use protocol::market_t::calc_growth_interest;
-  use protocol::constants::{usdc_interest_model_params, eth_risk_model_params, eth_interest_model_params};
+  use protocol::constants::{usdc_interest_model_params, usdt_interest_model_params, eth_risk_model_params, eth_interest_model_params, btc_risk_model_params};
   use protocol::coin_decimals_registry_t::coin_decimals_registry_init;
   use protocol::interest_model_t::add_interest_model_t;
   use protocol::risk_model_t::add_risk_model_t;
@@ -195,6 +203,54 @@ module protocol::forced_deleverage_test {
     teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
   }
 
+  #[test]
+  fun forced_deleverage_never_worsens_health_test() {
+    // Protocol invariant: forced deleverage never worsens the obligation's risk
+    // level (weighted debt / liquidation collateral value). Asserted directly on
+    // pre/post evaluator values via cross-multiplication (no FixedPoint32 division).
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    // No time passes between here and the call, so no interest accrues and the
+    // pre-values read the same state forced_deleverage will operate on.
+    let pre_debt = fixed_point32::get_raw_value(
+      debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &x_oracle, &clock)
+    );
+    let pre_coll = fixed_point32::get_raw_value(
+      collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &x_oracle, &clock)
+    );
+    // setup gives a healthy position: weighted debt $500 < liq value $800
+    assert!(pre_debt < pre_coll, 0);
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let repay_amount = 100 * std::u64::pow(10, usdc_decimals);
+    let repay_coin = coin::mint_for_testing<USDC>(repay_amount, test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+
+    let post_debt = fixed_point32::get_raw_value(
+      debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &x_oracle, &clock)
+    );
+    let post_coll = fixed_point32::get_raw_value(
+      collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &x_oracle, &clock)
+    );
+
+    // risk level must not worsen: post_debt / post_coll <= pre_debt / pre_coll
+    assert!((post_debt as u128) * (pre_coll as u128) <= (pre_debt as u128) * (post_coll as u128), 1);
+    // and the obligation must still be healthy afterwards
+    assert!(post_debt < post_coll, 2);
+    // absolute buffer (liq value - weighted debt) must strictly improve:
+    // par-value seizure removes $X debt but only $X * liq_factor of liq value
+    assert!(post_coll - post_debt > pre_coll - pre_debt, 3);
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
   #[test, expected_failure(abort_code = 0x0000601, location = protocol::liquidation_evaluator)]
   fun liquidate_aborts_on_healthy_obligation_test() {
     // Contrast test: the same healthy obligation forced_deleverage handles
@@ -280,6 +336,85 @@ module protocol::forced_deleverage_test {
     teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
   }
 
+  #[test]
+  fun forced_deleverage_collateral_shortfall_with_remainder_test() {
+    // The shortfall test above divides exactly; here ETH crashes to $333 so BOTH
+    // floors in the short path actually truncate (needed = floor(500e9/333) has
+    // remainder 167, and the scaled repay has a remainder too). Replays the
+    // double floor from on-chain raws and pins the two-sided rounding bound:
+    // the executor underpays at most 1 debt base unit, or overpays at most the
+    // value of 1 collateral base unit (the two floors compose in opposite
+    // directions — with these numbers the executor OVERPAYS 111 debt units,
+    // favoring the borrower).
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(333, 0));
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let supplied = 600 * std::u64::pow(10, usdc_decimals);
+    let repay_coin = coin::mint_for_testing<USDC>(supplied, test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+
+    let total_coll = (std::u64::pow(10, ETH_DECIMALS) as u256);
+    assert!((coin::value(&seized_coin) as u256) == total_coll, 0); // all collateral seized
+    let repaid = ((supplied - coin::value(&remain_coin)) as u256);
+
+    // replay the evaluator's double floor from on-chain raws
+    let raw_d = (fixed_point32::get_raw_value(price::get_price(&x_oracle, type_name::get<USDC>(), &clock)) as u256);
+    let raw_c = (fixed_point32::get_raw_value(price::get_price(&x_oracle, type_name::get<ETH>(), &clock)) as u256);
+    let scale = (std::u64::pow(10, 9) as u256); // both sides use 9 decimals
+    let debt_cap = ((500 * std::u64::pow(10, usdc_decimals)) as u256);
+    let needed = debt_cap * raw_d * scale / (raw_c * scale);
+    assert!(needed > total_coll, 1); // the short path is actually taken
+    assert!(repaid == debt_cap * total_coll / needed, 2);
+
+    // two-sided fairness bound around par (values compared as u256 cross-products):
+    // repaid value ≤ (collateral + 1 unit) value → overpay < 1 collateral unit
+    assert!(repaid * raw_d * scale <= (total_coll + 1) * raw_c * scale, 3);
+    // (repaid + 1 unit) value > collateral value → underpay < 1 debt unit
+    assert!((repaid + 1) * raw_d * scale > total_coll * raw_c * scale, 4);
+
+    // residual debt row remains with the exact leftover
+    let (debt_amount, _) = obligation::debt(&obligation, type_name::get<USDC>());
+    assert!((debt_amount as u256) == debt_cap - repaid, 5);
+    assert!(!obligation::has_coin_x_as_collateral(&obligation, type_name::get<ETH>()), 6);
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test, expected_failure(abort_code = 0x0017004, location = protocol::forced_deleverage_evaluator)]
+  fun forced_deleverage_aborts_when_scaled_repay_rounds_to_zero_test() {
+    // Short-path twin of the dust guard: the normal-path dust test drives
+    // `seized == 0`; this one drives `scaled_repay == 0`. ETH collapses to
+    // $1e-9 per whole token, so the entire 1 ETH collateral is worth exactly
+    // one USDC base unit and the proportional repay floors to 0 — the evaluator
+    // must abort rather than hand out collateral for a zero repay.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    // feed value 1 on the 9-decimal feed = $1e-9 per whole ETH
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 9));
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let repay_coin = coin::mint_for_testing<USDC>(500 * std::u64::pow(10, usdc_decimals), test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
   // ── Freeze / lock policy ──────────────────────────────────────────────────
 
   #[test]
@@ -303,6 +438,38 @@ module protocol::forced_deleverage_test {
       &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
     );
     assert!(coin::value(&seized_coin) == std::u64::pow(10, ETH_DECIMALS - 1), 0);
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test]
+  fun forced_deleverage_bypasses_apm_test() {
+    // Third documented policy bypass, alongside freeze and repay/withdraw locks:
+    // forced deleverage deliberately skips the APM check (matching liquidate).
+    // ETH pumps 3× in the same second — enough to trip the 200% APM threshold
+    // and block borrow/withdraw — yet the wind-down path must keep working.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    // +200% vs the recorded 24 h min ($1000 → $3000): apm::is_price_fluctuate
+    // (friend-only, asserted in the apm tests) reports fluctuation at exactly
+    // this move, so borrow/withdraw on this obligation would abort here.
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(3000, 0));
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let repay_amount = 300 * std::u64::pow(10, usdc_decimals);
+    let repay_coin = coin::mint_for_testing<USDC>(repay_amount, test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+
+    // $300 at $3000/ETH = 0.1 ETH, at the pumped price
+    assert!(coin::value(&seized_coin) == std::u64::pow(10, ETH_DECIMALS - 1), 0);
+    assert!(coin::value(&remain_coin) == 0, 1);
 
     coin::burn_for_testing(remain_coin);
     coin::burn_for_testing(seized_coin);
@@ -457,6 +624,26 @@ module protocol::forced_deleverage_test {
     test_scenario::next_tx(scenario, EXECUTOR);
     let repay_coin = coin::mint_for_testing<USDC>(100 * std::u64::pow(10, usdc_decimals), test_scenario::ctx(scenario));
     let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, BTC>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test, expected_failure(abort_code = 0x0017004, location = protocol::forced_deleverage)]
+  fun forced_deleverage_aborts_on_same_type_test() {
+    // DebtType == CollateralType would be a same-asset self-swap bypassing normal
+    // repay semantics; the guard fires before any row/price checks.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let repay_coin = coin::mint_for_testing<USDC>(100 * std::u64::pow(10, usdc_decimals), test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, USDC>(
       &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
     );
 
@@ -623,6 +810,402 @@ module protocol::forced_deleverage_test {
     test_scenario::next_tx(scenario, ADMIN);
     app::remove_forced_deleverage_authority(&admin_cap, &mut market, @0xDD, test_scenario::ctx(scenario));
 
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  // ── Adversarial / state-integrity paths ──────────────────────────────────
+  // Each test drives an abnormal sequence through forced deleverage and then
+  // asserts the protocol state is NOT corrupted: rows, market ledger, and the
+  // normal user flows must all remain exact and usable.
+
+  #[test]
+  fun forced_deleverage_full_clearance_then_obligation_reusable_test() {
+    // Wipe the entire debt row in one call (the wind-down end state), then keep
+    // using the obligation: row deletion must not brick later borrows.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let supplied = 500 * std::u64::pow(10, usdc_decimals); // exact outstanding debt
+    let repay_coin = coin::mint_for_testing<USDC>(supplied, test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+    assert!(coin::value(&remain_coin) == 0, 0);
+    assert!(coin::value(&seized_coin) == std::u64::pow(10, ETH_DECIMALS) / 2, 1); // $500 / $1000
+    assert!(!obligation::has_coin_x_as_debt(&obligation, type_name::get<USDC>()), 2);
+
+    // the obligation is still usable: borrow again against the remaining 0.5 ETH
+    test_scenario::next_tx(scenario, BORROWER);
+    let borrow_amount = 100 * std::u64::pow(10, usdc_decimals);
+    let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, borrow_amount, &x_oracle, &clock, test_scenario::ctx(scenario));
+    assert!(coin::value(&borrowed) == borrow_amount, 3);
+    let (debt_amount, _) = obligation::debt(&obligation, type_name::get<USDC>());
+    assert!(debt_amount == borrow_amount, 4);
+
+    coin::burn_for_testing(borrowed);
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test]
+  fun forced_deleverage_market_ledger_exact_test() {
+    // The market-side ledger must move by exactly the operation amounts and
+    // nothing else: cash +repay, debt −repay, revenue and market-coin supply
+    // untouched, global collateral stats −seized. No time passes, so any
+    // difference is a bookkeeping error, not accrual.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    let usdc_type = type_name::get<USDC>();
+    let eth_type = type_name::get<ETH>();
+    let (pre_cash, pre_debt, pre_revenue, pre_mcs) = reserve::balance_sheet(wit_table::borrow(reserve::balance_sheets(market::vault(&market)), usdc_type));
+    let pre_eth_stat = collateral_stats::collateral_amount(market::collateral_stats(&market), eth_type);
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let repay_amount = 100 * std::u64::pow(10, usdc_decimals);
+    let repay_coin = coin::mint_for_testing<USDC>(repay_amount, test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+    let seized = coin::value(&seized_coin);
+
+    let (cash, debt, revenue, mcs) = reserve::balance_sheet(wit_table::borrow(reserve::balance_sheets(market::vault(&market)), usdc_type));
+    assert!(cash == pre_cash + repay_amount, 0);
+    assert!(debt == pre_debt - repay_amount, 1);
+    assert!(revenue == pre_revenue, 2);
+    assert!(mcs == pre_mcs, 3);
+    assert!(collateral_stats::collateral_amount(market::collateral_stats(&market), eth_type) == pre_eth_stat - seized, 4);
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test]
+  fun forced_deleverage_then_full_unwind_test() {
+    // After a forced deleverage, the normal user flows must complete the unwind:
+    // the borrower repays the rest, withdraws ALL remaining collateral, and the
+    // reserve ends with zero debt and every repaid unit accounted for.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    let usdc_type = type_name::get<USDC>();
+    let eth_type = type_name::get<ETH>();
+    let (cash0, debt0, _, _) = reserve::balance_sheet(wit_table::borrow(reserve::balance_sheets(market::vault(&market)), usdc_type));
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let forced_amount = 100 * std::u64::pow(10, usdc_decimals);
+    let repay_coin = coin::mint_for_testing<USDC>(forced_amount, test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+
+    // borrower repays the remaining 400 USDC through the NORMAL repay flow
+    test_scenario::next_tx(scenario, BORROWER);
+    let rest = 400 * std::u64::pow(10, usdc_decimals);
+    let rest_coin = coin::mint_for_testing<USDC>(rest, test_scenario::ctx(scenario));
+    repay::repay<USDC>(&version, &mut obligation, &mut market, rest_coin, &clock, test_scenario::ctx(scenario));
+    assert!(!obligation::has_coin_x_as_debt(&obligation, usdc_type), 0);
+
+    // and withdraws ALL remaining collateral through the NORMAL withdraw flow
+    let remaining_collateral = 9 * std::u64::pow(10, ETH_DECIMALS - 1); // 0.9 ETH
+    let withdrawn = withdraw_collateral::withdraw_collateral<ETH>(
+      &version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, remaining_collateral, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+    assert!(coin::value(&withdrawn) == remaining_collateral, 1);
+    assert!(!obligation::has_coin_x_as_collateral(&obligation, eth_type), 2);
+
+    // reserve: all debt repaid (100 forced + 400 normal), cash restored exactly
+    let (cash1, debt1, _, _) = reserve::balance_sheet(wit_table::borrow(reserve::balance_sheets(market::vault(&market)), usdc_type));
+    assert!(debt1 == debt0 - 500 * std::u64::pow(10, usdc_decimals), 3);
+    assert!(debt1 == 0, 4);
+    assert!(cash1 == cash0 + 500 * std::u64::pow(10, usdc_decimals), 5);
+    // global collateral stats fully released
+    assert!(collateral_stats::collateral_amount(market::collateral_stats(&market), eth_type) == 0, 6);
+
+    coin::burn_for_testing(withdrawn);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test]
+  fun forced_deleverage_deep_insolvency_deficit_shrinks_test() {
+    // Deep insolvency (risk ratio above 1/liq_factor — here 1.5625 > 1.25):
+    // the RISK RATIO can worsen after a par-value swap, but the absolute deficit
+    // (weighted debt − liq value) must strictly shrink by repay × (1 − liq_factor).
+    // This pins down the invariant that actually holds in the underwater regime.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    // ETH crashes to $400: weighted debt $500 > liq value 1 × $400 × 80% = $320
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(400, 0));
+
+    let pre_debt = fixed_point32::get_raw_value(
+      debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &x_oracle, &clock)
+    );
+    let pre_coll = fixed_point32::get_raw_value(
+      collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &x_oracle, &clock)
+    );
+    assert!(pre_debt > pre_coll, 0); // underwater
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let repay_amount = 100 * std::u64::pow(10, usdc_decimals);
+    let repay_coin = coin::mint_for_testing<USDC>(repay_amount, test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+    // $100 at $400/ETH = 0.25 ETH — normal path, collateral not exhausted
+    assert!(coin::value(&seized_coin) == 25 * std::u64::pow(10, ETH_DECIMALS - 2), 1);
+
+    let post_debt = fixed_point32::get_raw_value(
+      debt_value::debts_value_usd_with_weight(&obligation, &coin_decimals_registry, &market, &x_oracle, &clock)
+    );
+    let post_coll = fixed_point32::get_raw_value(
+      collateral_value::collaterals_value_usd_for_liquidation(&obligation, &market, &coin_decimals_registry, &x_oracle, &clock)
+    );
+
+    // the absolute deficit strictly shrinks ($180 → $160)
+    assert!(post_debt > post_coll, 2);
+    assert!(pre_debt - pre_coll > post_debt - post_coll, 3);
+    // documented nuance: in this regime the ratio itself worsens (1.5625 → 1.667);
+    // any future change that "fixes" this by rounding against the borrower would
+    // show up here as an inverted comparison
+    assert!((post_debt as u128) * (pre_coll as u128) >= (pre_debt as u128) * (post_coll as u128), 4);
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test]
+  fun forced_deleverage_repeated_calls_until_cleared_test() {
+    // Grind the debt down over repeated partial calls (150 × 3 + 50): every
+    // round must stay exact — no cumulative rounding drift, clean row deletion
+    // on the last round, and the loop must terminate.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    let usdc_type = type_name::get<USDC>();
+    let total_repaid = 0;
+    let total_seized = 0;
+    let rounds = 0;
+    while (obligation::has_coin_x_as_debt(&obligation, usdc_type)) {
+      test_scenario::next_tx(scenario, EXECUTOR);
+      let supplied = 150 * std::u64::pow(10, usdc_decimals);
+      let repay_coin = coin::mint_for_testing<USDC>(supplied, test_scenario::ctx(scenario));
+      let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+        &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+      );
+      total_repaid = total_repaid + (supplied - coin::value(&remain_coin));
+      total_seized = total_seized + coin::value(&seized_coin);
+      rounds = rounds + 1;
+      coin::burn_for_testing(remain_coin);
+      coin::burn_for_testing(seized_coin);
+      assert!(rounds <= 4, 0); // must terminate: 150 + 150 + 150 + 50
+    };
+
+    assert!(rounds == 4, 1);
+    assert!(total_repaid == 500 * std::u64::pow(10, usdc_decimals), 2);
+    assert!(total_seized == std::u64::pow(10, ETH_DECIMALS) / 2, 3); // $500 / $1000
+    assert!(obligation::collateral(&obligation, type_name::get<ETH>()) == std::u64::pow(10, ETH_DECIMALS) / 2, 4);
+
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test]
+  fun forced_deleverage_on_drained_pool_revenue_exceeds_cash_test() {
+    // End-to-end version of the R7 util_rate fix on the exact wind-down target:
+    // a drained, high-utilization pool whose accrued revenue exceeds cash.
+    // Forced deleverage must succeed there (it is the recovery path), and the
+    // ledger must move exactly. Also exercises limiter inflow saturation: the
+    // outflow segments recorded 20 years ago have long expired.
+    let usdc_decimals = 9;
+    let eth_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let clock = clock::create_for_testing(test_scenario::ctx(scenario));
+    let version = version::create_for_testing(test_scenario::ctx(scenario));
+    let (market, admin_cap) = app_init(scenario);
+    let usdc_interest_params = usdc_interest_model_params();
+
+    let (x_oracle, x_oracle_policy_cap) = oracle_t::init_t(scenario);
+    test_scenario::next_tx(scenario, ADMIN);
+
+    clock::set_for_testing(&mut clock, 100 * 1000);
+    add_interest_model_t<USDC>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdc_interest_params, &clock);
+    let eth_risk_params = eth_risk_model_params();
+    add_risk_model_t<ETH>(scenario, &mut market, &admin_cap, &eth_risk_params);
+    let eth_interest_params = eth_interest_model_params();
+    add_interest_model_t<ETH>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &eth_interest_params, &clock);
+    let coin_decimals_registry = coin_decimals_registry_init(scenario);
+    coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, usdc_decimals);
+    coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, eth_decimals);
+
+    test_scenario::next_tx(scenario, ADMIN);
+    app::add_forced_deleverage_authority(&admin_cap, &mut market, EXECUTOR, test_scenario::ctx(scenario));
+
+    // lender supplies 10_000 USDC; borrower borrows 9_500 (95% utilization)
+    test_scenario::next_tx(scenario, LENDER);
+    clock::set_for_testing(&mut clock, 200 * 1000);
+    let usdc_coin = coin::mint_for_testing<USDC>(std::u64::pow(10, usdc_decimals + 4), test_scenario::ctx(scenario));
+    let market_coin = mint::mint(&version, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));
+    coin::burn_for_testing(market_coin);
+
+    test_scenario::next_tx(scenario, BORROWER);
+    let eth_coin = coin::mint_for_testing<ETH>(100 * std::u64::pow(10, eth_decimals), test_scenario::ctx(scenario));
+    let (obligation, obligation_key) = open_obligation_t(scenario, &version);
+    deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, eth_coin, test_scenario::ctx(scenario));
+
+    clock::set_for_testing(&mut clock, 300 * 1000);
+    x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0));
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0));
+    protocol::apm::refresh_apm_state<USDC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+    protocol::apm::refresh_apm_state<ETH>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+
+    test_scenario::next_tx(scenario, BORROWER);
+    let borrowed = borrow::borrow<USDC>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, 9500 * std::u64::pow(10, usdc_decimals), &x_oracle, &clock, test_scenario::ctx(scenario));
+    coin::burn_for_testing(borrowed);
+
+    // 20 years of accrual at >175%/yr pushes revenue past the 500 USDC of cash
+    let twenty_years = 20 * 365 * 24 * 60 * 60;
+    clock::set_for_testing(&mut clock, (300 + twenty_years) * 1000);
+    accrue_interest::accrue_interest_for_market(&version, &mut market, &clock);
+
+    let usdc_type = type_name::get<USDC>();
+    let (pre_cash, pre_debt, pre_revenue, _) = reserve::balance_sheet(wit_table::borrow(reserve::balance_sheets(market::vault(&market)), usdc_type));
+    assert!(pre_revenue > pre_cash, 0); // the pathological regime is reached
+
+    // fresh prices in the current second, then force-deleverage 500 USDC
+    x_oracle::update_price<USDC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0));
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0));
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let repay_amount = 500 * std::u64::pow(10, usdc_decimals);
+    let repay_coin = coin::mint_for_testing<USDC>(repay_amount, test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+
+    // no util_rate abort, exact ledger movement, par-value seizure
+    assert!(coin::value(&remain_coin) == 0, 1);
+    assert!(coin::value(&seized_coin) == std::u64::pow(10, eth_decimals) / 2, 2); // $500 / $1000
+    let (cash, debt, _, _) = reserve::balance_sheet(wit_table::borrow(reserve::balance_sheets(market::vault(&market)), usdc_type));
+    assert!(cash == pre_cash + repay_amount, 3);
+    assert!(debt == pre_debt - repay_amount, 4);
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test]
+  fun forced_deleverage_entry_transfers_to_executor_test() {
+    // The entry wrapper is the surface an on-chain PTB actually calls: both the
+    // leftover repay coin and the seized collateral must land on the sender.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let supplied = 600 * std::u64::pow(10, usdc_decimals); // 100 more than the debt
+    let repay_coin = coin::mint_for_testing<USDC>(supplied, test_scenario::ctx(scenario));
+    forced_deleverage::forced_deleverage_entry<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let leftover = test_scenario::take_from_address<coin::Coin<USDC>>(scenario, EXECUTOR);
+    let seized = test_scenario::take_from_address<coin::Coin<ETH>>(scenario, EXECUTOR);
+    assert!(coin::value(&leftover) == 100 * std::u64::pow(10, usdc_decimals), 0);
+    assert!(coin::value(&seized) == std::u64::pow(10, ETH_DECIMALS) / 2, 1); // $500 / $1000
+
+    coin::burn_for_testing(leftover);
+    coin::burn_for_testing(seized);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  #[test]
+  fun forced_deleverage_leaves_unrelated_rows_untouched_test() {
+    // Multi-asset obligation: a second collateral (BTC) and a second debt (USDT)
+    // must be byte-identical after a forced deleverage on the <USDC, ETH> pair —
+    // both on the obligation and on the market ledger.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    // extend the market with BTC (collateral) and USDT (debt)
+    test_scenario::next_tx(scenario, ADMIN);
+    let btc_risk_params = btc_risk_model_params();
+    add_risk_model_t<BTC>(scenario, &mut market, &admin_cap, &btc_risk_params);
+    app::update_min_collateral_amount<BTC>(&admin_cap, &mut market, 1);
+    app::set_apm_threshold<BTC>(&admin_cap, &mut market, 200, test_scenario::ctx(scenario));
+    let usdt_interest_params = usdt_interest_model_params();
+    add_interest_model_t<USDT>(scenario, std::u64::pow(10, 18), 60 * 60 * 24, 30 * 60, &mut market, &admin_cap, &usdt_interest_params, &clock);
+    coin_decimals_registry::register_decimals_t<BTC>(&mut coin_decimals_registry, 9);
+    coin_decimals_registry::register_decimals_t<USDT>(&mut coin_decimals_registry, 9);
+
+    test_scenario::next_tx(scenario, LENDER);
+    let usdt_coin = coin::mint_for_testing<USDT>(std::u64::pow(10, 13), test_scenario::ctx(scenario));
+    let market_coin = mint::mint(&version, &mut market, usdt_coin, &clock, test_scenario::ctx(scenario));
+    coin::burn_for_testing(market_coin);
+
+    x_oracle::update_price<BTC>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(50000, 0));
+    x_oracle::update_price<USDT>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1, 0));
+    protocol::apm::refresh_apm_state<BTC>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+    protocol::apm::refresh_apm_state<USDT>(&version, &mut market, &x_oracle, &clock, test_scenario::ctx(scenario));
+
+    // borrower adds 0.01 BTC collateral and borrows 100 USDT
+    test_scenario::next_tx(scenario, BORROWER);
+    let btc_amount = std::u64::pow(10, 7);
+    let btc_coin = coin::mint_for_testing<BTC>(btc_amount, test_scenario::ctx(scenario));
+    deposit_collateral::deposit_collateral(&version, &mut obligation, &mut market, btc_coin, test_scenario::ctx(scenario));
+    let usdt_borrow = 100 * std::u64::pow(10, 9);
+    let borrowed = borrow::borrow<USDT>(&version, &mut obligation, &obligation_key, &mut market, &coin_decimals_registry, usdt_borrow, &x_oracle, &clock, test_scenario::ctx(scenario));
+    coin::burn_for_testing(borrowed);
+
+    let usdt_type = type_name::get<USDT>();
+    let btc_type = type_name::get<BTC>();
+    let (pre_usdt_debt, pre_usdt_index) = obligation::debt(&obligation, usdt_type);
+    let pre_btc_coll = obligation::collateral(&obligation, btc_type);
+    let pre_btc_stat = collateral_stats::collateral_amount(market::collateral_stats(&market), btc_type);
+    let (pre_usdt_cash, pre_usdt_gdebt, _, _) = reserve::balance_sheet(wit_table::borrow(reserve::balance_sheets(market::vault(&market)), usdt_type));
+
+    // forced deleverage strictly on the <USDC, ETH> pair
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let repay_amount = 100 * std::u64::pow(10, usdc_decimals);
+    let repay_coin = coin::mint_for_testing<USDC>(repay_amount, test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<USDC, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+
+    // targeted rows moved
+    let (usdc_debt, _) = obligation::debt(&obligation, type_name::get<USDC>());
+    assert!(usdc_debt == 400 * std::u64::pow(10, usdc_decimals), 0);
+    assert!(obligation::collateral(&obligation, type_name::get<ETH>()) == 9 * std::u64::pow(10, ETH_DECIMALS - 1), 1);
+    // unrelated rows byte-identical, obligation and market both
+    let (usdt_debt, usdt_index) = obligation::debt(&obligation, usdt_type);
+    assert!(usdt_debt == pre_usdt_debt && usdt_index == pre_usdt_index, 2);
+    assert!(obligation::collateral(&obligation, btc_type) == pre_btc_coll, 3);
+    assert!(collateral_stats::collateral_amount(market::collateral_stats(&market), btc_type) == pre_btc_stat, 4);
+    let (usdt_cash, usdt_gdebt, _, _) = reserve::balance_sheet(wit_table::borrow(reserve::balance_sheets(market::vault(&market)), usdt_type));
+    assert!(usdt_cash == pre_usdt_cash && usdt_gdebt == pre_usdt_gdebt, 5);
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
     teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
   }
 }

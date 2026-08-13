@@ -1,0 +1,13 @@
+[package]
+name = "AuthorizedPriceRule"
+version = "0.0.1"
+edition = "2024.beta"
+
+[dependencies.XOracle]
+local = "../x_oracle"
+
+[dependencies.Decimal]
+local = "../../libs/decimal"
+
+[addresses]
+authorized_price_rule = "0x0"

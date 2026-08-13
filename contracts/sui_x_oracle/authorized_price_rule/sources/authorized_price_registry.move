@@ -1,6 +1,7 @@
 module authorized_price_rule::authorized_price_registry;
 
 use std::type_name::{Self, TypeName};
+use sui::clock::Clock;
 use sui::event;
 use sui::table::{Self, Table};
 use sui::vec_set::{Self, VecSet};
@@ -16,19 +17,31 @@ const ERR_INVALID_PRICE_RANGE: u64 = 0x11505;
 const ERR_PRICE_RANGE_NOT_FOUND: u64 = 0x11506;
 const ERR_PRICE_OUT_OF_RANGE: u64 = 0x11507;
 const ERR_INVALID_PRICE_DECIMALS: u64 = 0x11508;
+const ERR_PRICE_NOT_FOUND: u64 = 0x11509;
+const ERR_PRICE_STALE: u64 = 0x1150A;
+const ERR_INVALID_PRICE_VALID_DURATION: u64 = 0x1150B;
 
 // 10^19 overflows u64, so price range inputs can carry at most 18 decimals
 const MAX_PRICE_DECIMALS: u8 = 18;
+// Same staleness tolerance as pyth_rule; admin can change it with `set_price_valid_duration`
+const DEFAULT_PRICE_VALID_DURATION: u64 = 60; // seconds
 
 public struct PriceRange has store, drop {
     min_price: Decimal, // USD price
     max_price: Decimal,
 }
 
+public struct PriceData has store, drop {
+    price: u64, // USD price with 9 decimals (price_feed::decimals())
+    last_updated: u64, // seconds
+}
+
 public struct AuthorizedPriceRegistry has key {
     id: UID,
     authorized_addresses: VecSet<address>,
     price_ranges: Table<TypeName, PriceRange>,
+    prices: Table<TypeName, PriceData>,
+    price_valid_duration: u64, // seconds
 }
 
 public struct AuthorizedPriceRegistryCap has key, store {
@@ -55,6 +68,17 @@ public struct RemovePriceRangeEvent has copy, drop {
     coin_type: TypeName,
 }
 
+public struct SetPriceEvent has copy, drop {
+    coin_type: TypeName,
+    price: u64,
+    last_updated: u64,
+    set_by: address,
+}
+
+public struct SetPriceValidDurationEvent has copy, drop {
+    price_valid_duration: u64,
+}
+
 fun init(ctx: &mut TxContext) {
     let (registry, cap) = new(ctx);
     transfer::share_object(registry);
@@ -66,6 +90,8 @@ fun new(ctx: &mut TxContext): (AuthorizedPriceRegistry, AuthorizedPriceRegistryC
         id: object::new(ctx),
         authorized_addresses: vec_set::empty(),
         price_ranges: table::new(ctx),
+        prices: table::new(ctx),
+        price_valid_duration: DEFAULT_PRICE_VALID_DURATION,
     };
     let cap = AuthorizedPriceRegistryCap {
         id: object::new(ctx),
@@ -144,6 +170,58 @@ public fun remove_price_range<CoinType>(
     event::emit(RemovePriceRangeEvent { coin_type });
 }
 
+public fun set_price_valid_duration(
+    registry: &mut AuthorizedPriceRegistry,
+    cap: &AuthorizedPriceRegistryCap,
+    price_valid_duration: u64, // seconds
+) {
+    assert_cap(registry, cap);
+    assert!(price_valid_duration > 0, ERR_INVALID_PRICE_VALID_DURATION);
+    registry.price_valid_duration = price_valid_duration;
+
+    event::emit(SetPriceValidDurationEvent { price_valid_duration });
+}
+
+// @dev Only authorized addresses can store a price, and it must be within the safe range
+// `price` is a USD price with 9 decimals (price_feed::decimals())
+public fun set_price<CoinType>(
+    registry: &mut AuthorizedPriceRegistry,
+    price: u64,
+    clock: &Clock,
+    ctx: &TxContext,
+) {
+    assert_authorized(registry, ctx.sender());
+    assert_price_in_range<CoinType>(registry, price);
+
+    let last_updated = clock.timestamp_ms() / 1000;
+    let coin_type = type_name::with_defining_ids<CoinType>();
+    if (registry.prices.contains(coin_type)) {
+        let price_data = registry.prices.borrow_mut(coin_type);
+        price_data.price = price;
+        price_data.last_updated = last_updated;
+    } else {
+        registry.prices.add(coin_type, PriceData { price, last_updated });
+    };
+
+    event::emit(SetPriceEvent { coin_type, price, last_updated, set_by: ctx.sender() });
+}
+
+// Returns (price, last_updated) of the stored price.
+// Aborts if the price is stale, or no longer within the safe range
+public fun get_price<CoinType>(registry: &AuthorizedPriceRegistry, clock: &Clock): (u64, u64) {
+    let coin_type = type_name::with_defining_ids<CoinType>();
+    assert!(registry.prices.contains(coin_type), ERR_PRICE_NOT_FOUND);
+    let price_data = registry.prices.borrow(coin_type);
+
+    let now = clock.timestamp_ms() / 1000;
+    assert!(now <= price_data.last_updated + registry.price_valid_duration, ERR_PRICE_STALE);
+
+    // Re-check the range, in case it was tightened after the price was stored
+    assert_price_in_range<CoinType>(registry, price_data.price);
+
+    (price_data.price, price_data.last_updated)
+}
+
 public fun is_authorized(registry: &AuthorizedPriceRegistry, addr: address): bool {
     registry.authorized_addresses.contains(&addr)
 }
@@ -168,6 +246,10 @@ public fun assert_price_in_range<CoinType>(registry: &AuthorizedPriceRegistry, p
     assert!(price_usd.ge(min_price) && price_usd.le(max_price), ERR_PRICE_OUT_OF_RANGE);
 }
 
+public fun price_valid_duration(registry: &AuthorizedPriceRegistry): u64 {
+    registry.price_valid_duration
+}
+
 fun assert_cap(registry: &AuthorizedPriceRegistry, cap: &AuthorizedPriceRegistryCap) {
     assert!(object::id(registry) == cap.parent, ERR_ILLEGAL_REGISTRY_CAP);
 }
@@ -190,6 +272,8 @@ public fun new_for_testing(
 
 #[test_only]
 use std::unit_test::{assert_eq, destroy};
+#[test_only]
+use sui::clock;
 
 #[test_only]
 public struct TEST_COIN has drop {}
@@ -382,6 +466,198 @@ fun price_check_after_range_removed_aborts() {
     set_price_range<TEST_COIN>(&mut registry, &cap, 1, 3, 0);
     remove_price_range<TEST_COIN>(&mut registry, &cap);
     assert_price_in_range<TEST_COIN>(&registry, 1_000_000_000);
+
+    destroy(registry);
+    destroy(cap);
+}
+
+#[test]
+fun set_price_stores_and_get_price_returns_it() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+    let mut clock = clock::create_for_testing(ctx);
+    clock.set_for_testing(1000 * 1000);
+
+    add_authorized_address(&mut registry, &cap, ctx.sender());
+    set_price_range<TEST_COIN>(&mut registry, &cap, 1, 3, 0);
+    set_price<TEST_COIN>(&mut registry, 2_000_000_000, &clock, ctx);
+
+    let (price, last_updated) = get_price<TEST_COIN>(&registry, &clock);
+    assert_eq!(price, 2_000_000_000);
+    assert_eq!(last_updated, 1000);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test]
+fun set_price_overwrites_previous_price() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+    let mut clock = clock::create_for_testing(ctx);
+    clock.set_for_testing(1000 * 1000);
+
+    add_authorized_address(&mut registry, &cap, ctx.sender());
+    set_price_range<TEST_COIN>(&mut registry, &cap, 1, 3, 0);
+    set_price<TEST_COIN>(&mut registry, 2_000_000_000, &clock, ctx);
+
+    clock.set_for_testing(1010 * 1000);
+    set_price<TEST_COIN>(&mut registry, 2_500_000_000, &clock, ctx);
+
+    let (price, last_updated) = get_price<TEST_COIN>(&registry, &clock);
+    assert_eq!(price, 2_500_000_000);
+    assert_eq!(last_updated, 1010);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test, expected_failure(abort_code = ERR_UNAUTHORIZED_ADDRESS)]
+fun set_price_by_unauthorized_sender_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+    let clock = clock::create_for_testing(ctx);
+
+    set_price<TEST_COIN>(&mut registry, 2_000_000_000, &clock, ctx);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test, expected_failure(abort_code = ERR_PRICE_OUT_OF_RANGE)]
+fun set_price_out_of_range_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+    let clock = clock::create_for_testing(ctx);
+
+    add_authorized_address(&mut registry, &cap, ctx.sender());
+    set_price_range<TEST_COIN>(&mut registry, &cap, 1, 3, 0);
+    set_price<TEST_COIN>(&mut registry, 4_000_000_000, &clock, ctx);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test, expected_failure(abort_code = ERR_PRICE_RANGE_NOT_FOUND)]
+fun set_price_without_registered_range_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+    let clock = clock::create_for_testing(ctx);
+
+    add_authorized_address(&mut registry, &cap, ctx.sender());
+    set_price<TEST_COIN>(&mut registry, 2_000_000_000, &clock, ctx);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test, expected_failure(abort_code = ERR_PRICE_NOT_FOUND)]
+fun get_price_without_stored_price_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (registry, cap) = new_for_testing(ctx);
+    let clock = clock::create_for_testing(ctx);
+
+    get_price<TEST_COIN>(&registry, &clock);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test]
+fun price_at_staleness_boundary_is_accepted() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+    let mut clock = clock::create_for_testing(ctx);
+    clock.set_for_testing(1000 * 1000);
+
+    add_authorized_address(&mut registry, &cap, ctx.sender());
+    set_price_range<TEST_COIN>(&mut registry, &cap, 1, 3, 0);
+    set_price<TEST_COIN>(&mut registry, 2_000_000_000, &clock, ctx);
+
+    clock.set_for_testing((1000 + DEFAULT_PRICE_VALID_DURATION) * 1000);
+    let (price, _) = get_price<TEST_COIN>(&registry, &clock);
+    assert_eq!(price, 2_000_000_000);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test, expected_failure(abort_code = ERR_PRICE_STALE)]
+fun stale_price_cannot_be_pulled() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+    let mut clock = clock::create_for_testing(ctx);
+    clock.set_for_testing(1000 * 1000);
+
+    add_authorized_address(&mut registry, &cap, ctx.sender());
+    set_price_range<TEST_COIN>(&mut registry, &cap, 1, 3, 0);
+    set_price<TEST_COIN>(&mut registry, 2_000_000_000, &clock, ctx);
+
+    clock.set_for_testing((1000 + DEFAULT_PRICE_VALID_DURATION + 1) * 1000);
+    get_price<TEST_COIN>(&registry, &clock);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test, expected_failure(abort_code = ERR_PRICE_OUT_OF_RANGE)]
+fun stored_price_outside_updated_range_cannot_be_pulled() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+    let clock = clock::create_for_testing(ctx);
+
+    add_authorized_address(&mut registry, &cap, ctx.sender());
+    set_price_range<TEST_COIN>(&mut registry, &cap, 1, 3, 0);
+    set_price<TEST_COIN>(&mut registry, 2_000_000_000, &clock, ctx);
+
+    // Tighten the range to $0.1 ~ $1.5, so the stored $2 is no longer valid
+    set_price_range<TEST_COIN>(&mut registry, &cap, 1, 15, 1);
+    get_price<TEST_COIN>(&registry, &clock);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test]
+fun set_price_valid_duration_updates_staleness_window() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+    let mut clock = clock::create_for_testing(ctx);
+    clock.set_for_testing(1000 * 1000);
+
+    assert_eq!(price_valid_duration(&registry), DEFAULT_PRICE_VALID_DURATION);
+    set_price_valid_duration(&mut registry, &cap, 100);
+    assert_eq!(price_valid_duration(&registry), 100);
+
+    add_authorized_address(&mut registry, &cap, ctx.sender());
+    set_price_range<TEST_COIN>(&mut registry, &cap, 1, 3, 0);
+    set_price<TEST_COIN>(&mut registry, 2_000_000_000, &clock, ctx);
+
+    // Would be stale under the default 30s window, but valid under the new 100s window
+    clock.set_for_testing(1100 * 1000);
+    let (price, _) = get_price<TEST_COIN>(&registry, &clock);
+    assert_eq!(price, 2_000_000_000);
+
+    destroy(registry);
+    destroy(cap);
+    destroy(clock);
+}
+
+#[test, expected_failure(abort_code = ERR_INVALID_PRICE_VALID_DURATION)]
+fun set_zero_price_valid_duration_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut registry, cap) = new_for_testing(ctx);
+
+    set_price_valid_duration(&mut registry, &cap, 0);
 
     destroy(registry);
     destroy(cap);

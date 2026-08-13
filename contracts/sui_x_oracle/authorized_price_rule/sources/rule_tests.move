@@ -19,6 +19,7 @@ use authorized_price_rule::authorized_price_registry::{
 
 const ADMIN: address = @0xAD;
 const FEEDER: address = @0xFE;
+const KEEPER: address = @0xCE;
 
 public struct TEST_COIN has drop {}
 
@@ -56,7 +57,7 @@ fun cleanup(
 }
 
 #[test]
-fun authorized_address_sets_primary_price_within_range() {
+fun stored_price_is_relayed_to_x_oracle() {
     let mut scenario_value = test_scenario::begin(ADMIN);
     let scenario = &mut scenario_value;
     let (clock, mut x_oracle, policy_cap, mut registry, registry_cap) = setup(scenario);
@@ -72,15 +73,19 @@ fun authorized_address_sets_primary_price_within_range() {
         0,
     );
 
+    // The authorized address stores the price in the registry
     scenario.next_tx(FEEDER);
-    let mut request = x_oracle::price_update_request<TEST_COIN>(&x_oracle);
-    rule::set_price_as_primary<TEST_COIN>(
-        &mut request,
-        &registry,
+    authorized_price_registry::set_price<TEST_COIN>(
+        &mut registry,
         2_000_000_000,
         &clock,
         scenario.ctx(),
     );
+
+    // Anyone can then pull the stored price into x_oracle
+    scenario.next_tx(KEEPER);
+    let mut request = x_oracle::price_update_request<TEST_COIN>(&x_oracle);
+    rule::set_price_as_primary<TEST_COIN>(&mut request, &registry, &clock);
     x_oracle::confirm_price_update_request<TEST_COIN>(&mut x_oracle, request, &clock);
 
     let prices = x_oracle::prices(&x_oracle);
@@ -110,21 +115,17 @@ fun primary_and_secondary_prices_confirm_together() {
     );
 
     scenario.next_tx(FEEDER);
+    authorized_price_registry::set_price<TEST_COIN>(
+        &mut registry,
+        2_000_000_000,
+        &clock,
+        scenario.ctx(),
+    );
+
+    scenario.next_tx(KEEPER);
     let mut request = x_oracle::price_update_request<TEST_COIN>(&x_oracle);
-    rule::set_price_as_primary<TEST_COIN>(
-        &mut request,
-        &registry,
-        2_000_000_000,
-        &clock,
-        scenario.ctx(),
-    );
-    rule::set_price_as_secondary<TEST_COIN>(
-        &mut request,
-        &registry,
-        2_000_000_000,
-        &clock,
-        scenario.ctx(),
-    );
+    rule::set_price_as_primary<TEST_COIN>(&mut request, &registry, &clock);
+    rule::set_price_as_secondary<TEST_COIN>(&mut request, &registry, &clock);
     x_oracle::confirm_price_update_request<TEST_COIN>(&mut x_oracle, request, &clock);
 
     let prices = x_oracle::prices(&x_oracle);
@@ -139,12 +140,44 @@ fun primary_and_secondary_prices_confirm_together() {
     abort_code = authorized_price_registry::ERR_UNAUTHORIZED_ADDRESS,
     location = authorized_price_rule::authorized_price_registry,
 )]
-fun unauthorized_sender_cannot_set_price() {
+fun unauthorized_sender_cannot_store_price() {
     let mut scenario_value = test_scenario::begin(ADMIN);
     let scenario = &mut scenario_value;
-    let (clock, mut x_oracle, policy_cap, mut registry, registry_cap) = setup(scenario);
+    let (clock, x_oracle, policy_cap, mut registry, registry_cap) = setup(scenario);
+
+    // $1 ~ $3
+    authorized_price_registry::set_price_range<TEST_COIN>(
+        &mut registry,
+        &registry_cap,
+        1,
+        3,
+        0,
+    );
+
+    // FEEDER was never authorized
+    scenario.next_tx(FEEDER);
+    authorized_price_registry::set_price<TEST_COIN>(
+        &mut registry,
+        2_000_000_000,
+        &clock,
+        scenario.ctx(),
+    );
+
+    cleanup(clock, x_oracle, policy_cap, registry, registry_cap);
+    scenario_value.end();
+}
+
+#[test, expected_failure(
+    abort_code = authorized_price_registry::ERR_PRICE_STALE,
+    location = authorized_price_rule::authorized_price_registry,
+)]
+fun stale_price_cannot_be_relayed() {
+    let mut scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (mut clock, mut x_oracle, policy_cap, mut registry, registry_cap) = setup(scenario);
 
     x_oracle::add_primary_price_update_rule_v2<TEST_COIN, Rule>(&mut x_oracle, &policy_cap);
+    authorized_price_registry::add_authorized_address(&mut registry, &registry_cap, FEEDER);
     // $1 ~ $3
     authorized_price_registry::set_price_range<TEST_COIN>(
         &mut registry,
@@ -155,14 +188,20 @@ fun unauthorized_sender_cannot_set_price() {
     );
 
     scenario.next_tx(FEEDER);
-    let mut request = x_oracle::price_update_request<TEST_COIN>(&x_oracle);
-    rule::set_price_as_primary<TEST_COIN>(
-        &mut request,
-        &registry,
+    authorized_price_registry::set_price<TEST_COIN>(
+        &mut registry,
         2_000_000_000,
         &clock,
         scenario.ctx(),
     );
+
+    // Advance past the price valid duration, so the stored price becomes stale
+    let valid_duration = authorized_price_registry::price_valid_duration(&registry);
+    clock.set_for_testing((1000 + valid_duration + 1) * 1000);
+
+    scenario.next_tx(KEEPER);
+    let mut request = x_oracle::price_update_request<TEST_COIN>(&x_oracle);
+    rule::set_price_as_primary<TEST_COIN>(&mut request, &registry, &clock);
 
     destroy(request);
     cleanup(clock, x_oracle, policy_cap, registry, registry_cap);
@@ -170,10 +209,10 @@ fun unauthorized_sender_cannot_set_price() {
 }
 
 #[test, expected_failure(
-    abort_code = authorized_price_registry::ERR_PRICE_OUT_OF_RANGE,
+    abort_code = authorized_price_registry::ERR_PRICE_NOT_FOUND,
     location = authorized_price_rule::authorized_price_registry,
 )]
-fun price_outside_safe_range_cannot_be_set() {
+fun relay_without_stored_price_aborts() {
     let mut scenario_value = test_scenario::begin(ADMIN);
     let scenario = &mut scenario_value;
     let (clock, mut x_oracle, policy_cap, mut registry, registry_cap) = setup(scenario);
@@ -189,42 +228,9 @@ fun price_outside_safe_range_cannot_be_set() {
         0,
     );
 
-    scenario.next_tx(FEEDER);
+    scenario.next_tx(KEEPER);
     let mut request = x_oracle::price_update_request<TEST_COIN>(&x_oracle);
-    rule::set_price_as_primary<TEST_COIN>(
-        &mut request,
-        &registry,
-        4_000_000_000,
-        &clock,
-        scenario.ctx(),
-    );
-
-    destroy(request);
-    cleanup(clock, x_oracle, policy_cap, registry, registry_cap);
-    scenario_value.end();
-}
-
-#[test, expected_failure(
-    abort_code = authorized_price_registry::ERR_PRICE_RANGE_NOT_FOUND,
-    location = authorized_price_rule::authorized_price_registry,
-)]
-fun price_without_registered_range_cannot_be_set() {
-    let mut scenario_value = test_scenario::begin(ADMIN);
-    let scenario = &mut scenario_value;
-    let (clock, mut x_oracle, policy_cap, mut registry, registry_cap) = setup(scenario);
-
-    x_oracle::add_primary_price_update_rule_v2<TEST_COIN, Rule>(&mut x_oracle, &policy_cap);
-    authorized_price_registry::add_authorized_address(&mut registry, &registry_cap, FEEDER);
-
-    scenario.next_tx(FEEDER);
-    let mut request = x_oracle::price_update_request<TEST_COIN>(&x_oracle);
-    rule::set_price_as_primary<TEST_COIN>(
-        &mut request,
-        &registry,
-        2_000_000_000,
-        &clock,
-        scenario.ctx(),
-    );
+    rule::set_price_as_primary<TEST_COIN>(&mut request, &registry, &clock);
 
     destroy(request);
     cleanup(clock, x_oracle, policy_cap, registry, registry_cap);

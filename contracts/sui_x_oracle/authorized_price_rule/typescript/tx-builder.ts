@@ -45,32 +45,38 @@ export class AuthorizedPriceRuleTxBuilder {
     );
   }
 
-  // @dev `price` is a USD price with 9 decimals (price_feed::decimals())
-  // The tx sender must be an authorized address, and the price must be within the safe range
-  setPriceAsPrimary(
-    tx: SuiTxBlock,
-    request: SuiTxArg,
-    price: string | number,
-    coinType: string,
-  ) {
+  // @dev `durationSecs` is how long a stored price stays valid, in seconds
+  setPriceValidDuration(tx: SuiTxBlock, durationSecs: string | number) {
     tx.moveCall(
-      `${this.packageId}::rule::set_price_as_primary`,
-      [request, this.registryId, price, SUI_CLOCK_OBJECT_ID],
-      [coinType]
+      `${this.packageId}::authorized_price_registry::set_price_valid_duration`,
+      [this.registryId, this.registryCapId, durationSecs],
     );
   }
 
   // @dev `price` is a USD price with 9 decimals (price_feed::decimals())
   // The tx sender must be an authorized address, and the price must be within the safe range
-  setPriceAsSecondary(
-    tx: SuiTxBlock,
-    request: SuiTxArg,
-    price: string | number,
-    coinType: string,
-  ) {
+  setPrice(tx: SuiTxBlock, price: string | number, coinType: string) {
+    tx.moveCall(
+      `${this.packageId}::authorized_price_registry::set_price`,
+      [this.registryId, price, SUI_CLOCK_OBJECT_ID],
+      [coinType]
+    );
+  }
+
+  // Pulls the stored price into the x_oracle price update request.
+  // Aborts if the stored price is stale, so make sure `setPrice` was called recently
+  setPriceAsPrimary(tx: SuiTxBlock, request: SuiTxArg, coinType: string) {
+    tx.moveCall(
+      `${this.packageId}::rule::set_price_as_primary`,
+      [request, this.registryId, SUI_CLOCK_OBJECT_ID],
+      [coinType]
+    );
+  }
+
+  setPriceAsSecondary(tx: SuiTxBlock, request: SuiTxArg, coinType: string) {
     tx.moveCall(
       `${this.packageId}::rule::set_price_as_secondary`,
-      [request, this.registryId, price, SUI_CLOCK_OBJECT_ID],
+      [request, this.registryId, SUI_CLOCK_OBJECT_ID],
       [coinType]
     );
   }

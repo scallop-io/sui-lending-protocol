@@ -1,7 +1,7 @@
 {
-  "packageId": "",
-  "upgradeCapId": "",
+  "packageId": "0xcac8cfce94faf15ecbfe12eb5160d512e383d4c25403179515c654f5975fffb9",
+  "upgradeCapId": "0xc34e9033055dc24e6fea9d9410b31b481b2b9c405bf3f9b35784dfb281877d41",
   "publisherIds": [],
-  "authorizedPriceRegistryId": "",
-  "authorizedPriceRegistryCapId": ""
+  "authorizedPriceRegistryId": "0x52e60fbe72782c8c9161ab7a3c45cf77b29ed256edefca1577b2c94b03570e70",
+  "authorizedPriceRegistryCapId": "0x5fd7726d9dcfcf118038f7a0c715149ad51b69dd8a62d9c41ddb4f71f4f426b7"
 }

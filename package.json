@@ -3,29 +3,32 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "publish": "ts-node testnet-data-setup/publish-protocol.ts",
-    "publish-testcoin": "ts-node contracts/test_coin/publish.ts",
-    "setup": "ts-node testnet-data-setup/init-for-test.ts"
+    "publish": "tsx testnet-data-setup/publish-protocol.ts",
+    "publish-testcoin": "tsx contracts/test_coin/publish.ts",
+    "setup": "tsx testnet-data-setup/init-for-test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@iarna/toml": "^2.2.5",
-    "@mysten/sui": "^1.28.2",
+    "@mysten/sui": "~2.22.1",
     "@pythnetwork/price-service-client": "^1.4.1",
-    "@scallop-io/sui-kit": "^1.4.0",
+    "@pythnetwork/pyth-sui-js": "^4.0.0",
+    "@scallop-io/sui-kit": "^3.0.0",
     "@scallop-io/sui-package-kit": "^1.21.3",
     "@switchboard-xyz/sui-sdk": "0.0.15",
     "fs": "0.0.1-security",
     "path": "^0.12.7"
   },
   "devDependencies": {
-    "@types/node": "^18.16.3",
+    "@types/node": "^24.0.0",
     "dotenv": "^16.0.3",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0"
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2"
   },
   "pnpm": {
     "patchedDependencies": {

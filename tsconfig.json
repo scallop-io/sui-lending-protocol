@@ -1,11 +1,6 @@
 {
-  "ts-node": {
-    "require": [
-      "tsconfig-paths/register"
-    ]
-  },
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es2022",
     "lib": [
       "dom",
       "dom.iterable",
@@ -13,6 +8,15 @@
     ],
     "allowJs": true,
     "baseUrl": ".",
+    // path aliases replace the old `tsconfig-paths/register` hook, which is CJS-only
+    "paths": {
+      "sui-elements": [
+        "./sui-elements/index.ts"
+      ],
+      "contracts/*": [
+        "./contracts/*"
+      ]
+    },
     // output .d.testnet-data-setup declaration files for consumers
     "declaration": true,
     "emitDeclarationOnly": true,
@@ -26,8 +30,10 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": false,
     "esModuleInterop": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
+    // @mysten/sui v2 and @scallop-io/sui-kit v3 are ESM-only and expose their
+    // entrypoints through the `exports` map, so `node` resolution cannot see them
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",

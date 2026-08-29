@@ -24,11 +24,11 @@ module x_oracle::add_rule_guard_test {
         (clock, x_oracle, x_oracle_policy_cap)
     }
 
-    // the second primary rule must be rejected by the add-time guard itself.
-    // no price update request is built here, so the only assertion that can abort
-    // is the one in add_primary_price_update_rule_v2 -- unlike test_two_primary_error,
-    // which is also satisfied by the identical abort code raised later in determine_price.
-    #[test, expected_failure(abort_code = x_oracle::x_oracle::ONLY_SUPPORT_ONE_PRIMARY, location = x_oracle::x_oracle)]
+    // the second primary rule must be rejected by the add-time guard itself, which
+    // raises PRIMARY_RULE_ALREADY_EXISTS rather than the ONLY_SUPPORT_ONE_PRIMARY that
+    // determine_price uses. no price update request is built here either, so this
+    // cannot be satisfied by an abort raised during a price update.
+    #[test, expected_failure(abort_code = x_oracle::x_oracle::PRIMARY_RULE_ALREADY_EXISTS, location = x_oracle::x_oracle)]
     fun test_add_second_primary_rejected_at_add_time() {
         let scenario_value = test_scenario::begin(ADMIN);
         let scenario = &mut scenario_value;

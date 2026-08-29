@@ -13,6 +13,9 @@ module x_oracle::x_oracle {
 
   const PRIMARY_PRICE_NOT_QUALIFIED: u64 = 720;
   const ONLY_SUPPORT_ONE_PRIMARY: u64 = 721;
+  // 724 was ONLY_ONE_PRIMARY_RULES_ALLOWED, raised by the guard price_update_policy
+  // used to carry; it is still live on the currently published package.
+  const PRIMARY_RULE_ALREADY_EXISTS: u64 = 725;
 
   struct X_ORACLE has drop {}
 
@@ -84,7 +87,7 @@ module x_oracle::x_oracle {
       &cap.primary_price_update_policy_cap
     );
 
-    assert!(price_update_policy::count_rules_v2<CoinType>(&self.primary_price_update_policy) <= 1, ONLY_SUPPORT_ONE_PRIMARY);
+    assert!(price_update_policy::count_rules_v2<CoinType>(&self.primary_price_update_policy) <= 1, PRIMARY_RULE_ALREADY_EXISTS);
   }
 
   public fun remove_primary_price_update_rule_v2<CoinType, Rule: drop>(

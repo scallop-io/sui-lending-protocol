@@ -76,8 +76,8 @@ module x_oracle::primary_test {
     }
 
     // currently we only support one primary price feed
-    // this test should fail
-    #[test, expected_failure(abort_code = x_oracle::x_oracle::ONLY_SUPPORT_ONE_PRIMARY, location = x_oracle::x_oracle)]
+    // this test should fail, at the second registration
+    #[test, expected_failure(abort_code = x_oracle::x_oracle::PRIMARY_RULE_ALREADY_EXISTS, location = x_oracle::x_oracle)]
     fun test_two_primary_error() {
         let scenario_value = test_scenario::begin(ADMIN);
         let scenario = &mut scenario_value;

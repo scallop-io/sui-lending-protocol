@@ -1,6 +1,6 @@
 module decimal::decimal;
 
-// use std::fixed_point32::{Self, FixedPoint32};
+use std::fixed_point32::{Self, FixedPoint32};
 use std::uq32_32::{Self, UQ32_32};
 const WAD: u256 = 1000000000000000000; // 10^18
 
@@ -180,17 +180,23 @@ fun pow_test() {
 
 #[test]
 fun from_fixed_point32_test() {
-    let a = fixed_point32::create_from_rational(1, 1);
+       let a = uq32_32::from_quotient(1, 1);
     let b = from_fixed_point32(a);
 
-    assert!(eq(b, from(1)));
+   
+   assert!(eq(b, from(1)));
+ 
 
-    let a = fixed_point32::create_from_rational(1, 2);
+  
+
+       let a = uq32_32::from_quotient(1, 2);
     let b = from_fixed_point32(a);
 
-    assert!(eq(b, from_percent(50)));
+  
+      assert!(eq(b, from_percent(50)));
 
-    let a = fixed_point32::create_from_rational(1, 4);
+   
+    let a = uq32_32::from_quotient(1, 4);
     let b = from_fixed_point32(a);
 
     assert!(eq(b, from_percent(25)));

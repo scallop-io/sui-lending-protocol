@@ -1,7 +1,7 @@
 module decimal::decimal;
 
-use std::fixed_point32::{Self, FixedPoint32};
-
+// use std::fixed_point32::{Self, FixedPoint32};
+use std::uq32_32::{Self, UQ32_32};
 const WAD: u256 = 1000000000000000000; // 10^18
 
 public struct Decimal has copy, drop, store {
@@ -137,13 +137,20 @@ public fun max(a: Decimal, b: Decimal): Decimal {
     }
 }
 
-public fun from_fixed_point32(fp: FixedPoint32): Decimal {
+// public fun from_fixed_point32(fp: UQ32_32): Decimal {
+//     div(
+//         from(fp.from_raw()), 
+//         pow(from(2), 32)
+//     )
+// }
+
+
+public fun from_fixed_point32(fp: UQ32_32): Decimal {
     div(
-        from(fp.get_raw_value()), 
+        from(uq32_32::to_raw(fp)),
         pow(from(2), 32)
     )
 }
-
 #[test]
 fun pow_test() {
     let x = pow(from(2), 16 + 16); // 2^32

@@ -26,30 +26,30 @@ module x::balance_bag {
   }
   
   public fun init_balance<T>(self: &mut BalanceBag) {
-    let typeName = type_name::get<T>();
+    let typeName = type_name:: with_defining_ids<T>();
     bag::add(&mut self.bag, typeName, balance::zero<T>())
   }
   
   public fun join<T>(self: &mut BalanceBag, balance: Balance<T>) {
-    let type_name = type_name::get<T>();
+    let type_name = type_name:: with_defining_ids<T>();
     let in_bag_balance = bag::borrow_mut<TypeName, Balance<T>>(&mut self.bag, type_name);
     balance::join(in_bag_balance, balance);
   }
   
   public fun split<T>(self: &mut BalanceBag, amount: u64): Balance<T> {
-    let type_name = type_name::get<T>();
+    let type_name = type_name:: with_defining_ids<T>();
     let in_bag_balance = bag::borrow_mut<TypeName, Balance<T>>(&mut self.bag, type_name);
     balance::split(in_bag_balance, amount)
   }
   
   public fun value<T>(self: &BalanceBag): u64 {
-    let type_name = type_name::get<T>();
+    let type_name = type_name:: with_defining_ids<T>();
     let in_bag_balance = bag::borrow<TypeName, Balance<T>>(&self.bag, type_name);
     balance::value(in_bag_balance)
   }
   
   public fun contains<T>(self: &BalanceBag): bool {
-    let type_name = type_name::get<T>();
+    let type_name = type_name:: with_defining_ids<T>();
     bag::contains_with_type<TypeName, Balance<T>>(&self.bag, type_name)
   }
   

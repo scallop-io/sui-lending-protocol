@@ -50,42 +50,42 @@ module whitelist::whitelist {
   }
 
   public fun remove_whitelist_address(uid: &mut UID, address: address) {
-    df::remove_if_exists<WhitelistKey, bool>(uid, WhitelistKey { address });
+    df::remove_opt<WhitelistKey, bool>(uid, WhitelistKey { address });
     event::emit(WhitelistRemoveEvent { address, id: object::uid_to_inner(uid) });
   }
 
   /// Allow all addresses even if they are not in the whitelist.
   public fun allow_all(uid: &mut UID) {
-    df::remove_if_exists<RejectAllKey, bool>(uid, RejectAllKey {});
+    df::remove_opt<RejectAllKey, bool>(uid, RejectAllKey {});
     df::add(uid, AllowAllKey {}, true);
     event::emit(AllowAllEvent { id: object::uid_to_inner(uid) });
   }
 
   public fun is_allow_all(uid: &UID): bool {
-    df::exists_(uid, AllowAllKey {})
+    df:: exists(uid, AllowAllKey {})
   }
 
   /// Reject all addresses even if they are in the whitelist.
   public fun reject_all(uid: &mut UID) {
-    df::remove_if_exists<AllowAllKey, bool>(uid, AllowAllKey {});
+    df::remove_opt<AllowAllKey, bool>(uid, AllowAllKey {});
     df::add(uid, RejectAllKey {}, true);
     event::emit(RejectAllEvent { id: object::uid_to_inner(uid) });
   }
 
   public fun is_reject_all(uid: &UID): bool {
-    df::exists_(uid, RejectAllKey {})
+    df::exists(uid, RejectAllKey {})
   }
 
   /// Switch to whitelist mode.
   public fun switch_to_whitelist_mode(uid: &mut UID) {
-    df::remove_if_exists<AllowAllKey, bool>(uid, AllowAllKey {});
-    df::remove_if_exists<RejectAllKey, bool>(uid, RejectAllKey {});
+    df::remove_opt<AllowAllKey, bool>(uid, AllowAllKey {});
+    df::remove_opt<RejectAllKey, bool>(uid, RejectAllKey {});
     event::emit(SwitchToWhitelistModeEvent { id: object::uid_to_inner(uid) });
   }
 
   /// Check if an address is in the whitelist.
   public fun in_whitelist(uid: &UID, address: address): bool {
-    df::exists_(uid, WhitelistKey { address })
+    df::exists(uid, WhitelistKey { address })
   }
 
   /// Check if an address is allowed.

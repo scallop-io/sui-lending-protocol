@@ -7,7 +7,7 @@
 module protocol::liquidate {
 
   use std::type_name::{Self, TypeName};
-  use std::fixed_point32::FixedPoint32;
+use std::uq32_32::{Self, UQ32_32};
   use sui::clock::{Self, Clock};
   use sui::object::{Self, ID};
   use sui::coin::{Self, Coin};
@@ -45,8 +45,8 @@ module protocol::liquidate {
     repay_on_behalf: u64,
     repay_revenue: u64,
     liq_amount: u64,
-    collateral_price: FixedPoint32,
-    debt_price: FixedPoint32,
+    collateral_price: UQ32_32,
+    debt_price: UQ32_32,
     timestamp: u64,
   }
 
@@ -111,8 +111,8 @@ module protocol::liquidate {
     obligation::accrue_interests(obligation, market);
 
     // Cache type names — used in both calculation and event emission
-    let debt_type = type_name::get<DebtType>();
-    let collateral_type = type_name::get<CollateralType>();
+    let debt_type = type_name:: with_defining_ids<DebtType>();
+    let collateral_type = type_name::with_defining_ids<CollateralType>();
 
     // --- 3. Calculate liquidation amounts ---
     let available_repay_amount = balance::value(&available_repay_balance);

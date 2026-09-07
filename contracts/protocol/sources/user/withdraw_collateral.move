@@ -121,7 +121,7 @@ module protocol::withdraw_collateral {
     emit(CollateralWithdrawEvent{
       taker: sender,
       obligation: object::id(obligation),
-      withdraw_asset: type_name::get<T>(),
+      withdraw_asset: type_name::with_defining_ids<T>(),
       withdraw_amount: balance::value(&withdrawed_balance),
     });
 

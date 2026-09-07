@@ -71,7 +71,7 @@ module protocol::limiter {
     ctx: &mut TxContext,
   ): OneTimeLockValue<LimiterUpdateParamsChange> {
     let changes = LimiterUpdateParamsChange {
-      coin_type: type_name::get<T>(),
+      coin_type: type_name::with_defining_ids<T>(),
       outflow_cycle_duration,
       outflow_segment_duration,
     };
@@ -92,7 +92,7 @@ module protocol::limiter {
     ctx: &mut TxContext,
   ): OneTimeLockValue<LimiterUpdateLimitChange> {
     let changes = LimiterUpdateLimitChange {
-      coin_type: type_name::get<T>(),
+      coin_type: type_name::with_defining_ids<T>(),
       outflow_limit,
     };
     emit(LimiterUpdateLimitChangeCreatedEvent {
@@ -153,7 +153,7 @@ module protocol::limiter {
     outflow_cycle_duration: u32,
     outflow_segment_duration: u32,
   ) {
-    let key = type_name::get<T>();
+    let key = type_name::with_defining_ids<T>();
     wit_table::add(Limiters {}, table, key, new(
       outflow_limit,
       outflow_cycle_duration,
@@ -181,7 +181,7 @@ module protocol::limiter {
     outflow_cycle_duration: u32,
     outflow_segment_duration: u32,
   ): vector<Segment> {
-    let vec_segments = vector::empty();
+    let vec_segments = vector[];
 
     let (i, len) = (0, outflow_cycle_duration / outflow_segment_duration);
     while (i < len) {

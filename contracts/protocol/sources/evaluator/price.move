@@ -1,5 +1,6 @@
+
 module protocol::price {
-  use std::fixed_point32::{Self, FixedPoint32};
+use std::uq32_32::{Self, UQ32_32};
   use std::type_name::TypeName;
   use sui::table;
   use sui::math;
@@ -14,7 +15,7 @@ module protocol::price {
     x_oracle: &XOracle,
     type: TypeName,
     clock: &Clock,
-  ): FixedPoint32 {
+  ): UQ32_32 {
     let prices = x_oracle::prices(x_oracle);
 
     // Check if price exists
@@ -30,6 +31,6 @@ module protocol::price {
     assert!(now == last_updated, error::oracle_stale_price_error());
     assert!(price_value > 0, error::oracle_zero_price_error());
 
-    fixed_point32::create_from_rational(price_value, math::pow(10, price_decimal))
+    uq32_32::from_quotient(price_value, std::u64::pow(10, price_decimal))
   }
 }

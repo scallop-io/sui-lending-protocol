@@ -1,6 +1,5 @@
 module protocol::app {
-  use std::fixed_point32;
-  use std::fixed_point32::FixedPoint32;
+  use std::uq32_32::{Self, UQ32_32};
   use std::type_name::{Self, TypeName};
   use sui::tx_context::{Self, TxContext};
   use sui::object::{Self, UID, ID};
@@ -357,7 +356,7 @@ module protocol::app {
     assert!(apm_threshold <= 1000, error::invalid_params_error()); // Max APM threshold is 1000%
     assert!(apm_threshold > 0, error::invalid_params_error());
 
-    let coin_type = type_name::get<T>();
+    let coin_type = type_name:: with_defining_ids<T>();
     apm::set_apm_threshold(market, coin_type, apm_threshold);
   }
 
@@ -371,7 +370,7 @@ module protocol::app {
     let market_uid_mut = market::uid_mut(market);
     let key = market_dynamic_keys::pause_authority_registry_key();
 
-    if (!dynamic_field::exists_<PauseAuthorityRegistryKey>(market_uid_mut, key)) {
+    if (!dynamic_field::exists<PauseAuthorityRegistryKey>(market_uid_mut, key)) {
       dynamic_field::add<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
     };
 
@@ -388,7 +387,7 @@ module protocol::app {
     let market_uid_mut = market::uid_mut(market);
     let key = market_dynamic_keys::pause_authority_registry_key();
 
-    if (!dynamic_field::exists_<PauseAuthorityRegistryKey>(market_uid_mut, key)) {
+    if (!dynamic_field::exists<PauseAuthorityRegistryKey>(market_uid_mut, key)) {
       dynamic_field::add<PauseAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
     };
 
@@ -452,7 +451,7 @@ module protocol::app {
     market: &mut Market,
     is_active: bool,
   ) {
-    let coin_type = type_name::get<T>();
+    let coin_type = type_name:: with_defining_ids<T>();
     market::set_base_asset_active_state(market, coin_type, is_active);
   }
 
@@ -461,7 +460,7 @@ module protocol::app {
     market: &mut Market,
     is_active: bool,
   ) {
-    let coin_type = type_name::get<T>();
+    let coin_type = type_name:: with_defining_ids<T>();
     market::set_collateral_active_state(market, coin_type, is_active);
   }
 
@@ -475,7 +474,7 @@ module protocol::app {
     event::emit(TakeRevenueEvent {
       market: object::id(market),
       amount,
-      coin_type: type_name::get<T>(),
+      coin_type: type_name:: with_defining_ids<T>(),
       sender: tx_context::sender(ctx),
     });
 
@@ -493,7 +492,7 @@ module protocol::app {
     event::emit(TakeBorrowFeeEvent {
       market: object::id(market),
       amount,
-      coin_type: type_name::get<T>(),
+      coin_type: type_name:: with_defining_ids<T>(),
       sender: tx_context::sender(ctx),
     });
 
@@ -539,10 +538,10 @@ module protocol::app {
     assert!(fee_numerator <= fee_denominator, error::invalid_params_error());
 
     let market_uid_mut = market::uid_mut(market);
-    let key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
-    let fee = fixed_point32::create_from_rational(fee_numerator, fee_denominator);
+    let key = market_dynamic_keys::borrow_fee_key(type_name:: with_defining_ids<T>());
+    let fee = uq32_32::from_quotient(fee_numerator, fee_denominator);
 
-    dynamic_field::remove_if_exists<BorrowFeeKey, FixedPoint32>(market_uid_mut, key);
+    dynamic_field:: remove_opt<BorrowFeeKey, UQ32_32>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, fee);
   }
 
@@ -561,9 +560,9 @@ module protocol::app {
     limit_amount: u64,
   ) {
     let market_uid_mut = market::uid_mut(market);
-    let key = market_dynamic_keys::supply_limit_key(type_name::get<T>());
+    let key = market_dynamic_keys::supply_limit_key(type_name::  with_defining_ids<T>());
 
-    dynamic_field::remove_if_exists<SupplyLimitKey, u64>(market_uid_mut, key);
+    dynamic_field::remove_opt<SupplyLimitKey, u64>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, limit_amount);
   }
 
@@ -573,9 +572,9 @@ module protocol::app {
     min_amount: u64,
   ) {
     let market_uid_mut = market::uid_mut(market);
-    let key = market_dynamic_keys::min_collateral_amount_key(type_name::get<T>());
+    let key = market_dynamic_keys::min_collateral_amount_key(type_name::with_defining_ids<T>());
 
-    dynamic_field::remove_if_exists<MinCollateralAmountKey, u64>(market_uid_mut, key);
+    dynamic_field::remove_opt<MinCollateralAmountKey, u64>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, min_amount);
   }  
 
@@ -585,9 +584,9 @@ module protocol::app {
     limit_amount: u64,
   ) {
     let market_uid_mut = market::uid_mut(market);
-    let key = market_dynamic_keys::borrow_limit_key(type_name::get<T>());
+    let key = market_dynamic_keys::borrow_limit_key(type_name::with_defining_ids<T>());
 
-    dynamic_field::remove_if_exists<BorrowLimitKey, u64>(market_uid_mut, key);
+    dynamic_field::remove_opt<BorrowLimitKey, u64>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, limit_amount);
   }  
 
@@ -597,9 +596,9 @@ module protocol::app {
     is_isolated: bool,
   ) {
     let market_uid_mut = market::uid_mut(market);
-    let key = market_dynamic_keys::isolated_asset_key(type_name::get<PoolType>());
+    let key = market_dynamic_keys::isolated_asset_key(type_name::with_defining_ids<PoolType>());
 
-    dynamic_field::remove_if_exists<IsolatedAssetKey, bool>(market_uid_mut, key);
+    dynamic_field::remove_opt<IsolatedAssetKey, bool>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, is_isolated);
   }  
 
@@ -647,6 +646,7 @@ module protocol::app {
 
   /// For extension of the protocol
   /// Deprecated function, always abort
+   #[allow(unused_variable)]
   public fun ext(
     _: &AdminCap,
     market: &mut Market,

@@ -122,7 +122,7 @@ module protocol::borrow_referral {
     };
 
     // Attach the dynamic fields: borrowed, referralFee.
-    dynamic_field::add(&mut borrow_referral.id, BorrowedKey {}, 0);
+    dynamic_field::add(&mut borrow_referral.id, BorrowedKey {}, 0u64);
     dynamic_field::add(&mut borrow_referral.id, ReferralFeeKey {}, balance::zero<CoinType>());
 
     // Return the borrow referral object
@@ -198,7 +198,7 @@ module protocol::borrow_referral {
     borrow_referral: &mut BorrowReferral<CoinType, Witness>,
     cfg: Cfg
   ) {
-    assert!(dynamic_field::exists_(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}) == false, ERROR_CFG_ALREADY_EXIST);
+    assert!(dynamic_field::exists(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}) == false, ERROR_CFG_ALREADY_EXIST);
     dynamic_field::add(&mut borrow_referral.id, BorrowReferralCfgKey<Cfg> {}, cfg);
   }
 
@@ -213,7 +213,7 @@ module protocol::borrow_referral {
   public fun remove_referral_cfg<CoinType, Witness: drop, Cfg: store + drop>(
     borrow_referral: &mut BorrowReferral<CoinType, Witness>,
   ) {
-    assert!(dynamic_field::exists_(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}) == true, ERROR_CFG_NOT_EXIST);
+    assert!(dynamic_field::exists(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}) == true, ERROR_CFG_NOT_EXIST);
     dynamic_field::remove<BorrowReferralCfgKey<Cfg>, Cfg>(&mut borrow_referral.id, BorrowReferralCfgKey<Cfg> {});
   }
 
@@ -227,7 +227,7 @@ module protocol::borrow_referral {
   public fun get_referral_cfg<CoinType, Witness: drop, Cfg: store + drop>(
     borrow_referral: &BorrowReferral<CoinType, Witness>,
   ): &Cfg {
-    assert!(dynamic_field::exists_(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}), ERROR_CFG_ISNT_EXIST);
+    assert!(dynamic_field::exists(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {}), ERROR_CFG_ISNT_EXIST);
     dynamic_field::borrow(&borrow_referral.id, BorrowReferralCfgKey<Cfg> {})
   }
 
@@ -275,7 +275,7 @@ module protocol::borrow_referral {
   public fun assert_authorized_witness<Witness: drop>(
     authorized_witness_list: &AuthorizedWitnessList,
   ) {
-    let is_authorized = vec_set::contains(&authorized_witness_list.witness_list, &type_name::get<Witness>());
+    let is_authorized = vec_set::contains(&authorized_witness_list.witness_list, &type_name::with_defining_ids<Witness>());
     assert!(is_authorized, ERROR_NOT_AUTHORIZED)
   }
 
@@ -287,7 +287,7 @@ module protocol::borrow_referral {
   public(friend) fun add_witness<Witness: drop>(
     authorized_witness_list: &mut AuthorizedWitnessList,
   ) {
-    let witness_type = type_name::get<Witness>();
+    let witness_type = type_name::with_defining_ids<Witness>();
     if (vec_set::contains(&authorized_witness_list.witness_list, &witness_type) == false) {
       vec_set::insert(
         &mut authorized_witness_list.witness_list,
@@ -302,7 +302,7 @@ module protocol::borrow_referral {
   public(friend) fun remove_witness<Witness: drop>(
     authorized_witness_list: &mut AuthorizedWitnessList,
   ) {
-    let witness_type = type_name::get<Witness>();
+    let witness_type = type_name::with_defining_ids<Witness>();
     if (vec_set::contains(&authorized_witness_list.witness_list, &witness_type) == true) {
       vec_set::remove(
         &mut authorized_witness_list.witness_list,

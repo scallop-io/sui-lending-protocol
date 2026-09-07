@@ -69,7 +69,7 @@ module protocol::mint {
     // check if sender is in whitelist
     market::assert_whitelist_access(market, ctx);
 
-    let coin_type = type_name::get<T>();
+    let coin_type = type_name::with_defining_ids<T>();
     // check if base asset is active
     assert!(
       market::is_base_asset_active(market, coin_type),
@@ -101,7 +101,7 @@ module protocol::mint {
       minter: sender,
       deposit_asset: coin_type,
       deposit_amount,
-      mint_asset: type_name::get<MarketCoin<T>>(),
+      mint_asset: type_name:: with_defining_ids<MarketCoin<T>>(),
       mint_amount: balance::value(&mint_balance),
       time: now,
     });

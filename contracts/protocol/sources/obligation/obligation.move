@@ -153,7 +153,7 @@ module protocol::obligation {
     self: &mut Obligation,
     amount: u64,
   ): Balance<T> {
-    let type_name = type_name::get<T>();
+    let type_name = type_name::with_defining_ids<T>();
     // reduce collateral amount
     obligation_collaterals::decrease(&mut self.collaterals, type_name, amount);
     // return the collateral balance
@@ -165,7 +165,7 @@ module protocol::obligation {
     balance: Balance<T>,
   ) {
     // increase collateral amount
-    let type_name = type_name::get<T>();
+    let type_name = type_name::with_defining_ids<T>();
     obligation_collaterals::increase(&mut self.collaterals, type_name, balance::value(&balance));
     // put the collateral balance
     if (balance_bag::contains<T>(&self.balances) == false) {
@@ -314,7 +314,7 @@ module protocol::obligation {
 
     emit(ObligationLocked {
       obligation: object::id(self),
-      witness: type_name::get<T>(),
+      witness: type_name::  with_defining_ids<T>(),
       borrow_locked: self.borrow_locked,
       repay_locked: self.repay_locked,
       withdraw_collateral_locked: self.withdraw_collateral_locked,
@@ -337,7 +337,7 @@ module protocol::obligation {
 
     emit(ObligationUnlocked {
       obligation: object::id(self),
-      witness: type_name::get<T>(),
+      witness: type_name::  with_defining_ids<T>(),
     });
   }
 
@@ -358,7 +358,7 @@ module protocol::obligation {
 
     obligation_access::assert_lock_key_in_store(obligation_access_store, key);
 
-    self.lock_key = option::some(type_name::get<T>());
+    self.lock_key = option::some(type_name::  with_defining_ids<T>());
     self.borrow_locked = lock_borrow;
     self.repay_locked = lock_repay;
     self.withdraw_collateral_locked = lock_withdraw_collateral;
@@ -371,7 +371,7 @@ module protocol::obligation {
     _: T
   ) {
     assert!(
-      *option::borrow(&self.lock_key) == type_name::get<T>(),
+      *option::borrow(&self.lock_key) == type_name::  with_defining_ids<T>(),
       error::obligation_unlock_with_wrong_key()
     );
 
@@ -401,7 +401,7 @@ module protocol::obligation {
 
     emit(ObligationRewardsPointRedeemed {
       obligation: object::id(self),
-      witness: type_name::get<T>(),
+      witness: type_name::  with_defining_ids<T>(),
       amount,
     });
   }

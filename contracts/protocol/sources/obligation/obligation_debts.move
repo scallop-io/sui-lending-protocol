@@ -5,7 +5,7 @@ module protocol::obligation_debts {
   use x::wit_table::{Self, WitTable};
   use std::fixed_point32;
   use decimal::decimal::{Self, Decimal};
-
+  use std::uq32_32::{Self, UQ32_32};
   friend protocol::obligation;
 
   struct Debt has copy, store, drop {
@@ -73,7 +73,7 @@ module protocol::obligation_debts {
     if (debt.borrow_index == new_borrow_index) return 0;
 
     let prev_amount = debt.amount;
-    debt.amount = fixed_point32::multiply_u64(debt.amount, fixed_point32::create_from_rational(new_borrow_index, debt.borrow_index));
+    debt.amount = uq32_32::int_mul(debt.amount, uq32_32::from_quotient(new_borrow_index, debt.borrow_index));
     let accrued_interest = debt.amount - prev_amount;
     debt.borrow_index = new_borrow_index;
     accrued_interest

@@ -1,11 +1,11 @@
 module protocol::risk_model {
-  use std::type_name::{TypeName, get};
-  use std::fixed_point32::{Self, FixedPoint32};
+use std::type_name::{Self, TypeName};
+ use  std::uq32_32::{Self, UQ32_32};
   use sui::tx_context::{Self, TxContext};
   use sui::event::emit;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
-  use math::fixed_point32_empower;
+  use math::UQ32_32_empower;
   use protocol::error;
 
   friend protocol::app;
@@ -26,11 +26,11 @@ module protocol::risk_model {
   
   struct RiskModel has copy, store, drop {
     type: TypeName,
-    collateral_factor: FixedPoint32,
-    liquidation_factor: FixedPoint32,
-    liquidation_penalty: FixedPoint32,
-    liquidation_discount: FixedPoint32,
-    liquidation_revenue_factor: FixedPoint32,
+    collateral_factor: UQ32_32,
+    liquidation_factor: UQ32_32,
+    liquidation_penalty: UQ32_32,
+    liquidation_discount: UQ32_32,
+    liquidation_revenue_factor: UQ32_32,
     max_collateral_amount: u64
   }
 
@@ -46,11 +46,11 @@ module protocol::risk_model {
     current_epoch: u64, // the epoch when the change takes effect
   }
   
-  public fun collateral_factor(model: &RiskModel): FixedPoint32 { model.collateral_factor }
-  public fun liq_factor(model: &RiskModel): FixedPoint32 { model.liquidation_factor }
-  public fun liq_penalty(model: &RiskModel): FixedPoint32 { model.liquidation_penalty }
-  public fun liq_discount(model: &RiskModel): FixedPoint32 { model.liquidation_discount }
-  public fun liq_revenue_factor(model: &RiskModel): FixedPoint32 { model.liquidation_revenue_factor }
+  public fun collateral_factor(model: &RiskModel): UQ32_32 { model.collateral_factor }
+  public fun liq_factor(model: &RiskModel): UQ32_32 { model.liquidation_factor }
+  public fun liq_penalty(model: &RiskModel): UQ32_32 { model.liquidation_penalty }
+  public fun liq_discount(model: &RiskModel): UQ32_32 { model.liquidation_discount }
+  public fun liq_revenue_factor(model: &RiskModel): UQ32_32 { model.liquidation_revenue_factor }
   public fun max_collateral_Amount(model: &RiskModel): u64 { model.max_collateral_amount }
   public fun type_name(model: &RiskModel): TypeName { model.type }
   
@@ -72,34 +72,34 @@ module protocol::risk_model {
     change_delay: u64,
     ctx: &mut TxContext,
   ): OneTimeLockValue<RiskModel> {
-    let collateral_factor = fixed_point32::create_from_rational(collateral_factor, scale);
-    let max_collateral_factor = fixed_point32::create_from_rational(MaxCollateralFactor, ConstantScale);
-    assert!(fixed_point32_empower::gt(collateral_factor, max_collateral_factor) == false, error::risk_model_param_error());
+    let collateral_factor = uq32_32::from_quotient(collateral_factor, scale);
+    let max_collateral_factor = uq32_32::from_quotient(MaxCollateralFactor, ConstantScale);
+    assert!(UQ32_32_empower::gt(collateral_factor, max_collateral_factor) == false, error::risk_model_param_error());
 
-    let liquidation_factor = fixed_point32::create_from_rational(liquidation_factor, scale);
-    let max_liquidation_factor = fixed_point32::create_from_rational(MaxLiquidationFactor, ConstantScale);
-    assert!(fixed_point32_empower::gt(liquidation_factor, max_liquidation_factor) == false, error::risk_model_param_error());
+    let liquidation_factor = uq32_32::from_quotient(liquidation_factor, scale);
+    let max_liquidation_factor = uq32_32::from_quotient(MaxLiquidationFactor, ConstantScale);
+    assert!(UQ32_32_empower::gt(liquidation_factor, max_liquidation_factor) == false, error::risk_model_param_error());
 
-    let liquidation_penalty = fixed_point32::create_from_rational(liquidation_penalty, scale);
-    let max_liquidation_penalty = fixed_point32::create_from_rational(MaxLiquidationPenalty, ConstantScale);
-    assert!(fixed_point32_empower::gt(liquidation_penalty, max_liquidation_penalty) == false, error::risk_model_param_error());
+    let liquidation_penalty = uq32_32::from_quotient(liquidation_penalty, scale);
+    let max_liquidation_penalty = uq32_32::from_quotient(MaxLiquidationPenalty, ConstantScale);
+    assert!(UQ32_32_empower::gt(liquidation_penalty, max_liquidation_penalty) == false, error::risk_model_param_error());
 
-    let liquidation_discount = fixed_point32::create_from_rational(liquidation_discount, scale);
-    let max_liquidation_discount = fixed_point32::create_from_rational(MaxLiquidationDiscount, ConstantScale);
-    assert!(fixed_point32_empower::gt(liquidation_discount, max_liquidation_discount) == false, error::risk_model_param_error());
+    let liquidation_discount = uq32_32::from_quotient(liquidation_discount, scale);
+    let max_liquidation_discount = uq32_32::from_quotient(MaxLiquidationDiscount, ConstantScale);
+    assert!(UQ32_32_empower::gt(liquidation_discount, max_liquidation_discount) == false, error::risk_model_param_error());
 
     // Make sure liquidation factor is bigger than collateral factor
-    assert!(fixed_point32_empower::gt(liquidation_factor, collateral_factor), error::risk_model_param_error());
+    assert!(UQ32_32_empower::gt(liquidation_factor, collateral_factor), error::risk_model_param_error());
     // Make sure liquidation penalty is bigger than liquidation discount
-    assert!(fixed_point32_empower::gte(liquidation_penalty, liquidation_discount), error::risk_model_param_error());
+    assert!(UQ32_32_empower::gte(liquidation_penalty, liquidation_discount), error::risk_model_param_error());
     // Make sure:  liquidation_penalty + liquidation_factor < 1
-    let liq_sum = fixed_point32_empower::add(liquidation_factor, liquidation_penalty);
-    let liq_sum_max = fixed_point32_empower::from_u64(1);
-    assert!(fixed_point32_empower::gt(liq_sum_max, liq_sum), error::risk_model_param_error());
+    let liq_sum = UQ32_32_empower::add(liquidation_factor, liquidation_penalty);
+    let liq_sum_max = UQ32_32_empower::from_u64(1);
+    assert!(UQ32_32_empower::gt(liq_sum_max, liq_sum), error::risk_model_param_error());
 
-    let liquidation_revenue_factor = fixed_point32_empower::sub(liquidation_penalty, liquidation_discount);
+    let liquidation_revenue_factor = UQ32_32_empower::sub(liquidation_penalty, liquidation_discount);
     let risk_model = RiskModel {
-      type: get<T>(),
+      type: type_name::with_defining_ids<T>(),
       collateral_factor,
       liquidation_factor,
       liquidation_penalty,
@@ -123,7 +123,7 @@ module protocol::risk_model {
     ctx: &mut TxContext,
   ) {
     let risk_model = one_time_lock_value::get_value(risk_model_change, ctx);
-    let type_name = get<T>();
+    let type_name = type_name::with_defining_ids<T>();
     assert!(risk_model.type == type_name, error::risk_model_type_not_match_error());
 
     // Check if the risk model already exists, if so, remove it first

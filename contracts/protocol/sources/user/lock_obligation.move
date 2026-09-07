@@ -10,13 +10,13 @@ module protocol::lock_obligation {
     use sui::event::emit;
     use sui::object::{Self, ID};
 
-    use math::fixed_point32_empower;
-    use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry;
+    use math::UQ32_32_empower;
+    use coin_decimals_registry::coin_decimals_registry::CoinDecimalsRegistry; 
     use x_oracle::x_oracle::XOracle;
 
     use protocol::obligation::{Self, Obligation};
-    use protocol::debt_value::debts_value_usd_with_weight;
-    use protocol::collateral_value::collaterals_value_usd_for_liquidation;
+    // use protocol::debt_value::debts_value_usd_with_weight;   //unsued module
+    // use protocol::collateral_value::collaterals_value_usd_for_liquidation;  //unsused module
     use protocol::market::{Self, Market};
     use protocol::error;
     use protocol::version::{Self, Version};
@@ -65,7 +65,7 @@ module protocol::lock_obligation {
         // Emit the unlock event
         emit(ObligationForceUnlocked {
             obligation: object::id(obligation),
-            witness: type_name::get<T>(),
+            witness: type_name::with_defining_ids<T>(),
         });
     }
 }

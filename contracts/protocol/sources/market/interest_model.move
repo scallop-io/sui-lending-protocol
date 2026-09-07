@@ -1,10 +1,10 @@
 module protocol::interest_model {
   
-  use std::type_name::{TypeName, get};
-  use std::fixed_point32::{Self, FixedPoint32};
+  use std::type_name::{Self, TypeName};
+  use std::uq32_32::{Self, UQ32_32};
   use sui::tx_context::{Self, TxContext};
   use sui::event::emit;
-  use math::fixed_point32_empower;
+  use math::UQ32_32_empower;
   use x::ac_table::{Self, AcTable, AcTableCap};
   use x::one_time_lock_value::{Self, OneTimeLockValue};
   use protocol::error;
@@ -19,15 +19,15 @@ module protocol::interest_model {
 
   struct InterestModel has copy, store, drop {
     type: TypeName,
-    base_borrow_rate_per_sec: FixedPoint32,
+    base_borrow_rate_per_sec: UQ32_32,
     interest_rate_scale: u64,
-    borrow_rate_on_mid_kink: FixedPoint32,
-    mid_kink: FixedPoint32,
-    borrow_rate_on_high_kink: FixedPoint32,
-    high_kink: FixedPoint32,
-    max_borrow_rate: FixedPoint32,
-    revenue_factor: FixedPoint32,
-    borrow_weight: FixedPoint32,
+    borrow_rate_on_mid_kink: UQ32_32,
+    mid_kink: UQ32_32,
+    borrow_rate_on_high_kink: UQ32_32,
+    high_kink: UQ32_32,
+    max_borrow_rate: UQ32_32,
+    revenue_factor: UQ32_32,
+    borrow_weight: UQ32_32,
     /********
     when the principal and ratio of borrow indices are both small,
     the result can equal the principal, due to automatic truncation of division
@@ -49,15 +49,15 @@ module protocol::interest_model {
     current_epoch: u64, // the epoch when the interest model is updated
   }
 
-  public fun base_borrow_rate(model: &InterestModel): FixedPoint32 { model.base_borrow_rate_per_sec }
+  public fun base_borrow_rate(model: &InterestModel): UQ32_32 { model.base_borrow_rate_per_sec }
   public fun interest_rate_scale(model: &InterestModel): u64 { model.interest_rate_scale }
-  public fun borrow_rate_on_mid_kink(model: &InterestModel): FixedPoint32 { model.borrow_rate_on_mid_kink }
-  public fun mid_kink(model: &InterestModel): FixedPoint32 { model.mid_kink }
-  public fun borrow_rate_on_high_kink(model: &InterestModel): FixedPoint32 { model.borrow_rate_on_high_kink }
-  public fun high_kink(model: &InterestModel): FixedPoint32 { model.high_kink }
-  public fun max_borrow_rate(model: &InterestModel): FixedPoint32 { model.max_borrow_rate }
-  public fun revenue_factor(model: &InterestModel): FixedPoint32 { model.revenue_factor }
-  public fun borrow_weight(model: &InterestModel): FixedPoint32 { model.borrow_weight }
+  public fun borrow_rate_on_mid_kink(model: &InterestModel): UQ32_32 { model.borrow_rate_on_mid_kink }
+  public fun mid_kink(model: &InterestModel): UQ32_32 { model.mid_kink }
+  public fun borrow_rate_on_high_kink(model: &InterestModel): UQ32_32 { model.borrow_rate_on_high_kink }
+  public fun high_kink(model: &InterestModel): UQ32_32 { model.high_kink }
+  public fun max_borrow_rate(model: &InterestModel): UQ32_32 { model.max_borrow_rate }
+  public fun revenue_factor(model: &InterestModel): UQ32_32 { model.revenue_factor }
+  public fun borrow_weight(model: &InterestModel): UQ32_32 { model.borrow_weight }
   public fun min_borrow_amount(model: &InterestModel): u64 { model.min_borrow_amount }
   public fun type_name(model: &InterestModel): TypeName { model.type }
 
@@ -95,25 +95,25 @@ module protocol::interest_model {
 
     // max_borrow_rate should be within reasonable number
     assert!(
-      fixed_point32_empower::gte(
-        fixed_point32::create_from_rational(MAX_REASONABLE_BORROW_RATE, 100),
-        fixed_point32::create_from_rational(max_borrow_rate, scale),
+      UQ32_32_empower::gte(
+        uq32_32::from_quotient(MAX_REASONABLE_BORROW_RATE, 100),
+        uq32_32::from_quotient(max_borrow_rate, scale),
       ),
       error::interest_model_param_error()
     );
 
     // borrow_weight should be within reasonable number, max 5, minimum 1
     assert!(
-      fixed_point32_empower::gte(
-        fixed_point32::create_from_rational(MAX_REASONABLE_BORROW_WEIGHT, 100),
-        fixed_point32::create_from_rational(borrow_weight, scale),
+      UQ32_32_empower::gte(
+        uq32_32::from_quotient(MAX_REASONABLE_BORROW_WEIGHT, 100),
+        uq32_32::from_quotient(borrow_weight, scale),
       ),
       error::interest_model_param_error()
     );
     assert!(
-      fixed_point32_empower::gte(
-        fixed_point32::create_from_rational(borrow_weight, scale),
-        fixed_point32::create_from_rational(MIN_REASONABLE_BORROW_WEIGHT, 100),
+      UQ32_32_empower::gte(
+        uq32_32::from_quotient(borrow_weight, scale),
+        uq32_32::from_quotient(MIN_REASONABLE_BORROW_WEIGHT, 100),
       ),
       error::interest_model_param_error()
     );
@@ -124,16 +124,16 @@ module protocol::interest_model {
     // revenue factor is the portion of interest that goes to the protocol, so it must be <= 100%
     assert!(revenue_factor <= scale, error::interest_model_param_error());
 
-    let base_borrow_rate_per_sec = fixed_point32::create_from_rational(base_rate_per_sec, scale);
-    let borrow_rate_on_mid_kink = fixed_point32::create_from_rational(borrow_rate_on_mid_kink, scale);
-    let mid_kink = fixed_point32::create_from_rational(mid_kink, scale);
-    let borrow_rate_on_high_kink = fixed_point32::create_from_rational(borrow_rate_on_high_kink, scale);
-    let high_kink = fixed_point32::create_from_rational(high_kink, scale);
-    let max_borrow_rate = fixed_point32::create_from_rational(max_borrow_rate, scale);
-    let revenue_factor = fixed_point32::create_from_rational(revenue_factor, scale);
-    let borrow_weight = fixed_point32::create_from_rational(borrow_weight, scale);
+    let base_borrow_rate_per_sec = uq32_32::from_quotient(base_rate_per_sec, scale);
+    let borrow_rate_on_mid_kink = uq32_32::from_quotient(borrow_rate_on_mid_kink, scale);
+    let mid_kink = uq32_32::from_quotient(mid_kink, scale);
+    let borrow_rate_on_high_kink = uq32_32::from_quotient(borrow_rate_on_high_kink, scale);
+    let high_kink = uq32_32::from_quotient(high_kink, scale);
+    let max_borrow_rate = uq32_32::from_quotient(max_borrow_rate, scale);
+    let revenue_factor = uq32_32::from_quotient(revenue_factor, scale);
+    let borrow_weight = uq32_32::from_quotient(borrow_weight, scale);
     let interest_model = InterestModel {
-      type: get<T>(),
+      type: type_name::with_defining_ids<T>(),
       base_borrow_rate_per_sec,
       interest_rate_scale,
       borrow_rate_on_mid_kink,
@@ -162,7 +162,7 @@ module protocol::interest_model {
   ) {
     let interest_model = one_time_lock_value::get_value(interest_model_change, ctx);
 
-    let type_name = get<T>();
+    let type_name = type_name::with_defining_ids<T>();
     assert!(interest_model.type == type_name, error::interest_model_type_not_match_error());
 
     // Remove the old interest model if exists
@@ -181,8 +181,8 @@ module protocol::interest_model {
   // Notice: the interest rate is scaled by a factor, because it's too small to be used directly
   public fun calc_interest(
     interest_model: &InterestModel,
-    util_rate: FixedPoint32,
-  ): (FixedPoint32, u64) {
+    util_rate: UQ32_32,
+  ): (UQ32_32, u64) {
     let interest_rate_scale = interest_model.interest_rate_scale;
     let borrow_rate_on_mid_kink = interest_model.borrow_rate_on_mid_kink;
     let mid_kink = interest_model.mid_kink;
@@ -202,38 +202,38 @@ module protocol::interest_model {
 
     ============================================================== */
     // util_rate must be <= 100%
-    assert!(fixed_point32_empower::gte(fixed_point32_empower::from_u64(1), util_rate), error::invalid_util_rate_error());
+    assert!(UQ32_32_empower::gte(UQ32_32_empower::from_u64(1), util_rate), error::invalid_util_rate_error());
 
-    let borrow_rate = if (fixed_point32_empower::gte(mid_kink, util_rate)) {
-      let weight = fixed_point32_empower::div(util_rate, mid_kink);
-      let range = fixed_point32_empower::sub(borrow_rate_on_mid_kink, base_rate);
+    let borrow_rate = if (UQ32_32_empower::gte(mid_kink, util_rate)) {
+      let weight = UQ32_32_empower::div(util_rate, mid_kink);
+      let range = UQ32_32_empower::sub(borrow_rate_on_mid_kink, base_rate);
       
-      fixed_point32_empower::add(
+      UQ32_32_empower::add(
         // `weight` is like how far it goes from the starting point within the `range`
-        fixed_point32_empower::mul(weight, range),
+        UQ32_32_empower::mul(weight, range),
         // base borrow rate is the starting point
         base_rate
       )
-    } else if (fixed_point32_empower::gte(high_kink, util_rate)) {
-      let weight = fixed_point32_empower::div(
-        fixed_point32_empower::sub(util_rate, mid_kink),
-        fixed_point32_empower::sub(high_kink, mid_kink)
+    } else if (UQ32_32_empower::gte(high_kink, util_rate)) {
+      let weight = UQ32_32_empower::div(
+        UQ32_32_empower::sub(util_rate, mid_kink),
+        UQ32_32_empower::sub(high_kink, mid_kink)
       );
-      let range = fixed_point32_empower::sub(borrow_rate_on_high_kink, borrow_rate_on_mid_kink);
+      let range = UQ32_32_empower::sub(borrow_rate_on_high_kink, borrow_rate_on_mid_kink);
 
-      fixed_point32_empower::add(
-        fixed_point32_empower::mul(weight, range),
+      UQ32_32_empower::add(
+        UQ32_32_empower::mul(weight, range),
         borrow_rate_on_mid_kink
       )
     } else {
-      let weight = fixed_point32_empower::div(
-        fixed_point32_empower::sub(util_rate, high_kink),
-        fixed_point32_empower::sub(fixed_point32_empower::from_u64(1), high_kink)
+      let weight = UQ32_32_empower::div(
+        UQ32_32_empower::sub(util_rate, high_kink),
+        UQ32_32_empower::sub(UQ32_32_empower::from_u64(1), high_kink)
       );
-      let range = fixed_point32_empower::sub(max_borrow_rate, borrow_rate_on_high_kink);
+      let range = UQ32_32_empower::sub(max_borrow_rate, borrow_rate_on_high_kink);
 
-      fixed_point32_empower::add(
-        fixed_point32_empower::mul(weight, range),
+      UQ32_32_empower::add(
+        UQ32_32_empower::mul(weight, range),
         borrow_rate_on_high_kink
       )
     };
@@ -250,82 +250,82 @@ module protocol::interest_model {
   #[test]
   fun interest_rates_test() {
     let interest_model = InterestModel {
-      type: type_name::get<USDC>(),
+      type: type_name::  with_defining_ids<USDC>(),
       // this borrow rate is not for every sec, cause it just for testing
-      base_borrow_rate_per_sec: fixed_point32::create_from_rational(2, 100),
+      base_borrow_rate_per_sec: uq32_32::from_quotient(2, 100),
       interest_rate_scale: 1,
-      borrow_rate_on_mid_kink: fixed_point32::create_from_rational(10, 100),
-      mid_kink: fixed_point32::create_from_rational(40, 100),
-      borrow_rate_on_high_kink: fixed_point32::create_from_rational(50, 100),
-      high_kink: fixed_point32::create_from_rational(80, 100),
-      max_borrow_rate: fixed_point32::create_from_rational(120, 100),
-      revenue_factor: fixed_point32::create_from_rational(5, 100), // in this case, it will be ignored anyway
+      borrow_rate_on_mid_kink: uq32_32::from_quotient(10, 100),
+      mid_kink: uq32_32::from_quotient(40, 100),
+      borrow_rate_on_high_kink: uq32_32::from_quotient(50, 100),
+      high_kink: uq32_32::from_quotient(80, 100),
+      max_borrow_rate: uq32_32::from_quotient(120, 100),
+      revenue_factor: uq32_32::from_quotient(5, 100), // in this case, it will be ignored anyway
       min_borrow_amount: 1000, // in this case, it will be ignored anyway
-      borrow_weight: fixed_point32::create_from_rational(1, 1), // in this case, it will be ignored anyway
+      borrow_weight: uq32_32::from_quotient(1, 1), // in this case, it will be ignored anyway
     };
     
     // === Low Demand
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(10, 100)
+      &interest_model, uq32_32::from_quotient(10, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 3, 0);
 
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(40, 100)
+      &interest_model, uq32_32::from_quotient(40, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 9, 0);
 
     // === Optimal Demand
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(41, 100)
+      &interest_model, uq32_32::from_quotient(41, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 10, 0);
 
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(50, 100)
+      &interest_model, uq32_32::from_quotient(50, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 19, 0);
 
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(60, 100)
+      &interest_model, uq32_32::from_quotient(60, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 29, 0);
 
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(70, 100)
+      &interest_model, uq32_32::from_quotient(70, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 39, 0);
 
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(80, 100)
+      &interest_model, uq32_32::from_quotient(80, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 50, 0);
     
     // === High Demand
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(85, 100)
+      &interest_model, uq32_32::from_quotient(85, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 67, 0);
 
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(90, 100)
+      &interest_model, uq32_32::from_quotient(90, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 84, 0);
 
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(95, 100)
+      &interest_model, uq32_32::from_quotient(95, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 102, 0);
 
     let (borrow_rate, _) = calc_interest(
-      &interest_model, fixed_point32::create_from_rational(100, 100)
+      &interest_model, uq32_32::from_quotient(100, 100)
     );
     assert!(shift_decimal(borrow_rate, 2) == 119, 0);
   }
 
   #[test_only]
-  fun shift_decimal(number: FixedPoint32, number_of_shift: u8): u64 {
+  fun shift_decimal(number: UQ32_32, number_of_shift: u8): u64 {
     use sui::math;
-    fixed_point32::multiply_u64(math::pow(10, number_of_shift), number)
+    uq32_32::int_mul(std::u64::pow(10, number_of_shift), number)
   }
 }

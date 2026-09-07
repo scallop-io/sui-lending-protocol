@@ -1,6 +1,6 @@
 module protocol::interest_model {
   
-  use std::type_name::{Self, TypeName};
+use std::type_name::TypeName;
   use std::uq32_32::{Self, UQ32_32};
   use sui::tx_context::{Self, TxContext};
   use sui::event::emit;

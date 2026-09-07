@@ -4,7 +4,7 @@ module protocol::redeem_test {
   use sui::test_scenario;
   use sui::coin::{Self, Coin};
   use sui::clock;
-  use std::fixed_point32;
+ use  std::uq32_32::{Self, UQ32_32};
   use std::type_name;
   use x_oracle::x_oracle;
   use coin_decimals_registry::coin_decimals_registry;
@@ -110,8 +110,8 @@ module protocol::redeem_test {
       current_borrow_index,
       mint_time - borrow_time,
     );
-    let increased_debt = fixed_point32::multiply_u64(borrow_amount, growth_interest_rate);
-    let current_revenue = fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
+    let increased_debt = uq32_32::int_mul(borrow_amount, growth_interest_rate);
+    let current_revenue = uq32_32::int_mul(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_mint_amount = calc_mint_amount(
       usdc_amount,
@@ -144,8 +144,8 @@ module protocol::redeem_test {
       current_borrow_index,
       redeem_time - mint_time,
     );
-    let increased_debt = fixed_point32::multiply_u64(current_debt, growth_interest_rate);
-    let current_revenue = current_revenue + fixed_point32::multiply_u64(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
+    let increased_debt = uq32_32::int_mul(current_debt, growth_interest_rate);
+    let current_revenue = current_revenue + uq32_32::int_mul(increased_debt, interest_model::revenue_factor(market::interest_model(&market, type_name::get<USDC>())));
 
     let expected_redeem_amount = calc_redeem_amount(
       lender_a_market_coin_amount + lender_b_market_coin_amount,

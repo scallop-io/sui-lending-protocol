@@ -27,11 +27,11 @@ module protocol::obligation_test {
   use test_coin::eth::ETH;
   use test_coin::usdc::USDC;
   use test_coin::usdt::USDT;
-  use protocol::constants::usdt_interest_model_params;
+  // use protocol::constants::usdt_interest_model_params;
   use protocol::open_obligation;
-  use sui::transfer::public_transfer;
+  // use sui::transfer::public_transfer;
   use sui::test_utils;
-  use protocol::app::add_lock_key;
+  // use protocol::app::add_lock_key;
   use protocol::app;
   use protocol::obligation_access::{Self, ObligationAccessStore};
   use protocol::liquidate;
@@ -492,8 +492,8 @@ module protocol::obligation_test {
         test_scenario::ctx(scenario),
     );
 
-    test_utils::destroy(coin_debt);
-    test_utils::destroy(coin_collateral);
+    std::unit_test::destroy(coin_debt);
+    std::unit_test::destroy(coin_collateral);
 
     clock::destroy_for_testing(clock);
     version::destroy_for_testing(version);

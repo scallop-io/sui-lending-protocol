@@ -28,6 +28,7 @@ module protocol::repay_test {
   use test_coin::eth::ETH;
   use test_coin::usdc::USDC;
   use protocol::accrue_interest;
+  use std::uq32_32;
   
   #[test]
   fun repay_test() {
@@ -100,10 +101,10 @@ module protocol::repay_test {
       borrow_amount,
       usdc_amount - borrow_amount,
       0,
-      math::pow(10, 9),
+      std::u64::pow(10, 9),
       time_delta,
     );
-    let increased_debt = fixed_point32::multiply_u64(borrow_amount, growth_interest_rate);
+    let increased_debt = uq32_32::int_mul(borrow_amount, growth_interest_rate);
     let repay_amount = borrow_amount + increased_debt;
     let usdc_coin = coin::mint_for_testing<USDC>(repay_amount, test_scenario::ctx(scenario));
     repay::repay<USDC>(&version, &mut obligation, &mut market, usdc_coin, &clock, test_scenario::ctx(scenario));

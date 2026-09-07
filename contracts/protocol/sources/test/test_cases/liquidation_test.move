@@ -1,6 +1,7 @@
 #[test_only]
 module protocol::liquidation_test {
-  
+
+  use std::uq32_32::{Self, UQ32_32};
   use sui::test_scenario;
   use sui::coin::{Self, Coin};
   use sui::clock;
@@ -20,9 +21,7 @@ module protocol::liquidation_test {
   use protocol::oracle_t;
   use test_coin::eth::ETH;
   use test_coin::usdc::USDC;
-  use math::fixed_point32_empower;
-  use math::u64;
-  use std::fixed_point32;
+  use math::UQ32_32_empower;
   use protocol::constants::eth_interest_model_params;
 
   // ── Undercollateralised liquidation ──────────────────────────────────────
@@ -129,31 +128,31 @@ module protocol::liquidation_test {
     let liquidator_eth     = coin::value(&coin_collateral);
 
     // ── Reproduce the expected values using the same formulas ────────────
-    let debt_price       = fixed_point32::create_from_rational(1, 1);    // $1
-    let collateral_price = fixed_point32::create_from_rational(1000, 1); // $1000
-    let liq_discount        = fixed_point32::create_from_rational(5, 100);  // 5%
-    let liq_revenue_factor  = fixed_point32::create_from_rational(3, 100);  // 3%
+    let debt_price       = uq32_32::from_quotient(1, 1);    // $1
+    let collateral_price = uq32_32::from_quotient(1000, 1); // $1000
+    let liq_discount        = uq32_32::from_quotient(5, 100);  // 5%
+    let liq_revenue_factor  = uq32_32::from_quotient(3, 100);  // 3%
 
-    let exchange_rate = fixed_point32_empower::mul(
-      fixed_point32::create_from_rational(std::u64::pow(10, eth_decimals), std::u64::pow(10, usdc_decimals)),
-      fixed_point32_empower::div(debt_price, collateral_price),
+    let exchange_rate = UQ32_32_empower::mul(
+      uq32_32::from_quotient(std::u64::pow(10, eth_decimals), std::u64::pow(10, usdc_decimals)),
+      UQ32_32_empower::div(debt_price, collateral_price),
     );
-    let liquidator_rate = fixed_point32_empower::mul(
+    let liquidator_rate = UQ32_32_empower::mul(
       exchange_rate,
-      fixed_point32_empower::add(fixed_point32_empower::from_u64(1), liq_discount),
+      UQ32_32_empower::add(UQ32_32_empower::from_u64(1), liq_discount),
     );
-    let protocol_rate = fixed_point32_empower::mul(exchange_rate, liq_revenue_factor);
+    let protocol_rate = UQ32_32_empower::mul(exchange_rate, liq_revenue_factor);
 
     let max_repay = 12 * std::u64::pow(10, usdc_decimals); // 20% of 60 USDC
-    let liq_amount_uncapped      = fixed_point32::multiply_u64(max_repay, liquidator_rate);
-    let protocol_amount_uncapped = fixed_point32::multiply_u64(max_repay, protocol_rate);
+    let liq_amount_uncapped      = uq32_32::int_mul(max_repay, liquidator_rate);
+    let protocol_amount_uncapped = uq32_32::int_mul(max_repay, protocol_rate);
     let total_needed = liq_amount_uncapped + protocol_amount_uncapped;
 
     // Sanity: the collateral cap must fire for this test to be meaningful
     assert!(total_needed > eth_amount, 10);
 
-    let expected_repay    = u64::mul_div(max_repay, eth_amount, total_needed);
-    let expected_liq      = u64::mul_div(eth_amount, liq_amount_uncapped, total_needed);
+    let expected_repay    = std::u64::mul_div(max_repay, eth_amount, total_needed);
+    let expected_liq      = std::u64::mul_div(eth_amount, liq_amount_uncapped, total_needed);
     let expected_protocol = eth_amount - expected_liq;
 
     // actual_repay is scaled down (bug fix): must be less than the 20%-cap value
@@ -292,30 +291,30 @@ module protocol::liquidation_test {
     //                   = 170 USDC * 0.001 * 1.05 = 0.1785 ETH
     // protocol_amount   = actual_repay * exchange_rate * liq_revenue_factor
     //                   = 170 USDC * 0.001 * 0.03 = 0.0051 ETH
-    let debt_price = fixed_point32::create_from_rational(1, 1); // $1
-    let collateral_price = fixed_point32::create_from_rational(1000, 1); // $1000
-    let liq_discount = fixed_point32::create_from_rational(5, 100); // 5%
-    let liq_revenue_factor = fixed_point32::create_from_rational(3, 100); // 8% - 5% = 3%
+    let debt_price = uq32_32::from_quotient(1, 1); // $1
+    let collateral_price = uq32_32::from_quotient(1000, 1); // $1000
+    let liq_discount = uq32_32::from_quotient(5, 100); // 5%
+    let liq_revenue_factor = uq32_32::from_quotient(3, 100); // 8% - 5% = 3%
 
-    let exchange_rate = fixed_point32_empower::mul(
-      fixed_point32::create_from_rational(std::u64::pow(10, eth_decimals), std::u64::pow(10, usdc_decimals)),
-      fixed_point32_empower::div(debt_price, collateral_price),
+    let exchange_rate = UQ32_32_empower::mul(
+      uq32_32::from_quotient(std::u64::pow(10, eth_decimals), std::u64::pow(10, usdc_decimals)),
+      UQ32_32_empower::div(debt_price, collateral_price),
     );
-    let liquidator_rate = fixed_point32_empower::mul(
+    let liquidator_rate = UQ32_32_empower::mul(
       exchange_rate,
-      fixed_point32_empower::add(fixed_point32_empower::from_u64(1), liq_discount),
+      UQ32_32_empower::add(UQ32_32_empower::from_u64(1), liq_discount),
     );
-    let protocol_rate = fixed_point32_empower::mul(exchange_rate, liq_revenue_factor);
+    let protocol_rate = UQ32_32_empower::mul(exchange_rate, liq_revenue_factor);
 
-    let expected_liq_amount = fixed_point32::multiply_u64(repaid_debt_amount, liquidator_rate);
-    let expected_protocol_amount = fixed_point32::multiply_u64(repaid_debt_amount, protocol_rate);
+    let expected_liq_amount = uq32_32::int_mul(repaid_debt_amount, liquidator_rate);
+    let expected_protocol_amount = uq32_32::int_mul(repaid_debt_amount, protocol_rate);
 
     // verify the repaid debt amount is correct: 20% of 850 USDC = 170 USDC
     assert!(repaid_debt_amount == 170 * std::u64::pow(10, usdc_decimals), 0);
     // 5% discount for liquidator: $170 * 1.05 / $1000 = 0.1785 ETH = 178_500_000
-    assert!(liquidator_collateral <= u64::mul_div(std::u64::pow(10, eth_decimals), 178_5, 1000_0), 0);
+    assert!(liquidator_collateral <= std::u64::mul_div(std::u64::pow(10, eth_decimals), 178_5, 1000_0), 0);
     // 3% revenue for protocol: $170 * 0.03 / $1000 = 0.0051 ETH = 5_100_000
-    assert!(expected_protocol_amount <= u64::mul_div(std::u64::pow(10, eth_decimals), 5_1, 1000_0), 0);
+    assert!(expected_protocol_amount <= std::u64::mul_div(std::u64::pow(10, eth_decimals), 5_1, 1000_0), 0);
 
     // Verify liquidator received the correct collateral amount
     assert!(liquidator_collateral == expected_liq_amount, 1);
@@ -443,31 +442,31 @@ module protocol::liquidation_test {
     //                   = 170 USDC * 0.0005 * 1.05 = 0.08925 ETH
     // protocol_amount   = actual_repay * exchange_rate * liq_revenue_factor
     //                   = 170 USDC * 0.0005 * 0.03 = 0.00255 ETH
-    let debt_price = fixed_point32::create_from_rational(1, 2); // $0.5
-    let collateral_price = fixed_point32::create_from_rational(1000, 1); // $1000
-    let liq_discount = fixed_point32::create_from_rational(5, 100); // 5%
-    let liq_revenue_factor = fixed_point32::create_from_rational(3, 100); // 8% - 5% = 3%
+    let debt_price = uq32_32::from_quotient(1, 2); // $0.5
+    let collateral_price = uq32_32::from_quotient(1000, 1); // $1000
+    let liq_discount = uq32_32::from_quotient(5, 100); // 5%
+    let liq_revenue_factor = uq32_32::from_quotient(3, 100); // 8% - 5% = 3%
 
-    let exchange_rate = fixed_point32_empower::mul(
-      fixed_point32::create_from_rational(std::u64::pow(10, eth_decimals), std::u64::pow(10, usdc_decimals)),
-      fixed_point32_empower::div(debt_price, collateral_price),
+    let exchange_rate = UQ32_32_empower::mul(
+      uq32_32::from_quotient(std::u64::pow(10, eth_decimals), std::u64::pow(10, usdc_decimals)),
+      UQ32_32_empower::div(debt_price, collateral_price),
     );
-    let liquidator_rate = fixed_point32_empower::mul(
+    let liquidator_rate = UQ32_32_empower::mul(
       exchange_rate,
-      fixed_point32_empower::add(fixed_point32_empower::from_u64(1), liq_discount),
+      UQ32_32_empower::add(UQ32_32_empower::from_u64(1), liq_discount),
     );
-    let protocol_rate = fixed_point32_empower::mul(exchange_rate, liq_revenue_factor);
+    let protocol_rate = UQ32_32_empower::mul(exchange_rate, liq_revenue_factor);
 
-    let expected_liq_amount = fixed_point32::multiply_u64(repaid_debt_amount, liquidator_rate);
-    let expected_protocol_amount = fixed_point32::multiply_u64(repaid_debt_amount, protocol_rate);
+    let expected_liq_amount = uq32_32::int_mul(repaid_debt_amount, liquidator_rate);
+    let expected_protocol_amount = uq32_32::int_mul(repaid_debt_amount, protocol_rate);
 
     // 20% of 850 USDC = 170 USDC; borrow_weight no longer changes the repay cap
     assert!(repaid_debt_amount == 170 * std::u64::pow(10, usdc_decimals), 0);
 
     // 5% discount for liquidator: $85 * 1.05 / $1000 = 0.08925 ETH = 89_250_000
-    assert!(liquidator_collateral <= u64::mul_div(std::u64::pow(10, eth_decimals), 8_925, 100_000), 0);
+    assert!(liquidator_collateral <= std::u64::mul_div(std::u64::pow(10, eth_decimals), 8_925, 100_000), 0);
     // 3% revenue for protocol: $85 * 0.03 / $1000 = 0.00255 ETH = 2_550_000
-    assert!(expected_protocol_amount <= u64::mul_div(std::u64::pow(10, eth_decimals), 255, 100_000), 0);
+    assert!(expected_protocol_amount <= std::u64::mul_div(std::u64::pow(10, eth_decimals), 255, 100_000), 0);
 
     // Verify liquidator received the correct collateral amount
     assert!(liquidator_collateral == expected_liq_amount, 1);

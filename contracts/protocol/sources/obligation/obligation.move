@@ -417,7 +417,7 @@ module protocol::obligation {
     type_name: TypeName,
     amount: u64,
   ) {
-    obligation_debts::init_debt(&mut self.debts, type_name, sui::math::pow(10, 9));
+    obligation_debts::init_debt(&mut self.debts, type_name, std::u64::pow(10, 9));
     increase_debt(self, type_name, amount);
   }
 

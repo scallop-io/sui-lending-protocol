@@ -1,7 +1,7 @@
 module protocol::value_calculator {
   
   use sui::math;
-
+use math::UQ32_32_empower;
   use std::uq32_32::{Self, UQ32_32};
   // use math::uq32_32_empower;
   use std::debug;
@@ -17,7 +17,7 @@ module protocol::value_calculator {
   #[test_only]
   public fun usd_value_deprecated(price: UQ32_32, amount: u64, decimals: u8): UQ32_32 {
     let decimal_amount = uq32_32::from_quotient(amount, std::u64::pow(10, decimals));
-    uq32_32_empower::mul(price, decimal_amount)
+    UQ32_32_empower::mul(price, decimal_amount)
   }
 
   #[test]

@@ -179,7 +179,7 @@ module protocol::apm {
     #[test]
     fun apm_test() {
         let admin = @0xAA;
-        let coin_type = type_name::get<USDC>();
+        let coin_type = type_name:: with_defining_ids<USDC>();
 
         let scenario_value = test_scenario::begin(admin);
         let scenario = &mut scenario_value;
@@ -199,7 +199,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(!is_fluctuate, 0);
+        assert!(!is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 1800 * 1000);
@@ -211,7 +211,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(is_fluctuate, 0);
+        assert!(is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 1800 * 1000);
@@ -224,7 +224,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(is_fluctuate, 0);
+        assert!(is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 3600 * 1000);
@@ -236,7 +236,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(!is_fluctuate, 0);
+        assert!(!is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 3600 * 1000);
@@ -248,7 +248,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(!is_fluctuate, 0);
+        assert!(!is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 3600 * 1000);
@@ -260,16 +260,16 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(is_fluctuate, 0);
+        assert!(is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
-        test_utils::destroy(clock);
-        test_utils::destroy(x_oracle);
-        test_utils::destroy(x_oracle_policy_cap);
-        test_utils::destroy(market);
-        test_utils::destroy(version);
-        test_utils::destroy(ac_table_cap_interest_models);
-        test_utils::destroy(ac_table_cap_risk_models);
+        std::unit_test::destroy(clock);
+        std::unit_test::destroy(x_oracle);
+        std::unit_test::destroy(x_oracle_policy_cap);
+        std::unit_test::destroy(market);
+        std::unit_test::destroy(version);
+        std::unit_test::destroy(ac_table_cap_interest_models);
+        std::unit_test::destroy(ac_table_cap_risk_models);
         test_scenario::end(scenario_value);
     }
 }

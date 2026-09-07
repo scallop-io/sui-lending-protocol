@@ -399,7 +399,7 @@ module protocol::borrow_referral {
       referral_fee: balance::zero<USDC>(),
     };
 
-    dynamic_field::add(&mut borrow_referral.id, BorrowedKey {}, 0);
+    dynamic_field::add(&mut borrow_referral.id, BorrowedKey {}, 0u64);
 
     increase_borrowed_v2(
       &mut borrow_referral,
@@ -417,7 +417,7 @@ module protocol::borrow_referral {
 
     assert!(fee_rate_base() == BASE_FOR_FEE, 0);
 
-    test_utils::destroy(borrow_referral);
+    std::unit_test::destroy(borrow_referral);
 
     test_scenario::end(scenario_value);
   }

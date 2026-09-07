@@ -308,7 +308,7 @@ module protocol::limiter {
     let segment_count = cycle_duration / segment_duration;
 
     let admin = @0xAA;
-    let key = type_name::get<USDC>();
+    let key = type_name::with_defining_ids<USDC>();
 
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;
@@ -346,7 +346,7 @@ module protocol::limiter {
     let cycle_duration: u64 = 60 * 60 * 24;
 
     let admin = @0xAA;
-    let key = type_name::get<USDC>();
+    let key = type_name::with_defining_ids<USDC>();
 
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;
@@ -388,7 +388,7 @@ module protocol::limiter {
     let segment_duration: u64 = 60 * 30;
     let cycle_duration: u64 = 60 * 60 * 24;
     let admin = @0xAA;
-    let key = type_name::get<USDC>();
+    let key = type_name::with_defining_ids<USDC>();
 
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;

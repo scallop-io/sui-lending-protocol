@@ -1,6 +1,7 @@
 module protocol::interest_model {
   
-use std::type_name::TypeName;
+ use std::type_name;
+ use std::type_name::TypeName;
   use std::uq32_32::{Self, UQ32_32};
   use sui::tx_context::{Self, TxContext};
   use sui::event::emit;
@@ -244,8 +245,8 @@ use std::type_name::TypeName;
   #[test_only]
   struct USDC has drop {}
 
-  #[test_only]
-  use std::type_name;
+  // #[test_only]
+  // use std::type_name;
 
   #[test]
   fun interest_rates_test() {

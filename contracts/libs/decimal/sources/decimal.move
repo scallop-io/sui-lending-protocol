@@ -151,31 +151,37 @@ public fun from_uq32_32(fp: UQ32_32): Decimal {
         pow(from(2), 32)
     )
 }
+
+
+#[test_only]
+use std::unit_test::assert_eq;
+
+
 #[test]
 fun pow_test() {
     let x = pow(from(2), 16 + 16); // 2^32
-    assert!(eq(x, from(4_294_967_296)), 0);
+     assert_eq!(x, from(4_294_967_296));
 
     let x = pow(from(2), 30); // 2^30
-    assert!(eq(x, from(1_073_741_824)), 0);
+    assert_eq!(x, from(1_073_741_824));
 
     let x = pow(from(10), 9); // 10^9
-    assert!(eq(x, from(1_000_000_000)), 0);
+    assert_eq!(x, from(1_000_000_000));
 
     let x = pow(from(10), 8); // 10^8
-    assert!(eq(x, from(100_000_000)), 0);
+    assert_eq!(x, from(100_000_000));
 
     let x = pow(from(10), 7); // 10^7
-    assert!(eq(x, from(10_000_000)), 0);
+    assert_eq!(x, from(10_000_000));
 
     let x = pow(from(10), 6); // 10^6
-    assert!(eq(x, from(1_000_000)), 0);
+    assert_eq!(x, from(1_000_000));
 
     let x = pow(from(10), 5); // 10^5
-    assert!(eq(x, from(100_000)), 0);
+    assert_eq!(x, from(100_000));
 
     let x = pow(from(10), 0); // 10^0
-    assert!(eq(x, from(1)), 0);    
+    assert_eq!(x, from(1));    
 }
 
 #[test]
@@ -184,7 +190,7 @@ fun from_uq32_32_test() {
     let b = from_uq32_32(a);
 
    
-   assert!(eq(b, from(1)));
+   assert_eq!(b, from(1));
  
 
   
@@ -193,7 +199,7 @@ fun from_uq32_32_test() {
     let b = from_uq32_32(a);
 
   
-      assert!(eq(b, from_percent(50)));
+      assert_eq!(b, from_percent(50));
 
    
     let a = uq32_32::from_quotient(1, 4);

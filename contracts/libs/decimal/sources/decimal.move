@@ -1,6 +1,6 @@
 module decimal::decimal;
 
-use std::fixed_point32::{Self, FixedPoint32};
+
 use std::uq32_32::{Self, UQ32_32};
 const WAD: u256 = 1000000000000000000; // 10^18
 
@@ -137,7 +137,7 @@ public fun max(a: Decimal, b: Decimal): Decimal {
     }
 }
 
-// public fun from_fixed_point32(fp: UQ32_32): Decimal {
+// public fun from_uq32_32(fp: UQ32_32): Decimal {
 //     div(
 //         from(fp.from_raw()), 
 //         pow(from(2), 32)
@@ -145,7 +145,7 @@ public fun max(a: Decimal, b: Decimal): Decimal {
 // }
 
 
-public fun from_fixed_point32(fp: UQ32_32): Decimal {
+public fun from_uq32_32(fp: UQ32_32): Decimal {
     div(
         from(uq32_32::to_raw(fp)),
         pow(from(2), 32)
@@ -179,9 +179,9 @@ fun pow_test() {
 }
 
 #[test]
-fun from_fixed_point32_test() {
+fun from_uq32_32_test() {
        let a = uq32_32::from_quotient(1, 1);
-    let b = from_fixed_point32(a);
+    let b = from_uq32_32(a);
 
    
    assert!(eq(b, from(1)));
@@ -190,14 +190,14 @@ fun from_fixed_point32_test() {
   
 
        let a = uq32_32::from_quotient(1, 2);
-    let b = from_fixed_point32(a);
+    let b = from_uq32_32(a);
 
   
       assert!(eq(b, from_percent(50)));
 
    
     let a = uq32_32::from_quotient(1, 4);
-    let b = from_fixed_point32(a);
+    let b = from_uq32_32(a);
 
     assert!(eq(b, from_percent(25)));
 }

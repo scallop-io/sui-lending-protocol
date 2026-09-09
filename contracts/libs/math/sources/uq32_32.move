@@ -1,8 +1,7 @@
 /***
-This is the helper module for std::fixed_point32
+This is the helper module for std::uq32_32
 */
-module math::fixed_point32_empower {
-  use std::fixed_point32::{Self, FixedPoint32};
+module math::UQ32_32_empower {
   use std::uq32_32::{Self, UQ32_32};
   
   // Add 2 FixedPoint32 numers

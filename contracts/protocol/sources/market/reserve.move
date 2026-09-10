@@ -1,16 +1,15 @@
 module protocol::reserve {
   
-  use std::type_name::{TypeName, get};
-  use std::fixed_point32::{Self, FixedPoint32};
+use std::type_name::{Self, TypeName};
+ use std::uq32_32::{Self, UQ32_32};
   use sui::tx_context::TxContext;
   use sui::balance::{Self, Balance};
   use sui::object::{Self, UID};
   use sui::coin::{Self, Coin};
-  use sui::math;
+  use std::u64;
   use x::supply_bag::{Self, SupplyBag};
   use x::balance_bag::{Self, BalanceBag};
   use x::wit_table::{Self, WitTable};
-  use math::u64;
   use sui::dynamic_field;
   use sui::table::{Self, Table};
   use decimal::decimal::{Self, Decimal};
@@ -80,8 +79,8 @@ module protocol::reserve {
     supply_bag::init_supply(MarketCoin<T> {}, &mut self.market_coin_supplies);
     balance_bag::init_balance<T>(&mut self.underlying_balances);
     let balance_sheet = BalanceSheet { cash: 0, debt: 0, revenue: 0, market_coin_supply: 0 };
-    wit_table::add(BalanceSheets{}, &mut self.balance_sheets, get<T>(), balance_sheet);
-    wit_table::add(FlashLoanFees{}, &mut self.flash_loan_fees, get<T>(), 0);
+    wit_table::add(BalanceSheets{}, &mut self.balance_sheets,  type_name::with_defining_ids<T>(), balance_sheet);
+    wit_table::add(FlashLoanFees{}, &mut self.flash_loan_fees, type_name::with_defining_ids<T>(), 0);
   }
 
   /// Intialize a table to store market coin prices instead of purely relying on the balance sheet.
@@ -128,15 +127,15 @@ module protocol::reserve {
     new_price
   }
 
-  public fun util_rate(self: &Reserve, type_name: TypeName): FixedPoint32 {
+  public fun util_rate(self: &Reserve, type_name: TypeName): UQ32_32 {
     let balance_sheet = wit_table::borrow(&self.balance_sheets, type_name);
     if (balance_sheet.debt > 0)  {
-      fixed_point32::create_from_rational(
+      uq32_32::from_quotient(
         balance_sheet.debt,
         balance_sheet.debt + balance_sheet.cash - balance_sheet.revenue,
       )
     } else {
-      fixed_point32::create_from_rational(0, 1)
+      uq32_32::from_quotient(0, 1)
     }
   }
 
@@ -144,12 +143,12 @@ module protocol::reserve {
   public(friend) fun increase_debt(
     self: &mut Reserve,
     debt_type: TypeName,
-    debt_increase_rate: FixedPoint32, // How much debt should be increased in percent, such as 0.05%
-    revenue_factor: FixedPoint32,
+    debt_increase_rate: UQ32_32, // How much debt should be increased in percent, such as 0.05%
+    revenue_factor: UQ32_32,
   ) {
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, debt_type);
-    let debt_increased = fixed_point32::multiply_u64(balance_sheet.debt, debt_increase_rate);
-    let revenue_increased = fixed_point32::multiply_u64(debt_increased, revenue_factor);
+    let debt_increased = uq32_32::int_mul(balance_sheet.debt, debt_increase_rate);
+    let revenue_increased = uq32_32::int_mul(debt_increased, revenue_factor);
     balance_sheet.debt = balance_sheet.debt + debt_increased;
     balance_sheet.revenue = balance_sheet.revenue + revenue_increased;
   }
@@ -159,7 +158,7 @@ module protocol::reserve {
     balance: Balance<T>
   ) {
     let repay_amount = balance::value(&balance);
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, type_name::with_defining_ids<T>());
     if (balance_sheet.debt >= repay_amount) {
       balance_sheet.debt = balance_sheet.debt - repay_amount;
     } else {
@@ -174,7 +173,7 @@ module protocol::reserve {
     self: &mut Reserve,
     amount: u64
   ): Balance<T> {
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, type_name::with_defining_ids<T>());
     assert!(balance_sheet.cash >= amount, error::reserve_not_enough_error());
     balance_sheet.cash = balance_sheet.cash - amount;
     balance_sheet.debt = balance_sheet.debt + amount;
@@ -191,7 +190,7 @@ module protocol::reserve {
     revenue_balance: Balance<T>,
   ) {
     // update balance sheet
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, type_name::with_defining_ids<T>());
     balance_sheet.cash = balance_sheet.cash + balance::value(&balance) + balance::value(&revenue_balance);
     balance_sheet.revenue = balance_sheet.revenue + balance::value(&revenue_balance);
     balance_sheet.debt = balance_sheet.debt - balance::value(&balance);
@@ -206,7 +205,7 @@ module protocol::reserve {
     self: &mut Reserve,
     revenue_balance: Balance<T>,
   ) {
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, type_name::with_defining_ids<T>());
     balance_sheet.cash = balance_sheet.cash + balance::value(&revenue_balance);
     balance_sheet.revenue = balance_sheet.revenue + balance::value(&revenue_balance);
     balance_bag::join(&mut self.underlying_balances, revenue_balance);
@@ -218,7 +217,7 @@ module protocol::reserve {
   ): Balance<MarketCoin<T>> {
     // Calculate how much market coin should be minted
     let underlying_amount = balance::value(&underlying_balance);
-    let price = update_and_get_market_coin_price(self, get<T>());
+    let price = update_and_get_market_coin_price(self,  type_name::with_defining_ids<T>());
     let mint_amount_decimal = decimal::div(
       decimal::from(underlying_amount),
       price
@@ -227,7 +226,7 @@ module protocol::reserve {
     assert!(mint_amount > 0, error::mint_market_coin_too_small_error());
 
     // Update balance sheet
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets,  type_name::with_defining_ids<T>());
     balance_sheet.cash = balance_sheet.cash + underlying_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply + mint_amount;
 
@@ -242,7 +241,7 @@ module protocol::reserve {
   ): Balance<T> {
     // Calculate how much underlying coin should be redeemed
     let market_coin_amount = balance::value(&market_coin_balance);
-    let price = update_and_get_market_coin_price(self, get<T>());
+    let price = update_and_get_market_coin_price(self,  type_name::with_defining_ids<T>());
     let redeem_amount_decimal = decimal::mul(
       decimal::from(market_coin_amount),
       price
@@ -252,7 +251,7 @@ module protocol::reserve {
     assert!(redeem_amount > 0, error::redeem_market_coin_too_small_error());
 
     // Update balance sheet
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets,  type_name::with_defining_ids<T>());
     assert!(balance_sheet.cash >= redeem_amount, error::reserve_not_enough_error());
     balance_sheet.cash = balance_sheet.cash - redeem_amount;
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply - market_coin_amount;
@@ -269,7 +268,7 @@ module protocol::reserve {
     self: &mut Reserve,
     fee: u64, // 0 - 10000
   ) {
-    let current_fee = wit_table::borrow_mut(FlashLoanFees{}, &mut self.flash_loan_fees, get<T>());
+    let current_fee = wit_table::borrow_mut(FlashLoanFees{}, &mut self.flash_loan_fees,  type_name::with_defining_ids<T>());
     *current_fee = fee;
   }
   
@@ -292,7 +291,7 @@ module protocol::reserve {
     assert!(fee_discount_numerator <= fee_discount_denominator, error::invalid_flash_loan_fee_discount_error());
 
     let balance = balance_bag::split<T>(&mut self.underlying_balances, amount);
-    let fee_rate = *wit_table::borrow(&self.flash_loan_fees, get<T>());
+    let fee_rate = *wit_table::borrow(&self.flash_loan_fees,  type_name::with_defining_ids<T>());
     let base_fee = if (fee_rate > 0) {
       // charge at least 1 unit of coin when fee_rate is not 0
       u64::mul_div(amount, fee_rate, FlashloanFeeScale) + 1
@@ -320,7 +319,7 @@ module protocol::reserve {
 
     // update balance sheet
     let collected_fee = repaid_amount - loan_amount;
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets,  type_name::with_defining_ids<T>());
     balance_sheet.cash = balance_sheet.cash + collected_fee;
     balance_sheet.revenue = balance_sheet.revenue + collected_fee;
 
@@ -334,9 +333,9 @@ module protocol::reserve {
     amount: u64,
     ctx: &mut TxContext,
   ): Coin<T> {
-    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
+    let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets,  type_name::with_defining_ids<T>());
     let all_revenue = balance_sheet.revenue;
-    let take_amount = math::min(amount, all_revenue);
+    let take_amount = std::u64::min(amount, all_revenue);
 
     // update balance sheet
     balance_sheet.revenue = balance_sheet.revenue - take_amount;

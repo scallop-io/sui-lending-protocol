@@ -1,7 +1,7 @@
 module decimal::decimal;
 
-use std::fixed_point32::{Self, FixedPoint32};
 
+use std::uq32_32::{Self, UQ32_32};
 const WAD: u256 = 1000000000000000000; // 10^18
 
 public struct Decimal has copy, drop, store {
@@ -137,54 +137,73 @@ public fun max(a: Decimal, b: Decimal): Decimal {
     }
 }
 
-public fun from_fixed_point32(fp: FixedPoint32): Decimal {
+// public fun from_uq32_32(fp: UQ32_32): Decimal {
+//     div(
+//         from(fp.from_raw()), 
+//         pow(from(2), 32)
+//     )
+// }
+
+
+public fun from_uq32_32(fp: UQ32_32): Decimal {
     div(
-        from(fp.get_raw_value()), 
+        from(uq32_32::to_raw(fp)),
         pow(from(2), 32)
     )
 }
 
+
+#[test_only]
+use std::unit_test::assert_eq;
+
+
 #[test]
 fun pow_test() {
     let x = pow(from(2), 16 + 16); // 2^32
-    assert!(eq(x, from(4_294_967_296)), 0);
+     assert_eq!(x, from(4_294_967_296));
 
     let x = pow(from(2), 30); // 2^30
-    assert!(eq(x, from(1_073_741_824)), 0);
+    assert_eq!(x, from(1_073_741_824));
 
     let x = pow(from(10), 9); // 10^9
-    assert!(eq(x, from(1_000_000_000)), 0);
+    assert_eq!(x, from(1_000_000_000));
 
     let x = pow(from(10), 8); // 10^8
-    assert!(eq(x, from(100_000_000)), 0);
+    assert_eq!(x, from(100_000_000));
 
     let x = pow(from(10), 7); // 10^7
-    assert!(eq(x, from(10_000_000)), 0);
+    assert_eq!(x, from(10_000_000));
 
     let x = pow(from(10), 6); // 10^6
-    assert!(eq(x, from(1_000_000)), 0);
+    assert_eq!(x, from(1_000_000));
 
     let x = pow(from(10), 5); // 10^5
-    assert!(eq(x, from(100_000)), 0);
+    assert_eq!(x, from(100_000));
 
     let x = pow(from(10), 0); // 10^0
-    assert!(eq(x, from(1)), 0);    
+    assert_eq!(x, from(1));    
 }
 
 #[test]
-fun from_fixed_point32_test() {
-    let a = fixed_point32::create_from_rational(1, 1);
-    let b = from_fixed_point32(a);
+fun from_uq32_32_test() {
+       let a = uq32_32::from_quotient(1, 1);
+    let b = from_uq32_32(a);
 
-    assert!(eq(b, from(1)));
+   
+   assert_eq!(b, from(1));
+ 
 
-    let a = fixed_point32::create_from_rational(1, 2);
-    let b = from_fixed_point32(a);
+  
 
-    assert!(eq(b, from_percent(50)));
+       let a = uq32_32::from_quotient(1, 2);
+    let b = from_uq32_32(a);
 
-    let a = fixed_point32::create_from_rational(1, 4);
-    let b = from_fixed_point32(a);
+  
+      assert_eq!(b, from_percent(50));
+
+   
+    let a = uq32_32::from_quotient(1, 4);
+    let b = from_uq32_32(a);
 
     assert!(eq(b, from_percent(25)));
 }

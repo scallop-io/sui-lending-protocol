@@ -2,7 +2,7 @@
 /// @author Scallop Labs
 module protocol::borrow {
 
-  use std::fixed_point32::{Self, FixedPoint32};
+use std::uq32_32::{Self, UQ32_32};
   use std::type_name::{Self, TypeName};
   use std::vector;
   use sui::coin::{Self, Coin};
@@ -251,7 +251,7 @@ module protocol::borrow {
       error::obligation_locked()
     );
 
-    let coin_type = type_name::get<T>();
+    let coin_type = type_name::with_defining_ids<T>();
 
     // check if base asset is active
     assert!(
@@ -306,7 +306,7 @@ module protocol::borrow {
     // make sure that their obligation still healthy, so users aren't borrowing over their collateral
     let collaterals_value = protocol::collateral_value::collaterals_value_usd_for_borrow(obligation, market, coin_decimals_registry, x_oracle, clock);
     let debts_value = protocol::debt_value::debts_value_usd_with_weight(obligation, coin_decimals_registry, market, x_oracle, clock);
-    assert!(math::fixed_point32_empower::gt(collaterals_value, debts_value), error::borrow_too_much_error());
+    assert!(math::UQ32_32_empower::gt(collaterals_value, debts_value), error::borrow_too_much_error());
 
     // assert borrow limit, make sure it's still within the limit after the borrow done
     let borrow_limit_key = market_dynamic_keys::borrow_limit_key(coin_type);
@@ -315,9 +315,9 @@ module protocol::borrow {
     assert!(current_total_global_debt <= borrow_limit, error::borrow_limit_reached_error());
 
     // Calculate the base borrow fee
-    let base_borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::get<T>());
-    let base_borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey, FixedPoint32>(market::uid(market), base_borrow_fee_key);
-    let base_borrow_fee_amount = fixed_point32::multiply_u64(borrow_amount, *base_borrow_fee_rate);
+    let base_borrow_fee_key = market_dynamic_keys::borrow_fee_key(type_name::with_defining_ids<T>());
+    let base_borrow_fee_rate = dynamic_field::borrow<BorrowFeeKey,  UQ32_32>(market::uid(market), base_borrow_fee_key);
+    let base_borrow_fee_amount =  uq32_32::int_mul(borrow_amount, *base_borrow_fee_rate);
 
     let referral_fee_amount = if (borrow_fee_referral_share > 0) {
       u64::mul_div(base_borrow_fee_amount, borrow_fee_referral_share, borrow_referral::fee_rate_base())

@@ -6,7 +6,6 @@ module protocol::borrow_test {
   use sui::coin;
   use sui::balance;
   use sui::clock;
-  use std::fixed_point32;
   use x_oracle::x_oracle;
   use x::wit_table;
   use coin_decimals_registry::coin_decimals_registry;
@@ -32,7 +31,7 @@ module protocol::borrow_test {
   use test_coin::usdt::USDT;
   use protocol::constants::usdt_interest_model_params;
   use protocol::borrow_referral::{Self, AuthorizedWitnessList};
-  
+  use std::uq32_32::{Self, UQ32_32};
   #[test]
   fun borrow_test() {
     // Scenario:
@@ -112,7 +111,7 @@ module protocol::borrow_test {
       &clock,
     );
 
-    let expected_debt_value = fixed_point32::create_from_rational(699, 1);
+    let expected_debt_value = uq32_32::from_quotient(699, 1);
     assert!(debt_value_in_usd == expected_debt_value, 0);
 
     clock::destroy_for_testing(clock);
@@ -234,11 +233,11 @@ module protocol::borrow_test {
 
     let reserve = market::vault(&market);
     let balance_sheets = reserve::balance_sheets(reserve);
-    let balance_sheet = wit_table::borrow(balance_sheets, type_name::get<USDC>());
+    let balance_sheet = wit_table::borrow(balance_sheets, type_name::with_defining_ids<USDC>());
     let (_, reserve_debt_amount, _, _) = reserve::balance_sheet(balance_sheet);
-    let market_borrow_index = market::borrow_index(&market, type_name::get<USDC>());
+    let market_borrow_index = market::borrow_index(&market, type_name::with_defining_ids<USDC>());
     
-    let (obligation_debt_amount, obligation_debt_borrow_index) = obligation::debt(&obligation, type_name::get<USDC>());
+    let (obligation_debt_amount, obligation_debt_borrow_index) = obligation::debt(&obligation, type_name::with_defining_ids<USDC>());
     // make sure both liquidation and reserve already updated to the latest borrow_index
     // so the debt data is the latest one
     assert!(obligation_debt_borrow_index == market_borrow_index, 0);
@@ -541,8 +540,8 @@ module protocol::borrow_test {
       test_scenario::ctx(scenario)
     );
 
-    let base_borrow_fee_rate = fixed_point32::create_from_rational(1, 100);
-    let original_borrow_fee = fixed_point32::multiply_u64(borrow_amount, base_borrow_fee_rate);
+    let base_borrow_fee_rate = uq32_32::from_quotient(1, 100);
+    let original_borrow_fee = uq32_32::int_mul(borrow_amount, base_borrow_fee_rate);
 
     let referral_fee_amount = borrow_referral::calc_referral_fee(
       &borrow_referral_obj,

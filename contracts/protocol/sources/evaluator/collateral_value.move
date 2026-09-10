@@ -1,8 +1,8 @@
 module protocol::collateral_value {
   use std::vector;
-  use std::fixed_point32::FixedPoint32;
+use std::uq32_32::UQ32_32;
   use sui::clock::Clock;
-  use math::fixed_point32_empower;
+  use math::UQ32_32_empower;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
   use protocol::risk_model;
@@ -19,9 +19,9 @@ module protocol::collateral_value {
     coin_decimals_registry: &CoinDecimalsRegistry,
     x_oracle: &XOracle,
     clock: &Clock,
-  ): FixedPoint32 {
+  ): UQ32_32 {
     let collateral_types = obligation::collateral_types(obligation);
-    let total_value_usd = fixed_point32_empower::zero();
+    let total_value_usd = UQ32_32_empower::zero();
     let (i, n) = (0, vector::length(&collateral_types));
     while( i < n ) {
       let collateral_type = *vector::borrow(&collateral_types, i);
@@ -30,11 +30,11 @@ module protocol::collateral_value {
       let risk_model = market::risk_model(market, collateral_type);
       let collateral_factor = risk_model::collateral_factor(risk_model);
       let coin_price = get_price(x_oracle, collateral_type, clock);
-      let collateral_value_usd = fixed_point32_empower::mul(
+      let collateral_value_usd = UQ32_32_empower::mul(
         usd_value(coin_price, collateral_amount, decimals),
         collateral_factor,
       );
-      total_value_usd = fixed_point32_empower::add(total_value_usd, collateral_value_usd);
+      total_value_usd = UQ32_32_empower::add(total_value_usd, collateral_value_usd);
       i = i + 1;
     };
     total_value_usd
@@ -48,9 +48,9 @@ module protocol::collateral_value {
     coin_decimals_regsitry: &CoinDecimalsRegistry,
     x_oracle: &XOracle,
     clock: &Clock,
-  ): FixedPoint32 {
+  ): UQ32_32 {
     let collateral_types = obligation::collateral_types(obligation);
-    let total_value_usd = fixed_point32_empower::zero();
+    let total_value_usd = UQ32_32_empower::zero();
     let (i, n) = (0, vector::length(&collateral_types));
     while( i < n ) {
       let collateral_type = *vector::borrow(&collateral_types, i);
@@ -59,11 +59,11 @@ module protocol::collateral_value {
       let risk_model = market::risk_model(market, collateral_type);
       let liq_factor = risk_model::liq_factor(risk_model);
       let coin_price = get_price(x_oracle, collateral_type, clock);
-      let collateral_value_usd = fixed_point32_empower::mul(
+      let collateral_value_usd = UQ32_32_empower::mul(
         usd_value(coin_price, collateral_amount, decimals),
         liq_factor,
       );
-      total_value_usd = fixed_point32_empower::add(total_value_usd, collateral_value_usd);
+      total_value_usd = UQ32_32_empower::add(total_value_usd, collateral_value_usd);
       i = i + 1;
     };
     total_value_usd

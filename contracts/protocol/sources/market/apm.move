@@ -47,7 +47,7 @@ module protocol::apm {
     public(friend) fun set_apm_threshold(market: &mut Market, type_name: TypeName, apm_threshold_percentage: u64) {
         init_if_not_exists(market, type_name);
 
-        if (df::exists_(market::uid(market), apm_threshold_key(type_name))) {
+        if (df::exists(market::uid(market), apm_threshold_key(type_name))) {
             let apm_threshold = df::borrow_mut<ApmThresholdKey, Decimal>(
                 market::uid_mut(market),
                 apm_threshold_key(type_name),
@@ -89,7 +89,7 @@ module protocol::apm {
             i = i + 1;
         };
 
-        let current_price = decimal::from_fixed_point32(get_price(x_oracle, type_name, clock));
+        let current_price = decimal::from_uq32_32(get_price(x_oracle, type_name, clock));
 
         // check if price goes down, then skip
         if (decimal::le(current_price, min_price_in_24h)) {
@@ -127,11 +127,11 @@ module protocol::apm {
         let min_price_history = vector::borrow_mut(vect, curr_index);
         if (min_price_history.last_update == 0 || (now - min_price_history.last_update) > 3600) {
             // reset if it's the first time or more than an hour has passed
-            min_price_history.price = decimal::from_fixed_point32(current_price);
+            min_price_history.price = decimal::from_uq32_32(current_price);
         } else {
             min_price_history.price = decimal::min(
                 min_price_history.price,
-                decimal::from_fixed_point32(current_price)
+                decimal::from_uq32_32(current_price)
             );
         };
 
@@ -142,7 +142,7 @@ module protocol::apm {
         market: &mut Market,
         type_name: TypeName,
     ) {
-        if (df::exists_(market::uid(market), min_price_history_key(type_name))) {
+        if (df::exists(market::uid(market), min_price_history_key(type_name))) {
             return;
         };
 
@@ -154,12 +154,12 @@ module protocol::apm {
     }
 
     fun create_min_price_history_vector(): vector<MinPriceHistory> {
-        let vec = vector::empty<MinPriceHistory>();
+        let vec = vector[];
         let history = MinPriceHistory {
             price: decimal::from(0),
             last_update: 0,
         };
-        let i = 0;
+        let i = 0u64;
         while (i < 24) {
             vector::push_back(&mut vec, history);
             i = i + 1;
@@ -179,7 +179,7 @@ module protocol::apm {
     #[test]
     fun apm_test() {
         let admin = @0xAA;
-        let coin_type = type_name::get<USDC>();
+        let coin_type = type_name:: with_defining_ids<USDC>();
 
         let scenario_value = test_scenario::begin(admin);
         let scenario = &mut scenario_value;
@@ -199,7 +199,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(!is_fluctuate, 0);
+        assert!(!is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 1800 * 1000);
@@ -211,7 +211,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(is_fluctuate, 0);
+        assert!(is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 1800 * 1000);
@@ -224,7 +224,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(is_fluctuate, 0);
+        assert!(is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 3600 * 1000);
@@ -236,7 +236,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(!is_fluctuate, 0);
+        assert!(!is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 3600 * 1000);
@@ -248,7 +248,7 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(!is_fluctuate, 0);
+        assert!(!is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
         clock::increment_for_testing(&mut clock, 3600 * 1000);
@@ -260,16 +260,16 @@ module protocol::apm {
             coin_type,
             &clock,
         );
-        assert(is_fluctuate, 0);
+        assert!(is_fluctuate, 0);
         record_min_price_history(&mut market, &x_oracle, coin_type, &clock);
 
-        test_utils::destroy(clock);
-        test_utils::destroy(x_oracle);
-        test_utils::destroy(x_oracle_policy_cap);
-        test_utils::destroy(market);
-        test_utils::destroy(version);
-        test_utils::destroy(ac_table_cap_interest_models);
-        test_utils::destroy(ac_table_cap_risk_models);
+        std::unit_test::destroy(clock);
+        std::unit_test::destroy(x_oracle);
+        std::unit_test::destroy(x_oracle_policy_cap);
+        std::unit_test::destroy(market);
+        std::unit_test::destroy(version);
+        std::unit_test::destroy(ac_table_cap_interest_models);
+        std::unit_test::destroy(ac_table_cap_risk_models);
         test_scenario::end(scenario_value);
     }
 }

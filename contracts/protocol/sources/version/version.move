@@ -44,7 +44,7 @@ module protocol::version {
   use sui::test_scenario;
 
   #[test]
-  fun version_test() {
+  fun version_testt() {
     let admin = @0x1;
     let scenario_value = test_scenario::begin(admin);
     let scenario = &mut scenario_value;

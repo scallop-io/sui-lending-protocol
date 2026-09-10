@@ -1,8 +1,8 @@
 module protocol::market {
   
   use std::vector;
-  use std::fixed_point32;
-  use std::type_name::{TypeName, get, Self};
+  use std::uq32_32;
+ use std::type_name::{Self, TypeName};
   use sui::tx_context::TxContext;
   use sui::balance::Balance;
   use sui::object::{Self, UID};
@@ -24,11 +24,11 @@ module protocol::market {
   use protocol::asset_active_state::{Self, AssetActiveStates};
   use protocol::error;
   use x_oracle::x_oracle::XOracle;
-  use math::fixed_point32_empower;
+  use math::UQ32_32_empower;
   use decimal::decimal::{Self, Decimal};
   use whitelist::whitelist;
   use sui::tx_context;
-  use protocol::price::get_price;
+  // use protocol::price::get_price;  //unused
 
   friend protocol::app;
   friend protocol::borrow;
@@ -104,7 +104,7 @@ module protocol::market {
 
   public fun is_isolated_asset(self: &Market, pool_type: TypeName): bool {
     let isolated_asset_key = market_dynamic_keys::isolated_asset_key(pool_type);
-    if (!df::exists_<IsolatedAssetKey>(&self.id, isolated_asset_key)) {
+    if (!df::exists<IsolatedAssetKey>(&self.id, isolated_asset_key)) {
       return false
     };
 
@@ -136,7 +136,7 @@ module protocol::market {
     outflow_value: u64,
     now: u64,
   ) {
-    let key = type_name::get<T>();
+    let key = type_name::with_defining_ids<T>();
     limiter::add_outflow(
         &mut self.limiters,
         key,
@@ -150,7 +150,7 @@ module protocol::market {
     inflow_value: u64,
     now: u64,
   ) {
-    let key = type_name::get<T>();
+    let key = type_name::with_defining_ids<T>();
     limiter::reduce_outflow(
         &mut self.limiters,
         key,
@@ -169,8 +169,9 @@ module protocol::market {
 
 
   // register base coin asset
+  #[allow(unused_type_parameter)]
   public(friend) fun register_coin<T>(self: &mut Market, now: u64) {
-    let type = get<T>();
+    let type =  type_name::with_defining_ids<T>();
     reserve::register_coin<T>(&mut self.vault);
     let interest_model = ac_table::borrow(&self.interest_models, type);
     let base_borrow_rate = interest_model::base_borrow_rate(interest_model);
@@ -180,8 +181,9 @@ module protocol::market {
   }
 
   // register collateral asset
+  #[allow(unused_type_parameter)]
   public(friend) fun register_collateral<T>(self: &mut Market) {
-    let type = get<T>();
+    let type =  type_name::with_defining_ids<T>();
     collateral_stats::init_collateral_if_none(&mut self.collateral_stats, type);
     asset_active_state::set_collateral_active_state(&mut self.asset_active_states, type, true);
   }
@@ -227,7 +229,7 @@ module protocol::market {
     balance: Balance<T>,
     current_timestamp: u64,
   ) {
-    let coin_type = type_name::get<T>();
+    let coin_type = type_name:: with_defining_ids<T>();
     assert!(borrow_dynamics::last_updated_by_type(&self.borrow_dynamics, coin_type) == current_timestamp, error::interest_is_not_accrued_error());
     reserve::handle_repay(&mut self.vault, balance);
     update_interest_rates(self);
@@ -237,7 +239,7 @@ module protocol::market {
     self: &mut Market,
     collateral_amount: u64
   ) {
-    let type = get<T>();
+    let type =  type_name::with_defining_ids<T>();
     let risk_model = ac_table::borrow(&self.risk_models, type);
     collateral_stats::increase(&mut self.collateral_stats, type, collateral_amount);
     let total_collateral_amount = collateral_stats::collateral_amount(&self.collateral_stats, type);
@@ -251,7 +253,7 @@ module protocol::market {
     now: u64
   ) {
     accrue_all_interests(self, now);
-    collateral_stats::decrease(&mut self.collateral_stats, get<T>(), amount);
+    collateral_stats::decrease(&mut self.collateral_stats,  type_name::with_defining_ids<T>(), amount);
     update_interest_rates(self);
   }
   
@@ -263,7 +265,7 @@ module protocol::market {
   ) {
     // We don't accrue interest here, because it has already been accrued in previous step for liquidation
     reserve::handle_liquidation(&mut self.vault, balance, revenue_balance);
-    collateral_stats::decrease(&mut self.collateral_stats, get<CollateralType>(), liquidate_amount);
+    collateral_stats::decrease(&mut self.collateral_stats,  type_name::with_defining_ids<CollateralType>(), liquidate_amount);
     update_interest_rates(self);
   }
 
@@ -277,7 +279,7 @@ module protocol::market {
     reserve::handle_repay(&mut self.vault, repay_balance);
     // Handle protocol revenue in collateral type
     reserve::handle_revenue(&mut self.vault, collateral_revenue);
-    collateral_stats::decrease(&mut self.collateral_stats, get<CollateralType>(), liquidate_amount);
+    collateral_stats::decrease(&mut self.collateral_stats,  type_name::with_defining_ids<CollateralType>(), liquidate_amount);
     update_interest_rates(self);
   }
 
@@ -379,7 +381,7 @@ module protocol::market {
       let old_borrow_index = borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type);
       borrow_dynamics::update_borrow_index(&mut self.borrow_dynamics, type, now);
       let new_borrow_index = borrow_dynamics::borrow_index_by_type(&self.borrow_dynamics, type);
-      let debt_increase_rate = fixed_point32_empower::sub(fixed_point32::create_from_rational(new_borrow_index, old_borrow_index), fixed_point32_empower::from_u64(1));
+      let debt_increase_rate = uq32_32::sub(uq32_32::from_quotient(new_borrow_index, old_borrow_index), UQ32_32_empower::from_u64(1));
       // get revenue factor
       let interest_model = ac_table::borrow(&self.interest_models, type);
       let revenue_factor = interest_model::revenue_factor(interest_model);
@@ -411,7 +413,7 @@ module protocol::market {
   ): Decimal {
     let debt_dynamic = wit_table::borrow(&self.borrow_dynamics, type_name);
 
-    let interest_rate_scaled = decimal::from_fixed_point32(borrow_dynamics::interest_rate(debt_dynamic));
+    let interest_rate_scaled = decimal::from_uq32_32(borrow_dynamics::interest_rate(debt_dynamic));
     let interest_rate = decimal::div(interest_rate_scaled, decimal::from(borrow_dynamics::interest_rate_scale(debt_dynamic)));
 
     decimal::mul(interest_rate, decimal::from(SECONDS_IN_A_YEAR))
@@ -422,9 +424,9 @@ module protocol::market {
     type_name: TypeName,
   ): Decimal {
     let borrow_apr = get_current_borrow_apr(self, type_name);
-    let util_rate = decimal::from_fixed_point32(reserve::util_rate(&self.vault, type_name));
+    let util_rate = decimal::from_uq32_32(reserve::util_rate(&self.vault, type_name));
     let interest_model = ac_table::borrow(&self.interest_models, type_name);
-    let revenue_factor = decimal::from_fixed_point32(interest_model::revenue_factor(interest_model));
+    let revenue_factor = decimal::from_uq32_32(interest_model::revenue_factor(interest_model));
 
     // supply APR = borrow APR * utilization rate * (1 - revenue factor)
     decimal::mul(

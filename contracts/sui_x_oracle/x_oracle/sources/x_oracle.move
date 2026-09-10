@@ -1,6 +1,6 @@
 module x_oracle::x_oracle {
   use std::vector;
-  use std::type_name::{TypeName, get};
+  use std::type_name::{Self, TypeName};
   use sui::object::{Self, UID};
   use sui::table::{Self, Table};
   use sui::tx_context::{Self, TxContext};
@@ -96,21 +96,21 @@ module x_oracle::x_oracle {
       &cap.primary_price_update_policy_cap
     );
   }
-
+#[allow(unused_type_parameter)]
   public fun add_primary_price_update_rule<Rule: drop>(
     _self: &mut XOracle,
     _cap: &XOraclePolicyCap,
   ) {
     abort 0
   }
-
+#[allow(unused_type_parameter)]
   public fun remove_primary_price_update_rule<Rule: drop>(
     _self: &mut XOracle,
     _cap: &XOraclePolicyCap,
   ) {
     abort 0
   }
-
+#[allow(unused_type_parameter)]
   public fun add_secondary_price_update_rule_v2<CoinType, Rule: drop>(
     self: &mut XOracle,
     cap: &XOraclePolicyCap,
@@ -188,13 +188,13 @@ module x_oracle::x_oracle {
       secondary_price_update_request,
       &self.secondary_price_update_policy
     );
-    let coin_type = get<T>();
+    let coin_type =  type_name:: with_defining_ids<T>();
     if (!table::contains(&self.prices, coin_type)) {
       table::add(&mut self.prices, coin_type, price_feed::new(0,0));
     };
     let price_feed = determine_price(primary_price_feeds, secondary_price_feeds);
 
-    let current_price_feed = table::borrow_mut(&mut self.prices, get<T>());
+    let current_price_feed = table::borrow_mut(&mut self.prices, type_name:: with_defining_ids<T>());
 
     let now = clock::timestamp_ms(clock) / 1000;
     let new_price_feed = price_feed::new(
@@ -250,8 +250,8 @@ module x_oracle::x_oracle {
   public fun test_feed_match() {
     let feed1 = price_feed::new(10100000, 1);
     let feed2 = price_feed::new(10000000, 1);
-    let primary_feeds = vector::singleton(feed1);
-    let secondary_feeds = vector::singleton(feed2);
+  let primary_feeds = vector[feed1];
+  let secondary_feeds = vector[feed2];
     let res = determine_price(primary_feeds, secondary_feeds);
     assert!(res == feed1, 0);
   }
@@ -263,7 +263,7 @@ module x_oracle::x_oracle {
 
   #[test_only]
   public fun update_price<T>(self: &mut XOracle, clock: &Clock, value: u64) {
-    let coin_type = get<T>();
+    let coin_type =  type_name::with_defining_ids<T>();
     if (!table::contains(&self.prices, coin_type)) {
       table::add(&mut self.prices, coin_type, price_feed::new(0,0));
     };

@@ -37,41 +37,41 @@ module protocol::obligation_access {
 
   /// Add a lock key to the store.
   public(friend) fun add_lock_key<T: drop>(self: &mut ObligationAccessStore) {
-    let key = type_name::get<T>();
+    let key = type_name::with_defining_ids<T>();
     assert!(!vec_set::contains(&self.lock_keys, &key), error::obligation_access_store_key_exists());
     vec_set::insert(&mut self.lock_keys, key);
   }
 
   /// Remove a lock key from the store.
   public(friend) fun remove_lock_key<T: drop>(self: &mut ObligationAccessStore) {
-    let key = type_name::get<T>();
+    let key = type_name::with_defining_ids<T>();
     assert!(vec_set::contains(&self.lock_keys, &key), error::obligation_access_store_key_not_found());
     vec_set::remove(&mut self.lock_keys, &key);
   }
 
   /// Add a reward key to the store.
   public(friend) fun add_reward_key<T: drop>(self: &mut ObligationAccessStore) {
-    let key = type_name::get<T>();
+    let key = type_name::with_defining_ids<T>();
     assert!(!vec_set::contains(&self.reward_keys, &key), error::obligation_access_store_key_exists());
     vec_set::insert(&mut self.reward_keys, key);
   }
 
   /// Remove a reward key from the store.
   public(friend) fun remove_reward_key<T: drop>(self: &mut ObligationAccessStore) {
-    let key = type_name::get<T>();
+    let key = type_name::with_defining_ids<T>();
     assert!(vec_set::contains(&self.reward_keys, &key), error::obligation_access_store_key_not_found());
     vec_set::remove(&mut self.reward_keys, &key);
   }
 
   /// Make sure the lock key is in the store.
   public fun assert_lock_key_in_store<T: drop>(store: &ObligationAccessStore, _: T) {
-    let key = type_name::get<T>();
+    let key = type_name::with_defining_ids<T>();
     assert!(vec_set::contains(&store.lock_keys, &key), error::obligation_access_lock_key_not_in_store());
   }
 
   /// Make sure the reward key is in the store.
   public fun assert_reward_key_in_store<T: drop>(store: &ObligationAccessStore, _: T) {
-    let key = type_name::get<T>();
+    let key = type_name::with_defining_ids<T>();
     assert!(vec_set::contains(&store.reward_keys, &key), error::obligation_access_reward_key_not_in_store());
   }
 
@@ -104,13 +104,13 @@ module protocol::obligation_access {
     assert_lock_key_in_store(&obligation_access_store, MockKeyB {});
     assert_lock_key_in_store(&obligation_access_store, MockKeyC {});
 
-    assert!(vec_set::size(&obligation_access_store.lock_keys) == 3, 0);
+    assert!(vec_set::length(&obligation_access_store.lock_keys) == 3, 0);
 
     remove_lock_key<MockKeyA>(&mut obligation_access_store);
     remove_lock_key<MockKeyB>(&mut obligation_access_store);
     remove_lock_key<MockKeyC>(&mut obligation_access_store);
 
-    assert!(vec_set::size(&obligation_access_store.lock_keys) == 0, 0);
+    assert!(vec_set::length(&obligation_access_store.lock_keys) == 0, 0);
 
     test_scenario::return_shared(obligation_access_store);
     test_scenario::end(scenario_value);
@@ -133,13 +133,13 @@ module protocol::obligation_access {
     assert_reward_key_in_store(&obligation_access_store, MockKeyB {});
     assert_reward_key_in_store(&obligation_access_store, MockKeyC {});
 
-    assert!(vec_set::size(&obligation_access_store.reward_keys) == 3, 0);
+    assert!(vec_set::length(&obligation_access_store.reward_keys) == 3, 0);
 
     remove_reward_key<MockKeyA>(&mut obligation_access_store);
     remove_reward_key<MockKeyB>(&mut obligation_access_store);
     remove_reward_key<MockKeyC>(&mut obligation_access_store);
 
-    assert!(vec_set::size(&obligation_access_store.reward_keys) == 0, 0);
+    assert!(vec_set::length(&obligation_access_store.reward_keys) == 0, 0);
 
     test_scenario::return_shared(obligation_access_store);
     test_scenario::end(scenario_value);

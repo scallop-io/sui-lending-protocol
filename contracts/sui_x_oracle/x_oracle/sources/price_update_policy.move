@@ -50,12 +50,12 @@ module x_oracle::price_update_policy {
     PriceUpdateRequest {
       for: object::id(policy),
       receipts: vec_set::empty(),
-      price_feeds: vector::empty(),
+      price_feeds: vector[],
     }
   }
 
   public(friend) fun init_rules_df_if_not_exist(_policy_cap: &PriceUpdatePolicyCap, policy: &mut PriceUpdatePolicy, ctx: &mut TxContext) {
-    if(!dynamic_field::exists_<PriceUpdatePolicyRulesKey>(
+    if(!dynamic_field::exists<PriceUpdatePolicyRulesKey>(
         &policy.id,
         PriceUpdatePolicyRulesKey {},
     )) {
@@ -68,7 +68,7 @@ module x_oracle::price_update_policy {
         &policy.id,
         PriceUpdatePolicyRulesKey {},
     );
-    let coin_type = type_name::get<CoinType>();
+    let coin_type = type_name:: with_defining_ids<CoinType>();
     if (!table::contains(rules_table, coin_type)) {
       return vec_set::empty()
     };
@@ -87,14 +87,14 @@ module x_oracle::price_update_policy {
         PriceUpdatePolicyRulesKey {},
     );
 
-    let coin_type = type_name::get<CoinType>();
+    let coin_type = type_name:: with_defining_ids<CoinType>();
     // add record if not exist
     if (!table::contains(rules_table, coin_type)) {
       table::add(rules_table, coin_type, vec_set::empty());
     };
 
     let rules = table::borrow_mut(rules_table, coin_type);
-    vec_set::insert(rules, type_name::get<Rule>());
+    vec_set::insert(rules, type_name:: with_defining_ids<Rule>());
   }
 
   public(friend) fun count_rules_v2<CoinType>(
@@ -104,15 +104,15 @@ module x_oracle::price_update_policy {
         &policy.id,
         PriceUpdatePolicyRulesKey {},
     );
-    let coin_type = type_name::get<CoinType>();
+    let coin_type = type_name:: with_defining_ids<CoinType>();
     if (!table::contains(rules_table, coin_type)) {
       return 0
     };
     
     let rules = table::borrow(rules_table, coin_type);
-    vec_set::size(rules)
+    vec_set::length(rules)
   }
-
+#[allow(unused_type_parameter)]
   public fun add_rule<Rule>(
     _policy: &mut PriceUpdatePolicy,
     _cap: &PriceUpdatePolicyCap,
@@ -130,16 +130,16 @@ module x_oracle::price_update_policy {
         PriceUpdatePolicyRulesKey {},
     );
 
-    let coin_type = type_name::get<CoinType>();
+    let coin_type = type_name:: with_defining_ids<CoinType>();
     // skip if not exist
     if (!table::contains(rules_table, coin_type)) {
       return
     };
 
     let rules = table::borrow_mut(rules_table, coin_type);
-    vec_set::remove<TypeName>(rules, &type_name::get<Rule>());
+    vec_set::remove<TypeName>(rules, &type_name:: with_defining_ids<Rule>());
   }  
-
+#[allow(unused_type_parameter)]
   public fun remove_rule<Rule>(
     _policy: &mut PriceUpdatePolicy,
     _cap: &PriceUpdatePolicyCap,
@@ -152,7 +152,7 @@ module x_oracle::price_update_policy {
     request: &mut PriceUpdateRequest<CoinType>,
     feed: PriceFeed,
   ) {
-    vec_set::insert(&mut request.receipts, type_name::get<Rule>());
+    vec_set::insert(&mut request.receipts, type_name:: with_defining_ids<Rule>());
     vector::push_back(&mut request.price_feeds, feed);
   }
 
@@ -163,7 +163,7 @@ module x_oracle::price_update_policy {
     let receipts = vec_set::into_keys(receipts);
     let completed = vector::length(&receipts);
     let rules = get_price_update_policy<CoinType>(policy);
-    assert!(completed == vec_set::size(&rules), REQUIRE_ALL_RULES_FOLLOWED);
+    assert!(completed == vec_set::length(&rules), REQUIRE_ALL_RULES_FOLLOWED);
     let i = 0;
     while(i < completed) {
       let receipt = vector::pop_back(&mut receipts);

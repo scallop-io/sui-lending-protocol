@@ -9,7 +9,7 @@ module protocol::repay {
   use sui::coin::{Self, Coin};
   use sui::tx_context::{Self, TxContext};
   use sui::clock::{Self, Clock};
-  use sui::math;
+use std::u64;
   use sui::transfer;
   use protocol::obligation::{Self, Obligation};
   use protocol::market::{Self, Market};
@@ -60,7 +60,7 @@ module protocol::repay {
 
 
     let now = clock::timestamp_ms(clock) / 1000;
-    let coin_type = type_name::get<T>();
+    let coin_type = type_name:: with_defining_ids<T>();
 
     // always accrued all the interest before doing any actions
     // Because all actions should based on the latest state
@@ -69,7 +69,7 @@ module protocol::repay {
 
     // If the given coin is more than the debt, repay the debt only
     let (debt_amount, _) = obligation::debt(obligation, coin_type);
-    let repay_amount = math::min(debt_amount, coin::value(&user_coin));
+    let repay_amount = std::u64::min(debt_amount, coin::value(&user_coin));
     let repay_coin = coin::split<T>(&mut user_coin, repay_amount, ctx);
 
     // Put the repay asset into market

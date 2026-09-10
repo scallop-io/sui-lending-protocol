@@ -5,16 +5,16 @@ module x_oracle::test_utils {
     use sui::clock::{Self, Clock};
     use sui::table;
     use sui::math;
-    use std::fixed_point32::{Self, FixedPoint32};
+  use std::uq32_32::{Self, UQ32_32};
     use std::type_name::{Self, TypeName};
 
     public fun get_price<T>(
         x_oracle: &XOracle,
         clock: &Clock,
-    ): FixedPoint32 {
+    ): UQ32_32 {
         let prices = x_oracle::prices(x_oracle);
 
-        let coin_type = type_name::get<T>();
+        let coin_type = type_name::  with_defining_ids<T>();
         assert!(table::contains(prices, coin_type), 0); // price feed not found
 
         let price = table::borrow<TypeName, PriceFeed>(prices, coin_type);
@@ -26,6 +26,6 @@ module x_oracle::test_utils {
         assert!(now == last_updated, 0); // price stale
         assert!(price_value > 0, 0); // price error
 
-        fixed_point32::create_from_rational(price_value, math::pow(10, price_decimal))
+        uq32_32::from_quotient(price_value, std::u64::pow(10, price_decimal))
     }
 }

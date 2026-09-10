@@ -78,7 +78,7 @@ module protocol::flash_loan {
     // check if sender is in whitelist
     market::assert_whitelist_access(market, ctx);
 
-    let coin_type = type_name::get<T>();
+    let coin_type = type_name::with_defining_ids<T>();
     // check if base asset is active
     assert!(
       market::is_base_asset_active(market, coin_type),
@@ -122,7 +122,7 @@ module protocol::flash_loan {
     // Emit the repay flash loan event
     emit(RepayFlashLoanV2Event {
       borrower: tx_context::sender(ctx),
-      asset: type_name::get<T>(),
+      asset: type_name:: with_defining_ids<T>(),
       amount: coin::value(&coin),
       fee: reserve::flash_loan_fee(&loan),
     });

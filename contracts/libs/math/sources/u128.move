@@ -34,17 +34,20 @@ module math::u128 {
     (U128_MAX / x >= y)
   }
   
+#[test_only]
+use std::unit_test::assert_eq;
+
+
   #[test]
   fun mul_div_test() {
     // normal calculation a * b / c
-    assert!(mul_div(100, 3, 13) == 100 * 3 / 13, 1);
-
+    assert_eq!(mul_div(100, 3, 13), 100 * 3 / 13);
     // undirect calculation
     // here a * b directly will cause u128 overflow, so we are testing whether the function handle it gracefully
     let a: u256 = 12371283712891321589152198391829;
     let b: u256 = 27505826;
     let c: u256 = 13;
-    assert!(mul_div((a as u128), (b as u128), (c as u128)) == ((a * b / c) as u128), 1);
+    assert_eq!(mul_div((a as u128), (b as u128), (c as u128)), ((a * b / c) as u128));
   }
 
   #[test, expected_failure(abort_code = CALCULATION_OVERFLOW)]

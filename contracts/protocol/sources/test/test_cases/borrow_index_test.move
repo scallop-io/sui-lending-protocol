@@ -1,14 +1,14 @@
 #[test_only]
 module protocol::borrow_index_test {
 
-  use std::fixed_point32;
+  use math::UQ32_32_empower;
   use std::type_name;
   use sui::test_scenario;
   use sui::coin;
   use sui::clock;
   use x_oracle::x_oracle;
   use coin_decimals_registry::coin_decimals_registry;
-  use math::fixed_point32_empower;
+  use std::uq32_32::{Self, UQ32_32};
   use protocol::version;
   use protocol::borrow;
   use protocol::deposit_collateral;
@@ -101,10 +101,10 @@ module protocol::borrow_index_test {
     } else {
       expected_borrow_index - borrow_index
     };
-    let index_diff_rate = fixed_point32::create_from_rational(index_diff, expected_borrow_index);
-    let index_precision = fixed_point32::create_from_rational(1, std::u64::pow(10, 8));
+    let index_diff_rate = uq32_32::from_quotient(index_diff, expected_borrow_index);
+    let index_precision = uq32_32::from_quotient(1, std::u64::pow(10, 8));
     assert!(
-      fixed_point32_empower::gte(index_precision, index_diff_rate),
+      UQ32_32_empower::gte(index_precision, index_diff_rate),
       0
     );
 

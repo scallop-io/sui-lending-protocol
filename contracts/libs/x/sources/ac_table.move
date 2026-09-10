@@ -79,7 +79,7 @@ module x::ac_table {
       let keys = option::borrow(&self.keys);
       vec_set::into_keys(*keys)
     } else {
-      vector::empty()
+      vector[]
     }
   }
   

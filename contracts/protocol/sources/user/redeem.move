@@ -75,9 +75,9 @@ module protocol::redeem {
     // emit Redeem Event
     emit(RedeemEvent {
       redeemer: tx_context::sender(ctx),
-      withdraw_asset: type_name::get<T>(),
+      withdraw_asset: type_name:: with_defining_ids<T>(),
       withdraw_amount: balance::value(&redeem_balance),
-      burn_asset: type_name::get<MarketCoin<T>>(),
+      burn_asset: type_name:: with_defining_ids<MarketCoin<T>>(),
       burn_amount: market_coin_amount,
       time: now
     });

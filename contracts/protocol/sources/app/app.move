@@ -541,7 +541,7 @@ module protocol::app {
     let key = market_dynamic_keys::borrow_fee_key(type_name:: with_defining_ids<T>());
     let fee = uq32_32::from_quotient(fee_numerator, fee_denominator);
 
-    dynamic_field:: remove_opt<BorrowFeeKey, UQ32_32>(market_uid_mut, key);
+    dynamic_field::remove_opt<BorrowFeeKey, UQ32_32>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, fee);
   }
 
@@ -560,7 +560,7 @@ module protocol::app {
     limit_amount: u64,
   ) {
     let market_uid_mut = market::uid_mut(market);
-    let key = market_dynamic_keys::supply_limit_key(type_name::  with_defining_ids<T>());
+    let key = market_dynamic_keys::supply_limit_key(type_name::with_defining_ids<T>());
 
     dynamic_field::remove_opt<SupplyLimitKey, u64>(market_uid_mut, key);
     dynamic_field::add(market_uid_mut, key, limit_amount);

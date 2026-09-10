@@ -413,7 +413,7 @@ module protocol::market {
   ): Decimal {
     let debt_dynamic = wit_table::borrow(&self.borrow_dynamics, type_name);
 
-    let interest_rate_scaled = decimal::from_fixed_point32(borrow_dynamics::interest_rate(debt_dynamic));
+    let interest_rate_scaled = decimal::from_uq32_32(borrow_dynamics::interest_rate(debt_dynamic));
     let interest_rate = decimal::div(interest_rate_scaled, decimal::from(borrow_dynamics::interest_rate_scale(debt_dynamic)));
 
     decimal::mul(interest_rate, decimal::from(SECONDS_IN_A_YEAR))
@@ -424,9 +424,9 @@ module protocol::market {
     type_name: TypeName,
   ): Decimal {
     let borrow_apr = get_current_borrow_apr(self, type_name);
-    let util_rate = decimal::from_fixed_point32(reserve::util_rate(&self.vault, type_name));
+    let util_rate = decimal::from_uq32_32(reserve::util_rate(&self.vault, type_name));
     let interest_model = ac_table::borrow(&self.interest_models, type_name);
-    let revenue_factor = decimal::from_fixed_point32(interest_model::revenue_factor(interest_model));
+    let revenue_factor = decimal::from_uq32_32(interest_model::revenue_factor(interest_model));
 
     // supply APR = borrow APR * utilization rate * (1 - revenue factor)
     decimal::mul(

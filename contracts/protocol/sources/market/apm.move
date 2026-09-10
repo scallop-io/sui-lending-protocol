@@ -89,7 +89,7 @@ module protocol::apm {
             i = i + 1;
         };
 
-        let current_price = decimal::from_fixed_point32(get_price(x_oracle, type_name, clock));
+        let current_price = decimal::from_uq32_32(get_price(x_oracle, type_name, clock));
 
         // check if price goes down, then skip
         if (decimal::le(current_price, min_price_in_24h)) {
@@ -127,11 +127,11 @@ module protocol::apm {
         let min_price_history = vector::borrow_mut(vect, curr_index);
         if (min_price_history.last_update == 0 || (now - min_price_history.last_update) > 3600) {
             // reset if it's the first time or more than an hour has passed
-            min_price_history.price = decimal::from_fixed_point32(current_price);
+            min_price_history.price = decimal::from_uq32_32(current_price);
         } else {
             min_price_history.price = decimal::min(
                 min_price_history.price,
-                decimal::from_fixed_point32(current_price)
+                decimal::from_uq32_32(current_price)
             );
         };
 

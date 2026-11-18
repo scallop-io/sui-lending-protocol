@@ -87,8 +87,6 @@ module protocol::forced_deleverage {
     let debt_type = type_name::get<DebtType>();
     let collateral_type = type_name::get<CollateralType>();
 
-    assert!(debt_type != collateral_type, error::unable_to_force_deleverage_error());
-
     // because it's similar to liquidation mechanism
     assert!(
       obligation::liquidate_locked(obligation) == false,

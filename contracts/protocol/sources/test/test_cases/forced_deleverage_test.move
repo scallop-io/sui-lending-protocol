@@ -1,9 +1,11 @@
 #[test_only]
 module protocol::forced_deleverage_test {
 
-  use std::type_name;
+  use std::type_name::{Self, TypeName};
   use std::fixed_point32;
+  use std::vector;
   use sui::test_scenario::{Self, Scenario};
+  use sui::test_utils;
   use sui::coin;
   use sui::clock::{Self, Clock};
   use sui::transfer;
@@ -14,6 +16,7 @@ module protocol::forced_deleverage_test {
   use protocol::mint;
   use protocol::liquidate;
   use protocol::forced_deleverage;
+  use protocol::forced_deleverage_evaluator;
   use protocol::price;
   use protocol::version::{Self, Version};
   use protocol::app::{Self, AdminCap};
@@ -39,6 +42,12 @@ module protocol::forced_deleverage_test {
   const EXECUTOR: address = @0xEE;
 
   const ETH_DECIMALS: u8 = 9;
+
+  // Amount-invariant sweep. Prices are 9-decimal oracle values:
+  // $0.000000001, $0.123456789, $999.999999999, $4e9 (near the FixedPoint32 max).
+  const PRICE_GRID: vector<u64> = vector[1, 123_456_789, 999_999_999_999, 4_000_000_000_000_000_000];
+  const AMOUNT_GRID: vector<u64> = vector[7, 999_999_937, 1_000_000_000_000_007, 18_446_744_073_709_551_615];
+  const U64_MAX: u64 = 18_446_744_073_709_551_615;
 
   struct MockLockKey has drop {}
 
@@ -465,6 +474,27 @@ module protocol::forced_deleverage_test {
     teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
   }
 
+  #[test, expected_failure(abort_code = 0x0017002, location = protocol::forced_deleverage_evaluator)]
+  fun forced_deleverage_same_coin_needs_both_rows_test() {
+    // Same coin on both sides is allowed, but borrow and deposit_collateral keep
+    // new obligations from holding one coin as both debt and collateral, so on
+    // this obligation (ETH collateral, no ETH debt) the debt row guard rejects it.
+    let usdc_decimals = 9;
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key) = setup(scenario, usdc_decimals, true);
+
+    test_scenario::next_tx(scenario, EXECUTOR);
+    let repay_coin = coin::mint_for_testing<ETH>(std::u64::pow(10, ETH_DECIMALS - 1), test_scenario::ctx(scenario));
+    let (remain_coin, seized_coin) = forced_deleverage::forced_deleverage<ETH, ETH>(
+      &version, &mut obligation, &mut market, repay_coin, &coin_decimals_registry, &x_oracle, &clock, test_scenario::ctx(scenario),
+    );
+
+    coin::burn_for_testing(remain_coin);
+    coin::burn_for_testing(seized_coin);
+    teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
   #[test, expected_failure(abort_code = 0x0017004, location = protocol::forced_deleverage)]
   fun forced_deleverage_aborts_on_zero_coin_test() {
     let usdc_decimals = 9;
@@ -500,6 +530,208 @@ module protocol::forced_deleverage_test {
     coin::burn_for_testing(remain_coin);
     coin::burn_for_testing(seized_coin);
     teardown(scenario_value, clock, version, market, admin_cap, x_oracle, x_oracle_policy_cap, coin_decimals_registry, obligation, obligation_key);
+  }
+
+  // ── Amount math (evaluator only) ──────────────────────────────────────────
+  //
+  // The evaluator reads the debt and collateral rows, never the balances, so
+  // these tests build rows-only obligations with the test-only row helpers and
+  // need no market.
+
+  #[test]
+  fun forced_deleverage_same_coin_nets_exactly_test() {
+    // Only obligations that looped before borrow and deposit_collateral started
+    // rejecting same-coin positions can hold one coin on both sides. Prices and
+    // scales cancel, so every path returns seized == actual_repay exactly.
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, x_oracle, x_oracle_policy_cap, coin_decimals_registry) = amounts_setup(scenario);
+    x_oracle::update_price<ETH>(&mut x_oracle, &clock, oracle_t::calc_scaled_price(1000, 0));
+    let eth_type = type_name::get<ETH>();
+    let eth = std::u64::pow(10, ETH_DECIMALS);
+
+    let rows = vector[
+      // available, debt, collateral, expected repay (== seized)
+      vector[3 * eth / 10, 5 * eth, eth, 3 * eth / 10],   // partial repay
+      vector[10 * eth, 7 * eth / 10, eth, 7 * eth / 10],  // capped at the debt
+      vector[10 * eth, 5 * eth, eth, eth],                // capped at the collateral
+      vector[7 * eth, 7 * eth, 333_333_333, 333_333_333], // collateral cap, odd amount
+    ];
+    let i = 0;
+    while (i < vector::length(&rows)) {
+      let row = vector::borrow(&rows, i);
+      let (obligation, obligation_key) = rows_only_obligation(
+        scenario, eth_type, *vector::borrow(row, 1), eth_type, *vector::borrow(row, 2),
+      );
+      let (actual_repay, seized) = forced_deleverage_evaluator::calculate_forced_deleverage_amounts<ETH, ETH>(
+        &obligation, &coin_decimals_registry, &x_oracle, &clock, *vector::borrow(row, 0),
+      );
+      assert!(actual_repay == *vector::borrow(row, 3), i);
+      assert!(seized == actual_repay, 100 + i);
+      test_utils::destroy(obligation);
+      test_utils::destroy(obligation_key);
+      i = i + 1;
+    };
+
+    amounts_teardown(scenario_value, clock, x_oracle, x_oracle_policy_cap, coin_decimals_registry);
+  }
+
+  #[test]
+  fun forced_deleverage_amount_invariants_test() {
+    // Sweeps PRICE_GRID and AMOUNT_GRID on both sides for decimal gaps of
+    // +3, -3, +10, -10 and 0 (same coin), checking every result against value
+    // bounds rather than against the evaluator's own formula.
+    let scenario_value = test_scenario::begin(ADMIN);
+    let scenario = &mut scenario_value;
+    let (clock, x_oracle, x_oracle_policy_cap, coin_decimals_registry) = amounts_setup(scenario);
+
+    let checked = sweep<USDC, ETH>(scenario, &coin_decimals_registry, &mut x_oracle, &clock);
+    checked = checked + sweep<ETH, USDC>(scenario, &coin_decimals_registry, &mut x_oracle, &clock);
+    checked = checked + sweep<BTC, USDT>(scenario, &coin_decimals_registry, &mut x_oracle, &clock);
+    checked = checked + sweep<USDT, BTC>(scenario, &coin_decimals_registry, &mut x_oracle, &clock);
+    checked = checked + sweep<ETH, ETH>(scenario, &coin_decimals_registry, &mut x_oracle, &clock);
+    // 608 of the 1,088 combinations are above the dust floor on both sides
+    assert!(checked == 608, 0);
+
+    amounts_teardown(scenario_value, clock, x_oracle, x_oracle_policy_cap, coin_decimals_registry);
+  }
+
+  // Oracle and decimals only, no market: USDC 6, BTC 8, ETH 9, USDT 18 decimals.
+  fun amounts_setup(scenario: &mut Scenario): (Clock, XOracle, XOraclePolicyCap, CoinDecimalsRegistry) {
+    let clock = clock::create_for_testing(test_scenario::ctx(scenario));
+    clock::set_for_testing(&mut clock, 300 * 1000);
+    let (x_oracle, x_oracle_policy_cap) = oracle_t::init_t(scenario);
+    let coin_decimals_registry = coin_decimals_registry_init(scenario);
+    coin_decimals_registry::register_decimals_t<USDC>(&mut coin_decimals_registry, 6);
+    coin_decimals_registry::register_decimals_t<BTC>(&mut coin_decimals_registry, 8);
+    coin_decimals_registry::register_decimals_t<ETH>(&mut coin_decimals_registry, ETH_DECIMALS);
+    coin_decimals_registry::register_decimals_t<USDT>(&mut coin_decimals_registry, 18);
+    (clock, x_oracle, x_oracle_policy_cap, coin_decimals_registry)
+  }
+
+  fun amounts_teardown(
+    scenario_value: Scenario,
+    clock: Clock,
+    x_oracle: XOracle,
+    x_oracle_policy_cap: XOraclePolicyCap,
+    coin_decimals_registry: CoinDecimalsRegistry,
+  ) {
+    clock::destroy_for_testing(clock);
+    test_scenario::return_shared(x_oracle);
+    test_scenario::return_shared(coin_decimals_registry);
+    test_scenario::return_to_address(ADMIN, x_oracle_policy_cap);
+    test_scenario::end(scenario_value);
+  }
+
+  fun rows_only_obligation(
+    scenario: &mut Scenario,
+    debt_type: TypeName,
+    debt: u64,
+    collateral_type: TypeName,
+    collateral: u64,
+  ): (Obligation, ObligationKey) {
+    let (obligation, obligation_key) = obligation::new_obligation_test(test_scenario::ctx(scenario));
+    obligation::add_debt_test(&mut obligation, debt_type, debt);
+    obligation::add_collateral_test(&mut obligation, collateral_type, collateral);
+    (obligation, obligation_key)
+  }
+
+  // Runs the evaluator over PRICE_GRID² × AMOUNT_GRID (collateral row) ×
+  // AMOUNT_GRID (available) for one coin pair. The debt row is u64::MAX, so
+  // `available` is the repay cap. Returns how many cases were checked.
+  fun sweep<DebtType, CollateralType>(
+    scenario: &mut Scenario,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    x_oracle: &mut XOracle,
+    clock: &Clock,
+  ): u64 {
+    let debt_type = type_name::get<DebtType>();
+    let collateral_type = type_name::get<CollateralType>();
+    let same_coin = debt_type == collateral_type;
+    let debt_scale = (std::u64::pow(10, coin_decimals_registry::decimals(coin_decimals_registry, debt_type)) as u256);
+    let collateral_scale = (std::u64::pow(10, coin_decimals_registry::decimals(coin_decimals_registry, collateral_type)) as u256);
+    let prices = PRICE_GRID;
+    let amounts = AMOUNT_GRID;
+    let checked = 0;
+
+    let c = 0;
+    while (c < vector::length(&amounts)) {
+      let (obligation, obligation_key) = rows_only_obligation(
+        scenario, debt_type, U64_MAX, collateral_type, *vector::borrow(&amounts, c),
+      );
+      let i = 0;
+      while (i < vector::length(&prices)) {
+        x_oracle::update_price<DebtType>(x_oracle, clock, *vector::borrow(&prices, i));
+        let j = 0;
+        while (j < vector::length(&prices)) {
+          if (!same_coin) x_oracle::update_price<CollateralType>(x_oracle, clock, *vector::borrow(&prices, j));
+          // USD value of one base unit of each side, on a common scale
+          let unit_d = (fixed_point32::get_raw_value(price::get_price(x_oracle, debt_type, clock)) as u256) * collateral_scale;
+          let unit_c = (fixed_point32::get_raw_value(price::get_price(x_oracle, collateral_type, clock)) as u256) * debt_scale;
+          let a = 0;
+          while (a < vector::length(&amounts)) {
+            if (check_amounts<DebtType, CollateralType>(
+              &obligation, coin_decimals_registry, x_oracle, clock, unit_d, unit_c, *vector::borrow(&amounts, a),
+            )) {
+              checked = checked + 1;
+            };
+            a = a + 1;
+          };
+          // one price per side is the same feed when the coins match
+          j = if (same_coin) { vector::length(&prices) } else { j + 1 };
+        };
+        i = i + 1;
+      };
+      test_utils::destroy(obligation);
+      test_utils::destroy(obligation_key);
+      c = c + 1;
+    };
+    checked
+  }
+
+  // Checks one evaluator result against bounds any correct 1:1 conversion meets,
+  // without recomputing its formula. `unit_d` and `unit_c` are the USD values of
+  // one debt and one collateral base unit on a common scale. Returns false without
+  // checking when either side is worth less than one base unit of the other: the
+  // evaluator rejects those amounts as dust by design.
+  fun check_amounts<DebtType, CollateralType>(
+    obligation: &Obligation,
+    coin_decimals_registry: &CoinDecimalsRegistry,
+    x_oracle: &XOracle,
+    clock: &Clock,
+    unit_d: u256,
+    unit_c: u256,
+    available: u64,
+  ): bool {
+    let (debt, _) = obligation::debt(obligation, type_name::get<DebtType>());
+    let collateral = obligation::collateral(obligation, type_name::get<CollateralType>());
+    let max_repay = if (available < debt) { available } else { debt };
+    if ((max_repay as u256) * unit_d < unit_c || (collateral as u256) * unit_c < unit_d) return false;
+
+    let (actual_repay, seized) = forced_deleverage_evaluator::calculate_forced_deleverage_amounts<DebtType, CollateralType>(
+      obligation, coin_decimals_registry, x_oracle, clock, available,
+    );
+    let repaid_value = (actual_repay as u256) * unit_d;
+    let seized_value = (seized as u256) * unit_c;
+    assert!(actual_repay <= max_repay, 0);
+    assert!(seized <= collateral, 1);
+    if (actual_repay == max_repay) {
+      // Full repay: seized is the floor of par. The user never gives up more value
+      // than the debt removed and keeps less than one collateral unit of rounding.
+      assert!(seized_value <= repaid_value, 2);
+      assert!(repaid_value < seized_value + unit_c, 3);
+    } else {
+      // Collateral-short: taken only when the full repay needs more than all the
+      // collateral. Seizes everything; the repay is par to within one unit either way.
+      assert!((max_repay as u256) * unit_d >= ((collateral as u256) + 1) * unit_c, 4);
+      assert!(seized == collateral, 5);
+      assert!(seized_value < repaid_value + unit_d, 6);
+      assert!(repaid_value < seized_value + unit_c, 7);
+    };
+    if (type_name::get<DebtType>() == type_name::get<CollateralType>()) {
+      assert!(actual_repay == seized, 8);
+    };
+    true
   }
 
   // ── Gating ────────────────────────────────────────────────────────────────

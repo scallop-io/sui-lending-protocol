@@ -27,6 +27,9 @@ module protocol::forced_deleverage_evaluator {
   ///   If `seized` exceeds the obligation's CollateralType balance, all collateral is
   ///   seized and the repay is scaled down by the same proportional floor liquidation
   ///   uses (`liquidation_evaluator::calculate_liquidation_amounts`).
+  ///
+  ///   With DebtType == CollateralType the prices and scales cancel, so the result is
+  ///   an exact netting: seized == actual_repay.
   public fun calculate_forced_deleverage_amounts<DebtType, CollateralType>(
     obligation: &Obligation,
     coin_decimals_registry: &CoinDecimalsRegistry,

@@ -43,6 +43,7 @@ module protocol::market {
   friend protocol::accrue_interest;
   friend protocol::lock_obligation;
   friend protocol::forced_deleverage;
+  friend protocol::balance_migration;
   
   struct Market has key, store {
     id: UID,
@@ -289,6 +290,14 @@ module protocol::market {
     reserve::init_market_coin_price_table(&mut self.vault, ctx);
   }
   
+  /// Move the coin's underlying balance in the reserve into its dynamic-field storage.
+  public(friend) fun migrate_underlying_balance<T>(
+    self: &mut Market,
+    ctx: &mut TxContext,
+  ): u64 {
+    reserve::migrate_underlying_balance<T>(&mut self.vault, ctx)
+  }
+
   public(friend) fun handle_redeem<T>(
     self: &mut Market,
     market_coin_balance: Balance<MarketCoin<T>>,
@@ -447,4 +456,7 @@ module protocol::market {
       error::whitelist_error()
     );
   }
+
+  #[test_only]
+  public fun vault_mut_for_testing(market: &mut Market): &mut Reserve { &mut market.vault }
 }

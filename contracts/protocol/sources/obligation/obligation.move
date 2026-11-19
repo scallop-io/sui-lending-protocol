@@ -10,6 +10,7 @@ module protocol::obligation {
   use sui::event::emit;
   use sui::tx_context;
   use sui::clock::Clock;
+  use sui::dynamic_field;
 
 
   use x::balance_bag::{Self, BalanceBag};
@@ -37,6 +38,7 @@ module protocol::obligation {
   friend protocol::accrue_interest;
   friend protocol::lock_obligation;
   friend protocol::forced_deleverage;
+  friend protocol::balance_migration;
   
   struct Obligation has key, store {
     id: UID,
@@ -58,6 +60,9 @@ module protocol::obligation {
     id: UID,
     ownership: Ownership<ObligationOwnership>
   }
+
+  /// Dynamic-field key for the bag that holds the collateral balances.
+  struct CollateralBalancesKey has copy, store, drop {}
 
   /// ==== Events ====
 
@@ -114,6 +119,8 @@ module protocol::obligation {
       withdraw_collateral_locked: false,
       liquidate_locked: false,
     };
+    // New obligations keep the collateral balances in the dynamic-field bag from the start.
+    dynamic_field::add(&mut obligation.id, CollateralBalancesKey {}, balance_bag::new(ctx));
     let obligation_ownership = ownership::create_ownership(
       ObligationOwnership{},
       object::id(&obligation),
@@ -150,6 +157,54 @@ module protocol::obligation {
     };
   }
   
+  /// ===== Collateral balance storage =====
+  /// Collateral balances are kept in a BalanceBag stored as a dynamic field under `CollateralBalancesKey`.
+  /// Obligations created before this storage existed keep their balances in the `balances` field
+  /// until `migrate_collateral_balance` creates the bag; after that, any coin still in the field is
+  /// moved into the bag the first time it is touched.
+
+  fun is_collateral_balances_migrated(self: &Obligation): bool {
+    dynamic_field::exists_with_type<CollateralBalancesKey, BalanceBag>(&self.id, CollateralBalancesKey {})
+  }
+
+  /// Move the coin's balance from the `balances` field into the dynamic-field bag
+  /// and return the amount moved. The dynamic-field bag must already exist.
+  fun move_legacy_collateral_balance<T>(self: &mut Obligation): u64 {
+    if (!balance_bag::contains<T>(&self.balances)) {
+      return 0
+    };
+    let legacy_balance = balance_bag::remove<T>(&mut self.balances);
+    let amount = balance::value(&legacy_balance);
+    let balances = dynamic_field::borrow_mut<CollateralBalancesKey, BalanceBag>(&mut self.id, CollateralBalancesKey {});
+    if (!balance_bag::contains<T>(balances)) {
+      balance_bag::init_balance<T>(balances);
+    };
+    balance_bag::join(balances, legacy_balance);
+    amount
+  }
+
+  /// The bag that holds the coin's collateral balance.
+  fun collateral_balances_mut<T>(self: &mut Obligation): &mut BalanceBag {
+    if (is_collateral_balances_migrated(self)) {
+      move_legacy_collateral_balance<T>(self);
+      dynamic_field::borrow_mut<CollateralBalancesKey, BalanceBag>(&mut self.id, CollateralBalancesKey {})
+    } else {
+      &mut self.balances
+    }
+  }
+
+  /// Move the coin's collateral balance into the dynamic-field bag, creating the bag if needed.
+  /// Returns the amount moved, which is 0 when the coin has already been moved.
+  public(friend) fun migrate_collateral_balance<T>(
+    self: &mut Obligation,
+    ctx: &mut tx_context::TxContext,
+  ): u64 {
+    if (!is_collateral_balances_migrated(self)) {
+      dynamic_field::add(&mut self.id, CollateralBalancesKey {}, balance_bag::new(ctx));
+    };
+    move_legacy_collateral_balance<T>(self)
+  }
+
   public(friend) fun withdraw_collateral<T>(
     self: &mut Obligation,
     amount: u64,
@@ -158,7 +213,7 @@ module protocol::obligation {
     // reduce collateral amount
     obligation_collaterals::decrease(&mut self.collaterals, type_name, amount);
     // return the collateral balance
-    balance_bag::split(&mut self.balances, amount)
+    balance_bag::split(collateral_balances_mut<T>(self), amount)
   }
   
   public(friend) fun deposit_collateral<T>(
@@ -169,10 +224,11 @@ module protocol::obligation {
     let type_name = type_name::get<T>();
     obligation_collaterals::increase(&mut self.collaterals, type_name, balance::value(&balance));
     // put the collateral balance
-    if (balance_bag::contains<T>(&self.balances) == false) {
-      balance_bag::init_balance<T>(&mut self.balances);
+    let balances = collateral_balances_mut<T>(self);
+    if (balance_bag::contains<T>(balances) == false) {
+      balance_bag::init_balance<T>(balances);
     };
-    balance_bag::join(&mut self.balances, balance);
+    balance_bag::join(balances, balance);
   }
   
   public(friend) fun init_debt(
@@ -264,8 +320,14 @@ module protocol::obligation {
   }
 
   /// ====== Readonly data ======
+  /// The bag holding the collateral balances: the dynamic-field bag once it exists,
+  /// otherwise the `balances` field.
   public fun balance_bag(self: &Obligation): &BalanceBag {
-    &self.balances
+    if (is_collateral_balances_migrated(self)) {
+      dynamic_field::borrow<CollateralBalancesKey, BalanceBag>(&self.id, CollateralBalancesKey {})
+    } else {
+      &self.balances
+    }
   }
   
   public fun debts(self: &Obligation): &WitTable<ObligationDebts, TypeName, Debt> {
@@ -439,5 +501,37 @@ module protocol::obligation {
     amount: u64,
   ) {
     obligation_collaterals::decrease(&mut self.collaterals, type_name, amount);
+  }
+
+  #[test_only]
+  /// Put the coin's balance back into the `balances` field and drop the dynamic-field bag
+  /// once it is empty, recreating an obligation from before the migration.
+  public fun move_to_legacy_storage_for_testing<T>(self: &mut Obligation) {
+    let balances = dynamic_field::borrow_mut<CollateralBalancesKey, BalanceBag>(&mut self.id, CollateralBalancesKey {});
+    let balance = balance_bag::remove<T>(balances);
+    let is_empty = sui::bag::is_empty(balance_bag::bag(balances));
+    if (!balance_bag::contains<T>(&self.balances)) {
+      balance_bag::init_balance<T>(&mut self.balances);
+    };
+    balance_bag::join(&mut self.balances, balance);
+    if (is_empty) {
+      let bag = dynamic_field::remove<CollateralBalancesKey, BalanceBag>(&mut self.id, CollateralBalancesKey {});
+      balance_bag::destroy_empty(bag);
+    };
+  }
+
+  #[test_only]
+  public fun is_collateral_balances_migrated_for_testing(self: &Obligation): bool {
+    is_collateral_balances_migrated(self)
+  }
+
+  #[test_only]
+  public fun legacy_balances_for_testing(self: &Obligation): &BalanceBag {
+    &self.balances
+  }
+
+  #[test_only]
+  public fun legacy_balances_mut_for_testing(self: &mut Obligation): &mut BalanceBag {
+    &mut self.balances
   }
 }

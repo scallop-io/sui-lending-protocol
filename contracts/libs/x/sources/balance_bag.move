@@ -42,6 +42,13 @@ module x::balance_bag {
     balance::split(in_bag_balance, amount)
   }
   
+  /// Remove the entry for T from the bag and return its whole balance.
+  /// Aborts if the bag has no entry for T.
+  public fun remove<T>(self: &mut BalanceBag): Balance<T> {
+    let type_name = type_name::get<T>();
+    bag::remove<TypeName, Balance<T>>(&mut self.bag, type_name)
+  }
+
   public fun value<T>(self: &BalanceBag): u64 {
     let type_name = type_name::get<T>();
     let in_bag_balance = bag::borrow<TypeName, Balance<T>>(&self.bag, type_name);

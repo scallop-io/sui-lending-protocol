@@ -23,7 +23,7 @@ module protocol::app {
   use whitelist::whitelist;
   use protocol::obligation_access::ObligationAccessStore;
   use protocol::obligation_access;
-  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey, PauseAuthorityRegistryKey, ForcedDeleverageAuthorityRegistryKey};
+  use protocol::market_dynamic_keys::{Self, BorrowFeeKey, BorrowFeeRecipientKey, SupplyLimitKey, MinCollateralAmountKey, BorrowLimitKey, IsolatedAssetKey, PauseAuthorityRegistryKey, ForcedDeleverageAuthorityRegistryKey, BalanceMigrationAuthorityRegistryKey};
   use protocol::borrow_referral::{Self, AuthorizedWitnessList};
   use protocol::version::{Self, Version};
   use sui::vec_set::{Self, VecSet};
@@ -66,6 +66,16 @@ module protocol::app {
   }
 
   struct ForcedDeleverageAuthorityRemovedEvent has copy, drop {
+    market: ID,
+    authority: address,
+  }
+
+  struct BalanceMigrationAuthorityAddedEvent has copy, drop {
+    market: ID,
+    authority: address,
+  }
+
+  struct BalanceMigrationAuthorityRemovedEvent has copy, drop {
     market: ID,
     authority: address,
   }
@@ -473,6 +483,51 @@ module protocol::app {
     vec_set::remove(registry, &address);
 
     event::emit(ForcedDeleverageAuthorityRemovedEvent {
+      market: object::id(market),
+      authority: address,
+    });
+  }
+
+  /// ======= Management of balance migration =======
+  public fun add_balance_migration_authority(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+    _ctx: &mut TxContext
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::balance_migration_authority_registry_key();
+
+    if (!dynamic_field::exists_<BalanceMigrationAuthorityRegistryKey>(market_uid_mut, key)) {
+      dynamic_field::add<BalanceMigrationAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
+    };
+
+    let registry = dynamic_field::borrow_mut<BalanceMigrationAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    vec_set::insert(registry, address);
+
+    event::emit(BalanceMigrationAuthorityAddedEvent {
+      market: object::id(market),
+      authority: address,
+    });
+  }
+
+  public fun remove_balance_migration_authority(
+    _admin_cap: &AdminCap,
+    market: &mut Market,
+    address: address,
+    _ctx: &mut TxContext
+  ) {
+    let market_uid_mut = market::uid_mut(market);
+    let key = market_dynamic_keys::balance_migration_authority_registry_key();
+
+    if (!dynamic_field::exists_<BalanceMigrationAuthorityRegistryKey>(market_uid_mut, key)) {
+      dynamic_field::add<BalanceMigrationAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key, vec_set::empty());
+    };
+
+    let registry = dynamic_field::borrow_mut<BalanceMigrationAuthorityRegistryKey, VecSet<address>>(market_uid_mut, key);
+    vec_set::remove(registry, &address);
+
+    event::emit(BalanceMigrationAuthorityRemovedEvent {
       market: object::id(market),
       authority: address,
     });

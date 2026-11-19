@@ -36,6 +36,8 @@ module protocol::market_dynamic_keys {
 
   struct ForcedDeleverageAuthorityRegistryKey has copy, store, drop { }
 
+  struct BalanceMigrationAuthorityRegistryKey has copy, store, drop { }
+
   public fun borrow_fee_key(type: TypeName): BorrowFeeKey {
     BorrowFeeKey{ type }
   }
@@ -75,5 +77,9 @@ module protocol::market_dynamic_keys {
 
   public fun forced_deleverage_authority_registry_key(): ForcedDeleverageAuthorityRegistryKey {
     ForcedDeleverageAuthorityRegistryKey{ }
+  }
+
+  public fun balance_migration_authority_registry_key(): BalanceMigrationAuthorityRegistryKey {
+    BalanceMigrationAuthorityRegistryKey{ }
   }
 }

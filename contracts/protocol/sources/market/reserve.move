@@ -50,12 +50,23 @@ module protocol::reserve {
 
   struct BorrowFeeVaultKey has copy, store, drop {}
 
+  /// Dynamic-field key for the bag that holds the underlying balances.
+  struct UnderlyingBalancesKey has copy, store, drop {}
+
   public fun flash_loan_loan_amount<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.loan_amount }
   public fun flash_loan_fee<T>(flash_loan: &FlashLoan<T>): u64 { flash_loan.fee }
   public fun flash_loan_fee_denominator(): u64 { FlashloanFeeScale }
   
   public fun market_coin_supplies(vault: &Reserve): &SupplyBag { &vault.market_coin_supplies }
-  public fun underlying_balances(vault: &Reserve): &BalanceBag { &vault.underlying_balances }
+  /// The bag holding the underlying balances: the dynamic-field bag once it exists,
+  /// otherwise the `underlying_balances` field.
+  public fun underlying_balances(vault: &Reserve): &BalanceBag {
+    if (is_underlying_balances_migrated(vault)) {
+      dynamic_field::borrow<UnderlyingBalancesKey, BalanceBag>(&vault.id, UnderlyingBalancesKey {})
+    } else {
+      &vault.underlying_balances
+    }
+  }
   public fun balance_sheets(vault: &Reserve): &WitTable<BalanceSheets, TypeName, BalanceSheet> { &vault.balance_sheets }
   public fun asset_types(self: &Reserve): vector<TypeName> {
     wit_table::keys(&self.balance_sheets)
@@ -67,21 +78,69 @@ module protocol::reserve {
 
   // create a vault for storing underlying assets and market coin supplies
   public(friend) fun new(ctx: &mut TxContext): Reserve {
-    Reserve {
+    let reserve = Reserve {
       id: object::new(ctx),
       market_coin_supplies: supply_bag::new(ctx),
       underlying_balances: balance_bag::new(ctx),
       balance_sheets: wit_table::new(BalanceSheets{}, true, ctx),
       flash_loan_fees: wit_table::new(FlashLoanFees{}, true, ctx)
-    }
+    };
+    // New reserves keep the underlying balances in the dynamic-field bag from the start.
+    dynamic_field::add(&mut reserve.id, UnderlyingBalancesKey {}, balance_bag::new(ctx));
+    reserve
   }
   
   public(friend) fun register_coin<T>(self: &mut Reserve) {
     supply_bag::init_supply(MarketCoin<T> {}, &mut self.market_coin_supplies);
-    balance_bag::init_balance<T>(&mut self.underlying_balances);
+    balance_bag::init_balance<T>(underlying_balances_mut<T>(self));
     let balance_sheet = BalanceSheet { cash: 0, debt: 0, revenue: 0, market_coin_supply: 0 };
     wit_table::add(BalanceSheets{}, &mut self.balance_sheets, get<T>(), balance_sheet);
     wit_table::add(FlashLoanFees{}, &mut self.flash_loan_fees, get<T>(), 0);
+  }
+
+  /// ===== Underlying balance storage =====
+  /// Underlying balances are kept in a BalanceBag stored as a dynamic field under `UnderlyingBalancesKey`.
+  /// Reserves created before this storage existed keep their balances in the `underlying_balances` field
+  /// until `migrate_underlying_balance` creates the bag; after that, any coin still in the field is
+  /// moved into the bag the first time it is touched.
+
+  fun is_underlying_balances_migrated(self: &Reserve): bool {
+    dynamic_field::exists_with_type<UnderlyingBalancesKey, BalanceBag>(&self.id, UnderlyingBalancesKey {})
+  }
+
+  /// Move the coin's balance from the `underlying_balances` field into the dynamic-field bag
+  /// and return the amount moved. The dynamic-field bag must already exist.
+  fun move_legacy_underlying_balance<T>(self: &mut Reserve): u64 {
+    if (!balance_bag::contains<T>(&self.underlying_balances)) {
+      return 0
+    };
+    let legacy_balance = balance_bag::remove<T>(&mut self.underlying_balances);
+    let amount = balance::value(&legacy_balance);
+    let balances = dynamic_field::borrow_mut<UnderlyingBalancesKey, BalanceBag>(&mut self.id, UnderlyingBalancesKey {});
+    if (!balance_bag::contains<T>(balances)) {
+      balance_bag::init_balance<T>(balances);
+    };
+    balance_bag::join(balances, legacy_balance);
+    amount
+  }
+
+  /// The bag that holds the coin's underlying balance.
+  fun underlying_balances_mut<T>(self: &mut Reserve): &mut BalanceBag {
+    if (is_underlying_balances_migrated(self)) {
+      move_legacy_underlying_balance<T>(self);
+      dynamic_field::borrow_mut<UnderlyingBalancesKey, BalanceBag>(&mut self.id, UnderlyingBalancesKey {})
+    } else {
+      &mut self.underlying_balances
+    }
+  }
+
+  /// Move the coin's underlying balance into the dynamic-field bag, creating the bag if needed.
+  /// Returns the amount moved, which is 0 when the coin has already been moved.
+  public(friend) fun migrate_underlying_balance<T>(self: &mut Reserve, ctx: &mut TxContext): u64 {
+    if (!is_underlying_balances_migrated(self)) {
+      dynamic_field::add(&mut self.id, UnderlyingBalancesKey {}, balance_bag::new(ctx));
+    };
+    move_legacy_underlying_balance<T>(self)
   }
 
   /// Intialize a table to store market coin prices instead of purely relying on the balance sheet.
@@ -177,7 +236,7 @@ module protocol::reserve {
       balance_sheet.debt = 0;
     };
     balance_sheet.cash = balance_sheet.cash + repay_amount;
-    balance_bag::join(&mut self.underlying_balances, balance)
+    balance_bag::join(underlying_balances_mut<T>(self), balance)
   }
 
   public(friend) fun handle_borrow<T>(
@@ -192,7 +251,7 @@ module protocol::reserve {
     // Make sure cash is always bigger than revenue
     assert!(balance_sheet.cash >= balance_sheet.revenue, error::pool_liquidity_not_enough_error());
 
-    balance_bag::split<T>(&mut self.underlying_balances, amount)
+    balance_bag::split<T>(underlying_balances_mut<T>(self), amount)
   }
 
   public(friend) fun handle_liquidation<T>(
@@ -207,8 +266,9 @@ module protocol::reserve {
     balance_sheet.debt = balance_sheet.debt - balance::value(&balance);
 
     // put back the balance
-    balance_bag::join(&mut self.underlying_balances, balance);
-    balance_bag::join(&mut self.underlying_balances, revenue_balance);
+    let balances = underlying_balances_mut<T>(self);
+    balance_bag::join(balances, balance);
+    balance_bag::join(balances, revenue_balance);
   }
 
   /// Handle protocol revenue in any coin type (e.g. collateral revenue from liquidation)
@@ -219,7 +279,7 @@ module protocol::reserve {
     let balance_sheet = wit_table::borrow_mut(BalanceSheets{}, &mut self.balance_sheets, get<T>());
     balance_sheet.cash = balance_sheet.cash + balance::value(&revenue_balance);
     balance_sheet.revenue = balance_sheet.revenue + balance::value(&revenue_balance);
-    balance_bag::join(&mut self.underlying_balances, revenue_balance);
+    balance_bag::join(underlying_balances_mut<T>(self), revenue_balance);
   }
 
   public(friend) fun mint_market_coin<T>(
@@ -242,7 +302,7 @@ module protocol::reserve {
     balance_sheet.market_coin_supply = balance_sheet.market_coin_supply + mint_amount;
 
     // Mint market coin
-    balance_bag::join(&mut self.underlying_balances, underlying_balance);
+    balance_bag::join(underlying_balances_mut<T>(self), underlying_balance);
     supply_bag::increase_supply<MarketCoin<T>>(&mut self.market_coin_supplies, mint_amount)
   }
   
@@ -272,7 +332,7 @@ module protocol::reserve {
 
     // Redeem underlying coin
     supply_bag::decrease_supply(&mut self.market_coin_supplies, market_coin_balance);
-    balance_bag::split<T>(&mut self.underlying_balances, redeem_amount)
+    balance_bag::split<T>(underlying_balances_mut<T>(self), redeem_amount)
   }
 
   public(friend) fun set_flash_loan_fee<T>(
@@ -301,7 +361,7 @@ module protocol::reserve {
     assert!(fee_discount_denominator > 0, error::invalid_flash_loan_fee_discount_error());
     assert!(fee_discount_numerator <= fee_discount_denominator, error::invalid_flash_loan_fee_discount_error());
 
-    let balance = balance_bag::split<T>(&mut self.underlying_balances, amount);
+    let balance = balance_bag::split<T>(underlying_balances_mut<T>(self), amount);
     let fee_rate = *wit_table::borrow(&self.flash_loan_fees, get<T>());
     let base_fee = if (fee_rate > 0) {
       // charge at least 1 unit of coin when fee_rate is not 0
@@ -335,7 +395,7 @@ module protocol::reserve {
     balance_sheet.revenue = balance_sheet.revenue + collected_fee;
 
     // repay flash loan
-    balance_bag::join(&mut self.underlying_balances, coin::into_balance(coin));
+    balance_bag::join(underlying_balances_mut<T>(self), coin::into_balance(coin));
   }
 
   /// Take revenue of the protocol from the reserve
@@ -353,7 +413,7 @@ module protocol::reserve {
     balance_sheet.cash = balance_sheet.cash - take_amount;
 
     // take revenue
-    let balance = balance_bag::split<T>(&mut self.underlying_balances, take_amount);
+    let balance = balance_bag::split<T>(underlying_balances_mut<T>(self), take_amount);
     coin::from_balance(balance, ctx)
   }
 
@@ -394,5 +454,37 @@ module protocol::reserve {
     // Take the revenue from the balance
     let balance = balance_bag::split<T>(balances, amount);
     coin::from_balance(balance, ctx)
+  }
+
+  #[test_only]
+  /// Put the coin's balance back into the `underlying_balances` field and drop the
+  /// dynamic-field bag once it is empty, recreating a reserve from before the migration.
+  public fun move_to_legacy_storage_for_testing<T>(self: &mut Reserve) {
+    let balances = dynamic_field::borrow_mut<UnderlyingBalancesKey, BalanceBag>(&mut self.id, UnderlyingBalancesKey {});
+    let balance = balance_bag::remove<T>(balances);
+    let is_empty = sui::bag::is_empty(balance_bag::bag(balances));
+    if (!balance_bag::contains<T>(&self.underlying_balances)) {
+      balance_bag::init_balance<T>(&mut self.underlying_balances);
+    };
+    balance_bag::join(&mut self.underlying_balances, balance);
+    if (is_empty) {
+      let bag = dynamic_field::remove<UnderlyingBalancesKey, BalanceBag>(&mut self.id, UnderlyingBalancesKey {});
+      balance_bag::destroy_empty(bag);
+    };
+  }
+
+  #[test_only]
+  public fun is_underlying_balances_migrated_for_testing(self: &Reserve): bool {
+    is_underlying_balances_migrated(self)
+  }
+
+  #[test_only]
+  public fun legacy_underlying_balances_for_testing(self: &Reserve): &BalanceBag {
+    &self.underlying_balances
+  }
+
+  #[test_only]
+  public fun legacy_underlying_balances_mut_for_testing(self: &mut Reserve): &mut BalanceBag {
+    &mut self.underlying_balances
   }
 }

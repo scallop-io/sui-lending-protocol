@@ -63,3 +63,63 @@ source = { local = "../sui_x_oracle/x_oracle" }
 use_environment = "mainnet"
 manifest_digest = "3876920E3F5449B657525E749B996C31141507452514AF2E259F5441554DCDDF"
 deps = { Sui = "Sui" }
+
+[pinned.testnet.CoinDecimalsRegistry]
+source = { local = "../libs/coin_decimals_registry" }
+use_environment = "testnet"
+manifest_digest = "C2772B976EC6A56C32071C116C869B6B810C731713A3E79642606E99AE1F55DA"
+deps = { Sui = "Sui" }
+
+[pinned.testnet.Decimal]
+source = { local = "../libs/decimal" }
+use_environment = "testnet"
+manifest_digest = "C2772B976EC6A56C32071C116C869B6B810C731713A3E79642606E99AE1F55DA"
+deps = { Sui = "Sui" }
+
+[pinned.testnet.Math]
+source = { local = "../libs/math" }
+use_environment = "testnet"
+manifest_digest = "C2772B976EC6A56C32071C116C869B6B810C731713A3E79642606E99AE1F55DA"
+deps = { Sui = "Sui" }
+
+[pinned.testnet.MoveStdlib]
+source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "027e13b2c14022b58067bd536c7e4f2afff72164" }
+use_environment = "testnet"
+manifest_digest = "C4FE4C91DE74CBF223B2E380AE40F592177D21870DC2D7EB6227D2D694E05363"
+deps = {}
+
+[pinned.testnet.ScallopProtocol]
+source = { root = true }
+use_environment = "testnet"
+manifest_digest = "3CF5C8845C90EBB985D3075C71F619250B06DADAC0F1CD9CA348EF7E44272FB0"
+deps = { CoinDecimalsRegistry = "CoinDecimalsRegistry", Decimal = "Decimal", Math = "Math", Sui = "Sui", TestCoin = "TestCoin", Whitelist = "Whitelist", X = "X", XOracle = "XOracle" }
+
+[pinned.testnet.Sui]
+source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "027e13b2c14022b58067bd536c7e4f2afff72164" }
+use_environment = "testnet"
+manifest_digest = "7AFB66695545775FBFBB2D3078ADFD084244D5002392E837FDE21D9EA1C6D01C"
+deps = { MoveStdlib = "MoveStdlib" }
+
+[pinned.testnet.TestCoin]
+source = { local = "../test_coin" }
+use_environment = "testnet"
+manifest_digest = "C2772B976EC6A56C32071C116C869B6B810C731713A3E79642606E99AE1F55DA"
+deps = { Sui = "Sui" }
+
+[pinned.testnet.Whitelist]
+source = { local = "../libs/whitelist" }
+use_environment = "testnet"
+manifest_digest = "C2772B976EC6A56C32071C116C869B6B810C731713A3E79642606E99AE1F55DA"
+deps = { Sui = "Sui" }
+
+[pinned.testnet.X]
+source = { local = "../libs/x" }
+use_environment = "testnet"
+manifest_digest = "C2772B976EC6A56C32071C116C869B6B810C731713A3E79642606E99AE1F55DA"
+deps = { Sui = "Sui" }
+
+[pinned.testnet.XOracle]
+source = { local = "../sui_x_oracle/x_oracle" }
+use_environment = "testnet"
+manifest_digest = "C2772B976EC6A56C32071C116C869B6B810C731713A3E79642606E99AE1F55DA"
+deps = { Sui = "Sui" }

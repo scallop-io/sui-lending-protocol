@@ -91,6 +91,9 @@ module protocol::error {
   public fun forced_deleverage_no_collateral_error(): u64 { 0x0017003 }
   public fun unable_to_force_deleverage_error(): u64 { 0x0017004 }
 
+  // balance migration
+  public fun unauthorized_balance_migration_error(): u64 { 0x0018001 }
+
   #[test_only]
   use sui::vec_set;
 
@@ -145,5 +148,6 @@ module protocol::error {
     vec_set::insert(&mut vec_set, forced_deleverage_no_debt_error());
     vec_set::insert(&mut vec_set, forced_deleverage_no_collateral_error());
     vec_set::insert(&mut vec_set, unable_to_force_deleverage_error());
+    vec_set::insert(&mut vec_set, unauthorized_balance_migration_error());
   }
 }

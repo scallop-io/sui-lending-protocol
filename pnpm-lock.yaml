@@ -26,8 +26,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(@mysten/sui@2.22.1(typescript@5.9.2))(axios@1.12.0)
       '@scallop-io/sui-kit':
-        specifier: ^3.0.0
-        version: 3.0.0(@mysten/sui@2.22.1(typescript@5.9.2))
+        specifier: 2.2.0
+        version: 2.2.0(@mysten/sui@2.22.1(typescript@5.9.2))
       '@scallop-io/sui-package-kit':
         specifier: ^1.21.3
         version: 1.21.3(typescript@5.9.2)
@@ -414,11 +414,11 @@ packages:
     peerDependencies:
       '@mysten/sui': ^2.7.0
 
-  '@scallop-io/sui-kit@3.0.0':
-    resolution: {integrity: sha512-yCmNijWECaxV9WsiWK1aZoDT0HYPooRv2Vw+bMVEYDuOc7slu1IAzYNOe+qIjaOCnxapxWPZT+QtjwRTQLs0bw==}
+  '@scallop-io/sui-kit@2.2.0':
+    resolution: {integrity: sha512-l1d6TucT6SWpIhFIbvxLVwTM/tQ3r75hgWUTkTCdSvWtLN5boh4ybd4MuRiWeYEKfK2svl23ivzBXmN36QqZqw==}
     engines: {node: '>=22'}
     peerDependencies:
-      '@mysten/sui': ~2.22.0
+      '@mysten/sui': ^2.0.0
 
   '@scallop-io/sui-package-kit@1.21.3':
     resolution: {integrity: sha512-REOlDN6+xLiNol+88HZFWqX38V2TO3qj9fB0wmWdwGiz4OurOAssBxmNcFqi0XMec9+BXITNNuoJ7uIrAw1TUQ==}
@@ -1417,7 +1417,7 @@ snapshots:
     transitivePeerDependencies:
       - axios
 
-  '@scallop-io/sui-kit@3.0.0(@mysten/sui@2.22.1(typescript@5.9.2))':
+  '@scallop-io/sui-kit@2.2.0(@mysten/sui@2.22.1(typescript@5.9.2))':
     dependencies:
       '@mysten/bcs': 2.1.0
       '@mysten/sui': 2.22.1(typescript@5.9.2)

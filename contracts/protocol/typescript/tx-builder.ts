@@ -612,6 +612,58 @@ export class ProtocolTxBuilder {
     )
   }
 
+  addForcedDeleverageAuthority(
+    suiTxBlock: SuiTxBlock,
+    address: string,
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::add_forced_deleverage_authority`,
+      [
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+        suiTxBlock.pure.address(address),
+      ],
+    )
+  }
+
+  removeForcedDeleverageAuthority(
+    suiTxBlock: SuiTxBlock,
+    address: string,
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::remove_forced_deleverage_authority`,
+      [
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+        suiTxBlock.pure.address(address),
+      ],
+    )
+  }
+
+  forcedDeleverage(
+    suiTxBlock: SuiTxBlock,
+    obligation: SuiTxArg,
+    repayCoin: SuiTxArg,
+    coinDecimalsRegistry: SuiTxArg,
+    xOracle: SuiTxArg,
+    debtCoinType: string,
+    collateralCoinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::forced_deleverage::forced_deleverage`,
+      [
+        this.versionId,
+        obligation,
+        this.marketId,
+        repayCoin,
+        coinDecimalsRegistry,
+        xOracle,
+        SUI_CLOCK_OBJECT_ID,
+      ],
+      [debtCoinType, collateralCoinType],
+    )
+  }
+
   whitelistAllowAll(
     suiTxBlock: SuiTxBlock,
   ) {
@@ -691,5 +743,67 @@ export class ProtocolTxBuilder {
         suiTxBlock.object(this.marketId),
       ],
     );
+  }
+
+  /// Move the reserve's balance of `coinType` into its dynamic-field storage (admin only)
+  migrateUnderlyingBalance(
+    suiTxBlock: SuiTxBlock,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::balance_migration::migrate_underlying_balance`,
+      [
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.versionId),
+        suiTxBlock.object(this.marketId),
+      ],
+      [coinType],
+    );
+  }
+
+  /// Move an obligation's collateral balance of `coinType` into its dynamic-field storage
+  /// (sender must be in the balance migration authority registry)
+  migrateCollateralBalance(
+    suiTxBlock: SuiTxBlock,
+    obligation: SuiTxArg,
+    coinType: string,
+  ) {
+    return suiTxBlock.moveCall(
+      `${this.packageId}::balance_migration::migrate_collateral_balance`,
+      [
+        suiTxBlock.object(this.versionId),
+        suiTxBlock.object(this.marketId),
+        obligation,
+      ],
+      [coinType],
+    );
+  }
+
+  addBalanceMigrationAuthority(
+    suiTxBlock: SuiTxBlock,
+    address: string,
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::add_balance_migration_authority`,
+      [
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+        suiTxBlock.pure.address(address),
+      ],
+    )
+  }
+
+  removeBalanceMigrationAuthority(
+    suiTxBlock: SuiTxBlock,
+    address: string,
+  ) {
+    suiTxBlock.moveCall(
+      `${this.packageId}::app::remove_balance_migration_authority`,
+      [
+        suiTxBlock.object(this.adminCapId),
+        suiTxBlock.object(this.marketId),
+        suiTxBlock.pure.address(address),
+      ],
+    )
   }
 }

@@ -18,7 +18,7 @@
     "@mysten/sui": "~2.22.1",
     "@pythnetwork/price-service-client": "^1.4.1",
     "@pythnetwork/pyth-sui-js": "^4.0.0",
-    "@scallop-io/sui-kit": "^3.0.0",
+    "@scallop-io/sui-kit": "2.2.0",
     "@scallop-io/sui-package-kit": "^1.21.3",
     "@switchboard-xyz/sui-sdk": "0.0.15",
     "fs": "0.0.1-security",

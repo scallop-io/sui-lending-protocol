@@ -1,88 +1,100 @@
 {
-  "pythPackageId": "0x8d97f1cd6ac663735be08d1d2b6d02a159e711586461306ce60a2b7a6a565a9e",
-  "pythStateId": "0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8",
-  "wormholePackageId": "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a",
-  "wormholeStateId": "0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c",
+  "pythPackageId": "0x55300367a2d40813727ccac4ecee977a39fb9cdb46f2e6b2c354b9798f5de2c0",
+  "pythStateId": "0x03719fae774ddab3cfcaa53bbc046f0cbe21410019b6280811bf3f9f4b05839d",
+  "wormholePackageId": "0x99de5c967d8206ef4b75c0afab3df2a59eb02b05c282821db803831008ac25b4",
+  "wormholeStateId": "0xdbca52b9fb4f712e25f61f974586d93ac541bcf8389564f0323bb07215168b5c",
   "priceFeeds": {
     "btc_usd": {
       "priceFeedId": "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
-      "priceFeedObjectId": "0x9a62b4863bdeaabdc9500fce769cf7e72d5585eeb28a6d26e4cafadc13f76ab2"
+      "priceFeedObjectId": "0xe64832d1b4c9a75139a7313aee69da891297d8397fda2863b5bdcc4af0b79758"
     },
     "eth_usd": {
       "priceFeedId": "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
-      "priceFeedObjectId": "0x9193fd47f9a0ab99b6e365a464c8a9ae30e6150fc37ed2a89c1586631f6fc4ab"
+      "priceFeedObjectId": "0x88d7ef5396b1f885ed347f97f3b58daae8a424122668e96bdb4ee847cff62adf"
     },
     "usdc_usd": {
       "priceFeedId": "eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
-      "priceFeedObjectId": "0x5dec622733a204ca27f5a90d8c2fad453cc6665186fd5dff13a83d0b6c9027ab"
+      "priceFeedObjectId": "0x6ddfc6f9921e55998cbc2e68f78eba897981d79ac17f66c5277bc38954a2a3f8"
     },
     "usdt_usd": {
       "priceFeedId": "2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
-      "priceFeedObjectId": "0x985e3db9f93f76ee8bace7c3dd5cc676a096accd5d9e09e9ae0fb6e492b14572"
+      "priceFeedObjectId": "0x939e666c48cfac89418f69a24cb857263d4c520f90d94ea0770e295b9857961e"
     },
     "sca_usd": {
       "priceFeedId": "7e17f0ac105abe9214deb9944c30264f5986bf292869c6bd8e8da3ccd92d79bc",
-      "priceFeedObjectId": "0xf6de1d3279a269a597d813cbaca59aa906543ab9a8c64e84a4722f1a20863985"
+      "priceFeedObjectId": ""
     },
     "sui_usd": {
       "priceFeedId": "23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744",
-      "priceFeedObjectId": "0x801dbc2f0053d34734814b2d6df491ce7807a725fe9a01ad74a07e9c51396c37"
+      "priceFeedObjectId": "0x89b2add829cb6fcd017153fff428bc9faec4d06d643ecfc435af5b55a9e987f0"
     },
     "sol_usd": {
       "priceFeedId": "ef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
-      "priceFeedObjectId": "0x9d0d275efbd37d8a8855f6f2c761fa5983293dd8ce202ee5196626de8fcd4469"
+      "priceFeedObjectId": "0x24a14523bbc266db0d4f68dab179f416e86848365de2bfe45490af920709e876"
     },
     "cetus_usd": {
       "priceFeedId": "e5b274b2611143df055d6e7cd8d93fe1961716bcd4dca1cad87a83bc1e78c1ef",
-      "priceFeedObjectId": "0x24c0247fb22457a719efac7f670cdc79be321b521460bd6bd2ccfa9f80713b14"
+      "priceFeedObjectId": "0xb14bce71ba7e52cd52947f236604ece40f7a58a1cdf0435c8b94cf6f2d84d302"
     },
     "apt_usd": {
       "priceFeedId": "03ae4db29ed4ae33d323568895aa00337e658e348b37509f5372ae51f0af00d5",
-      "priceFeedObjectId": "0x7c5b7837c44a69b469325463ac0673ac1aa8435ff44ddb4191c9ae380463647f"
+      "priceFeedObjectId": "0xb6890901027251f86899e728b1b31dd9821175635a6c9b9b687cd95b8c11103d"
     },
     "deep_usd": {
-      "priceFeedId": "0x29bdd5248234e33bd93d3b81100b5fa32eaa5997843847e2c2cb16d7c6d9f7ff",
-      "priceFeedObjectId": "0x8c7f3a322b94cc69db2a2ac575cbd94bf5766113324c3a3eceac91e3e88a51ed"
+      "priceFeedId": "29bdd5248234e33bd93d3b81100b5fa32eaa5997843847e2c2cb16d7c6d9f7ff",
+      "priceFeedObjectId": "0x562957f70afaf8a0870e2959abc3e3f327a8159f803d8c56cff27ac2df260477"
     },
     "fud_usd": {
-      "priceFeedId": "0x6a4090703da959247727f2b490eb21aea95c8684ecfac675f432008830890c75",
-      "priceFeedObjectId": "0x4531c3ed0d22f21f5fce882905372006c9aafa30f01db03b789e95a6c50de7b2"
+      "priceFeedId": "",
+      "priceFeedObjectId": ""
     },
     "fdusd_usd": {
-      "priceFeedId": "0xccdc1a08923e2e4f4b1e6ea89de6acbc5fe1948e9706f5604b8cb50bc1ed3979",
-      "priceFeedObjectId": "0x5f6583b2b0fe1ecf94aaffeaab8a838794693960cea48c0da282d5f4a24be027"
+      "priceFeedId": "ccdc1a08923e2e4f4b1e6ea89de6acbc5fe1948e9706f5604b8cb50bc1ed3979",
+      "priceFeedObjectId": "0xf905acf04bac920b667192ea97ea82e615e6a640167b05dcd090df27d85a3ca2"
     },
     "blub_usd": {
-      "priceFeedId": "0x5fc11ffe4975b624be495be038da30e30bee2004d8ae6282b5364577ef4ca92c",
-      "priceFeedObjectId": "0x246658c3324f2477568c78cca622518fbc6969a004b841d81409d24a7ec39b18"
+      "priceFeedId": "",
+      "priceFeedObjectId": ""
     },
     "musd_usd": {
-      "priceFeedId": "0x2ee09cdb656959379b9262f89de5ff3d4dfed0dd34c072b3e22518496a65249c",
-      "priceFeedObjectId": "0x72fbf053d6009a40cff74d9708592bd7b86673a0e7b252077e1aa53390976584"
+      "priceFeedId": "",
+      "priceFeedObjectId": ""
     },
     "ns_usd": {
-      "priceFeedId": "0xbb5ff26e47a3a6cc7ec2fce1db996c2a145300edc5acaabe43bf9ff7c5dd5d32",
-      "priceFeedObjectId": "0xc6352e1ea55d7b5acc3ed690cc3cdf8007978071d7bfd6a189445018cfb366e0"
+      "priceFeedId": "bb5ff26e47a3a6cc7ec2fce1db996c2a145300edc5acaabe43bf9ff7c5dd5d32",
+      "priceFeedObjectId": "0xea0d962a2b2cb35bbc262514ea6cfed02fdb3d5bedb193ca0d50bfefc98abebc"
     },
     "usdy_rr_usd": {
-      "priceFeedId": "0xe3d1723999820435ebab53003a542ff26847720692af92523eea613a9a28d500",
-      "priceFeedObjectId": "0x773cb390165e227cbd5bd924edaeff7d33b1b78aac045c4903ed9be7e711741a"
+      "priceFeedId": "e3d1723999820435ebab53003a542ff26847720692af92523eea613a9a28d500",
+      "priceFeedObjectId": "0xd726651e0ef603ac13eaa7c165cd0a192fc6434cc00976c9220459044775a093"
     },
     "wal_usd": {
-      "priceFeedId": "0xeba0732395fae9dec4bae12e52760b35fc1c5671e2da8b449c9af4efe5d54341",
-      "priceFeedObjectId": "0xeb7e669f74d976c0b99b6ef9801e3a77716a95f1a15754e0f1399ce3fb60973d"
+      "priceFeedId": "eba0732395fae9dec4bae12e52760b35fc1c5671e2da8b449c9af4efe5d54341",
+      "priceFeedObjectId": "0xdbea8600eeeb0399df58c28e73b8201ae880a954813131d33bfa6902ccdadd24"
     },
     "haedal_usd": {
-      "priceFeedId": "0xe67d98cc1fbd94f569d5ba6c3c3c759eb3ffc5d2b28e64538a53ae13efad8fd1",
-      "priceFeedObjectId": "0xbc98681c15de1ca1b80a8e26500d43c77f7113368b024de1bf490afcb0387109"
+      "priceFeedId": "e67d98cc1fbd94f569d5ba6c3c3c759eb3ffc5d2b28e64538a53ae13efad8fd1",
+      "priceFeedObjectId": "0xcdefc25e55d4faa895874395989407d3b464fe7cf79110155c8f0a770fb9734a"
     },
     "lofi_usd": {
-      "priceFeedId": "0x82eebc2c47490ba9c0f9bc35ea9fb57a7e2bbf69b84a04ea2a3525153b8090ea",
-      "priceFeedObjectId": "0xb65b2888e74b2be973616740da410670ecd6d1d1f4b5456acc7b04ece9c95559"
+      "priceFeedId": "",
+      "priceFeedObjectId": ""
     },
     "xaum_rr_usd": {
-      "priceFeedId": "0xd7db067954e28f51a96fd50c6d51775094025ced2d60af61ec9803e553471c88",
-      "priceFeedObjectId": "0x2731a8e3e9bc69b2d6af6f4c032fcd4856c77e2c21f839134d1ebcc3a16e4b1b"
+      "priceFeedId": "d7db067954e28f51a96fd50c6d51775094025ced2d60af61ec9803e553471c88",
+      "priceFeedObjectId": "0xb81afb56abc903ce2c6f7e96fa8fbe3fc66d4ed9dbd9027a7d16d15dca387366"
+    },
+    "aaplx_usd": {
+      "priceFeedId": "978e6cc68a119ce066aa830017318563a9ed04ec3a0a6439010fc11296a58675",
+      "priceFeedObjectId": "0x9a188fb131aa32ffd363870aeb042aa98a7e3a719b70a5c3932d37101b7e3496"
+    },
+    "nvdax_usd": {
+      "priceFeedId": "4244d07890e4610f46bbde67de8f43a4bf8b569eebe904f136b469f148503b7f",
+      "priceFeedObjectId": "0x471414652f26958115b24ff65347f9e908a8668fda08518e24e3560fca84a757"
+    },
+    "spcxx_usd": {
+      "priceFeedId": "e8e2234a06b288fedde43ae9450cb288886ecb3259ad2f41d0067f02244a0101",
+      "priceFeedObjectId": "0x95ce4063b7679ed1ae4994a0bc9d479e90df40b38f3ac0da06f8a241b4dd61e9"
     }
   }
 }

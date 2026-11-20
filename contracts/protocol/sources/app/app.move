@@ -640,7 +640,7 @@ module protocol::app {
     obligation_access::remove_reward_key<T>(obligation_access_store);
   }
 
-  public entry fun update_borrow_fee<T: drop>(
+  public entry fun update_borrow_fee<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
     fee_numerator: u64,
@@ -665,7 +665,7 @@ module protocol::app {
     abort 0;
   }
 
-  public entry fun update_supply_limit<T: drop>(
+  public entry fun update_supply_limit<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
     limit_amount: u64,
@@ -677,7 +677,7 @@ module protocol::app {
     dynamic_field::add(market_uid_mut, key, limit_amount);
   }
 
-  public entry fun update_min_collateral_amount<T: drop>(
+  public entry fun update_min_collateral_amount<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
     min_amount: u64,
@@ -689,7 +689,7 @@ module protocol::app {
     dynamic_field::add(market_uid_mut, key, min_amount);
   }  
 
-  public entry fun update_borrow_limit<T: drop>(
+  public entry fun update_borrow_limit<T>(
     _admin_cap: &AdminCap,
     market: &mut Market,
     limit_amount: u64,
@@ -701,7 +701,7 @@ module protocol::app {
     dynamic_field::add(market_uid_mut, key, limit_amount);
   }  
 
-  public entry fun update_isolated_asset_status<PoolType: drop>(
+  public entry fun update_isolated_asset_status<PoolType>(
     _admin_cap: &AdminCap,
     market: &mut Market,
     is_isolated: bool,

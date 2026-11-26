@@ -29,6 +29,7 @@ export type SupportedCollaterals =
   | 'USDSUI'
   | 'XAUm'
   | 'scaSui'
+  | 'hBTC'
 ;
 
 export type SupportedBaseAssets =
@@ -65,6 +66,7 @@ export type SupportedBaseAssets =
   | 'USDSUI'
   | 'XAUm'
   | 'scaSui'
+  | 'hBTC'
 ;
 
 export const coinTypes = {
@@ -102,6 +104,7 @@ export const coinTypes = {
   USDSUI: '0x44f838219cf67b058f3b37907b655f226153c18e33dfcd0da559a844fea9b1c1::usdsui::USDSUI',
   XAUm: '0x9d297676e7a4b771ab023291377b2adfaa4938fb9080b8d12430e4b108b836a9::xaum::XAUM',
   scaSui: '0xda008a552a2d6a9566fa6204255d55ab32ce00f23e307145dec2644cf83336b2::sca_sui::SCA_SUI',
+  hBTC: '0xd30fb3f8914efdbeb7b8e85fae1d65dc584b44a1281f66737b92bb9f03a59d06::btc::BTC',
 };
 
 export const coinMetadataIds = {
@@ -139,6 +142,12 @@ export const coinMetadataIds = {
   USDSUI: '', // suiUSDe using currency registry, no metadata id
   XAUm: '0x7c03508c00036b4a6ec1f7a4a225537992ae6fed24bafa152b70b7a414b19dbd',
   scaSui: '0x71dd901768abcd6e83c4bca76dc7b45fe1ef038c554eba4b1fd76a4c5d91703d',
+  hBTC: '', // hBTC using currency registry, no metadata id (see coinCurrencyIds)
+};
+
+// `0x2::coin_registry::Currency<T>` object ids, for coins that have no legacy CoinMetadata
+export const coinCurrencyIds: Partial<Record<keyof typeof coinTypes, string>> = {
+  hBTC: '0x0e7582cdfa3decc2006139e742920f91313a6719bbd8ba4c16fc808cba885cc5',
 };
 
 export const coinDecimals = {
@@ -176,4 +185,5 @@ export const coinDecimals = {
   USDSUI: 6,
   XAUm: 9,
   scaSui: 9,
+  hBTC: 8,
 }

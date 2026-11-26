@@ -18,6 +18,7 @@ export const MinCollaterals: Record<SupportedCollaterals, number> = {
     sbwBTC: 10 ** (coinDecimals.sbwBTC - 6), // 0.000001 Btc
     xBTC: 10 ** (coinDecimals.xBTC - 6), // 0.000001 Btc
     zWBtc: 10 ** (coinDecimals.zWBtc - 6), // 0.000001 Btc
+    hBTC: 10 ** (coinDecimals.hBTC - 6), // 0.000001 Btc
     wormholeSol: 10 ** (coinDecimals.wormholeSol - 3), // 0.001 Sol
     nativeUsdc: 10 ** (coinDecimals.nativeUsdc - 2), // 0.01 USDC
     sbEth: 10 ** (coinDecimals.sbEth - 3), // 0.001 SBETH

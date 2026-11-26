@@ -24,6 +24,7 @@ export const oracles: Record<SupportedBaseAssets | SupportedCollaterals, OracleD
   sbwBTC: { pythPriceObjectId: pythOracleData.priceFeeds.btc_usd.priceFeedObjectId },
   xBTC: { pythPriceObjectId: pythOracleData.priceFeeds.btc_usd.priceFeedObjectId },
   zWBtc: { pythPriceObjectId: pythOracleData.priceFeeds.btc_usd.priceFeedObjectId },
+  hBTC: { pythPriceObjectId: pythOracleData.priceFeeds.btc_usd.priceFeedObjectId },
   wormholeSol: { pythPriceObjectId: pythOracleData.priceFeeds.sol_usd.priceFeedObjectId },
   nativeUsdc: { pythPriceObjectId: pythOracleData.priceFeeds.usdc_usd.priceFeedObjectId },
   sbEth: { pythPriceObjectId: pythOracleData.priceFeeds.eth_usd.priceFeedObjectId },

@@ -19,6 +19,7 @@ export const BorrowLimits: Record<SupportedBaseAssets, number> = {
     sbwBTC: 20 * Math.pow(10, coinDecimals.sbwBTC),
     xBTC: 10 * Math.pow(10, coinDecimals.xBTC),
     zWBtc: 5 * Math.pow(10, coinDecimals.zWBtc),
+    hBTC: 20 * Math.pow(10, coinDecimals.hBTC),
     wormholeSol: 2e4 * Math.pow(10, coinDecimals.wormholeSol),
     nativeUsdc: 5e7 * Math.pow(10, coinDecimals.nativeUsdc),
     sbEth: 5e3 * Math.pow(10, coinDecimals.sbEth),

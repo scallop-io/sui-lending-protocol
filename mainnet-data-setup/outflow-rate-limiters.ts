@@ -172,5 +172,10 @@ export const outflowRateLimiters: Record<SupportedBaseAssets, OutflowLimiterMode
     outflowLimit: 50 * (10 ** coinDecimals.XAUm), // 50 XAUm per day
     outflowCycleDuration,
     outflowSegmentDuration,
-  }
+  },
+  hBTC: {
+    outflowLimit: 1 * 10 ** (0 + coinDecimals.hBTC), // 1 BTC per day
+    outflowCycleDuration,
+    outflowSegmentDuration,
+  },
 }

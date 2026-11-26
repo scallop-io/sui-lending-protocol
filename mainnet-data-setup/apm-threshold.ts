@@ -17,6 +17,7 @@ export const ApmThresholds: Record<SupportedCollaterals, number> = {
     sbwBTC: 100,
     xBTC: 100,
     zWBtc: 100,
+    hBTC: 100,
     wormholeSol: 100,
     nativeUsdc: 100,
     sbEth: 100,

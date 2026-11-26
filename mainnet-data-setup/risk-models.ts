@@ -110,7 +110,7 @@ export const sbwBtcRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
-  maxCollateralAmount: 50 * 10 ** (coinDecimals.sbwBTC), // 50 BTC
+  maxCollateralAmount: 10 * 10 ** (coinDecimals.sbwBTC), // 10 BTC
 }
 
 export const wormholeSolRiskModel: RiskModel = {
@@ -218,7 +218,7 @@ export const xBtcRiskModel: RiskModel = {
   liquidationPanelty: 5,
   liquidationDiscount: 2,
   scale: 100,
-  maxCollateralAmount: 20 * 10 ** (coinDecimals.xBTC), // 20 xBTC
+  maxCollateralAmount: 2 * 10 ** (coinDecimals.xBTC), // 2 xBTC
 }
 
 export const zWBtcRiskModel: RiskModel = {
@@ -257,6 +257,15 @@ export const XAUmRiskModel: RiskModel = {
   maxCollateralAmount: 25 * 10 ** (coinDecimals.XAUm), // 25 XAUm
 }
 
+export const hBtcRiskModel: RiskModel = {
+  collateralFactor: 75,
+  liquidationFactor: 80,
+  liquidationPanelty: 5,
+  liquidationDiscount: 2,
+  scale: 100,
+  maxCollateralAmount: 1 * 10 ** (coinDecimals.hBTC), // 1 BTC
+}
+
 export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   sui: suiRiskModel,
   sca: scaRiskModel,
@@ -286,4 +295,5 @@ export const riskModels: Record<SupportedCollaterals, RiskModel> = {
   suiUSDe: suiUSDeRiskModel,
   USDSUI: USDSUIRiskModel,
   XAUm: XAUmRiskModel,
+  hBTC: hBtcRiskModel,
 }

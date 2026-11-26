@@ -16,6 +16,7 @@ export const borrowFees: Record<SupportedBaseAssets, BorrowFee> = {
   sbwBTC: { numerator: 3, denominator: 1000 },
   xBTC: { numerator: 3, denominator: 1000 },
   zWBtc: { numerator: 3, denominator: 1000 },
+  hBTC: { numerator: 3, denominator: 1000 },
   wormholeSol: { numerator: 3, denominator: 1000 },
   nativeUsdc: { numerator: 3, denominator: 1000 },
   sbEth: { numerator: 3, denominator: 1000 },
